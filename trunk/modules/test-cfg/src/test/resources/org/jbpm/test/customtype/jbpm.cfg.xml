@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jbpm-configuration>
+
+  <import resource="jbpm.businesscalendar.cfg.xml" />
+  <import resource="jbpm.jpdl.cfg.xml" />
+  <import resource="jbpm.identity.cfg.xml" />
+  <import resource="jbpm.default.scriptmanager.xml" />
+
+  <process-engine-context>
+
+    <types resource="org/jbpm/test/customtype/jbpm.variable.types.xml" />
+
+    <hibernate-configuration>
+      <cfg resource="org/jbpm/test/customtype/jbpm.hibernate.cfg.xml" />     
+    </hibernate-configuration>
+    
+    
+    <!-- 
+    Above are the customized parts.  The rest is just duplication
+    of the default and hibernate tx config files 
+    -->
+    
+
+    <hibernate-session-factory />
+
+    <command-service name="txRequiredCommandService">
+      <skip-interceptor />
+      <retry-interceptor />
+      <environment-interceptor />
+      <standard-transaction-interceptor />
+    </command-service>
+
+    <command-service name="newTxRequiredCommandService">
+      <retry-interceptor />
+      <environment-interceptor policy="requiresNew" />
+      <standard-transaction-interceptor />
+    </command-service>
+
+    <repository-service />
+    <repository-cache />
+    <execution-service />
+    <history-service />
+    <management-service />
+    <identity-service />
+    <task-service />
+
+    <object class="org.jbpm.pvm.internal.id.DatabaseDbidGenerator">
+      <field name="commandService"><ref object="newTxRequiredCommandService" /></field>
+    </object>
+
+    <object class="org.jbpm.pvm.internal.id.DatabaseIdComposer" init="eager" />
+
+    <types resource="jbpm.variable.types.xml" />
+
+    <address-resolver />
+
+    <mail-template name='task-notification'>
+      <to users="${task.assignee}"/>
+      <subject>${task.name}</subject>
+      <text><![CDATA[Hi ${task.assignee},
+Task "${task.name}" has been assigned to you.
+${task.description}
+
+Sent by JBoss jBPM
+]]></text>
+    </mail-template>
+  
+    <mail-template name='task-reminder'>
+      <to users="${task.assignee}"/>
+      <subject>${task.name}</subject>
+      <text><![CDATA[Hey ${task.assignee},
+Do not forget about task "${task.name}".
+${task.description}
+
+Sent by JBoss jBPM
+]]></text>
+    </mail-template>
+  
+  </process-engine-context>
+
+  <transaction-context>
+    <transaction />
+
+    <hibernate-session />
+    <repository-session />
+    <db-session />
+    <message-session />
+    <timer-session />
+    
+    <history-sessions>
+      <object class="org.jbpm.pvm.internal.history.HistorySessionImpl" />
+    </history-sessions>
+    
+    <mail-session>
+      <mail-server>
+        <session-properties resource="jbpm.mail.properties" />
+      </mail-server>
+    </mail-session>
+
+  </transaction-context>
+
+</jbpm-configuration>

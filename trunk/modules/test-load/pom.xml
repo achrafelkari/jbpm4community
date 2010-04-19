@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--                                                                        -->
+<!--  Distributable under LGPL license.                                     -->
+<!--  See terms of license at http://www.gnu.org.                           -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+
+<!-- $Id: pom.xml 6237 2010-03-28 00:04:36Z alex.guizar@jboss.com $ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <name>jBPM 4 - Test Load</name>
+  <groupId>org.jbpm.jbpm4</groupId>
+  <artifactId>jbpm-test-load</artifactId>
+  <packaging>jar</packaging>
+
+  <!-- Parent -->
+  <parent>
+    <groupId>org.jbpm.jbpm4</groupId>
+    <artifactId>jbpm</artifactId>
+    <version>4.4-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <!-- Dependencies -->
+  <dependencies>
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-test-base</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-jpdl</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    
+    <!-- TODO remove PVM dependency for compilation (keep it for test)-->
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-pvm</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    
+  </dependencies>
+  
+    <!-- Plugins -->
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/*TestCase.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+
+      <plugin>                                                   
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack.jbpm.db</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.jbpm.jbpm4</groupId>
+                  <artifactId>jbpm-jpdl</artifactId>
+                  <classifier>config</classifier>
+                  <overWrite>true</overWrite>
+                </artifactItem>
+              </artifactItems>
+              <excludeTransitive>true</excludeTransitive>
+              <outputDirectory>target/jpdl-config</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>install.hibernate.database.properties</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <copy file="target/jpdl-config/hibernate.cfg.${database}.xml"
+                      tofile="target/test-classes/hibernate.cfg.xml"
+                      overwrite="true" />
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
+</project>

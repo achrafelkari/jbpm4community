@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="Process">
+
+  <start>
+    <transition to="a" />
+  </start>
+
+  <java name="a" 
+        class="org.jbpm.test.load.executions.Automatic"
+        method="doNothing">
+    <transition to="b" />
+  </java>
+  
+  <java name="b" 
+        class="org.jbpm.test.load.executions.Automatic"
+        method="doNothing">
+    <transition to="c" />
+  </java>
+  
+  <state name="c">
+    <transition to="d" />
+  </state>
+
+  <java name="d" 
+        class="org.jbpm.test.load.executions.Automatic"
+        method="doNothing">
+    <transition to="e" />
+  </java>
+  
+  <java name="e" 
+        class="org.jbpm.test.load.executions.Automatic"
+        method="doNothing">
+    <transition to="end" />
+  </java>
+  
+  <end name="end" />
+  
+</process>

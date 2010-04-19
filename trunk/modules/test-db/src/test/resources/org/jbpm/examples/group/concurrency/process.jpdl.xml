@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="GroupConcurrency">
+
+  <start>
+    <transition to="evaluate project" />
+  </start>
+  
+  <group name="evaluate project">
+    <start>
+      <transition to="distribute document" />
+    </start>
+    <state name="distribute document">
+      <transition to="collect feedback" />
+    </state>
+    <state name="collect feedback">
+      <transition to="document finished" />
+    </state>
+    <end name="document finished" />
+
+    <start>
+      <transition to="make planning" />
+    </start>
+    <state name="make planning">
+      <transition to="estimate budget" />
+    </state>
+    <state name="estimate budget">
+      <transition to="planning finished" />
+    </state>
+    <end name="planning finished" />
+
+    <transition to="public project announcement" />
+  </group>
+  
+  <state name="public project announcement" />
+
+</process>

@@ -1,0 +1,53 @@
+<chapter id="delegationclasses">
+  <title>Delegation classes</title>
+  
+   <section>
+     <title>What are delegation classes</title>
+     <para>Delegation classes are the classes that implement 
+     <literal>Activity</literal> or <literal>Condition</literal>.  From the Process 
+     Virtual Machine's perspective, these are external classes that provide 
+     programming logic that is inserted into the PVM's graph execution.
+     Delegation classes can be provided by the process languages as well 
+     as by the end users.
+     </para>
+   </section>
+
+   <section>
+     <title>Configuration of delegation classes</title>
+     <para>Delegation classes can be made configurable.  Member fields can 
+     contain configuration parameters so that a delegation class can be 
+     configured differently each time it is used.  For example, in the 
+     <literal><link linkend="activity">Display</link></literal> activity,
+     the message that is to be printed to the console is a configuration 
+     parameter.
+     </para>
+     <para>Delegation classes should be stateless.  This means that executing the interface 
+     methods should not change values of the member fields.  Changing member field values 
+     of delegation classes during execution methods is actually changing the process 
+     while it's executing.  That is not threadsafe and usually leads to unexpected 
+     results.  As an exception, getters and setters might be made available to inject 
+     the configuration cause they are used before the delegation object is actually 
+     used in the process execution.
+     </para>
+  </section>
+
+  <section>
+    <title>Object references</title>
+    <para>TODO</para>
+  </section>
+  
+   <section>
+     <title>Design time versus runtime</title>
+     <para>TODO: the activity behaviour allows for design time as well as runtime behaviour.</para>
+   </section>
+    
+   <section>
+     <title>UserCodeInterceptor</title>
+     <para>TODO: UserCodeInterceptor</para>
+   </section>
+    
+   <section>
+     <title>Member field configurations versus properties</title>
+     <para>TODO: document field configurations versus properties</para>
+   </section>
+</chapter>

@@ -1,0 +1,99 @@
+<chapter id="softwarelogging">
+  <title>Software logging</title>
+
+  <section>
+    <title>Configuration</title>
+    <para>PVM can use JDK logging (java.util.logging) or log4j. When the first message is 
+    logged, PVM logging will make the selection with following procedure:
+    <orderedlist>
+      <listitem>If a <literal>logging.properties</literal> resource is found 
+      on the classpath (using the context classloader), then JDK logging will 
+      be used and that file will be used to initialize the JDK logging.
+      </listitem>
+      <listitem>If log4j is found on the classpath, then log4j will be used.
+      The check for log4j will be done by checking availability of class 
+      <literal>org.apache.log4j.LogManager</literal> with the context classloader.
+      </listitem>
+      <listitem>If none of the above, JDK logging will be used.</listitem>
+    </orderedlist>
+    </para>
+  </section>
+
+  <section>
+    <title>Categories</title>
+    <para>The PVM classes use their class name as the category for the logger.
+    </para>
+    <para>To have a basic understanding of what the PVM classes are doing, 
+    turning on the <literal>debug</literal> level is great.  Level 
+    <literal>trace</literal> might be spitting out too much for that 
+    purpose. 
+    </para>
+  </section>
+  
+  <section>
+    <title>JDK logging</title>
+    <para>In JDK logging, <literal>debug</literal> maps to <literal>fine</literal> 
+    and <literal>trace</literal> maps to <literal>finest</literal>. 
+    Level <literal>finer</literal> is not used.
+    </para>
+    <para><literal>org.jbpm.pvm.internal.log.LogFormatter</literal> is part of 
+    the pvm library and it can create a nice one-line output for log messages.
+    It also has a neat feature that creates a unique indentation per thread.
+    To configure it, this is a typical <literal>logging.properties</literal>
+    </para>
+    <programlisting>handlers = java.util.logging.ConsoleHandler
+java.util.logging.ConsoleHandler.level = FINEST
+java.util.logging.ConsoleHandler.formatter = org.jbpm.pvm.internal.log.LogFormatter
+
+# For example, set the com.xyz.foo logger to only log SEVERE messages:
+# com.xyz.foo.level = SEVERE
+
+.level = SEVERE
+org.jbpm.level=FINE
+org.jbpm.tx.level=FINE
+org.jbpm.pvm.internal.wire.level=FINE</programlisting>
+
+<!-- 
+    <para>For production usage, jBPM also includes an error triggered log handler.  This is 
+    a log handler that will only keep the most recent log messages in 
+    memory and these will only be flushed to a file in case an error occurs.
+    </para>
+    <para>to configure it, add <literal>org.jbpm.util.ErrorTriggeredFileHandler</literal>
+    to the handlers in the logging properties like this:
+    </para>
+    <programlisting>handlers = java.util.logging.ConsoleHandler org.jbpm.util.ErrorTriggeredFileHandler</programlisting>
+    <para>Next snippet shows how in the same logging.properties, the error 
+    triggered file handler can be configured.  The given values are the default 
+    values.
+    </para>
+    <programlisting>org.jbpm.util.ErrorTriggeredFileHandler.size = 500
+org.jbpm.util.ErrorTriggeredFileHandler.push = SEVERE
+org.jbpm.util.ErrorTriggeredFileHandler.pattern = %h/jbpm%u.log</programlisting>
+    <para>Alternatively to using the org.jbpm.util.ErrorTriggeredFileHandler, the 
+    JDK handlers FileHandler and MemoryHandler can used in combination to get 
+    similar results with a bit more configuration.
+    </para>
+
+-->    
+  </section>
+
+  <section>
+    <title>Debugging persistence</title>
+    <para>When testing the persistence, following logging configurations can be 
+    valuable.  Category <literal>org.hibernate.SQL</literal> shows the SQL statement that is executed 
+    and category <literal>org.hibernate.type</literal> shows the values of the parameters that are 
+    set in the queries. 
+    </para>
+    <programlisting>org.hibernate.SQL.level=FINEST
+org.hibernate.type.level=FINEST</programlisting>
+    <para>And in case you get a failed batch as a cause in a hibernate exception,
+    you might want to set the batch size to 0 like this in the hibernate properties:
+    </para>
+    <programlisting>hibernate.jdbc.batch_size = 0</programlisting>
+    <para>Also in the hibernate properties, the following properties allow for 
+    detailed logs of the SQL that hibernate spits out:</para>
+    <programlisting>hibernate.show_sql = true
+hibernate.format_sql = true
+hibernate.use_sql_comments = true</programlisting>
+  </section>
+</chapter>  

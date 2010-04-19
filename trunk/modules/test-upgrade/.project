@@ -1,0 +1,23 @@
+<projectDescription>
+  <name>jbpm-test-upgrade</name>
+  <comment/>
+  <projects>
+    <project>api</project>
+    <project>jpdl</project>
+    <project>log</project>
+    <project>pvm</project>
+    <project>test-base</project>
+  </projects>
+  <buildSpec>
+    <buildCommand>
+      <name>org.eclipse.jdt.core.javabuilder</name>
+    </buildCommand>
+    <buildCommand>
+      <name>org.maven.ide.eclipse.maven2Builder</name>
+    </buildCommand>
+  </buildSpec>
+  <natures>
+    <nature>org.eclipse.jdt.core.javanature</nature>
+    <nature>org.maven.ide.eclipse.maven2Nature</nature>
+  </natures>
+</projectDescription>

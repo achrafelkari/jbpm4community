@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process-definition 
+  xmlns="urn:jbpm.org:jpdl-3.2"
+  name="simple">
+   <start-state name="start">
+      <transition name="to_state" to="first">
+         <action name="action" class="com.test.MessageActionHandler">
+            <message>Going to the first state!</message>
+         </action>
+      </transition>
+   </start-state>
+   <state name="first">
+      <transition name="to_end" to="end">
+         <action name="action" class="com.test.MessageActionHandler">
+            <message>About to finish!</message>
+         </action>
+      </transition>
+   </state>
+   <end-state name="end"></end-state>
+   
+	<event type="process-start">
+		
+		<action name="ation1" expression="a=b+c"></action>
+		<action name="action2" class="com.test.Logger"></action>
+		<script>run this script</script>
+	</event>
+   
+   
+</process-definition>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="testprocess2" xmlns="http://jbpm.org/4.3/jpdl">
+
+	<start>
+		<transition to="testVariable" />
+	</start>
+
+	<decision name="testVariable">
+		<transition to="end">
+			<condition expr="#{var &lt; 6}" />
+		</transition>
+    <transition to="more than 5">
+      <condition expr="#{var &gt; 5}" />
+    </transition>
+	</decision>
+	
+	<state name="more than 5">
+	  <transition to="testVariable" />
+	</state>
+
+	<end name="end" />
+
+</process>

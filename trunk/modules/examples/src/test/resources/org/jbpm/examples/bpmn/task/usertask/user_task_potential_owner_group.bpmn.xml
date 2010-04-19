@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://schema.omg.org/spec/BPMN/2.0 ../../../../../../../../../../bpmn/src/main/resources/BPMN20.xsd"
+  xmlns="http://schema.omg.org/spec/BPMN/2.0" typeLanguage="http://www.w3.org/2001/XMLSchema"
+  expressionLanguage="http://www.w3.org/1999/XPath" 
+  targetNamespace="http://jbpm.org/example/bpmn2/potential_owner"
+  xmlns:jbpm="http://jbpm.org/bpmn2">
+  
+  <resource id="manager" name="manager" />
+
+  <process id="userTaskPotentialOwnerGroup">
+
+    <startEvent id="start" />
+    
+    <sequenceFlow id="flow1" sourceRef="start" targetRef="myTask" />
+    
+    <userTask id="myTask" name="My User task">
+      <potentialOwner resourceRef="manager" jbpm:type="group">
+        <resourceAssignmentExpression>
+          <formalExpression>management</formalExpression>
+        </resourceAssignmentExpression>
+      </potentialOwner>
+    </userTask>
+
+    <sequenceFlow id="flow2" sourceRef="myTask" targetRef="end"  />
+
+    <endEvent id="end" name="End" />
+
+
+  </process>
+</definitions>

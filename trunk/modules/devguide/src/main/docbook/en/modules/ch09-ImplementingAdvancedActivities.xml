@@ -1,0 +1,398 @@
+<chapter id="advancedgraphexecution">
+  <title>Advanced graph execution</title>
+
+  <!-- ### LOOPS ########################################################## -->
+  <section>
+    <title>Loops</title>
+    <para>Activities can implement loops based on transitions or on activity composition.  
+    Loops can contain wait states.    
+    </para>
+    <para>To support high numbers of automatic loop executions, the Process Virtual Machine 
+    tranformed the propagation of execution from tail recursion to a while loop.
+    </para>
+  </section>
+
+  <!-- ### DEFAULT PROCEED BEHAVIOUR ###################################### -->
+  <section id="implicitproceedbehaviour">
+    <title>Implicit proceed behaviour</title>
+    <para>An <literal>ActivityBehaviour</literal> can 
+    explicitely propagate the execution with following methods:
+    </para>
+    <itemizedlist>
+      <listitem><literal>waitForSignal()</literal></listitem>
+      <listitem><literal>take(Transition)</literal></listitem>
+      <listitem><literal>end(*)</literal></listitem>
+      <listitem><literal>execute(Activity)</literal></listitem>
+      <listitem><literal>createExecution(*)</literal></listitem>
+    </itemizedlist>
+    
+    <para>As a side note, some of these methods are not exposed in the 
+    interfaces, but only in the implementation.  Those methods are still 
+    in 'incubation'.  So if you want to use those, you can use them at your 
+    own risk by casting the ActivityExecution interface to the implementation
+    class ExecutionImpl. 
+    </para>
+    
+    <para>When <literal>ActivityBehaviour</literal> implementations used for activity behviour 
+    don't call any of the following execution propagation methods, then, after 
+    the activity is executed, the execution will apply the implicit proceed behaviour. 
+    </para>
+    <para>The implicit proceed behaviour is defined as follows:</para>
+    <itemizedlist>
+      <listitem>If the current activity has a default outgoing transition, take it.</listitem>
+      <listitem>If the current activity has a parent activity, move back to the parent activity.</listitem>
+      <listitem>Otherwise, end this execution.</listitem>
+    </itemizedlist>
+    <para>Process languages can overwrite the implicit proceed behaviour 
+    by overriding the <literal>proceed</literal> method in 
+    <literal>ExecutionImpl</literal>.
+    </para>
+  </section>
+
+  <!-- ### FUNCTIONAL ACTIVITIES ################################ -->
+  <section id="functionalactivities">
+    <title>Functional activities</title>
+    <para>ActivityBehaviours that also can be used as event listeners are called functional 
+    activities. Examples of automatic activities are sending an email, doing a database 
+    update, generating a pdf, calculating an average, etc.  All of these are automatic 
+    activities that do not change the execution flow.  Here's how such activities can 
+    be implemented:  
+    </para>
+    <programlisting>public class FunctionalActivity implements ActivityBehaviour, EventListener {
+    public void execute(ActivityExecution execution) {
+      perform(execution);
+    }
+    public void notify(EventListenerExecution execution) {
+      perform(execution);
+    }
+    void perform(OpenExecution execution) {
+      ...do functional work...
+    }
+  }</programlisting>
+    <para>The <literal>perform</literal> method takes an <literal>OpenExecution</literal>, 
+    which is the supertype of both <literal>ActivityExecution</literal> and 
+    <literal>EventListenerExecution</literal>.  <literal>OpenExecution</literal>
+    does not allow any of the specific purpose methods, but still 
+    the current state and the process definition can be inspected as well 
+    as the variables, which contain the context information for the process 
+    execution.
+    </para>
+    <para>None of these methods actually invoke execution propagation methods.
+    So after the perform method is completed, the execution will
+    <link linkend="implicitproceedbehaviour">proceed in the default way</link>.
+    </para>
+  </section>
+    
+
+  <!-- ### EXECUTION AND THREADS ########################################## -->
+  <section id="executionandthreads">
+    <title>Execution and threads</title>
+    <para>This section explains how the Process Virtual Machine boroughs the thread
+    from the client to bring an execution from one wait state to another.
+    </para>
+    <para>When a client invokes a method (like e.g. the signal method) on an execution, 
+    by default, the Process Virtual Machine will use that thread to progress the execution
+    until it reached a wait state.  Once the next wait state has been reached, the 
+    method returns and the client gets the thread back.  This is the default way 
+    for the Process Virtual Machine to operate.  Two more levels of asynchonous 
+    execution complement this default behaviour: 
+    <link linkend="asynchronouscontinuations">Asynchronous continuations</link>
+    and in the future we'll also provide a way to invoke service methods asynchronously.
+    </para>
+    <para>TODO: update the example that is now commented</para>
+    <!-- 
+    <para>The next process will show the basics concretely.  It has three wait states 
+    and four automatic activities.
+    </para>
+    <figure id="process.automatic">
+      <title>Process with many sequential automatic activities.</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/process.automatic.png"/></imageobject></mediaobject>
+    </figure>
+    <para>Here's how to build the process:</para>
+    <programlisting>ClientProcessDefinition processDefinition = ProcessFactory.build("automatic")
+    .<emphasis role="bold">activity("wait 1").initial()</emphasis>.behaviour(new <emphasis role="bold">WaitState</emphasis>())
+      .transition().to("automatic 1")
+    .<emphasis role="bold">activity("automatic 1")</emphasis>.behaviour(new <emphasis role="bold">Display("one")</emphasis>)
+      .transition().to("wait 2")
+    .<emphasis role="bold">activity("wait 2")</emphasis>.behaviour(new <emphasis role="bold">WaitState</emphasis>())
+      .transition().to("automatic 2")
+    .<emphasis role="bold">activity("automatic 2")</emphasis>.behaviour(new <emphasis role="bold">Display("two")</emphasis>)
+      .transition().to("automatic 3")
+    .<emphasis role="bold">activity("automatic 3")</emphasis>.behaviour(new <emphasis role="bold">Display("three")</emphasis>)
+      .transition().to("automatic 4")
+    .<emphasis role="bold">activity("automatic 4")</emphasis>.behaviour(new <emphasis role="bold">Display("four")</emphasis>)
+      .transition().to("wait 3")
+    .<emphasis role="bold">activity("wait 3")</emphasis>.behaviour(new <emphasis role="bold">WaitState</emphasis>())
+.done();</programlisting>
+    <para>Let's walk you through one execution of this process.  
+    </para>
+    <programlisting>ClientExecution execution = processDefinition.startProcessInstance();</programlisting>
+    <para>Starting a new execution means that the initial activity is executed.  So if an automatic 
+    activity is the initial activity, this means that immediately the first unnamed outgoing transition 
+    is taken.  This happens all inside of the invocation of <literal>startProcessInstance</literal>.
+    </para>
+    <para>In this case however, the initial activity is a wait state.  So 
+    the method <literal>startProcessInstance</literal> returns immediately and the execution will be 
+    positioned in the initial activity 'wait 1'.
+    </para>
+    <figure id="execution.automatic.wait1">
+      <title>A new execution will be positioned in 'wait 1'.</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/execution.automatic.wait1.png"/></imageobject></mediaobject>
+    </figure>
+    <para>Then an external trigger is given with the signal method.</para>
+    <programlisting>execution.signal();</programlisting>
+    <para>As explained above when <link linkend="externalactivityexample">introducing the WaitState</link>, 
+    that signal will cause the default transition to be taken.  The 
+    transition will move the execution to activity <literal>automatic 1</literal> and execute it.  
+    The execute method of the <literal>Display</literal> activity in <literal>automatic 1</literal> 
+    print a line to the console and it will <emphasis role="bold">not</emphasis> call 
+    <literal>execution.waitForSignal()</literal>.  Therefore, the execution will proceed by 
+    taking the default transition out of <literal>automatic 1</literal>.  At this stage, the 
+    signal method is still blocking.  Another way to think about it is that the execution 
+    methods like <literal>signal</literal> will use the thread of the client to interpret 
+    the process definition until a wait state is reached.   
+    </para>
+    <para>Then the execution arrives in <literal>wait 2</literal> and executes 
+    the <literal>WaitState</literal> activity.  That method will invoke 
+    the <literal>execution.waitForSignal()</literal>, which will cause the signal method 
+    to return.  That is when the thread is given back to the client that invoked the 
+    <literal>signal</literal> method.
+    </para>
+    <para>So when the signal method returns, the execution is positioned in <literal>wait 2</literal>.</para>
+    <figure id="execution.automatic.wait2">
+      <title>One signal brought the execution from 'initial' to 'wait 2'.</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/execution.automatic.wait2.png"/></imageobject></mediaobject>
+    </figure>
+    <para>Then the execution is now waiting for an external trigger just as an object 
+    (more precisely an object graph) in memory until the next external trigger is given 
+    with the signal method.
+    </para>
+    <programlisting>execution.signal();</programlisting>
+    <para>This second invocation of signal will take the execution similarly all the 
+    way to <literal>wait 3</literal> before it returns.
+    </para>
+    <figure id="automatic.wait3">
+      <title>The second signal brought the execution all the way to 'wait 3'.</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/ch04.automatic.wait3.png"/></imageobject></mediaobject>
+    </figure>
+     -->
+    <para>The benefits of using this paradigm is that the same process definition 
+    can be executed in <link linkend="clientexecutionmode">client execution mode</link> 
+    (in-memory without persistence) as well as in <link linkend="persistentexecutionmode">
+    persistent execution mode</link>, depending on the application and on the environment.
+    </para>
+    <para>When executing a process in persistent mode, this is how you typically want 
+    to bind that process execution to transactions of the database:
+    </para>
+    <figure id="transactions.png">
+      <title>Transactions over time in persistent execution mode.</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/transactions.png"/></imageobject></mediaobject>
+    </figure>
+    <para>In most situations, the computational work that needs to be done as part of 
+    the process after an external trigger (the red pieces) is pretty minimal.  Typically 
+    transactions combining the process execution and processing the request from the 
+    UI takes typically less then a second.  Whereas the wait state in business processes 
+    typically can span for hours, days or even years.  The clue is to clearly distinct 
+    when a wait state starts so that only the computational work done before the start 
+    of that wait state should be included in the transaction.  
+    </para>
+    <para>Think of 
+    it this way: &quot;When an approval arrives, what are all the automated processing that 
+    needs to be done before the process system needs to wait for another external 
+    trigger?&quot;  Unless pdf's need to be generated or mass emails need to be send,
+    the amount of time that this takes is usually neglectable.  That is why in the 
+    default persistent execution mode, the process work is executed in the thread 
+    of the client.
+    </para>
+    <para>This reasoning even holds in case of concurrent paths of execution.  
+    When a single path of execution splits into concurrent paths of execution,
+    the process overhead of calculating that is neglectable.  So that is why it 
+    makes sense for a fork or split activity implementation that targets persistent 
+    execution mode to spawn the concurrent paths sequentially in the same thread.
+    Basically it's all just computational work as part of the same transaction.
+    This can only be done because the fork/split knows that each concurrent path 
+    of execution will return whenever a wait state is encountered. 
+    </para>
+    <para>Since this is a difficult concept to grasp, I'll explain it again with other 
+    words.  Look at it from the overhead that is produced by the process execution 
+    itself in persistent execution mode.  If in a transaction, an execution is given 
+    an external trigger and that causes the execution to split into multiple concurrent 
+    paths of execution.  Then the process overhead of calculating this is neglectable. 
+    Also the overhead of the generated SQL is neglectable.  And since all the work done 
+    in the concurrent branches must be done inside that single transaction, there is 
+    typically no point in having fork/split implementations spawn the concurrent 
+    paths of execution in multiple threads. 
+    </para>
+    <para>To make executable processes, developers need to know exactly what the automatic activities
+    are, what the wait states are and which threads will be allocated to the process execution.  
+    For business analysts that draw the analysis process, things are a bit simpler.   For the  
+    activities they draw, they usually know whether it's a human or a system that is responsible.
+    But they typically don't not how this translates to threads and transactions.
+    </para>
+    <para>So for the developer, the first job is to analyse what needs to be executed 
+    within the thread of control of the process and what is outside.  Looking for the external 
+    triggers can be a good start to find the wait states in a process, just like verbs and nouns 
+    can be the rule of thumb in building UML class diagrams. 
+    </para>
+  </section>
+  
+  <!-- ### PROCESS CONCURRENCY ############################################ -->
+  <section>
+    <title>Process concurrency</title>
+    <para>To model process concurrency, there is a parent-child tree structure on the 
+    execution. The idea is that the main path of execution is the root of that tree.
+    The main path of execution is also called the process instance.  It is the execution 
+    that is created when starting or creating a new process instance for a given  
+    process definition. 
+    </para>
+    <para>Now, because the main path of execution is the same object as the 
+    process instance, this keeps the usage simple in case of simple processes 
+    without concurrency. 
+    </para>
+    <figure id="execution.structure">
+      <title>UML class diagram of the basic execution structure</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/class.diagram.process.execution.png"/></imageobject></mediaobject>
+    </figure>
+    <para>To establish multiple concurrent paths of execution, activity implementations 
+    like a fork or split can create child executions with method 
+    <literal>ActivityExecution.createExecution</literal>.  Activity implementations 
+    like join or merge can stop these concurrent paths of execution by calling 
+    method <literal>stop</literal> on the concurrent execution.  
+    </para>
+    <para>Only leaf executions can be active.  Non-leave executions should be 
+    inactive.  This tree structure of executions doesn't enforce a particular type of 
+    concurrency or join behaviour.  It's up to the forks or and-splits and to the joins 
+    or and-merges to use the execution tree structure in any way they want to define 
+    the wanted concurrency behaviour.  Here you see an example 
+    of concurrent executions. 
+    </para>
+    <figure id="concurrency">
+      <title>Concurrent paths of execution</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/execution.concurrency.png"/></imageobject></mediaobject>
+    </figure>
+    <para>There is a billing and a shipping path of execution.  In this case, the 
+    flat bar activities represent activities that fork and join.  The execution shows a three 
+    executions.  The main path of execution is inactive (represented as gray) and the 
+    billing and shipping paths of execution are active and point to the activity 
+    <literal>bill</literal> and <literal>ship</literal> respectively.
+    </para>
+    <para>It's up to the activity behaviour implementations how they want to use this 
+    execution structure.  Suppose that multiple tasks have to be completed before the 
+    execution is to proceed.  The activity behaviour can spawn a series of child executions 
+    for this.  Or alternatively, the task component could support task groups that 
+    are associated to one single execution.  In that case, the task component becomes
+    responsible for synchronizing the tasks, thereby moving this responsibility 
+    outside the scope of the execution tree structure.
+    </para>
+  </section>
+
+  <!-- ### EXCEPTION HANDLERS ############################################# -->
+  <section>
+    <title>Exception handlers</title>
+    <para>In all the code that is associated to a process
+    like <literal>Activity</literal>s, <literal>EventListeners</literal> and 
+    <literal>Condition</literal>s, it's possible to associate exception handlers.  This 
+    can be thought of as including try-catch blocks in 
+    the method implementations of those implementations.  But in order to build more reusable building 
+    blocks for both the delegation classes and the exception handling logic, exception handlers are 
+    added to the core process model. 
+    </para>
+    <para>An exception handler can be associated to any process element.  When an exception 
+    occurs in a delegation class, a matching exception handler will be searched for.  If 
+    such an exception handler is found, it will get a chance to handle the exception.
+    </para>
+    <para>If an exception handler completes without problems, then the exception is considered 
+    handled and the execution resumes right after the delegation code that was called.  For example,
+    a transition has three actions and the second action throws an exception that is handled 
+    by an exception handler, then   
+    </para>
+    <para>Writing automatic activities that are exception handler aware is easy.  The 
+    default is to proceed anyway.  No method needs to be called on the execution.  So 
+    if an automatic activity throws an exception that is handled by an exception handler,
+    the execution will just proceed after that activity.  It becomes a big more difficult 
+    for control flow activities.  They might have to include try-finally blocks to 
+    invoke the proper methods on the execution before an exception handler gets a 
+    chance to handle the exception.  For example, if an activity is a wait state and 
+    an exception occurs, then there is a risk that the thread jumps over the 
+    invocation of <literal>execution.waitForSignal()</literal>, causing the execution 
+    to proceed after the activity. 
+    </para>
+    <para>TODO: exceptionhandler.isRethrowMasked</para>
+    <para>TODO: transactional exception handlers</para>
+    <para>TODO: we never catch errors</para>
+  </section>
+
+  <!-- ### PROCESS MODIFICATIONS ########################################## -->
+  <section>
+    <title>Process modifications</title>
+    <para>TODO: process modifications</para>
+  </section>
+
+  <!-- ### LOCKING AND EXECUTION STATE #################################### -->
+  <section>
+    <title>Locking and execution state</title>
+    <para>The state of an execution is either active or locked. An active 
+    execution is either executing or waiting for an external trigger. If an 
+    execution is not in <literal>STATE_ACTIVE</literal>, then it is locked. 
+    A locked execution is read only and cannot receive any external triggers.
+    </para> 
+    <para>When a new execution is created, it is in STATE_ACTIVE. To change 
+    the state to a locked state, use lock(String). Some STATE_* constants 
+    are provided that represent the most commonly used locked states. But 
+    the state '...' in the picture indicates that any string can be provided 
+    as the state in the lock method.
+    </para>
+    <figure id="execution.states">
+      <title>States of an execution</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/ch04.execution.states.png"/></imageobject></mediaobject>
+    </figure>
+    <para>If an execution is locked, methods that change the execution will 
+    throw a PvmException and the message will reference the actual locking state. 
+    Firing events, updating variables, updating priority and adding comments 
+    are not considered to change an execution. Also creation and removal of child 
+    executions are unchecked, which means that those methods can be invoked by 
+    external API clients and activity behaviour methods, even while the execution 
+    is in a locked state.
+    </para> 
+    <para>Make sure that comparisons between getState() and the STATE_* constants 
+    are done with .equals and not with '==' because if executions are loaded 
+    from persistent storage, a new string is created instead of the constants.
+    </para> 
+    <para>An execution implementation will be locked:
+    </para>
+    <itemizedlist>
+      <listitem>When it is ended</listitem>
+      <listitem>When it is suspended</listitem>
+      <listitem>During asynchronous continuations</listitem>
+    </itemizedlist>
+    <para>Furthermore, locking can be used by Activity implementations to make 
+    executions read only during wait states hen responsibility for the execution is 
+    transferred to an external entity such as:
+    </para>
+    <itemizedlist>
+      <listitem>A human task</listitem>
+      <listitem>A service invocation</listitem>
+      <listitem>A wait state that ends when a scanner detects that a file appears</listitem>
+    </itemizedlist>
+    <para>In these situations the strategy is that the external entity should get 
+    full control over the execution because it wants to control what is allowed 
+    and what not.  To get that control, they lock the execution so that all interactions 
+    have to go through the external entity. 
+    </para>
+    <para>One of the main reasons to create external entities is that they can live
+    on after the execution has already proceeded.  For example, in case 
+    of a service invocation, a timer could cause the execution to take the timeout transition.
+    When the response arrives after the timeout, the service invocation entity should 
+    make sure it doesn't signal the execution.  So the service invocation can be 
+    seen as a activity instance (aka activity instance) and is unique for every execution 
+    of the activity.
+    </para>
+    <para>External entities themselves are responsible for managing the execution 
+    lock.  If the timers and client applications are consequent in addressing the 
+    external entities instead of the execution directly, then locking is in theory 
+    unnecessary.  It's up to the activity behaviour implementations whether they want 
+    to take the overhead of locking and unlocking.
+    </para>
+  </section>
+
+</chapter>

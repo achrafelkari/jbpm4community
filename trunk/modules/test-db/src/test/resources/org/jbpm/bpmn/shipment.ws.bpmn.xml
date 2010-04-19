@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions id="ShipmentDefinitions" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schema.omg.org/spec/BPMN/2.0 D:\Projekte\workspace\jbpm4\BPMN-2.0\src\resource\BPMN20.xsd" xmlns:bpmn="http://schema.omg.org/spec/BPMN/2.0" xmlns:sample="http://sample.bpmn.camunda.com/" xmlns:xbpmn="http://bpmn.camunda.com/" xmlns:tns="http://sample.bpmn.camunda.com/" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://sample.bpmn.camunda.com/">
+	
+	<!-- imports -->
+	<bpmn:import namespace="http://sample.bpmn.camunda.com/" location="D:\Projekte\workspace\jbpm4\BPMN-2.0\src\resource\SampleService.xsd" importType="http://www.w3.org/2001/XMLSchema"/>
+	<bpmn:import namespace="http://sample.bpmn.camunda.com/" location="D:\Projekte\workspace\jbpm4\BPMN-2.0\src\resource\SampleService.wsdl" importType="http://schemas.xmlsoap.org/wsdl/soap/"/>
+	<bpmn:import namespace="http://sample.bpmn.camunda.com/" location="D:\Projekte\workspace\jbpm4\BPMN-2.0\src\resource\ShipmentProcessService.wsdl" importType="http://schemas.xmlsoap.org/wsdl/soap/"/>
+	
+	<!-- definition structures for process variables -->
+	<bpmn:itemDefinition id="lieferungDef" itemKind="Information" structureRef="sample:shipment"/>
+	
+	<!-- definition structures for messages -->
+	<bpmn:itemDefinition id="ProzessStartenDef" itemKind="Information" structureRef="sample:startShipmentProces"/>
+	<bpmn:itemDefinition id="LieferungAnlegenDef" itemKind="Information" structureRef="sample:createShipment"/>
+	<bpmn:itemDefinition id="KommissioniertDef" itemKind="Information" structureRef="sample:notifyShipmentConsigned"/>
+	
+	<!-- messages -->
+	<bpmn:message name="ProzessStarten" id="ProzessStartenNachricht" structureRef="tns:ProzessStartenDef"/>
+	<bpmn:message name="LieferungAnlegen" id="LieferungAnlegenNachricht" structureRef="tns:LieferungAnlegenDef"/>
+	<bpmn:message name="Kommissioniert" id="KommissioniertNachricht" structureRef="tns:KommissioniertDef"/>
+	
+	<!-- Services -->
+	<!-- serivceReference ?? -->
+	<!-- conversation? Participant? -->
+	
+	<bpmn:endPoint id="ProzessEndpoint">
+		<xbpmn:url/>
+	</bpmn:endPoint>
+	<bpmn:endPoint id="LiefersystemEndpoint">
+		<xbpmn:url/>
+	</bpmn:endPoint>
+	
+	<!-- interfaces -->
+	<bpmn:interface id="ProzessInterface" name="Lieferprozess Schnittstelle">
+		<bpmn:operation name="startShipmentProcess">
+			<bpmn:inMessageRef>tns:ProzessStartenNachricht</bpmn:inMessageRef>
+		</bpmn:operation>
+		<bpmn:operation name="notifyShipmentConsigned">
+			<bpmn:inMessageRef>tns:KommissioniertNachricht</bpmn:inMessageRef>
+		</bpmn:operation>
+	</bpmn:interface>
+	<bpmn:interface id="LiefersystemInterface" name="Liefersystem Schnittstelle">
+		<bpmn:operation name="createShiptment">
+			<bpmn:inMessageRef>tns:LieferungAnlegenNachricht</bpmn:inMessageRef>
+		</bpmn:operation>
+	</bpmn:interface>
+	<!-- Resources / Performers -->
+	<bpmn:resource id="VertriebResource" name="Vertrieb"/>
+	<!-- process definition -->
+	<bpmn:process id="Shipment" name="Shipment">
+		<bpmn:documentation id="doc1">Teilprozess der Lieferung</bpmn:documentation>
+		
+		<!-- process variables -->
+		<bpmn:dataObject id="lieferungVariable" name="Lieferung" itemSubjectRef="tns:lieferungDef"/>
+		
+		<!-- Start-Event -->
+		<bpmn:startEvent id="Start">
+			<bpmn:dataOutput id="ProzessStartOutput" itemSubjectRef="tns:ProzessStartenNachricht"/>
+			<bpmn:dataOutputAssociation>
+				<bpmn:assignment>
+					<bpmn:from xsi:type="bpmn:tFormalExpression">getDataOutput('ProzessStartOutput')/shipment</bpmn:from>
+					<bpmn:to xsi:type="bpmn:tFormalExpression">getDataObject('lieferungVariable')</bpmn:to>
+				</bpmn:assignment>
+				<bpmn:sourceRef>ProzessStartOutput</bpmn:sourceRef>
+				<bpmn:targetRef>tns:lieferungVariable</bpmn:targetRef>
+			</bpmn:dataOutputAssociation>
+			<bpmn:messageEventDefinition messageRef="tns:ProzessStartenNachricht">
+				<bpmn:operationRef>tns:startShipmentProcess</bpmn:operationRef>
+			</bpmn:messageEventDefinition>
+		</bpmn:startEvent>
+		
+		<!-- Activity 1: Service Task -->
+		<bpmn:serviceTask id="LieferungBuchen" name="Lieferung buchen" implementation="WebService" operationRef="createShipment">
+			<xbpmn:url/>
+			<bpmn:ioSpecification>
+				<bpmn:dataInput id="LieferungBuchenInput" isCollection="false" itemSubjectRef="tns:LieferungAnlegenNachricht"/>
+				<bpmn:inputSet>
+					<bpmn:dataInputRefs>LieferungBuchenInput</bpmn:dataInputRefs>
+				</bpmn:inputSet>
+				<bpmn:outputSet/>
+			</bpmn:ioSpecification>
+			<bpmn:dataInputAssociation>
+				<bpmn:assignment>
+					<bpmn:from xsi:type="bpmn:tFormalExpression">bpmn:getDataObject('lieferungVariable')</bpmn:from>
+					<bpmn:to xsi:type="bpmn:tFormalExpression">bpmn:getDataInput('LieferungBuchenInput'/shipment/</bpmn:to>
+				</bpmn:assignment>
+				<bpmn:sourceRef>tns:lieferungVariable</bpmn:sourceRef>
+				<bpmn:targetRef>LieferungBuchenInput</bpmn:targetRef>
+			</bpmn:dataInputAssociation>
+		</bpmn:serviceTask>
+		
+		<!-- Activity 2: Receive Task -->
+		<bpmn:receiveTask id="WartenAufLieferung" name="Warten auf Lieferung" instantiate="false" implementation="WebService" operationRef="notifyShipmentConsigned" messageRef="tns:Kommissioniert">
+			<bpmn:ioSpecification>
+				<bpmn:dataOutput id="KommissioniertOutput" itemSubjectRef="tns:KommissioniertNachricht"/>
+				<bpmn:inputSet/>
+				<bpmn:outputSet>
+					<bpmn:dataOutputRefs>KommissioniertOutput</bpmn:dataOutputRefs>
+				</bpmn:outputSet>
+			</bpmn:ioSpecification>
+
+			<bpmn:dataOutputAssociation>
+				<bpmn:assignment>
+					<bpmn:from xsi:type="bpmn:tFormalExpression">getDataOutput('KommissioniertOutput')/shipment</bpmn:from>
+					<bpmn:to xsi:type="bpmn:tFormalExpression">getDataObject('lieferungVariable')</bpmn:to>
+				</bpmn:assignment>
+				<bpmn:sourceRef>KommissioniertOutput</bpmn:sourceRef>
+				<bpmn:targetRef>tns:lieferungVariable</bpmn:targetRef>
+			</bpmn:dataOutputAssociation>
+		</bpmn:receiveTask>
+		
+		<!-- Gateway -->
+		<bpmn:exclusiveGateway id="PruefeAvisierung" name="Avisierung benoetigt?"/>
+		
+		<!-- Activity 3: User Task -->
+		<bpmn:userTask id="LieferterminAvisieren" name="Liefertermin avisieren" implementation="other">
+			<!--		<bpmn:humanPerformer resourceRef="tns:Vertrieb"></bpmn:humanPerformer>-->
+			<bpmn:potentialOwner resourceRef="tns:VertriebResource"/>
+		</bpmn:userTask>
+		
+		<!-- End Events -->
+		<bpmn:endEvent id="End" name="End"/>
+		
+		<!-- Sequence Flow -->
+		<bpmn:sequenceFlow id="flow1" sourceRef="Start" targetRef="LieferungBuchen" name="Start->LieferungBuchen"/>
+		<bpmn:sequenceFlow id="flow2" sourceRef="LieferungBuchen" targetRef="WartenAufLieferung"/>
+		<bpmn:sequenceFlow id="flow3" sourceRef="WartenAufLieferung" targetRef="PruefeAvisierung"/>
+		<bpmn:sequenceFlow id="flow4" sourceRef="PruefeAvisierung" targetRef="LieferterminAvisieren">
+			<bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">getDataObject('lieferungVariable')/confirmationRequired=true</bpmn:conditionExpression>
+		</bpmn:sequenceFlow>
+		<bpmn:sequenceFlow id="flow5" sourceRef="PruefeAvisierung" targetRef="End">
+			<bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">not( getDataObject('lieferungVariable')/confirmationRequired=true )</bpmn:conditionExpression>
+		</bpmn:sequenceFlow>
+		<bpmn:sequenceFlow id="flow6" sourceRef="LieferterminAvisieren" targetRef="End"/>
+	</bpmn:process>
+
+<!--	
+	<bpmn:correlationSubscription>
+	</bpmn:correlationSubscription>
+-->
+	
+	<!-- TODO: Correlation / Conversation -->
+	<bpmn:conversation>
+		<bpmn:correlationKey>
+			<bpmn:correlationPropertyRef>test</bpmn:correlationPropertyRef>
+		</bpmn:correlationKey>
+	</bpmn:conversation>
+</bpmn:definitions>

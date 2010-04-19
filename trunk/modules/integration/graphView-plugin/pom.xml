@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <name>jBPM 4 - Integration GraphView Plugin</name>
+  <description>JBoss jBPM - GWT console Graph Viewer Plugin</description>
+
+  <groupId>org.jbpm.jbpm4</groupId>
+  <artifactId>jbpm-console-graphView-plugin</artifactId>
+  <packaging>jar</packaging>
+
+  <parent>
+    <groupId>org.jbpm.jbpm4</groupId>
+    <artifactId>jbpm-integration</artifactId>
+    <version>4.4-SNAPSHOT</version>
+  </parent>
+
+  <!-- Dependencies -->
+  <dependencies>
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-api</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-pvm</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.bpm</groupId>
+      <artifactId>gwt-console-server-integration</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>2.1</version>
+      <scope>provided</scope>
+    </dependency>
+
+  </dependencies>
+</project>

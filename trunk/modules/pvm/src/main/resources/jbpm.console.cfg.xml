@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jbpm-configuration>
+
+  <process-engine-context>
+    <string name="jbpm.console.server.host" value="localhost" />
+    <string name="jbpm.console.server.port" value="8080" />
+  </process-engine-context>
+
+</jbpm-configuration>

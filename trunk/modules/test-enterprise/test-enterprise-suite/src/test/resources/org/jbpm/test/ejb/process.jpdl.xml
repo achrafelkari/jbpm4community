@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="EJB" xmlns="http://jbpm.org/4.3/jpdl">
+
+  <start g="20,20,48,48">
+    <transition to="calculate" />
+  </start>
+
+  <java name="calculate" 
+        ejb-jndi-name="CalculatorBean/local"
+        method="add"
+        var="answer"
+        g="96,16,83,52">
+        
+    <arg><int value="25"/></arg>
+    <arg><int value="38"/></arg>
+    
+    <transition to="wait" />
+  </java>
+  
+  <state name="wait" g="352,17,88,52"/>
+
+</process>

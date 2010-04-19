@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions id="ExclusiveGatewayNormal"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://schema.omg.org/spec/BPMN/2.0 ../../../../../../../bpmn/src/main/resources/BPMN20.xsd"
+	xmlns:bpmn="http://schema.omg.org/spec/BPMN/2.0" typeLanguage="http://www.w3.org/2001/XMLSchema"
+	expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://sample.bpmn.camunda.com/">
+
+	<bpmn:process id="ExclusiveGateway" name="ExclusiveGateway">
+		<!-- Start-Event -->
+		<bpmn:startEvent id="Start" />
+
+		<bpmn:sequenceFlow id="flow1" sourceRef="Start"
+			targetRef="exclusiveGatewayDecision" name="Start->exclusiveGateway" />
+
+		<bpmn:exclusiveGateway id="exclusiveGatewayDecision"
+			name="Just a gateway" default="flow3"/>
+
+		<!-- Sequence Flow -->
+
+		<bpmn:sequenceFlow id="flow2" sourceRef="exclusiveGatewayDecision"
+			targetRef="doSomething">
+			<bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${test == 'value'}</bpmn:conditionExpression>
+		</bpmn:sequenceFlow>
+		<bpmn:sequenceFlow id="flow3" sourceRef="exclusiveGatewayDecision"
+			targetRef="doSomethingElse">
+		</bpmn:sequenceFlow>
+
+		<bpmn:userTask id="doSomething" name="Anything at all"
+			implementation="other"></bpmn:userTask>
+		<bpmn:sequenceFlow id="flow4" sourceRef="doSomething"
+			targetRef="End" />
+
+		<bpmn:userTask id="doSomethingElse" name="But completely different"
+			implementation="other" />
+		<bpmn:sequenceFlow id="flow5" sourceRef="doSomethingElse"
+			targetRef="End" />
+
+		<!-- End Events -->
+		<bpmn:endEvent id="End" name="End" />
+	</bpmn:process>
+</bpmn:definitions>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <name>jBPM 4 - Integration</name>
+  <description>JBoss jBPM - Integration</description>
+
+  <groupId>org.jbpm.jbpm4</groupId>
+  <artifactId>jbpm-integration</artifactId>
+  <packaging>pom</packaging>
+
+  <!-- Parent -->
+  <parent>
+    <groupId>org.jbpm.jbpm4</groupId>
+    <artifactId>jbpm</artifactId>
+    <version>4.4-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <properties>
+    <jboss.deployers.version>2.0.3.GA</jboss.deployers.version>
+    <jboss.metadata.version>1.0.0.CR11</jboss.metadata.version>
+    <jboss.microcontainer.version>2.0.2.GA</jboss.microcontainer.version>
+    <jboss.jacc.version>1.1.0.GA</jboss.jacc.version>
+    <jbossas.version>5.0.0.GA</jbossas.version>
+    <junit.version>3.8.1</junit.version>
+    <log4j.version>1.2.14</log4j.version>
+  </properties>
+
+  <!-- Dependecy Management -->
+  <dependencyManagement>
+    <dependencies>
+
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-jpdl</artifactId>
+        <version>${version}</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.javaee</groupId>
+        <artifactId>jboss-jacc-api</artifactId>
+        <version>${jboss.jacc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.jbossas</groupId>
+        <artifactId>jboss-as-server</artifactId>
+        <version>${jbossas.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.jbossas</groupId>
+        <artifactId>jboss-as-system-jmx</artifactId>
+        <version>${jbossas.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.jbossas</groupId>
+        <artifactId>jboss-as-client</artifactId>
+        <version>${jbossas.version}</version>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.deployers</groupId>
+        <artifactId>jboss-deployers-client</artifactId>
+        <version>${jboss.deployers.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.deployers</groupId>
+        <artifactId>jboss-deployers-client-spi</artifactId>
+        <version>${jboss.deployers.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.deployers</groupId>
+        <artifactId>jboss-deployers-spi</artifactId>
+        <version>${jboss.deployers.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.deployers</groupId>
+        <artifactId>jboss-deployers-structure-spi</artifactId>
+        <version>${jboss.deployers.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.deployers</groupId>
+        <artifactId>jboss-deployers-vfs-spi</artifactId>
+        <version>${jboss.deployers.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.metadata</groupId>
+        <artifactId>jboss-metadata</artifactId>
+        <version>${jboss.metadata.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.microcontainer</groupId>
+        <artifactId>jboss-kernel</artifactId>
+        <version>${jboss.microcontainer.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
+
+  <modules>
+    <module>console</module>
+    <module>form-plugin</module>
+    <module>graphView-plugin</module>
+    <module>report</module>
+    <module>tomcat</module>
+  </modules>
+
+</project>

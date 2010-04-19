@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="Purchase order" xmlns="http://jbpm.org/4.3/jpdl">
+
+  <start>
+    <transition to="a" />
+  </start>
+
+  <state name="a">
+    <transition name="Supplier ok" to="b" />
+  </state>
+
+  <state name="b">
+    <transition name="nok" to="Error" />
+    <transition name="ok" to="Completed" />
+  </state >
+
+  <end name="Completed" />
+
+  <end name="Error" />
+
+</process>

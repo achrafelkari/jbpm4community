@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="JmsQueueText">
+
+  <start g="20,20,48,48">
+    <transition to="send message" />
+  </start>
+
+  <jms name="send message" 
+        connection-factory="java:JmsXA"
+        destination="queue/jbpm-test-queue"
+        transacted="false"
+        g="96,16,83,52">
+    <text>This is the body</text>    
+    <transition to="wait" />
+  </jms>
+  
+  <state name="wait" g="352,17,88,52"/>
+
+</process>

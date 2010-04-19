@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="JmsQueueMap">
+
+  <start g="20,20,48,48">
+    <transition to="send message" />
+  </start>
+
+  <jms name="send message" 
+        connection-factory="java:JmsXA"
+        destination="queue/jbpm-test-queue"
+        transacted="false"
+        g="96,16,83,52">
+    <map>
+      <entry>
+        <key><string value="x"/></key>
+        <value><string value="foo"/></value>
+      </entry>
+    </map>    
+    <transition to="wait" />
+  </jms>
+  
+  <state name="wait" g="352,17,88,52"/>
+
+</process>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jbpm-configuration>
+
+  <import resource="jbpm.default.cfg.xml" />
+  <import resource="jbpm.businesscalendar.cfg.xml" />
+  <import resource="jbpm.jpdl.cfg.xml" />
+  
+  <!-- we need to remove the retry interceptor, so we cant use the default 
+  <import resource="jbpm.tx.hibernate.cfg.xml" />
+  -->
+  
+  <process-engine-context>
+    <command-service>
+      <environment-interceptor />
+      <standard-transaction-interceptor />
+    </command-service>
+  </process-engine-context>
+
+  <transaction-context>
+    <transaction />
+    <hibernate-session />
+  </transaction-context>
+  
+
+	<!--
+		In the concurrency tests, we'll emulate the job executor to have full
+		control on when syncing occurs 
+		
+		<import resource="jbpm.jobexecutor.cfg.xml" />
+	-->
+
+</jbpm-configuration>

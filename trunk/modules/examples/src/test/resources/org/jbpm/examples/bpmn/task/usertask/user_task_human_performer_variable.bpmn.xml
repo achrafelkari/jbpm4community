@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://schema.omg.org/spec/BPMN/2.0 ../../../../../../../../../../bpmn/src/main/resources/BPMN20.xsd"
+  xmlns="http://schema.omg.org/spec/BPMN/2.0" typeLanguage="http://www.w3.org/2001/XMLSchema"
+  expressionLanguage="http://www.w3.org/1999/XPath" 
+  targetNamespace="http://jbpm.org/example/bpmn2/human_performer"
+  xmlns:jbpm="http://jbpm.org/bpmn2">
+  
+  <resource id="employee" name="employee" />
+
+  <process id="userTaskHumanPerformerVariable">
+
+    <startEvent id="start" />
+    
+    <sequenceFlow id="flow1" sourceRef="start" targetRef="myTask" />
+    
+    <userTask id="myTask" name="My User task">
+      <humanPerformer resourceRef="employee">
+        <resourceAssignmentExpression>
+          <formalExpression>${user}</formalExpression>
+        </resourceAssignmentExpression>
+      </humanPerformer>
+    </userTask>
+
+    <sequenceFlow id="flow2" sourceRef="myTask" targetRef="end"  />
+
+    <endEvent id="end" name="End" />
+
+
+  </process>
+</definitions>

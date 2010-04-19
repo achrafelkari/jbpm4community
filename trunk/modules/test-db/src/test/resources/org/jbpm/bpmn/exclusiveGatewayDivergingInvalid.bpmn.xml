@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions id="ExclusiveGatewayNormal"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://schema.omg.org/spec/BPMN/2.0 ../../../../../../../bpmn/src/main/resources/BPMN20.xsd"
+	xmlns:bpmn="http://schema.omg.org/spec/BPMN/2.0" typeLanguage="http://www.w3.org/2001/XMLSchema"
+	expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://sample.bpmn.camunda.com/">
+
+	<bpmn:process id="Shipment" name="Shipment">
+		<!-- Start-Event -->
+		<bpmn:startEvent id="Start" />
+
+		<bpmn:sequenceFlow id="flow1" sourceRef="Start"
+			targetRef="exclusiveGatewayPre" name="Start->exclusiveGateway" />
+
+		<bpmn:exclusiveGateway id="exclusiveGatewayPre"
+			name="Just a dummy gateway"/>
+
+		<bpmn:sequenceFlow id="flow6" sourceRef="exclusiveGatewayPre"
+			targetRef="exclusiveGateway" name="exclusiveGateway->exclusiveGatewayPre" />
+
+		<bpmn:sequenceFlow id="flow7" sourceRef="exclusiveGatewayPre"
+			targetRef="exclusiveGateway" name="exclusiveGateway->exclusiveGatewayPre" />
+
+		<bpmn:exclusiveGateway id="exclusiveGateway"
+			name="Just a gateway" gatewayDirection="diverging"/>
+
+		<bpmn:sequenceFlow id="flow2" sourceRef="exclusiveGateway"
+			targetRef="doSomething">
+			<bpmn:conditionExpression xsi:type="bpmn:tExpression">
+				Has to be valid
+			</bpmn:conditionExpression>
+		</bpmn:sequenceFlow>
+		<bpmn:sequenceFlow id="flow3" sourceRef="exclusiveGateway"
+			targetRef="doSomethingElse">
+			<bpmn:conditionExpression xsi:type="bpmn:tExpression">
+				Otherwise this one
+			</bpmn:conditionExpression>
+		</bpmn:sequenceFlow>
+
+		<bpmn:userTask id="doSomething" name="Anything at all"
+			implementation="other"></bpmn:userTask>
+		<bpmn:sequenceFlow id="flow4" sourceRef="doSomething"
+			targetRef="End" />
+
+		<bpmn:userTask id="doSomethingElse" name="But completely different"
+			implementation="other" />
+		<bpmn:sequenceFlow id="flow5" sourceRef="doSomethingElse"
+			targetRef="End" />
+
+		<!-- End Events -->
+		<bpmn:endEvent id="End" name="End" />
+	</bpmn:process>
+</bpmn:definitions>

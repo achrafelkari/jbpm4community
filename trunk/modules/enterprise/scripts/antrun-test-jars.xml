@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ============================================================ -->
+<!--  JBoss, the OpenSource J2EE webOS                            -->
+<!--  Distributable under LGPL license.                           -->
+<!--  See terms of license at http://www.gnu.org.                 -->
+<!-- ============================================================ -->
+
+<!-- $Id: antrun-test-jars.xml 4271 2009-03-18 08:27:46Z heiko.braun@jboss.com $ -->
+
+<project>
+
+  <description>PVM test archive</description>
+
+  <target name="build-jars" description="Build the test modules.">
+
+    <mkdir dir="${build.dir}/test-libs"/>
+
+    <war destfile="${build.dir}/test-libs/jbpm-enterprise-test.war"
+         webxml="${test.resources.dir}/command/WEB-INF/web.xml">
+      <webinf dir="${test.resources.dir}/command/WEB-INF">
+        <exclude name="web.xml" />
+      </webinf>
+      <lib dir="${build.dir}/test-dependencies">
+        <include name="aspectjrt*.jar"/>
+        <include name="cactus*.jar"/>
+        <include name="junit*.jar"/>
+      </lib>
+      <classes dir="${build.dir}/test-classes">
+        <include name="org/jbpm/test/enterprise/*" />
+        <include name="org/jbpm/enterprise/internal/ejb/*" />
+      </classes>
+    </war>
+
+    <jar destfile="${build.dir}/test-libs/jbpm-enterprise-test.jar">
+      <fileset dir="${build.dir}/test-classes">
+        <include name="org/jbpm/enterprise/internal/custom/*" />
+      </fileset>
+    </jar>
+
+    <ear destfile="${build.dir}/test-libs/jbpm-enterprise-test.ear"
+         appxml="${test.resources.dir}/command/META-INF/application.xml">
+      <!-- build artifact -->
+      <fileset dir="${build.dir}" includes="${build.finalName}.jar" />
+      <!-- test modules -->
+      <fileset dir="${build.dir}/test-libs" includes="jbpm-enterprise-test.war" />
+      <zipfileset dir="${build.dir}/test-libs" includes="jbpm-enterprise-test.jar" prefix="lib" />
+
+    </ear>
+
+    <!-- Please add alphabetically -->
+
+    <!-- jbpm-classloading-test-->
+    <jar destfile="${build.dir}/test-libs/jbpm-classloading-test.jar">
+      <fileset dir="${build.dir}/test-classes">
+        <include name="org/jbpm/test/classloading/*" />
+      </fileset>
+      <fileset dir="${build.dir}/test-classes/classloading">
+        <include name="META-INF/*" />
+      </fileset>
+    </jar>
+
+
+    <!-- jbpm-deployer-test -->
+    <jar destfile="${build.dir}/test-libs/jbpm-deployer-test.jar">
+      <fileset dir="${build.dir}/test-classes">
+        <include name="org/jbpm/test/deployer/*" />
+      </fileset>
+      <fileset dir="${build.dir}/test-classes/deployer">
+        <include name="META-INF/*" />
+      </fileset>
+    </jar>
+
+    <war destfile="${build.dir}/test-libs/jbpm-deployer-test.war"
+         webxml="${test.resources.dir}/deployer/WEB-INF/web.xml">
+      <webinf dir="${test.resources.dir}/deployer/WEB-INF">
+        <exclude name="web.xml" />
+      </webinf>
+      <classes dir="${build.dir}/test-classes">
+        <include name="org/jbpm/test/deployer/DeployerTestServlet.class" />
+      </classes>
+    </war>
+
+  </target>
+
+</project>

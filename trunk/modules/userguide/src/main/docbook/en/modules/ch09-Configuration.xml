@@ -1,0 +1,59 @@
+<chapter id="configuration">
+  <title>Configuration</title>
+
+  <section>
+    <title>Business calendar</title>
+    <para>To customize the business calendar configuration,
+    remove the import of the default business calendar configuration
+    and replace it with your customized calendar configuration. E.g.
+    </para>
+    <programlisting>&lt;jbpm-configuration&gt;
+    
+  &lt;import resource=&quot;jbpm.default.cfg.xml&quot; /&gt;
+  ...
+
+  &lt;process-engine-context&gt;
+    &lt;business-calendar&gt;
+      &lt;monday    hours=&quot;9:00-18:00&quot;/&gt;
+      &lt;tuesday   hours=&quot;9:00-18:00&quot;/&gt;
+      &lt;wednesday hours=&quot;9:00-18:00&quot;/&gt;
+      &lt;thursday  hours=&quot;9:00-18:00&quot;/&gt;
+      &lt;friday    hours=&quot;9:00-18:00&quot;/&gt;
+      &lt;holiday period=&quot;01/02/2009 - 31/10/2009&quot;/&gt;
+    &lt;/business-calendar&gt;
+  &lt;/process-engine-context&gt;
+
+&lt;/jbpm-configuration&gt;</programlisting>
+    
+  </section>
+  
+  <section>
+  
+    <title>Console</title>
+    <para>By default the server host and port of the console
+    webapplication are respectively <literal>localhost</literal>
+    and <literal>8080</literal>. It is not hard to imagine 
+    situations where it is needed to change those defaults.
+    Hence they are made configurable. To customize,
+    change the values of the default configuration 
+    (e.g. in the file &quot;jbpm.console.cfg.xml&quot;) 
+    and replace them with the values you want.</para>
+
+    <programlisting>&lt;jbpm-configuration&gt;
+    
+  &lt;process-engine-context&gt;
+    &lt;string name=&quot;jbpm.console.server.host&quot; value=&quot;myNewHost&quot;&gt;
+    &lt;string name=&quot;jbpm.console.server.port&quot; value=&quot;9191&quot;&gt;
+  &lt;/process-engine-context&gt;
+
+&lt;/jbpm-configuration&gt;</programlisting>
+
+  </section>
+  
+  <section>
+    <title>Email</title>
+    <para>TODO document supported config customization 
+    of the jbpm.mail.properties</para>
+  </section>  
+
+</chapter>

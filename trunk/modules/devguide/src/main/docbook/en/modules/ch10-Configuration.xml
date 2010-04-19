@@ -1,0 +1,153 @@
+<chapter id="configuration">
+  <title>Configuration</title>
+  
+  <section>
+    <title>Configuration basics</title>
+    
+    <para>The userguide explains how to install jBPM into the most 
+    common runtime environments.  That is the most simple and convenient 
+    way to get started with jBPM. Please use those instructions.
+    These docs provide some background information for developers 
+    that want to understand more about the way how configurations are 
+    handled.  Use at your own risk :-)
+    </para>
+    <para>The jbpm.jar contains a number of default configuration 
+    files that can be imported by the user configuration file.  
+    </para>
+    <para>This way, it's easy to include 
+    or exclude features for users.  And also the configuration details are kept in 
+    the implementation so users that only import those configuration files 
+    will not be affected when we release changes in those configuration files. 
+    </para>
+    <para>Configuration files that can be imported by the user's <literal>jbpm.cfg.xml</literal>:</para>
+    <itemizedlist>
+      <listitem>jbpm.businesscalendar.cfg.xml</listitem>
+      <listitem>jbpm.default.cfg.xml</listitem>
+      <listitem>jbpm.identity.cfg.xml</listitem>
+      <listitem>jbpm.jbossremote.cfg.xml</listitem>
+      <listitem>jbpm.jobexecutor.cfg.xml</listitem>
+      <listitem>jbpm.tx.hibernate.cfg.xml</listitem>
+      <listitem>jbpm.tx.jta.cfg.xml</listitem>
+    </itemizedlist>
+    <para><literal>jbpm.default.cfg.xml</literal>: Contains the default configurations
+    like the services, the hibernate configuration (configured from resource jbpm.hibernate.cfg.xml), 
+    hibernate session factory, business calendar and so on.
+    </para>
+    <para>A typical configuration for standard java would look like this:
+    </para>
+    <programlisting>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+  
+  &lt;jbpm-configuration&gt;
+  
+    &lt;import resource=&quot;jbpm.default.cfg.xml&quot; /&gt;
+    &lt;import resource=&quot;jbpm.businesscalendar.cfg.xml&quot; /&gt;
+    &lt;import resource=&quot;jbpm.tx.hibernate.cfg.xml&quot; /&gt;
+    &lt;import resource=&quot;jbpm.jpdl.cfg.xml&quot; /&gt;
+    &lt;import resource=&quot;jbpm.identity.cfg.xml&quot; /&gt;
+    &lt;import resource=&quot;jbpm.jobexecutor.cfg.xml&quot; /&gt;
+  
+  &lt;/jbpm-configuration&gt;</programlisting>
+  
+    <para>When you want to change the configuration, first consider 
+    to change an import with one of the other provided importable 
+    configuration files. 
+    </para>
+  
+    <para>For example, in a JTA environment, replace the import of 
+     <literal>jbpm.tx.hibernate.cfg.xml</literal> 
+    with <literal>jbpm.tx.jta.cfg.xml</literal> 
+    </para>
+    
+    <para>The second way to define a more customized configuration is to 
+    specify configuration items directly into the <literal>jbpm.cfg.xml</literal>.
+    For an example, see <xref linkend="customizingtheidentitycomponent" /> below.
+    The more you customize, the more likely you are doing things we didn't 
+    anticipate.
+    </para>
+    
+    <para>The jbpm.jar contains also following hibernate mapping configuration files:</para>
+    <programlisting>
+jbpm.execution.hbm.xml
+jbpm.history.hbm.xml
+jbpm.identity.hbm.xml
+jbpm.repository.hbm.xml
+jbpm.task.hbm.xml</programlisting>
+    <para>These all map the java domain model objects to a relational database.
+    </para>
+    <para>Other various configuration files that are included in jbpm.jar:</para>
+    <programlisting>
+jbpm.task.lifecycle.xml
+jbpm.variable.types.xml
+jbpm.wire.bindings.xml
+jbpm.jpdl.activities.xml
+jbpm.jpdl.eventlisteners.xml</programlisting>
+  
+    <para>Normally it is not necessary to dive into the parsing itself.  It's most 
+    a matter of figuring out how to specify the configuration that you want :-)
+    But just in case: To get started on the parsing for the configuration files, see
+    </para>
+    <itemizedlist>
+      <listitem>class org.jbpm.pvm.internal.env.JbpmConfigurationParser</listitem>
+      <listitem>resource modules/pvm/src/main/resources/jbpm.wire.bindings.xml</listitem>
+      <listitem>package modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding</listitem>
+    </itemizedlist>
+  </section>
+
+  <section id="customizingthebusinesscalendar">
+    <title>Customizing the business calendar</title>
+    <para>To provide a custom implementation for the business calendar, 
+    specify a custom business calendar implementation like this in 
+    the jbpm.cfg.xml
+    </para>
+    <programlisting>&lt;jbpm-configuration&gt;
+
+  &lt;import resource=&quot;jbpm.default.cfg.xml&quot; /&gt;
+  ...
+
+  &lt;process-engine-context&gt;
+    &lt;object class=&quot;org.jbpm.test.custombusinesscalendarimpl.CustomBusinessCalendar&quot; /&gt;
+  &lt;/process-engine-context&gt;
+
+&lt;/jbpm-configuration&gt;</programlisting>
+    <para>Here's an example implementation</para>
+    <programlisting>public class CustomBusinessCalendar implements BusinessCalendar {
+  
+  public Date add(Date date, String duration) {
+    if (&quot;my next birthday&quot;.equals(duration)) {
+      GregorianCalendar gregorianCalendar = new GregorianCalendar();
+      gregorianCalendar.set(Calendar.MONTH, Calendar.JULY);
+      gregorianCalendar.set(Calendar.DAY_OF_MONTH, 21);
+      return gregorianCalendar.getTime();
+    }
+    return null;
+  }
+}</programlisting>
+  </section>
+  
+  <section id="customizingtheidentitycomponent">
+    <title>Customizing the identity component</title>
+    <para>There are 2 identity components that we support out of the box:
+    </para>
+    <itemizedlist>
+      <listitem>jBPM's built-in identity component: ships with the jBPM project distro</listitem>
+      <listitem>JBoss IDM: ships in the JBoss product platforms</listitem>
+    </itemizedlist>
+    <para>The <literal>jboss/build.xml</literal> installation scripts can be used 
+    to install jBPM in JBoss using the JBoss IDM component.   There is some 
+    property in that build file to overwrite the default built-in identity component
+    with the value for the JBoss IDM component.
+    </para>
+    <para>If you want to plug in your own identity component, remove the 
+    following line in the <literal>jbpm.cfg.xml</literal>:
+    </para>
+    <programlisting>&lt;import resource=&quot;jbpm.identity.cfg.xml&quot; /&gt;</programlisting>
+    <para>And in the same file, add following section</para>
+    <programlisting>&lt;transaction-context&gt;
+  &lt;object class=&quot;your.package.YourIdentitySessionImpl&quot; /&gt;
+&lt;/transaction-context&gt;</programlisting>
+    <para>YourIdentitySessionImpl should implement <literal>org.jbpm.pvm.internal.identity.spi.IdentitySession</literal>
+    Making this identity pluggable is not our first target, but it was taken into the design. Let us know how it goes.
+    </para>
+  </section>
+
+</chapter>

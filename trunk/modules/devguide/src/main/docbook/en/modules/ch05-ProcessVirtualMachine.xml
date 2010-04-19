@@ -1,0 +1,50 @@
+<chapter id="processvirtualmachine">
+  <title>The Process Virtual Machine</title>
+  <para>To accomodate multiple process languages and activity pluggability, jBPM is based on 
+  the Process Virtual Machine.  In essence, the Process Virtual Machine is a framework specifying 
+  executable graphs.  A process definition represents an execution flow 
+  and has a structure that be represented graphically as a diagram.    
+  </para>
+  <para>The Process Virtual Machine separates the structure from a process definition from 
+  the activity behaviours.  The Process Virtual Machine takes the execution of a process from 
+  one activity to the next and delegates the behaviour of the activities to pluggable Java classes.
+  There is an API (<literal>ActivityBehaviour</literal>) that serves as the interface between 
+  the Process Virtual Machine and the activity behaviour code.  Languages like jPDL are 
+  merely a set of ActivityBehaviour implementations and a parser.   
+  </para>  
+  <figure id="example.process.graph">
+    <title>Example process definition</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/process.loan.png"/></imageobject></mediaobject>
+  </figure>
+  <para>Typically, process definitions are static.  A process definition is composed of 
+  activities and transitions.  The runtime behaviour of a activity is encapsulated in a so called 
+  Activity and it's decoupled from the process graph structure.  
+  </para>
+  <figure id="class.diagram.process.definition">
+    <title>Process structure class diagram</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/class.diagram.process.definition.png"/></imageobject></mediaobject>
+  </figure>
+  <para>The Process Virtual 
+  Machine doesn't contain any such activity implementations.  It only provides the 
+  execution environment and an activity API to write <literal>ActivityBehaviour</literal> 
+  implementations as Java components.  Activities can also be wait states.  This means 
+  that the activity control flow goes outside the process system. For example a human task 
+  or invoking an service asynchronously.  While the execution is waiting, the runtime state 
+  of that execution can be persisted in a DB.
+  </para>
+  <para>Many executions can be started for one process definition. An execution is a pointer 
+  that keeps track of the current activity.
+  </para>
+  <figure id="example.execution">
+    <title>Example execution</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/loan.execution.png"/></imageobject></mediaobject>
+  </figure>
+  <para>To represent concurrent paths of execution, there is 
+  a hierarchical parent-child relation between so that one process instance can cope with concurrent 
+  paths of execution.
+  </para>
+  <figure id="class.diagram.process.execution">
+    <title>Execution class diagram</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/class.diagram.process.execution.png"/></imageobject></mediaobject>
+  </figure>
+</chapter>

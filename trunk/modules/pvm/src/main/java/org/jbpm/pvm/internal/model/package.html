@@ -1,0 +1,20 @@
+<body>
+default implementation of process execution in {@link org.jbpm.pvm.internal.model.ExecutionImpl} 
+based on {@link org.jbpm.pvm.internal.model.AtomicOperation}s
+
+<h3>Bidirectional relations</h3>
+<p>In this process model thoughout the pvm codebase, there are several bidirectional 
+relations.  By convention, the bidirectional relations are maintained on the many side.
+This means that when you call for example {@link org.jbpm.pvm.internal.model.ProcessDefinitionImpl#addActivity(org.jbpm.pvm.internal.model.ActivityImpl)}, that 
+method will also update the inverse pointer by invoking the 
+{@link org.jbpm.pvm.internal.model.ActivityImpl#setProcessDefinition(org.jbpm.pvm.internal.model.ProcessDefinitionImpl)} setter.  Setter methods will be plain setter 
+methods and they will NOT update the inverse reference.  (that would cause 
+an infinite loop).
+</p>
+
+<p>In the same spirit, there is the convention that the many side of bidirection 
+relations provide factory methods for the related objects.  Those factory methods 
+will also establish the bidirectional relation.  E.g. {@link org.jbpm.pvm.internal.model.ProcessDefinitionImpl#createActivity(String)}.  
+</p>
+
+</body>

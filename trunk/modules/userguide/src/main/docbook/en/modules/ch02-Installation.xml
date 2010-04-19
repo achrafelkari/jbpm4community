@@ -1,0 +1,517 @@
+<chapter id="installation">
+  <title>Installation</title>
+  
+  <section id="thedistribution">
+    <title>The distribution</title>
+    <para>Unzip the jBPM download (<literal>jbpm-4.X.zip</literal>) to some location on your hard drive.
+    You'll see following subdirectories:
+    </para>
+    <itemizedlist>
+      <listitem><literal>doc</literal>: User guide, javadocs and developers guide</listitem>
+      <listitem><literal>examples</literal>: Example processes that are used in the user guide</listitem>
+      <listitem><literal>install</literal>: Installation scripts for several environments</listitem>
+      <listitem><literal>lib</literal>: Third party libs and some special jBPM libraries</listitem>
+      <listitem><literal>src</literal>: Source files</listitem>
+      <listitem><literal>migration</literal>: see developers guide</listitem>
+      <listitem><literal>jbpm.jar</literal>: The jBPM main library archive</listitem>
+    </itemizedlist>
+  </section>
+
+  <section>
+    <title>Required software</title>
+    <para>jBPM requires a JDK (standard java) version 5 or higher.
+    </para>
+    <ulink url="http://java.sun.com/javase/downloads/index.jsp">http://java.sun.com/javase/downloads/index.jsp</ulink>
+    <para>To execute the ant scripts, you'll need apache ant version <emphasis role="bold">1.7.0</emphasis> or higher:
+    </para>
+    <ulink url="http://ant.apache.org/bindownload.cgi">http://ant.apache.org/bindownload.cgi</ulink>
+  </section>
+
+  <section id="gettingstartedquickly">
+    <title>Getting started quickly</title>
+    <para>The <emphasis role="bold">demo setup</emphasis> is the simplest way to get started.
+    This section describes the steps to complete the demo setup.
+    </para>
+    <para>If you have previously downloaded <literal>jboss-5.0.0.GA.zip</literal>, you can drop it 
+    in the <literal>${jbpm.home}/install/downloads</literal> directory.
+    Otherwise the script will download it for you, but it will take some time (depending on your connection).
+    The same is holds for eclipse-jee-galileo-win32.zip (or eclipse-jee-galileo-linux-gtk(-x86_64).tar.gz on Linux 
+    and eclipse-jee-galileo-macosx-carbon.tar.gz on Mac OSX)
+    </para>
+    <para>Open a command prompt and go do directory <literal>${jbpm.home}/install</literal>.  Then 
+    run
+    </para>
+    <programlisting>ant demo.setup.jboss</programlisting>
+    <para>or</para>
+    <programlisting>ant demo.setup.tomcat</programlisting>
+    <para>That will</para>
+    <itemizedlist>
+      <listitem>Install JBoss into the <literal>${jbpm.home}/jboss-5.0.0.GA</literal> directory</listitem>
+      <listitem>Install jBPM into that JBoss installation.</listitem>
+      <listitem>Install hsqldb and start it in the background</listitem>
+      <listitem>Create the DB Schema</listitem>
+      <listitem>Start JBoss in the background.</listitem>
+      <listitem>Create an examples.bar business archive from the examples and deploy it to the jBPM DB.</listitem>
+      <listitem>Load the example users and groups from <literal>${jbpm.home}/install/src/demo/example.identities.sql</literal> </listitem>
+      <listitem>Install eclipse into <literal>${jbpm.home}/eclipse</literal></listitem>
+      <listitem>Install the jBPM web console</listitem>
+      <listitem>Install the Signavio web modeler</listitem>
+      <listitem>Start eclipse</listitem>
+    </itemizedlist>
+    <para>
+      After this is done, JBoss (or Tomcat, depending on which demo.setup script you chose) 
+      will be running in the background. Once eclipse has started, you can continue to follow the instructions of
+      <xref linkend="graphicalprocessdesigner" /> to start coding your jBPM business processes.
+    </para>
+    <para>
+      Or you can start modeling processes through 
+      <ulink url="http://localhost:8080/jbpmeditor/p/explorer">the Signavio web editor</ulink>.
+    </para>
+    <para>Or surf to <ulink url="http://localhost:8080/jbpm-console">the jBPM console</ulink>.
+    You can login as one of the following users:
+    </para>
+    <table><title>Example console users:</title>
+      <tgroup cols="2" rowsep="1" colsep="1">
+        <thead>
+          <row>
+            <entry>Username</entry>
+            <entry>Password</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>alex</entry>
+            <entry>password</entry>
+          </row>
+          <row>
+            <entry>mike</entry>
+            <entry>password</entry>
+          </row>
+          <row>
+            <entry>peter</entry>
+            <entry>password</entry>
+          </row>
+          <row>
+            <entry>mary</entry>
+            <entry>password</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <para>
+    <emphasis role="bold">Known console limitation</emphasis>:
+    Currently, the timeout of the console is too tight for the reporting
+    to initialize on slower machines. So the first time when you access
+    the reporting the request will timeout and the console crashes.
+    Logging out and login again works around this problem. It's being
+    addressed as issue
+    <ulink url="https://jira.jboss.org/jira/browse/JBPM-2508">JBPM-2508</ulink>
+  </para>
+  </section>
+
+  <section id="installscripts">
+    <title>Install scripts</title>
+	  <para>The jBPM download contains an <literal>install</literal> directory
+	  with an ant <link>build.xml</link> file in it.  You can use that to 
+	  install jBPM into your application environment. 
+	  </para>
+	     
+	  <para>It's best to stick to the installations and jBPM configuration files 
+	  as done with these installation scripts.  Customizing jBPM configuration files 
+	  directly, is possible, but not supported. 
+	  </para> 
+	
+    <para>
+    To invoke the install script, open a command line and go to the 
+    <literal>${jbpm.home}/install</literal> directory.  With <literal>ant -p</literal> you can 
+    find out what each of these scripts can do. The scripts are parametrized with default values
+    to get going quickly. The following list gives an overview of the available scripts:
+    </para>  
+    <para>
+      <itemizedlist>
+      <listitem> 
+        <literal>demo.setup.jboss</literal>: installs jboss, installs jbpm into jboss, 
+        starts jboss, creates the jBPM DB schema, deploys examples, loads example identities,
+        installs and starts eclipse
+      </listitem>
+      <listitem>   
+        <literal>demo.setup.tomcat</literal>: installs tomcat, installs jbpm into tomcat,
+        starts tomcat, creates the jBPM DB schema, deploys examples, loads example identities,
+        installs and starts eclipse
+      </listitem>
+      <listitem>
+        <literal>clean.cfg.dir</literal>: Deletes the <literal>${jbpm.home}/install/generated/cfg</literal> folder.
+      </listitem>
+      <listitem>
+        <literal>create.cfg</literal>: Creates a configuration in 
+        <literal>${jbpm.home}/install/generated/cfg</literal> based on the current parameters.
+      </listitem>
+      <listitem>
+        <literal>create.jbpm.schema</literal>: creates the jbpm tables in the database
+      </listitem>
+      <listitem>   
+        <literal>create.user.webapp</literal>: Generates a basic webapp in 
+        <literal>${jbpm.home}/install/generated/user-webapp</literal>
+      </listitem>
+      <listitem>
+        <literal>delete.jboss</literal>: Deletes the JBoss installation
+      </listitem>
+      <listitem>   
+        <literal>delete.tomcat</literal>: Deletes the Tomcat installation
+      </listitem>
+      <listitem>   
+        <literal>demo.teardown.jboss</literal>: Drops the jbpm db schema and stops jboss
+      </listitem>
+      <listitem>   
+        <literal>demo.teardown.tomcat</literal>: Stops tomcat and then the hsqldb server (if needed)
+      </listitem>
+      <listitem>   
+        <literal>drop.jbpm.schema</literal>: Drops the jbpm tables from the database
+      </listitem>
+      <listitem>  
+        <literal>get.eclipse</literal>: Downloads eclipse if it is not available
+      </listitem>
+      <listitem>  
+        <literal>get.jboss</literal>: Downloads a JBoss AS which was tested against the current jBPM version if it is not available
+      </listitem>
+      <listitem> 
+        <literal>get.tomcat</literal>: Downloads tomcat which was tested against the current jBPM version if it is not available
+      </listitem>
+      <listitem> 
+        <literal>hsqldb.databasemanager</literal>: Starts the hsqldb database manager
+      </listitem>
+      <listitem>
+        <literal>install.eclipse</literal>:  Unzips eclipse, downloads eclipse if it is not available
+      </listitem>
+      <listitem>  
+        <literal>install.jboss</literal>: Downloads JBoss if its not available and then unzips it
+      </listitem>
+      <listitem>  
+        <literal>install.jbpm.into.jboss</literal>: Installs jBPM into JBoss
+      </listitem>
+      <listitem>  
+        <literal>install.tomcat</literal>: Downloads tomcat to ${tomcat.distro.dir} if its not available and then unzips tomcat
+      </listitem>
+      <listitem>   
+        <literal>install.jbpm.into.tomcat</literal>: Installs jBPM into tomcat
+      </listitem>
+      <listitem>   
+        <literal>install.examples.into.tomcat</literal>: Deploys all the example processes
+      </listitem>
+      <listitem>
+        <literal>install.signavio.into.jboss</literal>: Installs signavio into jboss
+      </listitem>
+      <listitem> 
+        <literal>install.signavio.into.tomcat</literal>: Installs signavio into tomcat
+     </listitem>
+      <listitem>   
+        <literal>load.example.identities</literal>: Loads the example users and groups into the database
+      </listitem>
+      <listitem>  
+        <literal>reinstall.jboss</literal>: Deletes the previous jboss installation and re-installs jboss
+      </listitem>
+      <listitem>   
+        <literal>reinstall.jboss.and.jbpm</literal>: Deletes the previous jboss installation and re-installs jboss and installs jbpm in it
+      </listitem>
+      <listitem>   
+        <literal>reinstall.tomcat</literal>: Deletes the previous tomcat installation and re-installs tomcat
+      </listitem>
+      <listitem>  
+        <literal>reinstall.tomcat.and.jbpm</literal>: Deletes the previous tomcat installation and re-installs tomcat and installs jbpm in it
+      </listitem>
+      <listitem>   
+        <literal>start.eclipse</literal>: Starts eclipse
+      </listitem>
+      <listitem>  
+        <literal>start.jboss</literal>: Starts jboss and waits till jboss is booted, then lets jboss run in the background
+      </listitem>
+      <listitem>   
+        <literal>start.tomcat</literal>: Starts Tomcat and waits till it is booted, then lets Tomcat run in the background
+      </listitem>
+      <listitem>  
+        <literal>stop.jboss</literal>: signals jboss to stop, but doesn't wait till its finished
+      </listitem>
+      <listitem>   
+        <literal>stop.tomcat</literal>: Signals Tomcat to stop, but doesn't wait till its finished
+      </listitem>
+      <listitem>   
+        <literal>upgrade.jbpm.schema</literal>:  Upgrades the jBPM tables in the database to the current version
+      </listitem>
+      </itemizedlist>
+    </para>
+    <para>To specify your jdbc properties that are used in the scripts above (eg.DB schema generation), 
+    the easiest is to update the appropriate properties file in directory <literal>${jbpm.home}/install/jdbc</literal>.  
+    The appropriate properties file will be loaded by the scripts that are DB related. 
+    </para>
+    <para>Also following properties are customizeable</para>
+    <itemizedlist>
+      <listitem><literal>database</literal> : Default value is <literal>hsqldb</literal>.  Alternative values 
+      are <literal>mysql</literal>, <literal>oracle</literal> and <literal>postgresql</literal></listitem>
+      <listitem><literal>jboss.version</literal> : Default value is <literal>5.0.0.GA</literal>.  Alternative 
+      value is <literal>5.1.0.GA</literal></listitem>
+    </itemizedlist>
+    <para>To customize the values for these properties, just use <literal>-D</literal> like this
+    </para>
+    <programlisting>ant -Ddatabase=postgresql demo.setup.jboss</programlisting>
+    <para>Alternatively you can specify the customized values in 
+    <literal>${user.home}/.jbpm4/build.properties</literal> 
+    </para>
+  </section>
+
+  <section id="librarydependenciesandconfigurationfiles">
+    <title>Library dependencies and configuration files</title>
+    <para>We provide support for installations of jBPM through our automatic ant  
+    scripts.  Those scripts will put the right libs and the right configuration 
+    files in the right location for you. If you want to create your own installation of 
+    jBPM in your application, see the developers guide for more information.      
+    </para>
+  </section>
+
+  <section id="jboss">
+    <title>JBoss</title>
+    <para>The target <literal>install.jbpm.into.jboss</literal> will install jBPM into
+    your JBoss 5 installation.  Navigate to the install directory and run <literal>ant -p</literal>
+    for more details.  This install script will install jBPM as a JBoss-wide service so 
+    that all applications can use the same jBPM ProcessEngine. 
+    </para>
+    <para>Specify property <literal>-Djboss.home=PathToYourJBossInstallation</literal> 
+    to customize the path to your JBoss installation.
+    </para>
+    <para>In JBoss, the <literal>ProcessEngine</literal> can be obtained from JNDI 
+    with <literal>new InitialContext().lookup(&quot;java:/ProcessEngine&quot;)</literal>.
+    The same ProcessEngine can be obtained with <literal>Configuration.getProcessEngine()</literal>
+    </para>
+  </section>
+
+  <section id="tomcat">
+    <title>Tomcat</title>
+    <para>The target <literal>install.jbpm.into.tomcat</literal> will install jBPM into
+    your JBoss 5 installation. 
+    </para>
+  </section>
+
+  <section id="signavio">
+    <title>Signavio web based process editor</title>
+    <para>The targets <literal>install.signavio.into.jboss</literal> and 
+    <literal>install.signavio.into.tomcat</literal> will install the Signavio web based 
+    process editor into JBoss or Tomcat respectively. 
+    </para>
+  </section>
+
+  <section id="userwebapp">
+    <title>User webapp</title>
+    <para>If you want to deploy jBPM as a part of your web application, use the
+    install target <literal>create.user.webapp</literal>.  That will 
+    create a web application with jBPM in it, in the location <literal>${jbpm.home}/install/generated/user-webapp</literal>.  
+    </para>
+    <para>In case you deploy your app on JBoss or another appserver that has the 
+    jta.jar classes, then you need to delete the <literal>${jbpm.home}/install/generated/user-webapp/WEB-INF/lib/jta.jar</literal> 
+    </para>
+  </section>
+
+  <section id="database">
+    <title>Database</title>
+    <para>The install script is also capable of performing database operations
+    such as creating the schema, if you are installing jBPM for the first time,
+    or upgrading the database used with a previous version to the current schema.
+    Dropping the schema is an option as well.
+    </para>
+    <para>The prerrequisite for any database operation is to specify your
+    database connection parameters in <literal>${jbpm.home}/install/jdbc</literal>.
+    </para>
+
+    <section id="createdropdb">
+      <title>Creating or dropping the database schema</title>
+      <para>To create the schema, run target <literal>create.jbpm.schema</literal>
+      in the <literal>${jbpm.home}/install</literal> directory. Apart from
+      creating tables and constraints, the mentioned target will initialize
+      table <literal>JBPM4_PROPERTY</literal> with the current engine version
+      (key <literal>db.version</literal>) and the ID generator base value
+      (key <literal>next.dbid</literal>).</para>
+      <para>To drop the schema, simply run target <literal>drop.jbpm.schema</literal>.
+      Be aware that this operation will destroy any data present in the jBPM
+      tables.</para>
+    </section>
+
+    <section id="upgradedb">
+      <title>Upgrading an existing database</title>
+      <para>To upgrade, run target <literal>upgrade.jbpm.schema</literal>
+      in the <literal>${jbpm.home}/install</literal> directory.</para>
+      <para>Upgrading is a two-fold operation. The foremost step is to add
+      any extra tables, columns or constraints that were introduced in newer
+      versions. Afterwards, seed data is inserted.</para>
+      <para>Between 4.0 and 4.1, table <literal>JBPM4_VARIABLE</literal> got
+      a new column <literal>CLASSNAME_</literal> used to support setting
+      process variables to values of custom types mapped with Hibernate.
+      This column is nullable and left uninitialized since the feature was
+      not operational in 4.0.</para>
+      <para>From 4.1 to 4.2 the upgrade procedure got more interesting.</para>
+      <itemizedlist>
+        <listitem>A new table <literal>JBPM4_PROPERTY</literal>
+        was introduced for storing engine-wide values.</listitem>
+        <listitem>The jBPM version is saved in table <literal>JBPM4_PROPERTY</literal>
+        under key <literal>db.version</literal> to allow for precise
+        identification in future releases.</listitem>
+        <listitem>The ID generation strategy is consistent across databases.
+        The next available ID is calculated by querying all tables having
+        an identifier column, and stored under key <literal>next.dbid</literal>
+        in the <literal>JBPM4_PROPERTY</literal> table.</listitem>
+        <listitem>The process language is set to <literal>jpdl-4.0</literal>
+        for all existing process definitions under key <literal>langid</literal>
+        in table <literal>JBPM4_DEPLOYPROP</literal>. The jPDL parser employs the
+        <literal>langid</literal> property to read process documents in a
+        backwards-compatible manner.</listitem>
+      </itemizedlist>
+    </section>
+  </section>
+
+  <section id="graphicalprocessdesigner">
+    <title>Graphical Process Designer (GPD)</title>
+    <para>Eclipse is used as the platform to host the jPDL graphical process
+    designer. This section will describe how to obtain and install Eclipse and 
+    how to install the GPD plugin in Eclipse.</para>
+    <section>
+      <title>Get Eclipse</title>
+      <para>You'll need Eclipse 3.5.0.
+      </para>
+      <para>Use the <link linkend="gettingstartedquickly">demo setup</link> or download 
+      eclipse manually:      
+      <ulink url="http://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/galileo">Eclipse IDE for Java EE Developers (163 MB)</ulink>.
+      </para>
+      <para>The classic version of eclipse will not be sufficient as it does 
+      not have an XML editor.  Eclipse for Java developers should also 
+      work.
+      </para>
+    </section>
+    <section>
+      <title>Install the GPD plugin into eclipse</title>
+      <para>The installation of the GPD uses the Eclipse Software Update 
+      mechanism and is pretty straightforward. There is an archived update 
+      site included in the runtime installation of jBPM when you unzip it 
+      at <literal>install/src/gpd/jbpm-gpd-site.zip</literal> 
+      </para>
+      <para>To add the update site to eclipse:
+      </para>
+      <itemizedlist>
+        <listitem><literal>Help</literal> --> <literal>Install New Software...</literal></listitem> 
+        <listitem>Click <literal>Add...</literal> </listitem>
+        <listitem>In dialog <literal>Add Site</literal> dialog, click <literal>Archive...</literal></listitem>
+        <listitem>Navigate to <literal>install/src/gpd/jbpm-gpd-site.zip</literal> and click 'Open'</listitem>
+        <listitem>Clicking <literal>OK</literal> in the <literal>Add Site</literal> dialog will bring you back to the dialog 'Install'</listitem>
+        <listitem>Select the <literal>jPDL 4 GPD Update Site</literal> that has appeared</listitem>
+        <listitem>Click <literal>Next...</literal> and then <literal>Finish</literal></listitem>
+        <listitem>Approve the license</listitem>
+        <listitem>Restart eclipse when that is asked</listitem>
+      </itemizedlist>
+      <figure id="gpd.install.gpd.site">
+        <title>Adding the GPD local archive site</title>
+        <mediaobject><imageobject><imagedata align="center" fileref="images/gpd.install.gpd.site.png"/></imageobject></mediaobject>
+      </figure>
+    </section>
+
+    <section>
+      <title>Configuring the jBPM runtime</title>
+      <itemizedlist>
+        <listitem>Click <literal>Window</literal> --> <literal>Preferences</literal> </listitem>
+        <listitem>Select <literal>JBoss jBPM</literal> --> <literal>jBPM 4</literal> --> <literal>Runtime Locations</literal> </listitem>
+        <listitem>Click <literal>Add...</literal> </listitem>
+        <listitem>In the <literal>Add Location</literal> dialog, enter a name like e.g. <literal>jbpm-4.0</literal> and then click <literal>Search...</literal> </listitem>
+        <listitem>In the <literal>Browse For Folder</literal> dialog, select your jbpm home directory and click <literal>OK</literal> </listitem>
+        <listitem>Click <literal>OK</literal> in the <literal>Add Location</literal> dialog</listitem>
+      </itemizedlist>
+      <figure id="gpd.runtime.location">
+        <title>Defining jBPM Libraries</title>
+        <mediaobject><imageobject><imagedata align="center" fileref="images/gpd.runtime.location.png"/></imageobject></mediaobject>
+      </figure>
+    </section>
+
+    <section id="definejbpmuserlibraries">
+      <title>Define the jBPM User Library</title>
+      <para>This section shows how to define a user library for your workspace
+      that is a placeholder for the jBPM library as well as its dependencies. 
+      If you create a new Java project, it will be sufficient to add this user 
+      library to the build path.
+      </para>
+      <itemizedlist>
+        <listitem>Click <literal>Window</literal> --> <literal>Preferences</literal> </listitem>
+        <listitem>Select <literal>Java</literal> --> <literal>Build Path</literal> --> <literal>User Libraries</literal> </listitem>
+        <listitem>Click <literal>New...</literal> </listitem>
+        <listitem>Type name <literal>jBPM Libraries</literal> </listitem>
+        <listitem>Click <literal>Add JARs...</literal> </listitem>
+        <listitem>Navigate to the 'lib' folder of your jBPM installation</listitem>
+        <listitem>Select all jar files and click <literal>Open</literal> </listitem>
+        <listitem>Select the <literal>jBPM Libraries</literal> entry</listitem>
+        <listitem>Click <literal>Add JARs...</literal> again</listitem>
+        <listitem>Select the <literal>jbpm.jar</literal> file in the root of your jBPM installation</listitem>
+        <listitem>Click <literal>Open</literal> </listitem>
+        <listitem>Select entry <literal>Source attachment</literal> under <literal>jbpm.jar</literal> </listitem>
+        <listitem>Click <literal>Edit</literal> </listitem>
+        <listitem>In dialog <literal>Source Attachment Configuration</literal>, click <literal>External Folder...</literal> </listitem>
+        <listitem>Navigate to the <literal>src</literal> folder in your jBPM installation</listitem>
+        <listitem>Click <literal>Choose</literal> </listitem>
+        <listitem>Click <literal>OK</literal> twice to close all the open dialogs</listitem>
+      </itemizedlist>
+      <figure id="gpd.install.libraries">
+        <title>Defining jBPM Libraries</title>
+        <mediaobject><imageobject><imagedata align="center" fileref="images/gpd.install.libraries.png"/></imageobject></mediaobject>
+      </figure>
+    </section>
+    
+    <section>
+      <title>Adding jPDL 4 schema to the catalog</title>
+      <para>In case you want to edit the process XML sources directly, it is best to specify 
+      your schema in the XML catalog.  This will give you better code completion while 
+      editing the process sources.
+      </para>
+      <itemizedlist>
+        <listitem>Click <literal>Window</literal> --> <literal>Preferences</literal> </listitem>
+        <listitem>Select <literal>XML</literal> --> <literal>XML Catalog</literal></listitem>
+        <listitem>Click 'Add...'</listitem>
+        <listitem>The 'Add XML Catalog Entry' dialog opens</listitem>
+        <listitem>Click the button with the map-icon next to location and select 'File System...'</listitem>
+        <listitem>In the dialog that opens, select file <literal>jpdl-4.0.xsd</literal> 
+        in the src directory of the jBPM installation root.</listitem>
+        <listitem>Click 'Open' and close all the dialogs</listitem>
+      </itemizedlist>
+      <figure id="gpd.install.xml.catalog">
+        <title>Adding jPDL 4 schema to the Catalog</title>
+        <mediaobject><imageobject><imagedata align="center" fileref="images/gpd.install.xml.catalog.png"/></imageobject></mediaobject>
+      </figure>
+    </section>
+    
+    <section>
+      <title>Importing the Examples</title>
+      <para>In this section we will import the examples project in the 
+      installation in Eclipse
+      </para>
+      <itemizedlist>
+        <listitem>Select <literal>File</literal> --> <literal>Import...</literal> </listitem>
+        <listitem>Select <literal>General</literal> --> <literal>Existing Projects into Workspace</literal> </listitem>
+        <listitem>Click <literal>Next</literal></listitem>
+        <listitem>Click <literal>Browse...</literal> to select a root directory</listitem>
+        <listitem>Navigate to the jBPM root installation directory</listitem>
+        <listitem>Click <literal>OK</literal> </listitem>
+        <listitem>The <literal>examples</literal> project is automatically found and selected</listitem>
+        <listitem>Click <literal>Finish</literal> </listitem>
+      </itemizedlist>
+      <para>After setting the <link linkend="definejbpmuserlibraries">jBPM User Libraries</link> 
+      and importing the examples, all the examples can be run as JUnit tests.  Right click 
+      on a test and select 'Run As' --> 'JUnit Test'.  
+      </para>
+      <para>You're all set to start playing with the coolest Java process technology!</para>
+    </section>
+
+    <section>
+      <title>Adding deployment with ant</title>
+      <para>You can leverage the eclipse ant integration to ease deployment of processes.
+      We'll show you how it works with the examples.  Then you can copy this practice in your 
+      own project.  First, open up the Ant view.  
+      </para>
+      <itemizedlist>
+        <listitem>Select <literal>Window</literal> --> <literal>Show View</literal> --> <literal>Other...</literal> --> <literal>Ant</literal> --> <literal>Ant</literal></listitem>
+        <listitem>Then drag the build file <literal>build.xml</literal> in the examples project from the package explorer to the Ant view</listitem>
+      </itemizedlist>
+    </section>
+
+  </section>
+</chapter>

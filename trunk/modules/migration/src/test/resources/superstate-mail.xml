@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process-definition 
+  xmlns="urn:jbpm.org:jpdl-3.2"
+  name="simple">
+   <start-state name="start">
+      <transition name="to_state" to="phase one">
+         <action name="action" class="com.test.MessageActionHandler">
+            <message>Going to the first state!</message>
+         </action>
+      </transition>
+   </start-state>
+
+   <super-state name="phase one">  
+
+	<join name="join">
+		<transition to="preparations"></transition>
+	</join>
+	
+	<fork name="preparations">
+		<transition to="make_decision" name="make_decision"></transition>
+		<transition to="state" name="state"></transition>
+	</fork>
+	
+
+  <decision name="make_decision">
+    <transition to="Approve Order Node">
+      <condition>a==&quot;OKOK&quot;</condition>
+    </transition>
+    <transition to="end">
+      <condition>a=="NOK"</condition>
+    </transition>
+  </decision>
+
+   <task-node name="Approve Order Node">
+      <task name="ApproveOrder1">
+         <assignment class="com.test.RulesAssignmentHandler" >
+           		<group>reviewers</group>
+   				<objectNames>
+					<element>order</element>
+				</objectNames>
+	       		<ruleFile>/assignment/Assignment.drl</ruleFile>
+			</assignment>
+      </task>
+      
+      <task name="ApproveOrder2">
+         <assignment class="com.test.RulesAssignmentHandler" >
+           		<group>reviewers</group>
+   				<objectNames>
+					<element>order</element>
+				</objectNames>
+	       		<ruleFile>/assignment/Assignment.drl</ruleFile>
+			</assignment>
+      </task>
+      
+      <transition name="" to="node1"></transition>
+   </task-node>
+
+     <node name="node1">
+        <action name="NodeEnterAction" class="com.test.MessageActionHandler">
+        </action>
+         <transition name="to_state" to="state"/>
+     </node>
+      <state name="state">
+      <event type="node-enter">
+        <action class="com.test.NodeEnterAction"/>
+      </event>
+      <transition name="to_end" to="end">
+         <action name="action" class="com.test.MessageActionHandler">
+            <message>About to finish!</message>
+         </action>
+      </transition>
+   </state>
+   <end-state name="end"></end-state>
+     
+     
+     <transition to="mail-node"/> 
+   </super-state>
+   
+   <mail-node name="mail-node" to="simple">
+      <subject>test</subject>
+      <text>test</text>
+       <transition to="first"/> 
+   </mail-node>
+   
+    <state name="first">
+      <event type="transistion">
+        <mail name="test"/>
+      </event>
+      <transition name="to_end" to="end">
+         <action name="action" class="com.test.MessageActionHandler">
+            <message>About to finish!</message>
+         </action>
+      </transition>
+   </state>
+   <end-state name="end"></end-state>
+</process-definition>

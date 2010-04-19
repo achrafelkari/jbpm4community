@@ -1,0 +1,20 @@
+<chapter id="environments">
+  <title>Environments</title>
+  
+  <para>This chapter describes the support for other environments then the ones
+  described in the userguide.
+  </para>
+  
+  <section id="spring">
+    <title>Spring</title>
+    <para>TODO
+    </para>
+  </section>
+
+  <section id="osgi">
+    <title>OSGi</title>
+    <para>TODO 
+    </para>
+  </section>
+
+</chapter>

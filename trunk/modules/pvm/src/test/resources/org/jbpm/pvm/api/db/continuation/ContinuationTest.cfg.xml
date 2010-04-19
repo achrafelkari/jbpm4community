@@ -1,0 +1,39 @@
+<jbpm-configuration>
+
+	<process-engine-context>
+
+    <object class="org.jbpm.pvm.internal.hibernate.PvmNamingStrategy" auto-wire="true" />
+
+    <object class="org.jbpm.pvm.api.db.continuation.Recorder" />
+
+    <hibernate-configuration>
+      <properties resource="hibernate.properties" />
+      <mapping resource="jbpm.pvm.typedefs.hbm.xml" />
+      <mapping resource="jbpm.pvm.wire.hbm.xml" />
+      <mapping resource="jbpm.pvm.definition.hbm.xml" />
+      <mapping resource="jbpm.pvm.execution.hbm.xml" />
+      <mapping resource="jbpm.pvm.variable.hbm.xml" />
+      <mapping resource="jbpm.pvm.job.hbm.xml" />
+      <cache-configuration resource="jbpm.pvm.cache.xml" 
+                           usage="nonstrict-read-write" />
+    </hibernate-configuration>
+
+    <hibernate-session-factory />
+
+    <job-executor auto-start="true" />
+    
+    <command-service>
+      <environment-interceptor />
+      <transaction-interceptor />
+    </command-service>
+
+  </process-engine-context>
+
+  <transaction-context>
+    <transaction />
+    <hibernate-session />
+    <message-session />
+    <db-session />
+  </transaction-context>
+
+</jbpm-configuration>

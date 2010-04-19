@@ -1,0 +1,1759 @@
+<chapter id="incubation">
+  <title>Incubation</title>
+
+  <para>This section documents some of the more advanced activities and 
+  features of jPDL that are still in incubation.  Meaning these features 
+  and activities are not supported yet.  But they are available for you
+  to try and use.  We don't give any stability guarantees on these 
+  activities and features.  So use at your own risk.
+  </para>
+  
+  <!-- ### Timer ########################################################## -->
+  <section id="timer">
+    <title><literal>timer</literal> </title>
+    <para>IMPORTANT NOTE : Timers will be changed before they are moved to the 
+    Userguide.  See also 
+    <ulink url="https://jira.jboss.org/jira/browse/JBPM-2329">https://jira.jboss.org/jira/browse/JBPM-2329</ulink>
+    </para>
+    <para>A timer can be specified in the <literal>transition</literal>
+    element in wait state activities such as <literal>state</literal>s, 
+    <literal>task</literal>s, <literal>sub-process</literal>es and 
+    <literal>group</literal>s.  
+    When such a timer fires, that transition is taken.
+    </para>
+    <para>A timer can also be specified in custom events in wait state 
+    activities such as <literal>state</literal>s, 
+    <literal>task</literal>s, <literal>sub-process</literal>es and 
+    <literal>group</literal>s.  The <literal>timer</literal> element 
+    should then be the first element in the <literal>on</literal> element representing 
+    the event. In that case the event fires upon the duedate of the timer.   
+    </para>
+    <para>Timers are created when the activity is entered.  The timer can fire 
+    when the execution remains in the activity until the <literal>duedate</literal>.
+    When the execution leaves the activity, the timer is cancelled. 
+    </para>
+    <table><title><literal>timer</literal> attributes:</title>
+      <tgroup cols="5" rowsep="1" colsep="1">
+        <thead>
+          <row>
+            <entry>Attribute</entry>
+            <entry>Type</entry>
+            <entry>Default</entry>
+            <entry>Required?</entry>
+            <entry>Description</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><literal>duedate</literal></entry>
+            <entry><link linkend="duedateexpressions">duedate expression</link></entry>
+            <entry></entry>
+            <entry><emphasis role="bold">required</emphasis></entry>
+            <entry>Specifies when the timer needs to fire.  For 
+            example: <literal>20 minutes</literal> or
+            <literal>3 business days</literal> or
+            <literal>#{proc_var} + 1 week</literal> 
+            </entry>
+          </row>
+          <row>
+            <entry><literal>repeat</literal></entry>
+            <entry><link linkend="duedateexpressions">duedate expression</link></entry>
+            <entry></entry>
+            <entry>optional</entry>
+            <entry>When a timer fires, this attribute specifies when the timer 
+            needs to fire again.   For example: <literal>20 minutes</literal> or
+            <literal>3 business days</literal> 
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <section id="duedateexpressions">
+      <title>Duedate expressions</title>
+      <para>A duedate expression has the following syntax:</para>
+      <programlisting>[&lt;Base Date&gt; {+|-}] quantity [business] {second | seconds | minute | minutes | 
+                     hour | hours | day | days | week | 
+                     weeks | month | months | year | years}</programlisting>
+      <para>Where <literal><link linkend="baseDate">Base Date</link></literal> is specified as EL and 
+      where <literal>quantity</literal> is a positive integer.
+      </para>
+      <para>And adding the optional indication <literal>business</literal> means 
+      that only business hours should be taken into account for this duration. Without 
+      the indication business, the duration will be interpreted as an absolute time period.
+      How to configure business hours is explained in <xref linkend="businesscalendar"/>
+      <emphasis>Note: 'business' is not supported when subtracting from a base date!</emphasis>
+      </para>
+      
+      <section id="baseDate">
+      	<title>Base date</title>
+
+      	<para>The base date can be specified in any JAVA Expression
+      	Language expression that resolves to a JAVA Date or Calendar object.
+      	Referencing variables of other object types, even a String in a date
+      	format like '2036-02-12', will throw a JbpmException</para>
+
+      	<para>NOTE: This baseDate is supported on the duedate and repeat attributes of all places where timers can be used, 
+      	but also on the reminder of a task</para>
+      </section>
+
+      <section id="duedateExamples">
+        <title>Examples</title>
+
+        <para>The following examples of the usage are all possible</para>
+
+        <programlisting language="xml">&lt;timer name="daysBeforeHoliday" duedate="5 business days"&gt;...&lt;/timer&gt;
+
+&lt;timer name="pensionDate" duedate="#{dateOfBirth} + 65 years" &gt;...&lt;/timer&gt;
+
+&lt;timer name="pensionReminder" duedate="#{dateOfPension} - 1 year" &gt;...&lt;/timer&gt;
+
+&lt;timer name="fireWorks" duedate="#{chineseNewYear} repeat="1 year" &gt;...&lt;/timer&gt;
+
+&lt;reminder name="hitBoss" duedate="#{payRaiseDay} + 3 days" repeat="1 week" /&gt;
+
+&lt;reminder name="hitBoss" duedate="#{payRaiseDay} + 3 days" repeat="#{iritationFactor}" /&gt;
+        </programlisting>
+        
+        <para>Remember, the following example, a subtraction in combination with 'business', is <emphasis>not</emphasis> supported and will throw an exception, as will resulting due dates that will be in the past</para>
+        <programlisting language="xml">&lt;reminder name="toGoOrNotToGo" duedate="#{goLive} - 3 business days"/&gt;</programlisting>
+      </section>
+    </section>
+
+
+    <section id="businesscalendar">
+      <title>Business calendar</title>
+      <para>The default configuration will contain a reference to the file
+        <literal>jbpm.business.calendar.xml</literal>.  That contains a 
+        configuration of business hours in the following format: 
+      </para>
+      <programlisting>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+
+&lt;jbpm-configuration xmlns=&quot;http://jbpm.org/xsd/cfg&quot;&gt;
+
+  &lt;process-engine-context&gt;
+      
+      &lt;business-calendar&gt;
+        &lt;monday    hours=&quot;9:00-12:00 and 12:30-17:00&quot;/&gt;
+        &lt;tuesday   hours=&quot;9:00-12:00 and 12:30-17:00&quot;/&gt;
+        &lt;wednesday hours=&quot;9:00-12:00 and 12:30-17:00&quot;/&gt;
+        &lt;thursday  hours=&quot;9:00-12:00 and 12:30-17:00&quot;/&gt;
+        &lt;friday    hours=&quot;9:00-12:00 and 12:30-17:00&quot;/&gt;
+        &lt;holiday period=&quot;01/07/2008 - 31/08/2008&quot;/&gt;
+      &lt;/business-calendar&gt;
+
+  &lt;/process-engine-context&gt;
+
+&lt;/jbpm-configuration&gt;</programlisting>
+    <para>
+     If the default business calendar implementation is sufficient for you,
+     you can simply adjust the timings in the xml configuration as shown above.
+     </para>
+     <para>
+     If the default implementation doesn't cover your use cases, you can easily
+     write your own implementation by implementing the 
+     <literal>org.jbpm.pvm.internal.cal.BusinessCalendar</literal> interface.
+     </para>
+     <para>
+     For example:
+    <programlisting>
+public class CustomBusinessCalendar implements BusinessCalendar {
+  
+  public Date add(Date date, String duration) {
+    if (&quot;my next birthday&quot;.equals(duration)) {
+      GregorianCalendar gregorianCalendar = new GregorianCalendar();
+      gregorianCalendar.set(Calendar.MONTH, Calendar.JULY);
+      gregorianCalendar.set(Calendar.DAY_OF_MONTH, 21);
+      return gregorianCalendar.getTime();
+    }
+    return null;
+  }
+}
+     </programlisting>
+     To configure the jBPM engine to use this custom business calendar, just add
+     the following line to your <literal>jbpm.cfg.xml</literal>:
+     <programlisting>
+&lt;process-engine-context&gt;
+    &lt;object class=&quot;org.jbpm.test.custombusinesscalendarimpl.CustomBusinessCalendar&quot; /&gt;
+&lt;/process-engine-context&gt;     
+     </programlisting>
+     </para>
+     <para>
+     Take a look at the 
+     <literal>org.jbpm.test.custombusinesscalendarimpl.CustomBusinessCalendarImplTest</literal> 
+     for more information.
+     </para>
+    </section>
+
+    <section id="timertransition">
+      <title>Timer transition</title>
+      <para>The example <literal>org.jbpm.examples.timer.transition.TimerTransitionTest</literal>
+      shows how to put a timer on a transition.</para>
+      <figure id="process.timer.transition">
+        <title>The timer transition example process</title>
+        <mediaobject><imageobject><imagedata align="center" fileref="images/process.timer.transition.png"/></imageobject></mediaobject>
+      </figure>
+      <programlisting>&lt;process name=&quot;TimerTransition&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+
+  &lt;start&gt;
+    &lt;transition to=&quot;guardedWait&quot; /&gt;
+  &lt;/start&gt;
+
+  &lt;state name=&quot;guardedWait&quot;&gt;
+    &lt;transition name=&quot;go on&quot; to=&quot;next step&quot; /&gt;
+    &lt;transition name=&quot;timeout&quot; to=&quot;escalation&quot;&gt;
+      <emphasis role="bold">&lt;timer duedate=&quot;10 minutes&quot; /&gt;</emphasis>
+    &lt;/transition&gt;
+  &lt;/state&gt;
+  
+  &lt;state name=&quot;next step&quot; /&gt;
+  &lt;state name=&quot;escalation&quot; /&gt;
+
+&lt;/process&gt;</programlisting>
+      <para>When an process instance for this process is started, it arrives immediately 
+      in the <literal>guardedWait</literal> state.  At that time, a timer is created that will fire 
+      after 10 minutes.  
+      </para>
+      <programlisting>Execution processInstance = executionService
+      .startProcessInstanceByKey(&quot;TimerTransition&quot;);</programlisting>
+      <para>With the following query, we can query for the timers related to the newly created 
+      processInstance.  We know that there should be exactly one such timer.
+      </para>
+      <programlisting>Job job = managementService.createJobQuery()
+      .timers()
+      .processInstanceId(processInstance.getId())
+      .uniqueResult();
+      </programlisting>
+      <para>In a unit test, we won't use the JobExecutor to execute the timer.  Instead,
+      we execute timers directly in the thread of the unit test.  That way it is easy to 
+      simulate one scenario though an execution.
+      </para>
+      <para>So as the next step, we assume that the timer will fire.  We simulate this 
+      by executing the timer programmatically:
+      </para>
+      <programlisting>managementService.executeJob(job.getDbid());</programlisting>
+      <para>After that the process instance will have taken the 
+      <literal>timeout</literal> transition and moved to the escalation state.  
+      </para>
+      <programlisting>processInstance = executionService.findExecutionById(processInstance.getId());
+assertEquals(&quot;escalation&quot;, processInstance.getActivityName());</programlisting>
+      <para>The second scenario in TimerTransitionTest shows that the 
+      timer is cancelled in case the signal <literal>go on</literal> is given 
+      before the timer fires.  In that case the execution ends up in the 
+      <literal>next step</literal>.  
+      </para>
+    </section>
+
+    <section id="timerevent">
+      <title>Timer event</title>
+      <para>Example TimerEventTest shows how to put a timer on a custom event.</para>
+      <figure id="process.timer.event">
+        <title>The timer event example process</title>
+        <mediaobject><imageobject><imagedata align="center" fileref="images/process.timer.event.png"/></imageobject></mediaobject>
+      </figure>
+      <programlisting>&lt;process name=&quot;TimerEvent&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+
+  &lt;start&gt;
+    &lt;transition to=&quot;guardedWait&quot; /&gt;
+  &lt;/start&gt;
+
+  &lt;state name=&quot;guardedWait&quot; &gt;
+    <emphasis role="bold">&lt;on event=&quot;timeout&quot;&gt;
+      &lt;timer duedate=&quot;10 minutes&quot;/&gt;
+      &lt;event-listener class=&quot;org.jbpm.examples.timer.event.Escalate&quot; /&gt;
+    &lt;/on&gt;</emphasis>
+    &lt;transition name=&quot;go on&quot; to=&quot;next step&quot; /&gt;
+  &lt;/state&gt;
+  
+  &lt;state name=&quot;next step&quot; /&gt;
+
+&lt;/process&gt;</programlisting>
+      <para>In this case, if the execution is not signalled within 10 minutes after the 
+      activity is started, the event <literal>timeout</literal> is fired 
+      and the event listener <literal>org.jbpm.examples.timer.event.Escalate</literal>
+      will be notified.
+      </para>
+      <para>Again, if the <literal>guardedWait</literal> activity is ended within 
+      10 minutes, then the timer is cancelled and the <literal>Escalate</literal> 
+      event listener will not be notified.
+      </para>
+    </section>
+
+    <section id="timerbusinesstime">
+      <title>Timer business time</title>
+      <para>Example TimerBusinessTimeTest shows how business time works.</para>
+      <figure id="process.timer.event">
+        <title>The timer businesstime example process</title>
+        <mediaobject><imageobject><imagedata align="center" fileref="images/process.timer.transition.png"/></imageobject></mediaobject>
+      </figure>
+      <programlisting>&lt;process name=&quot;TimerBusinessTime&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+
+  &lt;start&gt;
+    &lt;transition to=&quot;guardedWait&quot; /&gt;
+  &lt;/start&gt;
+
+  &lt;state name=&quot;guardedWait&quot; &gt;
+    &lt;transition name=&quot;go on&quot; to=&quot;next step&quot; /&gt;
+    &lt;transition name=&quot;timeout&quot; to=&quot;escalation&quot; &gt;
+      &lt;timer <emphasis role="bold">duedate=&quot;9 business hours&quot;</emphasis> /&gt; 
+    &lt;/transition&gt;
+  &lt;/state&gt;
+  
+  &lt;state name=&quot;next step&quot; /&gt;
+  &lt;state name=&quot;escalation&quot; /&gt;
+
+&lt;/process&gt;</programlisting>
+      <para>Suppose that a new <literal>TimerBusinessTime</literal> process instance is started
+      at 11:30am on a tuesday.  The default configured business calendar specifies working hours 
+      between 9:00-12:00 and 12:30-17:00.  So 9 business hours later results in an actual duedate 
+      for the timer of wednesday 13:00 (1pm).
+      </para>
+      <para>Since we do not know when the TimerBusinessTimeTest will be ran, we only assert 
+      in the test that the actual duedate of the scheduled timer at least 24 hours ahead.
+      </para>
+    </section>
+
+    <section id="timerrepeat">
+      <title>Timer repeat</title>
+      <para>Example TimerRepeatTest shows how to put a timer with a repeat. The attribute 
+      <literal>repeat</literal> on a timer will cause the timer to be rescheduled automatically
+      after it is executed.
+      </para>
+      <figure id="process.timer.repeat">
+        <title>The timer repeat example process</title>
+        <mediaobject><imageobject><imagedata align="center" fileref="images/process.timer.event.png"/></imageobject></mediaobject>
+      </figure>
+      <programlisting>&lt;process name=&quot;TimerRepeat&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+
+  &lt;start&gt;
+    &lt;transition to=&quot;guardedWait&quot; /&gt;
+  &lt;/start&gt;
+
+  &lt;state name=&quot;guardedWait&quot;&gt;
+    &lt;on event=&quot;timeout&quot;&gt;
+      &lt;timer duedate=&quot;20 minutes&quot; <emphasis role="bold">repeat=&quot;10 seconds&quot;</emphasis> /&gt;
+      &lt;event-listener class=&quot;org.jbpm.examples.timer.repeat.Escalate&quot; /&gt;
+    &lt;/on&gt;
+    &lt;transition name=&quot;go on&quot; to=&quot;next step&quot;/&gt;
+  &lt;/state&gt;
+  
+  &lt;state name=&quot;next step&quot;/&gt;
+
+&lt;/process&gt;</programlisting>
+      <para>When a new process is started, a timer is created and the duedate 
+      will be 20 minutes ahead.  When the timer fires, a new timer will be created 
+      with a duedate of 10 seconds ahead.  When that timer fires, a new timer will
+      be created again 10 seconds ahead. And so on.
+      </para>
+      <para>New timers will be created each time the timer fires until the 
+      <literal>guardedWait</literal> state activity is ended with a signal.
+      When the <literal>guardedWait</literal> state activity is ended, the 
+      existing timer will be cancelled.  
+      </para>
+    </section>
+  </section>
+
+  <!-- ### GROUP ########################################################## -->
+  <section id="group">
+    <title><literal>group</literal> activity</title>
+    
+    <para>A <literal>group</literal> groups a set of activities in a process.  Contained groups must  
+    be hierarchically nested.  A group corresponds to a BPMN expanded sub process.
+    </para>
+
+    <table><title><literal>group</literal> elements:</title>
+      <tgroup cols="3" rowsep="1" colsep="1">
+        <thead>
+          <row>
+            <entry>Element</entry>
+            <entry>Multiplicity</entry>
+            <entry>Description</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>any activity</entry>
+            <entry>0..*</entry>
+            <entry>Contained activities.
+            </entry>
+          </row>
+          <row>
+            <entry><literal>transition</literal></entry>
+            <entry>0..*</entry>
+            <entry>Outgoing transitions for the group activity.
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <!-- ~~~ GROUP SIMPLE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <section id="groupsimple">
+      <title><literal>group</literal> simple</title>
+      <para>This example scenario shows the basic operations of a <literal>group</literal>.
+      </para>
+      <figure id="process.group.simple">
+        <title>The simple group example process</title>
+        <mediaobject><imageobject><imagedata align="center" fileref="images/process.group.simple.png"/></imageobject></mediaobject>
+      </figure>
+      <programlisting>&lt;process name=&quot;GroupSimple&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+
+  &lt;start&gt;
+    &lt;transition to=&quot;evaluate document&quot; /&gt;
+  &lt;/start&gt;
+  
+  <emphasis role="bold">&lt;group name=&quot;evaluate document&quot;&gt;</emphasis>
+    &lt;start&gt;
+      &lt;transition to=&quot;distribute document&quot; /&gt;
+    &lt;/start&gt;
+    &lt;state name=&quot;distribute document&quot;&gt;
+      &lt;transition to=&quot;collect feedback&quot; /&gt;
+    &lt;/state&gt;
+    &lt;state name=&quot;collect feedback&quot;&gt;
+      &lt;transition name=&quot;approved&quot; to=&quot;done&quot; /&gt;
+      &lt;transition name=&quot;rejected&quot; to=&quot;update document&quot; /&gt;
+    &lt;/state&gt;
+    &lt;state name=&quot;update document&quot;&gt;
+      &lt;transition to=&quot;distribute document&quot; /&gt;
+    &lt;/state&gt;
+    &lt;end name=&quot;done&quot; /&gt;
+    &lt;transition to=&quot;publish document&quot; /&gt;
+  <emphasis role="bold">&lt;/group&gt;</emphasis>
+  
+  &lt;state name=&quot;publish document&quot; /&gt;
+
+&lt;/process&gt;</programlisting>
+      <para>The next code snippet shows a test scenario that rejects a document
+      when it comes in the <literal>collect feedback</literal> first time round.
+      Then it goes through <literal>update document</literal>, <literal>distribute document</literal>
+      and back to <literal>collect feedback</literal>.  The second time,  
+      it will be approved.  All activities involved are wait <literal>state</literal>s.
+      </para>
+      <programlisting>ProcessInstance processInstance = executionService
+       .startProcessInstanceByKey(&quot;GroupSimple&quot;);
+String pid = processInstance.getId();
+assertEquals(&quot;distribute document&quot;, processInstance.getActivityName());
+
+processInstance = executionService.signalExecutionById(pid);
+assertEquals(&quot;collect feedback&quot;, processInstance.getActivityName());
+
+processInstance = executionService.signalExecutionById(pid, &quot;rejected&quot;);
+assertEquals(&quot;update document&quot;, processInstance.getActivityName());
+
+processInstance = executionService.signalExecutionById(pid);
+assertEquals(&quot;distribute document&quot;, processInstance.getActivityName());
+
+processInstance = executionService.signalExecutionById(pid);
+assertEquals(&quot;collect feedback&quot;, processInstance.getActivityName());
+
+processInstance = executionService.signalExecutionById(pid, &quot;approved&quot;);
+assertEquals(&quot;publish document&quot;, processInstance.getActivityName());</programlisting>
+    </section>
+
+    <!-- ~~~ GROUP TIMER ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <section id="grouptimer">
+      <title><literal>group</literal> timer</title>
+      <figure id="process.group.timer">
+        <title>The group timer example process</title>
+        <mediaobject><imageobject><imagedata align="center" fileref="images/process.group.timer.png"/></imageobject></mediaobject>
+      </figure>
+      <programlisting>&lt;process name=&quot;GroupTimer&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+
+  &lt;start&gt;
+    &lt;transition to=&quot;evaluate document&quot; /&gt;
+  &lt;/start&gt;
+  
+  <emphasis role="bold">&lt;group name=&quot;evaluate document&quot;&gt;</emphasis>
+    &lt;start&gt;
+      &lt;transition to=&quot;approve&quot; /&gt;
+    &lt;/start&gt;
+    &lt;state name=&quot;approve&quot;&gt;
+      &lt;transition to=&quot;done&quot; /&gt;
+    &lt;/state&gt;
+    &lt;end name=&quot;done&quot; /&gt;
+    
+    &lt;transition to=&quot;publish document&quot; /&gt;
+    <emphasis role="bold">&lt;transition name=&quot;timeout&quot; to=&quot;escalate&quot;&gt;
+      &lt;timer duedate=&quot;2 business hours&quot; /&gt;
+    &lt;/transition&gt;</emphasis>
+    
+  <emphasis role="bold">&lt;/group&gt;</emphasis>
+  
+  &lt;state name=&quot;escalate&quot; /&gt;
+  &lt;state name=&quot;publish document&quot; /&gt;
+
+&lt;/process&gt;</programlisting>
+      <para>The next code snippet shows a test scenario in which the timer will 
+      fire before the group activity <literal>evaluate document</literal> completes.
+      </para>
+      <programlisting>ProcessInstance processInstance = executionService
+       .startProcessInstanceByKey(&quot;GroupTimer&quot;);
+Execution approveExecution = processInstance
+       .findActiveExecutionIn(&quot;approve&quot;);
+assertNotNull(approveExecution);
+
+List&lt;Job&gt; jobs = managementService
+  .createJobQuery()
+  .processInstanceId(processInstance.getId())
+  .list();
+
+assertEquals(1, jobs.size());
+
+Timer timer = (Timer) jobs.get(0);
+
+managementService.executeJob(timer.getDbid());
+
+processInstance = executionService
+       .findProcessInstanceById(processInstance.getId());
+assertNotNull(processInstance.findActiveExecutionIn(&quot;escalate&quot;) );</programlisting>
+    </section>
+
+    <!-- ~~~ GROUP MULTIPLE ENTRIES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <section id="groupmultipleentries">
+      <title><literal>group</literal> multiple entries</title>
+      <para>This shows how a group can have multiple exclusive entry points.</para>
+      <para>Analogue to multiple entry points, a group can also have 
+      multiple exit points.</para>
+      <figure id="process.group.multipleentries">
+        <title>The group multiple entries example process</title>
+        <mediaobject><imageobject><imagedata align="center" fileref="images/process.group.multipleentries.png"/></imageobject></mediaobject>
+      </figure>
+      <programlisting>&lt;process name=&quot;GroupMultipleEntries&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+
+  &lt;start&gt;
+    &lt;transition to=&quot;choose strategy&quot; /&gt;
+  &lt;/start&gt;
+  
+  &lt;decision name=&quot;choose strategy&quot; expr=&quot;#{time}&quot;&gt;
+    <emphasis role="bold">&lt;transition name=&quot;plenty&quot; to=&quot;play&quot; /&gt;
+    &lt;transition name=&quot;running out&quot; to=&quot;plan&quot; /&gt;</emphasis>
+  &lt;/decision&gt;
+  
+  &lt;group name=&quot;evaluate project&quot;&gt;
+    <emphasis role="bold">&lt;start name=&quot;play&quot;&gt;
+      &lt;transition to=&quot;distribute document&quot; /&gt;
+    &lt;/start&gt;</emphasis>
+    &lt;state name=&quot;distribute document&quot; /&gt;
+
+    <emphasis role="bold">&lt;start name=&quot;plan&quot;&gt;
+      &lt;transition to=&quot;make planning&quot; /&gt;
+    &lt;/start&gt;</emphasis>
+    &lt;state name=&quot;make planning&quot; /&gt;
+  &lt;/group&gt;
+  
+&lt;/process&gt;</programlisting>
+      <para>The following scenario will be when there is plenty of time: 
+      </para>
+      <programlisting>Map&lt;String, Object&gt; variables = new HashMap&lt;String, Object&gt;();
+variables.put(&quot;time&quot;, &quot;plenty&quot;);
+
+ProcessInstance pi = executionService
+    .startProcessInstanceByKey(&quot;GroupMultipleEntries&quot;, variables);
+
+assertNotNull(pi.findActiveExecutionIn(&quot;distribute document&quot;));</programlisting>
+      <para>The following scenario will be when there is time is running out: 
+      </para>
+      <programlisting>Map&lt;String, Object&gt; variables = new HashMap&lt;String, Object&gt;();
+variables.put(&quot;time&quot;, &quot;running out&quot;);
+
+ProcessInstance pi = executionService
+    .startProcessInstanceByKey(&quot;GroupMultipleEntries&quot;, variables);
+
+assertNotNull(pi.findActiveExecutionIn(&quot;make planning&quot;));</programlisting>
+    </section>
+    
+    <!-- ~~~ GROUP CONCURRENCY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <section id="groupconcurrency">
+      <title><literal>group</literal> concurrency</title>
+      <para>This scenario shows how a group can be used to create concurrent paths 
+      of execution.  When an execution arrives in a group, each activity that doesn't 
+      have incoming transitions is started.  So the first activities don't have to be 
+      start activities.  The group takes the default transition out when all contained 
+      work is done.
+      </para>
+      <figure id="process.group.concurrency">
+        <title>The group concurrency example process</title>
+        <mediaobject><imageobject><imagedata align="center" fileref="images/process.group.concurrency.png"/></imageobject></mediaobject>
+      </figure>
+      <programlisting>
+
+&lt;process name=&quot;GroupConcurrency&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+
+  &lt;start&gt;
+    &lt;transition to=&quot;evaluate project&quot; /&gt;
+  &lt;/start&gt;
+  
+  &lt;group name=&quot;evaluate project&quot;&gt;
+    <emphasis role="bold">&lt;start&gt;
+      &lt;transition to=&quot;distribute document&quot; /&gt;
+    &lt;/start&gt;</emphasis>
+    &lt;state name=&quot;distribute document&quot;&gt;
+      &lt;transition to=&quot;collect feedback&quot; /&gt;
+    &lt;/state&gt;
+    &lt;state name=&quot;collect feedback&quot;&gt;
+      &lt;transition to=&quot;document finished&quot; /&gt;
+    &lt;/state&gt;
+    &lt;end name=&quot;document finished&quot; /&gt;
+
+    <emphasis role="bold">&lt;start&gt;
+      &lt;transition to=&quot;make planning&quot; /&gt;
+    &lt;/start&gt;</emphasis>
+    &lt;state name=&quot;make planning&quot;&gt;
+      &lt;transition to=&quot;estimate budget&quot; /&gt;
+    &lt;/state&gt;
+    &lt;state name=&quot;estimate budget&quot;&gt;
+      &lt;transition to=&quot;planning finished&quot; /&gt;
+    &lt;/state&gt;
+    &lt;end name=&quot;planning finished&quot; /&gt;
+
+    &lt;transition to=&quot;public project announcement&quot; /&gt;
+  &lt;/group&gt;
+  
+  &lt;state name=&quot;public project announcement&quot; /&gt;
+
+&lt;/process&gt;</programlisting>
+      <para>The following scenario will show a scenario in which all 
+      wait <literal>state</literal> acitivities are signalled in some random
+      order till all work is done:  
+      </para>
+      <programlisting>ProcessInstance pi = executionService
+    .startProcessInstanceByKey(&quot;GroupConcurrency&quot;);
+
+String documentExecutionId = pi
+    .findActiveExecutionIn(&quot;distribute document&quot;).getId();
+
+String planningExecutionId = pi
+    .findActiveExecutionIn(&quot;make planning&quot;).getId();
+
+pi = executionService.signalExecutionById(documentExecutionId);
+assertNotNull(pi.findActiveExecutionIn(&quot;collect feedback&quot;));
+assertNotNull(pi.findActiveExecutionIn(&quot;make planning&quot;));
+
+pi = executionService.signalExecutionById(planningExecutionId);
+assertNotNull(pi.findActiveExecutionIn(&quot;collect feedback&quot;));
+assertNotNull(pi.findActiveExecutionIn(&quot;estimate budget&quot;));
+
+pi = executionService.signalExecutionById(planningExecutionId);
+assertNotNull(pi.findActiveExecutionIn(&quot;collect feedback&quot;));
+
+pi = executionService.signalExecutionById(documentExecutionId);
+assertNotNull(pi.findActiveExecutionIn(&quot;public project announcement&quot;));</programlisting>
+    
+    </section>
+
+    <!-- ~~~ GROUP SECRET ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <section id="groupsecret">
+      <title><literal>group</literal> secret</title>
+      <para>Groups also support that you create transitions over group 
+      boundaries.  So it's possible to have a tranition from an activity 
+      outside the group directly to an activity inside the group without 
+      modelling a start activity on the border of the group.  Similarly 
+      with transitions from activities inside the group to activities 
+      outside the group.  But shhhhhhhhh!
+      Don't tell anyone cause this is not BPMN compliant.
+      </para>
+    </section> 
+  </section>
+
+
+  <!-- ### RULES DEPLOYER ####################################################### -->
+  <section id="rulesdeployer">
+    <title>Rules deployer</title>
+    <para>The rules deployer is a convenience integration between jBPM and 
+    <ulink url="http://drools.org">Drools</ulink>.  It creates a KnowledgeBase based 
+    on all .drl files that are included in a business archive deployment.
+    That KnowledgeBase is then stored in the repository cache.  So one 
+    KnowledgeBase is maintained in memory the process-engine-context.  Activities 
+    like the <link linkend="rulesdecision">rules decision</link> leverage 
+    this KnowledgeBase. 
+    </para>
+  </section>
+
+  <!-- ### JAVA ####################################################### -->
+  <section id="java">
+    <title><literal>java</literal> activity</title>
+    <para>
+      The purpose of the <literal>java</literal> activity in general is to invoke
+      a Java method as explained in the User Guide. This section in the Developer 
+      Guide is specifically about how to use the <literal>java</literal> activity
+      to invoke a method of an ejb session bean. 
+    </para>
+    <para>
+      Exactly for this purpose it is possible to use the <literal>ejb-jndi-name</literal>
+      attribute. As its name indicates the attribute specifies the jndi name of the 
+      ejb of which the method needs to be invoked. Consider the following ejb:
+    </para>
+    <programlisting>package org.jbpm.test.enterprise.stateless.bean;
+
+import javax.ejb.Stateless;
+
+@Stateless
+public class CalculatorBean implements CalculatorRemote, CalculatorLocal
+{
+   public Integer add(Integer x, Integer y)
+   {
+      return x + y;
+   }
+
+   public Integer subtract(Integer x, Integer y)
+   {
+      return x - y;
+   }
+}</programlisting>
+    <para>and the following process definition:</para>
+    <figure id="process.java.ejb">
+      <title>The ejb method invocation example process</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/process.java.ejb.png"/></imageobject></mediaobject>
+    </figure>
+    <programlisting>&lt;process name=&quot;EJB&quot;&gt;
+
+  &lt;start&gt;
+    &lt;transition to=&quot;calculate&quot; /&gt;
+  &lt;/start&gt;
+
+  <emphasis role="bold">&lt;java name=&quot;calculate&quot; 
+        ejb-jndi-name=&quot;CalculatorBean/local&quot;
+        method=&quot;add&quot;
+        var=&quot;answer&quot;&gt;
+        
+    &lt;arg&gt;&lt;int value=&quot;25&quot;/&gt;&lt;/arg&gt;
+    &lt;arg&gt;&lt;int value=&quot;38&quot;/&gt;&lt;/arg&gt;
+    
+    &lt;transition to=&quot;wait&quot; /&gt;
+  &lt;/java&gt;</emphasis>
+  
+  &lt;state name=&quot;wait&quot; /&gt;
+
+&lt;/process&gt;</programlisting>
+
+    <para>
+      As you can expect, the execution of this node will invoke the <literal>add</literal> method of the ejb
+      that is known under the jndi name <literal>CalculatorBean/local</literal>. The result will be stored in 
+      the variable <literal>answer</literal>. This is illustrated in the following test snippet.
+    </para>
+    
+    <programlisting>public void testEjbInvocation() throws Exception {
+  String executionId = executionService
+      .startProcessInstanceByKey(&quot;EJB&quot;)
+      .getProcessInstance()
+      .getId();
+  assertEquals(63, executionService.getVariable(executionId, &quot;answer&quot;));
+}</programlisting>
+
+
+ 
+  </section>
+
+  <!-- ### RULES DECISION ####################################################### -->
+  <section id="rulesdecision">
+    <title><literal>rules-decision</literal> activity</title>
+    <para>A rules-decision is an automatic activity that will select a single outgoing 
+    transition based on the evaluation of rules.
+    </para>
+    <para>Rules for a rules decision are to be deployed as part of the business 
+    archive.  Those rules can use all process variables as globals in rule definitions.  
+    The <literal>rule-decision</literal> activity will use a stateless knowledge 
+    session on the knowledgebase.  The execution arriving in the <literal>rules-decision</literal>
+    is executed on the stateless drools knowledge session. 
+    </para>
+    <para>Let's look at the next example how that works in practice.  We'll start 
+    with the <literal>RulesDecision</literal> process</para>
+    <figure id="process.rules.decision">
+      <title>The rules decision example process</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/process.rules.decision.png"/></imageobject></mediaobject>
+    </figure>
+    <programlisting>&lt;process name=&quot;RulesDecision&quot;&gt;
+
+  &lt;start&gt;
+    &lt;transition to=&quot;isImportant&quot; /&gt;
+  &lt;/start&gt;
+
+  <emphasis role="bold">&lt;rules-decision name=&quot;isImportant&quot;&gt;
+    &lt;transition name=&quot;dunno&quot; to=&quot;analyseManually&quot; /&gt;
+    &lt;transition name=&quot;important&quot; to=&quot;processWithPriority&quot; /&gt;
+    &lt;transition name=&quot;irrelevant&quot; to=&quot;processWhenResourcesAvailable&quot; /&gt;
+  &lt;/rules-decision&gt;</emphasis>
+
+  &lt;state name=&quot;analyseManually&quot; /&gt;
+  &lt;state name=&quot;processWithPriority&quot; /&gt;
+  &lt;state name=&quot;processWhenResourcesAvailable&quot; /&gt;
+
+&lt;/process&gt;</programlisting>
+   <para>The following <literal>isImportant.drl</literal> is included in the 
+   business archive deployment.
+   </para>
+   <programlisting>global java.lang.Integer amount;
+global java.lang.String product;
+global org.jbpm.jpdl.internal.rules.Outcome outcome;
+
+rule &quot;LessThen3IsIrrelevant&quot;
+  when
+    eval(amount &lt; 3)
+  then 
+    outcome.set(&quot;irrelevant&quot;);
+end
+
+rule &quot;MoreThen24IsImportant&quot;
+  when
+    eval(amount &gt; 24)
+  then 
+    outcome.set(&quot;important&quot;);
+end
+
+rule &quot;TwelveTempranillosIsImportant&quot;
+  when
+    eval(product == &quot;Tempranillo&quot;)
+    eval(amount &gt; 12)
+  then 
+    outcome.set(&quot;important&quot;);
+end</programlisting>
+    <para>First you see that amount and product are defined as globals.  
+    Those will resolve by the <literal>rules-decision</literal> to the 
+    process variables with those respective names.
+    </para>
+    <para><literal>outcome</literal> is a special global variable that is 
+    used to indicate the transition to take in the consequence.  Also, 
+    if no outcome is specified by the rules, the default transition will be taken.
+    </para>
+    <para>So let's start a new process instance and set 2 variables 
+    <literal>product</literal> and <literal>amount</literal> with respective 
+    values <literal>shoe</literal> and <literal>32</literal>:</para>
+    <programlisting>Map&lt;String, Object&gt; variables = new HashMap&lt;String, Object&gt;();
+variables.put(&quot;amount&quot;, 32);
+variables.put(&quot;product&quot;, &quot;shoe&quot;);
+
+ProcessInstance processInstance = 
+    executionService.startProcessInstanceByKey(&quot;RulesDecision&quot;, variables);</programlisting>
+    <para>After starting the process instance method returns, the process instance 
+    will have arrived in the activity <literal>processWithPriority</literal> </para>
+    <para>In similar style, a new RulesDecision process instance with 
+    <literal>2 missiles</literal> will go to 
+    activity <literal>processWhenResourcesAvailable</literal> </para>
+    <para>A RulesDecision process instance with 
+    <literal>15 shoes</literal> will go to 
+    activity <literal>analyseManually</literal> </para>
+    <para>And a RulesDecision process instance with 
+    <literal>13 Tempranillo</literal>s will go to 
+    activity <literal>analyseManually</literal> </para>
+  </section>
+
+  <!-- ### RULES ####################################################### -->
+  <section id="rules">
+    <title><literal>rules</literal> activity</title>
+    <para>A <literal>rules</literal> is an automatic activity that will 
+    create a stateful knowledge session, feed a number of facts in it and 
+    fire all rules.  The idea is that the rules will update or create 
+    process variables that will be used later in the process.  Facts 
+    can be specified as sub elements of the rules activity.
+    </para>
+    <table><title><literal>rules</literal> elements:</title>
+      <tgroup cols="3" rowsep="1" colsep="1">
+        <thead>
+          <row>
+            <entry>Element</entry>
+            <entry>Multiplicity</entry>
+            <entry>Description</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><literal>fact</literal></entry>
+            <entry>0..*</entry>
+            <entry>A fact that will be fed into the stateful rule session.
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <table><title><literal>fact</literal> attributes:</title>
+      <tgroup cols="5" rowsep="1" colsep="1">
+        <thead>
+          <row>
+            <entry>Attribute</entry>
+            <entry>Type</entry>
+            <entry>Default</entry>
+            <entry>Required?</entry>
+            <entry>Description</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>var</entry>
+            <entry>variable name</entry>
+            <entry></entry>
+            <entry>either <literal>var</literal> or <literal>expr</literal> is required</entry>
+            <entry>the variable name for which the value should be inserted as a fact.  
+            </entry>
+          </row>
+          <row>
+            <entry>expr</entry>
+            <entry>expression</entry>
+            <entry></entry>
+            <entry>either <literal>var</literal> or <literal>expr</literal> is required</entry>
+            <entry>the expression for which the resulting value should be inserted as a fact.  
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <para>If a rules activity has one outgoing transition, then that one is 
+    taken automatically.  But multiple outgoing transitions can be specified
+    with conditions on them, just like with the <literal>decision</literal> activity
+    when using the conditions. 
+    </para>
+    <para>For example:</para>
+    <figure id="process.rules">
+      <title>The rules example process</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/process.rules.png"/></imageobject></mediaobject>
+    </figure>
+    <programlisting>&lt;process name=&quot;Rules&quot;&gt;
+
+  &lt;start&gt;
+    &lt;transition to=&quot;evaluateStatus&quot;/&gt;
+  &lt;/start&gt;
+
+  <emphasis role="bold">&lt;rules name=&quot;evaluateStatus&quot;&gt;
+    &lt;fact var=&quot;room&quot; /&gt;
+    &lt;transition to=&quot;checkForFires&quot;/&gt;
+  &lt;/rules&gt;</emphasis>
+
+  &lt;decision name=&quot;checkForFires&quot;&gt;
+    &lt;transition to=&quot;getFireExtinguisher&quot;&gt;
+      &lt;condition expr=&quot;#{room.onFire}&quot; /&gt;
+    &lt;/transition&gt;
+    &lt;transition to=&quot;goToPub&quot;/&gt;
+  &lt;/decision&gt;
+
+  &lt;state name=&quot;getFireExtinguisher&quot;/&gt;
+  &lt;state name=&quot;goToPub&quot;/&gt;
+
+&lt;/process&gt;</programlisting>
+    <para>The process first checks with rules if the room is on fire.
+    The Room class looks like this:</para>
+    <programlisting>public class Room implements Serializable {
+
+  int temperature = 21; 
+  boolean smoke = false;
+  boolean isOnFire = false;
+  
+  public Room(int temperature, boolean smoke) {
+    this.temperature = temperature;
+    this.smoke = smoke;
+  }
+  
+  ...getters and setters...
+}</programlisting>
+    <para>Following rules are deployed in the same business archive:</para>
+    <programlisting>rule &quot;CheckRoomOnFire&quot;
+  when
+    room : org.jbpm.examples.rules.Room( temperature &gt; 30, smoke == true )
+  then 
+    room.setOnFire( true );
+end</programlisting>
+   <para>So when a new <literal>Rules</literal> process instance is started 
+   like this:</para>
+   <programlisting>Map&lt;String, Object&gt; variables = new HashMap&lt;String, Object&gt;();
+variables.put(&quot;room&quot;, new Room(350, true));
+
+ProcessInstance processInstance = 
+    executionService.startProcessInstanceByKey(&quot;Rules&quot;, variables);</programlisting>
+    <para>Then the process will end up in the activity <literal>getFireExtinguisher</literal>
+    </para>
+    <para>And when the process is started with a Room(21, false), it will end up in the 
+    activity <literal>goToPub</literal>
+    </para>
+  </section>
+  
+  <!-- ### JMS ####################################################### -->
+  <section id="jms">
+  
+    <title><literal>jms</literal> activity</title>
+    <para>Disclaimer: this activity is not yet stable.  Two aspects will be revisisted 
+    in following releases:</para>
+    <itemizedlist>
+      <listitem>Binding the non-xa use of JMS to the standard transaction</listitem>
+      <listitem>We're still figuring out why in JBoss the java:JmsXA connection
+    factory doesn't implement XAConnectionFactory.  And that we have to use the 
+    non-XA JMS API's for sending and retrieving messages.  That is why we've 
+    put <literal>transacted="false"</literal> in our enterprise QA run processes 
+    (used for docs here).  And that is why we use method <literal>jmsConsumeMessageFromQueue("java:JmsXA", "queue/jbpm-test-queue", 1000, false, Session.AUTO_ACKNOWLEDGE);</literal>
+    in our test cases that run on JBoss (also used in docs here)</listitem>
+    </itemizedlist>
+    <para>
+      The <literal>jms</literal> activity provides users with convenience for sending JMS messages. 
+      At this moment the sending of three different types of JMS messages is possible: text, object 
+      and map. Specifying message properties is not yet supported.
+    </para>
+
+    <table><title><literal>jms</literal> attributes:</title>
+      <tgroup cols="5" rowsep="1" colsep="1">
+        <thead>
+          <row>
+            <entry>Attribute</entry>
+            <entry>Type</entry>
+            <entry>Default</entry>
+            <entry>Required?</entry>
+            <entry>Description</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>connection-factory</entry>
+            <entry>jndi name</entry>
+            <entry></entry>
+            <entry><emphasis role="bold">required</emphasis></entry>
+            <entry>the JNDI name of the jms connection factory.  
+            </entry>
+          </row>
+          <row>
+            <entry>destination</entry>
+            <entry>jndi name</entry>
+            <entry></entry>
+            <entry><emphasis role="bold">required</emphasis></entry>
+            <entry>the JNDI name of the jms queue or topic.  
+            </entry>
+          </row>
+          <row>
+            <entry>transacted</entry>
+            <entry>boolean: {true, false}</entry>
+            <entry>true</entry>
+            <entry>optional</entry>
+            <entry>Specifies if JMS message send should happen transactional.
+            @see QueueConnection.createQueueSession(boolean transactional, int acknowledgeMode)  
+            </entry>
+          </row>
+          <row>
+            <entry>acknowledge</entry>
+            <entry>{ auto | client | dups-ok }</entry>
+            <entry>auto</entry>
+            <entry>optional</entry>
+            <entry>Specifies the acknowledge mode
+            <ulink url="http://java.sun.com/javaee/5/docs/api/javax/jms/QueueConnection.html#createQueueSession(boolean,%20int)">@see QueueConnection.createQueueSession(boolean transactional, int acknowledgeMode)</ulink>  
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    
+    <para>There are 3 types of JMS messages that you can send to to the destination: text, object 
+      and map.  The <literal>connection-factory</literal> and <literal>destination</literal> attributes are 
+      mandatory and respectively contain the names of the connection factory and destination (queue or topic) 
+      that will be used to lookup the corresponding objects in JNDI.   The lookup is done like this:
+    </para>
+    <programlisting>InitialContext initialContext = new InitialContext();
+Destination destination = (Destination) initialContext.lookup(destinationName);
+Object connectionFactory = initialContext.lookup(connectionFactoryName);</programlisting>
+    <para>The <literal>jms</literal> activity will use the JMS queue apis if the destination 
+    is an <literal>instanceof</literal> Queue.  Analogue for topics. 
+    </para>
+    <para>The <literal>jms</literal> activity will use the XA JMS apis if the connectionFactory 
+    is an <literal>instanceof</literal> XAConnectionFactory.  Analogue for plain ConnectionFactory's. 
+    </para>
+    <para>So if you're running inside an appserver, then the <literal>new InitialContext()</literal> 
+    will see the queue's and topics configured in the appserver.</para>
+    <para>When your're using the JMS mocking 
+    in standalone test mode, then the queues and topics that you created with <literal>JbpmTestCase.jmsCreateQueue</literal>  
+    and <literal>JbpmTestCase.jmsCreateTopic</literal> will be available.</para>
+    <para>When you're running as a remote application client, then you have to 
+    <ulink url="http://java.sun.com/products/jndi/tutorial/beyond/env/source.html">specify 
+    the jndi environment with system properties</ulink>.</para>
+
+    <table><title><literal>jms</literal> elements:</title>
+      <tgroup cols="3" rowsep="1" colsep="1">
+        <thead>
+          <row>
+            <entry>Element</entry>
+            <entry>Multiplicity</entry>
+            <entry>Description</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><literal>text</literal></entry>
+            <entry>0..1</entry>
+            <entry>A string of text that will be used as payload for the JMS message.
+            </entry>
+          </row>
+          <row>
+            <entry><literal>object</literal></entry>
+            <entry>0..1</entry>
+            <entry>A serializable object that will be used as payload for the JMS message.
+            </entry>
+          </row>
+          <row>
+            <entry><literal>map</literal></entry>
+            <entry>0..1</entry>
+            <entry>A map of which the key-value entries will be used as payload for the JMS message.
+            </entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    
+    <para>
+      Exactly one of the elements <literal>text</literal>, <literal>object</literal> or <literal>map</literal>
+      is mandatory. The presence of this element will determine the kind of message that will be sent to the 
+      queue obtained in the lookup mentioned above. This message will be a <literal>TextMessage</literal>, 
+      <literal>ObjectMessage</literal> or <literal>MapMessage</literal> respectively.
+    </para>
+        
+    <para>
+      In the following subsections the different types of supported messages will be explained. The used process
+      is in the three cases similar. The graphical representation of the process is shown below. 
+    </para>
+
+    <mediaobject><imageobject><imagedata align="center" fileref="images/process.jms.png"/></imageobject></mediaobject>
+    
+    <section id="mockjmsproviderforeasytesting">
+      <title>Mock JMS provider for easy testing</title>
+      <para>Apart from configuring a real JMS and making sure it is available in JNDI, 
+      a <literal>jms</literal> activity can also be tested with a mock JMS provider.
+      That might be easier to perform scenario testing of your process.</para>
+      <para>Following test helper methods are based solely on plain JMS apis and hence they work in 
+      a standalone environment as well as in an appserver environment:</para>
+      <itemizedlist>
+        <listitem>JbpmTestCase.jmsConsumeMessageFromQueue(String connectionFactoryJndiName, String queueJndiName) 
+          with defaults 1000, true, Session.AUTO_ACKNOWLEDGE for parameters timeout, transacted and acknowledgeMode respectively</listitem>
+        <listitem>JbpmTestCase.jmsConsumeMessageFromQueue(String connectionFactoryJndiName, String queueJndiName, long timeout, boolean transacted, int acknowledgeMode)</listitem>
+        <listitem>JbpmTestCase.jmsConsumeMessageFromQueueXA(String connectionFactoryJndiName, String queueJndiName, long timeout)</listitem>
+        <listitem>JbpmTestCase.jmsAssertQueueEmpty(String connectionFactoryJndiName, String queueJndiName, long timeout, boolean transacted, int acknowledgeMode)</listitem>
+        <listitem>JbpmTestCase.jmsAssertQueueEmptyXA(String connectionFactoryJndiName, String queueJndiName, long timeout)</listitem>
+        <listitem>JbpmTestCase.jmsStartTopicListener(String connectionFactoryJndiName, String topicJndiName, boolean transacted, int acknowledgeMode)</listitem>
+        <listitem>JbpmTestCase.jmsStartTopicListenerXA(String connectionFactoryJndiName, String topicJndiName)</listitem>
+        <listitem>JmsTopicListener.getNextMesssage(long timeout)</listitem>
+        <listitem>JmsTopicListener.stop()</listitem>
+      </itemizedlist>
+      <para>For example, after the process execution has executed the <literal>jms</literal> activity, 
+      messages can be asserted like this:</para>
+      <programlisting>MapMessage mapMessage = (MapMessage) 
+  jmsConsumeMessageFromQueue(&quot;java:/JmsXA&quot;, &quot;queue/ProductQueue&quot;);
+assertEquals(&quot;shampoo&quot;, mapMessage.getString(&quot;product&quot;));</programlisting>
+      <para>The following jms helper methods are based on mockrunner and hence they only work in a standalone 
+      environment:</para>
+      <para>(we're collaborating with mockrunner people to have these methods also work in an appserver environment)</para>
+      <itemizedlist>
+        <listitem>void jmsCreateQueue(String connectionFactoryJndiName, String queueJndiName)</listitem>
+        <listitem>void jmsRemoveQueue(String connectionFactoryJndiName, String queueJndiName)</listitem>
+        <listitem>void jmsCreateTopic(String connectionFactoryJndiName, String topicJndiName)</listitem>
+        <listitem>void jmsRemoveTopic(String connectionFactoryJndiName, String topicJndiName)</listitem>
+      </itemizedlist>
+      <para>For example, a queue can be created and removed in the setup and tearDown methods of a test like this:</para>
+      <programlisting>protected void setUp() throws Exception {
+  super.setUp();
+  jmsCreateQueue(&quot;java:/JmsXA&quot;, &quot;queue/ProductQueue&quot;);
+}
+
+protected void tearDown() throws Exception {
+  jmsRemoveQueue(&quot;java:/JmsXA&quot;, &quot;queue/ProductQueue&quot;);
+  super.tearDown();
+}</programlisting>
+    </section>
+      
+    <section id="testmessages">
+      <title>Text messages</title>
+      <para>
+        The first possibility of sending JMS messages is to use text as its payload. In this case a JMS
+        <literal>TextMessage</literal> will be created and sent to the specified destination.
+        Consider the following process definition:
+      </para>
+      <programlisting>&lt;process name=&quot;JmsQueueText&quot;&gt;
+
+  &lt;start&gt;
+    &lt;transition to=&quot;send message&quot;/&gt;
+  &lt;/start&gt;
+
+  <emphasis role="bold">&lt;jms name=&quot;send message&quot;
+       connection-factory=&quot;java:JmsXA&quot;
+       destination=&quot;queue/jbpm-test-queue&quot;
+       transacted=&quot;false&quot;&gt;
+    &lt;text&gt;This is the body&lt;/text&gt;
+    &lt;transition to=&quot;wait&quot;/&gt;
+  &lt;/jms&gt;</emphasis>
+
+  &lt;state name=&quot;wait&quot;/&gt;
+
+&lt;/process&gt;</programlisting>
+      <para>
+        As you may expect and as is shown in the following test case starting this process will cause
+        the JMS node to send a message to the queue with the name &quot;queue/jbpm-test-queue&quot;.
+        The factory used to create a connection to connect to this queue is named &quot;java:JmsXA&quot;.
+        The payload of the message is the text string &quot;This is the body&quot;.
+      </para>
+      <programlisting>executionService.startProcessInstanceByKey("JmsQueueText");
+
+TextMessage textMessage = (TextMessage) 
+  jmsConsumeMessageFromQueue("java:JmsXA", "queue/jbpm-test-queue", 1000, false, Session.AUTO_ACKNOWLEDGE);
+assertEquals("This is the body", textMessage.getText());</programlisting>
+      <para>
+        The relevant code is shown above in boldface. The rest of the method is boilerplate code needed to
+        setup a message consumer. We will omit this code in the subsequent examples.
+      </para>
+    </section>
+    
+    <section id="objectmessages">
+      <title>Object messages</title>
+      <para>
+        The second possibility is to use a serializable object as the payload of the message. In this case a
+        JMS <literal>ObjectMessage</literal> will be created and sent to the specified destination.
+        Consider the following process definition:
+      </para>
+      <programlisting>&lt;process name=&quot;JmsQueueObject&quot;&gt;
+
+  &lt;start&gt;
+    &lt;transition to=&quot;send message&quot;/&gt;
+  &lt;/start&gt;
+
+  <emphasis role="bold">&lt;jms name=&quot;send message&quot;
+       connection-factory=&quot;java:JmsXA&quot;
+       destination=&quot;queue/jbpm-test-queue&quot;
+       transacted=&quot;false&quot;&gt;
+    &lt;object expr=&quot;${object}&quot;/&gt;
+    &lt;transition to=&quot;wait&quot;/&gt;
+  &lt;/jms&gt;</emphasis>
+
+  &lt;state name=&quot;wait&quot;/&gt;
+
+&lt;/process&gt;</programlisting>
+      <para>
+        As in the previous case a message will be sent to the queue with the name &quot;queue/jbpm-test-queue&quot;.
+        Also again a factory used to create a connection to connect to this queue is named &quot;java:JmsXA&quot;.
+        But in this case the payload of the message is the serializable object that is obtained by 
+        evaluating the expression specified by the <literal>expr</literal> attribute. This is illustrated in the test case below.
+      </para>
+      <programlisting>Map&lt;String, Object&gt; variables = new HashMap&lt;String, Object&gt;();
+variables.put(&quot;object&quot;, &quot;this is the object&quot;);
+executionService.startProcessInstanceByKey(&quot;JmsQueueObject&quot;, variables);
+
+ObjectMessage objectMessage = (ObjectMessage) 
+  jmsConsumeMessageFromQueue(&quot;java:JmsXA&quot;, &quot;queue/jbpm-test-queue&quot;, 1000, false, Session.AUTO_ACKNOWLEDGE);
+assertEquals(&quot;this is the object&quot;, objectMessage.getObject());</programlisting>
+    </section>
+    
+    <section id="mapmessages">
+      <title>Map messages</title>
+      <para>
+        In this third possibility the payload is constituted by the key-value entries of a map. This time a
+        JMS <literal>MapMessage</literal> will be created and sent to the specified destination.
+        Consider the following process definition:
+      </para>
+      <programlisting>&lt;process name=&quot;JmsQueueMap&quot;&gt;
+
+  &lt;start&gt;
+    &lt;transition to=&quot;send message&quot;/&gt;
+  &lt;/start&gt;
+
+  <emphasis role="bold">&lt;jms name=&quot;send message&quot;
+       connection-factory=&quot;java:JmsXA&quot;
+       destination=&quot;queue/jbpm-test-queue&quot;
+       transacted=&quot;false&quot;&gt;
+    &lt;map&gt;
+      &lt;entry&gt;
+        &lt;key&gt;&lt;string value=&quot;x&quot;/&gt;&lt;/key&gt;
+        &lt;value&gt;&lt;string value=&quot;foo&quot;/&gt;&lt;/value&gt;
+      &lt;/entry&gt;
+    &lt;/map&gt;
+    &lt;transition to=&quot;wait&quot;/&gt;
+  &lt;/jms&gt;</emphasis>
+
+  &lt;state name=&quot;wait&quot;/&gt;
+
+&lt;/process&gt;</programlisting>
+      <para>
+        Again a message will be sent to the queue with the name &quot;queue/jbpm-test-queue&quot; and the 
+        factory used to create a connection to connect to this queue is named &quot;java:JmsXA&quot;.
+        In this case the payload of the message are the specified key-value pairs of the map. 
+        It is illustrated in the test case below.
+      </para>
+      <programlisting>executionService.startProcessInstanceByKey("JmsQueueMap");
+
+MapMessage mapMessage = (MapMessage) 
+  jmsConsumeMessageFromQueue("java:JmsXA", "queue/jbpm-test-queue", 1000, false, Session.AUTO_ACKNOWLEDGE);
+assertTrue(mapMessage.itemExists("x"));
+assertEquals("foo", mapMessage.getObject("x"));</programlisting>
+    </section>
+    
+  </section>  
+  
+  <section>
+  	<title>History session chain</title>
+  	<para>
+  	  The <emphasis role="bold">history session</emphasis>, which can be added to the 
+  	  <emphasis role="italic">transaction-context</emphasis> in the jBPM configuration will
+  	  add a default history event listener to the process engine. This default history session
+  	  will write the information in the history events to the history tables in the database.
+    </para>
+    <para>
+  	  The <emphasis role="bold">history session chain</emphasis> construct allows to define custom
+  	  history event listeners. These custom history sessions will be called when a history event
+  	  is fired. Multiple custom implementations are possible as follows:
+  	  <programlisting>
+&lt;transaction-context&gt;
+    &lt;history-sessions&gt;
+      &lt;object class=&quot;org.jbpm.test.historysessionchain.MyProcessStartListener&quot; /&gt;
+      &lt;object class=&quot;org.jbpm.test.historysessionchain.MyProcessEndListener&quot; /&gt;
+    &lt;/history-sessions&gt;
+  &lt;/transaction-context&gt;  	  
+  	  </programlisting>
+  	  The custom history sessions must be on the classpath when the jBPM configuration is parsed
+  	  and they must implement the <emphasis role="bold">HistorySession</emphasis> interface.
+  	  <programlisting>
+public class MyProcessStartListener implements HistorySession {
+  
+  public void process(HistoryEvent historyEvent) {
+    if (historyEvent instanceof ProcessInstanceCreate) {
+      ...
+    }
+  }
+
+}  	  
+  	  </programlisting>
+  	</para>
+  	If you want to add the default history session implementation to your configuration, add the 
+  	following line to the transaction-context section:
+  	<programlisting>
+&lt;history-sessions&gt;
+      &lt;object class=&quot;org.jbpm.pvm.internal.history.HistorySessionImpl&quot; /&gt;
+&lt;/history-sessions&gt;  	
+  	</programlisting>
+  	If you are using the <emphasis role="bold">jbpm.default.cfg.xml</emphasis> import in your
+  	configuration, this default history session implementation is already configured as above.
+  </section>
+  
+  <section>
+    <title>Creating identity groups</title>
+    <para>The identity service methods to create groups are based on 
+    component generated ID's.
+    </para>
+    <programlisting>public class IdentityService {
+  /** create a group new group 
+   * @return the generated id for this group. */
+  String createGroup(String groupName);
+
+  /** create a group new group 
+   * @return the generated id for this group. */
+  String createGroup(String groupName, String groupType);
+
+  /** create a group new group 
+   * @return the generated id for this group. */
+  String createGroup(String groupName, String groupType, String parentGroupId);
+  
+  ...
+
+}</programlisting>
+    <para>In the next release we might switch to user provided ID's for these 3 methods.
+    </para>
+
+  </section>
+  
+  <section id="taskforms">
+    <title>Task forms</title>
+    <para>
+      Human interaction happens nowadays most of the times through web interfaces
+      using some kind of form to capture input of the user. Using jBPM
+      task forms, a process designer can attach such input forms to a 
+      <emphasis role="bold">task activity</emphasis> or a <emphasis role="bold">
+      start activity</emphasis>. When using the jBPM console, the forms will
+      automatically be displayed for user input when a process instance is started
+      or when a task is completed. An example process (<literal>VacationRequest</literal>)
+      is shipped with the default examples of the distribution demo.
+    </para>
+    <section id="taskformsusage">
+      <title>Usage</title>
+      <para>
+        Task form references can be put on start and task activities:
+        <programlisting>
+&lt;start <emphasis role="bold">form=&quot;org/jbpm/examples/taskform/request_vacation.ftl&quot;</emphasis> name=&quot;start&quot;&gt;
+  &lt;transition to=&quot;verify_request&quot;/&gt;
+&lt;/start&gt;
+&lt;task candidate-users=&quot;mike,peter&quot; <emphasis role="bold">form=&quot;org/jbpm/examples/taskform/verify_request.ftl&quot;</emphasis> name=&quot;verify_request&quot;&gt;
+  &lt;transition name=&quot;reject&quot; to=&quot;vacation_rejected&quot;/&gt;
+  &lt;transition name=&quot;accept&quot; to=&quot;vacation_accepted&quot;/&gt;
+&lt;/task&gt;
+        </programlisting>
+      </para>
+    </section>
+    <section id="taskformsformat">
+      <title>Form format</title>
+      <para>
+        Task forms are plain text files containing arbitray content. However,
+        when using the jBPM console, HTML pages containing a form element
+        are required. The default form plugin of the console leverages the 
+        <ulink url="http://freemarker.sourceforge.net/">freemarker</ulink>
+        templating library. It builds on the following constraints:
+        <itemizedlist>
+          <listitem>Templates need to be suffixed *.ftl and be included with the deployment:
+            <programlisting>deployment.addResourceFromClasspath("org/jbpm/examples/taskform/verify_request.ftl");</programlisting>
+          </listitem>
+          <listitem>The action of the form must be "${form.action}"</listitem>
+          <listitem>HTML forms need to provide the correct enctype: "multipart/form-data"</listitem>
+          <listitem>Form field names become process variables names and vice versa</listitem>
+          <listitem>A reserved field name is available for signaling execution upon task completion: "outcome"</listitem>
+        </itemizedlist>
+        
+        <programlisting>
+&lt;html&gt;
+  &lt;body&gt;
+    &lt;form action=&quot;${form.action}&quot; method=&quot;POST&quot; enctype=&quot;multipart/form-data&quot;&gt;
+      &lt;h3&gt;Your employee, ${employee_name} would like to go on vacation&lt;/h3&gt;
+      Number of days: ${number_of_days}&lt;br/&gt;
+      &lt;hr&gt;
+      In case you reject, please provide a reason:&lt;br/&gt;
+      &lt;input type=&quot;textarea&quot; name=&quot;reason&quot;/&gt;&lt;br/&gt;
+      &lt;#list outcome.values as transition&gt;
+          &lt;input type=&quot;submit&quot; name=&quot;outcome&quot; value=&quot;${transition}&quot;&gt;
+      &lt;/#list&gt;
+    &lt;/form&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+        </programlisting>
+        In this example, the process variables <literal>employee_name</literal>
+        and <literal>number_of_days</literal> is displayed on the 
+        screen using a variable reference expression. The value of the input
+        field <literal>reason</literal> will be stored as a process
+        variable.
+      </para>
+      <para>
+        The jBPM console will render the taskforms automatically:
+        <mediaobject><imageobject><imagedata align="center" fileref="images/taskform_example.png"/></imageobject></mediaobject>
+      </para>
+    </section>
+  </section>
+  
+  <section id="instancemigration">
+    <title>Instance Migration</title>
+    <para>By default the behaviour of jBPM upon redeployment is to start new process instances with the newly deployed version.
+   	Also, it is possible to start new process instances using a specified older version if needed. The existing running 
+   	process instances always keep running following the definition that they were started in. But what when a customer 
+   	or some piece of legislation mandates that this behaviour is not enough? We could e.g. think of a situation where
+   	process instances do not make sense anymore when a new definition is deployed. In this case these instances should be
+   	ended. In another situation it might be needed that all (or even some particular) instances are migrated and moved 
+   	to the newly deployed definition. jBPM contains a tool that exactly supports these use cases.</para>
+   	<para>Before delving into the details of the instance migration tool, we have to warn the reader. Though we did a 
+   	reasonable attempt at trying to understand the different use cases, there are certainly a number of situations that 
+   	are not yet covered. For now we have concentrated on the limited case where the nodes that are involved in the 
+   	migration are states. The goal is to expand this support to other nodes (e.g. human tasks) in the future.
+   	We welcome any feedback around these use cases very eagerly.</para>
+   	<para>For all the examples that follow, we will start from the same original process definition:
+   	  <programlisting>
+&lt;process name=&quot;foobar&quot;&gt;
+  &lt;start&gt;
+    &lt;transition to=&quot;a&quot;/&gt;
+  &lt;/start&gt;
+  &lt;state name=&quot;a&quot;&gt;
+    &lt;transition to=&quot;b&quot;&gt;
+  &lt;/state&gt;
+  &lt;state name=&quot;b&quot;&gt;
+    &lt;transition to=&quot;c&quot;/&gt;
+  &lt;/state&gt;
+  &lt;state name=&quot;c&quot;&gt;
+    &lt;transition to=&quot;end&quot;/&gt;
+  &lt;/state&gt;
+  &lt;end name=&quot;end&quot;/&gt;
+&lt;/process&gt;
+   	  </programlisting>
+   	</para>
+   	
+   	<section>
+      <title>Simple Migration</title>
+      <para>The first obvious use case that we wanted to cover is where a new version of a process is deployed for
+      which one of the following statements is true:
+        <itemizedlist>
+          <listitem>the structure of the process is completely the same and all the nodes have the same name</listitem>
+          <listitem>only new nodes have been added but all the nodes from the previous definition still exist</listitem>
+        </itemizedlist>
+      This use case might be useful if for instance event handler names change between versions, if new processing
+      has to be inserted or if new paths of execution have to be added. Consider the following modification of the
+      above process definition to indicate that running instances have to be migrated:
+   	  <programlisting>
+&lt;process name=&quot;foobar&quot;&gt;
+  &lt;start&gt;
+    &lt;transition to=&quot;a&quot;/&gt;
+  &lt;/start&gt;
+  &lt;state name=&quot;a&quot;&gt;
+    &lt;transition to=&quot;b&quot;&gt;
+  &lt;/state&gt;
+  &lt;state name=&quot;b&quot;&gt;
+    &lt;transition to=&quot;c&quot;/&gt;
+  &lt;/state&gt;
+  &lt;state name=&quot;c&quot;&gt;
+    &lt;transition to=&quot;end&quot;/&gt;
+  &lt;/state&gt;
+  &lt;end name=&quot;end&quot;/&gt;
+  &lt;migrate-instances/&gt;
+&lt;/process&gt;
+   	  </programlisting>
+   	  When this second process is deployed the running instances of the previous version - and only of the previous
+   	  version - will be migrated to the new version. We&quot;ll explain later what to do if you want more than only the
+   	  instances of the previous version to be migrated. Assume that when deploying the second version there would
+   	  be one process instance in the state &quot;a&quot; and one process instance in the state &quot;b&quot;. The following snippet 
+   	  in a unit test would be valid:
+   	  <programlisting>
+    ProcessDefinition pd1 = deployProcessDefinition(&quot;foobar&quot;, originalVersion);
+    ProcessInstance pi1 = startAndSignal(pd1, &quot;a&quot;);
+    ProcessInstance pi2 = startAndSignal(pd1, &quot;b&quot;);
+    ProcessDefinition pd2 = deployProcessDefinition(&quot;foobar&quot;, versionWithSimpleMigration);
+    pi1 = executionService.findProcessInstanceById(pi1.getId());
+    pi2 = executionService.findProcessInstanceById(pi2.getId());
+    assertEquals(pd2.getId(), pi1.getProcessDefinitionId());
+    assertEquals(pd2.getId(), pi2.getProcessDefinitionId());
+    assertEquals(pi1, pi1.findActiveExecutionIn(&quot;a&quot;));
+    assertEquals(pi2, pi2.findActiveExecutionIn(&quot;b&quot;));
+   	  </programlisting>
+      </para>
+   	</section>
+
+   	<section>
+   	  <title>Ending Running Instances</title>
+   	  <para>The second use case is when the instances of the previous process definition have to be ended. 
+   	  The way to indicate this would be to add the action attribute to the migrate-instances tag with the
+   	  value of &quot;end&quot;.
+   	  <programlisting>
+&lt;process name=&quot;foobar&quot;&gt;
+  ...
+  &lt;migrate-instances action=&quot;end&quot;/&gt;
+&lt;/process&gt;
+   	  </programlisting>
+   	  If we take the situation from above with one process in state &quot;a&quot; and another in state &quot;b&quot; 
+   	  the two processes would be ended as can be seen in the following snippet:
+   	  <programlisting>
+    ProcessDefinition pd1 = deployProcessDefinition(&quot;foobar&quot;, originalVersion);
+    ProcessInstance pi1 = startAndSignal(pd1, &quot;a&quot;);
+    ProcessInstance pi2 = startAndSignal(pd1, &quot;b&quot;);
+    ProcessDefinition pd2 = deployProcessDefinition(&quot;foobar&quot;, versionWithSimpleAbortion);
+    pi1 = executionService.findProcessInstanceById(pi1.getId());
+    pi2 = executionService.findProcessInstanceById(pi2.getId());
+    assertNull(pi1);
+    assertNull(pi2);
+   	  </programlisting>
+   	  </para>
+   	</section>
+   	
+   	<section>
+   	  <title>Version Ranges</title>
+   	  <para>So we've showed you how instances of the previously deployed version - and only that one -
+   	  could be either migrated or ended. But what to do when you want to perform these actions on process
+   	  instances of other already deployed versions. This can be done by making use of the versions attribute
+   	  of the migrate-instances tag. This attribute lets you specify a range of versions that need to be
+   	  migrated (or ended). Consider the following process definition:
+   	  <programlisting>
+&lt;process name=&quot;foobar&quot;&gt;
+  &lt;start&gt;
+    &lt;transition to=&quot;a&quot;/&gt;
+  &lt;/start&gt;
+  &lt;state name=&quot;a&quot;&gt;
+    &lt;transition to=&quot;b&quot;&gt;
+  &lt;/state&gt;
+  &lt;state name=&quot;b&quot;&gt;
+    &lt;transition to=&quot;c&quot;/&gt;
+  &lt;/state&gt;
+  &lt;state name=&quot;c&quot;&gt;
+    &lt;transition to=&quot;end&quot;/&gt;
+  &lt;/state&gt;
+  &lt;end name=&quot;end&quot;/&gt;
+  &lt;migrate-instances versions=&quot;2..3&quot;/&gt;
+&lt;/process&gt;
+   	  </programlisting>
+   	  Imagine a situation where we would deploy the original process definition 4 times in a row and for each
+   	  deployment start a process instance that waits in state &quot;a&quot;. Then we deploy the above version
+   	  of the process definition with instance migration. The result will be that instance 2 and instance 3 
+   	  will be migrated while instance 1 and instance 4 will keep running following their original definition.
+   	  This is shown in the snippet below:
+   	  <programlisting>
+    ProcessDefinition pd1 = deployProcessDefinition(&quot;foobar&quot;, originalVersion);
+    ProcessInstance pi1 = startAndSignal(pd1, &quot;a&quot;);
+    ProcessDefinition pd2 = deployProcessDefinition(&quot;foobar&quot;, originalVersion);
+    ProcessInstance pi2 = startAndSignal(pd2, &quot;a&quot;);
+    ProcessDefinition pd3 = deployProcessDefinition(&quot;foobar&quot;, originalVersion);
+    ProcessInstance pi3 = startAndSignal(pd3, &quot;a&quot;);
+    ProcessDefinition pd4 = deployProcessDefinition(&quot;foobar&quot;, originalVersion);
+    ProcessInstance pi4 = startAndSignal(pd4, &quot;a&quot;);
+    ProcessDefinition pd5 = deployProcessDefinition("foobar", versionWithAbsoluteVersionRange);
+    pi1 = executionService.findProcessInstanceById(pi1.getId());
+    pi2 = executionService.findProcessInstanceById(pi2.getId());
+    pi3 = executionService.findProcessInstanceById(pi3.getId());
+    pi4 = executionService.findProcessInstanceById(pi4.getId());
+    assertEquals(pd1.getId(), pi1.getProcessDefinitionId());
+    assertEquals(pd5.getId(), pi2.getProcessDefinitionId());
+    assertEquals(pd5.getId(), pi3.getProcessDefinitionId());
+    assertEquals(pd4.getId(), pi4.getProcessDefinitionId());
+   	  </programlisting> 
+   	  A number of variants exist for the versions attribute. The example above uses an absolute version range.
+   	  It is also possible to use an expression of the form x-n to indicate a version number relative to the 
+   	  last deployed version. So if you want to only migrate instances from the last two versions you could 
+   	  use the following expression for the versions attribute:
+   	  <programlisting>
+&lt;process name=&quot;foobar&quot;&gt;
+  ...
+  &lt;migrate-instances versions=&quot;x-2..x&quot;/&gt;
+&lt;/process&gt;
+   	  </programlisting>
+   	  You can also mix and match the absolute and the relative specifications. E.g. if you would like to 
+   	  migrate all the instances of all the versions to the newly deployed version you can use the following:
+   	  <programlisting>
+&lt;process name=&quot;foobar&quot;&gt;
+  ...
+  &lt;migrate-instances versions=&quot;1..x&quot;/&gt;
+&lt;/process&gt;
+   	  </programlisting>
+   	  And for this last example you can also use the &quot;*&quot; wildcard notation:
+   	  <programlisting>
+&lt;process name=&quot;foobar&quot;&gt;
+  ...
+  &lt;migrate-instances versions=&quot;*&quot;/&gt;
+&lt;/process&gt;
+   	  </programlisting>
+   	  </para>
+   	</section>
+   	
+   	<section>
+   	  <title>Activity Mappings</title>
+   	  <para>In some cases users will want to map nodes from the previously deployed process definition to
+   	  nodes of the newly deployed process definition. This could be the case when in the newly deployed process
+   	  definition some nodes are deleted or have been replaced by nodes with a different name. To support
+   	  this use case it is possible to specify so-called activity-mapping elements. These elements have
+   	  two attributes: the activity name in the old process definition and the activity name in the new
+   	  process definition. Consider the following process definition:
+   	  <programlisting>
+&lt;process name=&quot;foobar&quot;&gt;
+  &lt;start&gt;
+    &lt;transition to=&quot;a&quot;/&gt;
+  &lt;/start&gt;
+  &lt;state name=&quot;a&quot;&gt;
+    &lt;transition to=&quot;b&quot;&gt;
+  &lt;/state&gt;
+  &lt;state name=&quot;b&quot;&gt;
+    &lt;transition to=&quot;c&quot;/&gt;
+  &lt;/state&gt;
+  &lt;state name=&quot;c&quot;&gt;
+    &lt;transition to=&quot;d&quot;/&gt;
+  &lt;/state&gt;
+  &lt;state name=&quot;d&quot;&gt;
+    &lt;transition to=&quot;end&quot;/&gt;
+  &lt;/state&gt;
+  &lt;end name=&quot;end&quot;/&gt;
+  &lt;migrate-instances&gt;
+    &lt;activity-mapping old-name=&quot;b&quot; new-name=&quot;a&quot;/&gt;
+    &lt;activity-mapping old-name=&quot;c&quot; new-name=&quot;d&quot;/&gt;
+  &lt;/migrate-instances&gt;
+&lt;/process&gt;
+   	  </programlisting>
+   	  Deploying this process will put all the instances of the previously deployed process that are waiting
+   	  in the state &quot;b&quot; into the state &quot;a&quot; of the newly deployed process. Likewise all 
+   	  instances of the previously deployed process definition that are waiting in state &quot;c&quot; will be 
+   	  placed in the state &quot;d&quot;. The following piece of code illustrates this:
+   	  <programlisting>
+    ProcessDefinition pd1 = deployProcessDefinition(&quot;foobar&quot;, originalVersion);
+    ProcessInstance pi1 = startAndSignal(pd1, &quot;a&quot;);
+    ProcessInstance pi2 = startAndSignal(pd1, &quot;b&quot;);
+    ProcessInstance pi3 = startAndSignal(pd1, &quot;c&quot;);
+    ProcessDefinition pd2 = deployProcessDefinition(&quot;foobar&quot;, versionWithCorrectMappings);
+    pi1 = executionService.findProcessInstanceById(pi1.getId());
+    pi2 = executionService.findProcessInstanceById(pi2.getId());
+    pi3 = executionService.findProcessInstanceById(pi3.getId());
+    assertEquals(pd2.getId(), pi1.getProcessDefinitionId());
+    assertEquals(pd2.getId(), pi2.getProcessDefinitionId());
+    assertEquals(pd2.getId(), pi3.getProcessDefinitionId());
+    assertEquals(pi1, pi1.findActiveExecutionIn(&quot;a&quot;));
+    assertEquals(pi2, pi2.findActiveExecutionIn(&quot;a&quot;));
+    assertEquals(pi3, pi3.findActiveExecutionIn(&quot;d&quot;));
+    pi1 = executionService.signalExecutionById(pi1.getId());
+    pi2 = executionService.signalExecutionById(pi2.getId());
+    pi2 = executionService.signalExecutionById(pi2.getId());
+    pi3 = executionService.signalExecutionById(pi3.getId());
+    assertEquals(pi1, pi1.findActiveExecutionIn(&quot;b&quot;));
+    assertEquals(pi2, pi2.findActiveExecutionIn(&quot;c&quot;));
+    assertTrue(pi3.isEnded());
+   	  </programlisting>
+   	  </para>
+   	</section>
+   	
+   	<section>
+   	  <title>Migration Handlers</title>
+   	  <para>We already mentioned that there are a lot of use cases that we probably didn't think of or for
+   	  which there was not enough time to build support. Exactly for this reason we provide the concept of 
+   	  a migration handler. This is a user defined piece of code that implements the interface 
+   	  &quot;org.jbpm.pvm.internal.migration.MigrationHandler&quot;:
+   	  <programlisting>
+public interface MigrationHandler {  
+
+  void migrateInstance(
+          ProcessDefinition newProcessDefinition, 
+          ProcessInstance processInstance,
+          MigrationDescriptor migrationDescriptor);
+
+}
+   	  </programlisting>
+   	  This migration handler can be specified in the process definition xml and will be executed for each 
+   	  process instance that has to be migrated. Experienced users can use this to do all kinds of bookkeeping
+   	  they need to do when migrating (or ending) process instances. To perform this bookkeeping, it gets 
+   	  of course a handle to the process instance that needs to be migrated, but also to the new process 
+   	  definition and to a so called migration descriptor that contains among others the migration mapping.
+   	  Take e.g. the following example:
+   	  <programlisting>
+&lt;process name=&quot;foobar&quot;&gt;
+  ...
+  &lt;migrate-instances&gt;
+    &lt;migration-handler class=&quot;org.jbpm.test.migration.TestHandler&quot;/&gt;
+  &lt;/migrate-instances&gt;
+&lt;/process&gt;
+   	  </programlisting>
+   	  In this case the specified migration handler will be executed for each process instance that needs to
+   	  be migrated AFTER the default migration has been done. If the attribute action is set to &quot;end&quot;
+   	  the migration handler will be called BEFORE the process instance is ended. If more than one migration
+   	  handler is specified, they will be executed one after another.
+   	  </para>
+   	</section>
+   	
+  </section>
+
+  <section>
+    <title>User object caching</title>
+    <para>As indicated in section "User code" in the Users guide, instantiated user objects 
+    are by default cached as part of the process definition.  So the single user object will 
+    be used to serve all requests.  So you have to make sure that when your user code is used, 
+    that it doesn't change the member fields of the user object.  In that case it will be safe
+    for your user object to be used by all threads/requests.  This is also called stateless 
+    user objects.       
+    </para>
+    <para>In case you do have a need for stateful user objects, you can specify 
+    parameter <literal>cache="disabled"</literal> on the definition of the user 
+    code.  In that case a new user code object will be instatiated for every 
+    usage.
+    </para>
+  </section>
+  
+  <section>
+    <title>Transactions</title>
+    <section>
+      <title>Standalone transactions</title>
+      <para>TODO</para>
+    </section>
+    <section>
+      <title>JTA transactions</title>
+      <para>TODO</para>
+    </section>
+    <section>
+      <title>User transactions</title>
+      <para>In your project you might have user domain objects 
+      like e.g. an Order or Claim object in your project mapped with hibernate.
+      This section explains how to combine updates to user domain objects 
+      with jBPM operations in a single transaction.
+      </para>
+      <para>Here's an example of a user command:</para>
+      <programlisting>public class MyUserCommand implements Command&lt;Void&gt; {
+  public Void execute(Environment environment) throws Exception {
+    // your user domain objects
+    
+    // an example jBPM operation
+    ExecutionService executionService = environment.get(ExecutionService.class);
+    executionService.signalExecutionById(executionId);
+    
+    return null;
+  }
+}</programlisting>
+      <para>Then such commands can be executed by the ProcessEngine:</para>
+      <programlisting>processEngine.execute(new MyUserCommand());</programlisting>
+    </section>    
+  </section>
+  
+</chapter>

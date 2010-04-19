@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jbpm-configuration>
+
+  <import resource="jbpm.default.cfg.xml" />
+  <import resource="jbpm.businesscalendar.cfg.xml" />
+  <import resource="jbpm.tx.hibernate.cfg.xml" />
+  <import resource="jbpm.identity.cfg.xml" />
+  
+  <process-engine-context>
+    <deployer-manager>
+      <object class="org.jbpm.bpmn.deployer.BpmnDeployer" />
+    </deployer-manager>
+  </process-engine-context>
+
+</jbpm-configuration>

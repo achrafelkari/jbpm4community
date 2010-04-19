@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="jbpm.qa">
+    
+  <!-- DEVELOPER SPECIFIC CONFIGURATIONS -->
+  <property file="${user.home}/.jbpm4/build.properties" />
+    
+  <fail message="property jbpm.parent.dir must be specified" unless="jbpm.parent.dir" />
+
+  <!-- CONFIGURABLE PROPERTIES -->
+  <property name="database" value="hsqldb" />
+  <property name="identity.component" value="jbpm-built-in" />
+  <property name="jbpm.version" value="4.4-SNAPSHOT" />
+  <property name="jbpm.home" value="${jbpm.parent.dir}/jbpm-${jbpm.version}" /> <!-- jbpm.home should not be configured. change jbpm.parent.dir instead -->
+  <property name="jboss.version" value="5.0.0.GA" />
+  <property name="jboss.distro.dir" value="${jbpm.home}/downloads" />
+  <property name="jboss.parent.dir" value="${jbpm.home}" />
+  <property name="jboss.home" value="${jboss.parent.dir}/jboss-${jboss.version}" />
+  <property name="jboss.server.configuration" value="default" />
+  <property name="jboss.server.config.dir" value="${jboss.home}/server/${jboss.server.configuration}" />
+
+  <property name="tomcat.version" value="6.0.20" />
+  <property name="tomcat.parent.dir" value="${jbpm.home}" />
+  <property name="tomcat.home" value="${tomcat.parent.dir}/apache-tomcat-${tomcat.version}" />
+
+  <!-- DERIVED PROPERTIES -->
+  <property name="jbpm.filename" value="jbpm-distro-${jbpm.version}.zip" />
+  <property name="jbpm.distro.dir" value="../modules/distro/target" />
+  <property name="jbpm.distro.path" value="${jbpm.distro.dir}/jbpm-${jbpm.version}.zip" />
+
+  <condition property="is.hsqldb">
+    <equals arg1="${database}" arg2="hsqldb" />
+  </condition>
+  <condition property="is.oracle">
+    <equals arg1="${database}" arg2="oracle" />
+  </condition>
+
+
+  <echo message="database.......... ${database}" />
+  <echo message="jbpm.version...... ${jbpm.version}" />
+  <echo message="jbpm.home......... ${jbpm.home}" />
+  <echo message="jbpm.distro.path.. ${jbpm.distro.path}" />
+
+
+  <!-- ####################################### -->
+  <!-- ### MAIN SETUP AND TEARDOWN TARGETS ### -->
+  <!-- ####################################### -->
+    
+  <!-- DB SETUP -->
+  <target name="testsuite.db.setup"
+          depends="reinstall.jbpm">
+    <ant antfile="${jbpm.home}/install/build.xml" target="drop.jbpm.schema" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="create.jbpm.schema" />
+  </target>
+
+  <!-- DB TEARDOWN -->
+  <target name="testsuite.db.teardown">
+    <ant antfile="${jbpm.home}/install/build.xml" target="drop.jbpm.schema" />
+  </target>
+
+  <!-- ################ -->
+  <!-- ### TOMCAT   ### -->
+  <!-- ################ -->
+
+  <!-- TOMCAT SETUP -->
+  <target name="testsuite.tomcat.setup"
+          depends="reinstall.jbpm"> 
+    <ant antfile="${jbpm.home}/install/build.xml" target="reinstall.tomcat" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="create.user.webapp" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="install.hsqldb.server" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="start.hsqldb.server" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="create.jbpm.schema" />
+
+    <!-- to build the jbpm test webapp we start by copying the user webapp -->
+    <mkdir dir="${tomcat.home}/webapps/jbpm-test-webapp" />
+    <copy todir="${tomcat.home}/webapps/jbpm-test-webapp">
+        <fileset dir="${jbpm.home}/install/generated/user-webapp"/>
+    </copy>
+
+    <!-- customize the configuration for the jbpm-test-webapp -->
+    <copy todir="${tomcat.home}/webapps/jbpm-test-webapp" overwrite="true">
+      <fileset dir="cactus.webapp.cfg" />
+    </copy>
+
+    <!-- add examples.jar  -->
+    <ant antfile="${jbpm.home}/examples/build.xml" target="examples.jar" />
+    <copy file="${jbpm.home}/examples/target/examples.jar" todir="${tomcat.home}/webapps/jbpm-test-webapp/WEB-INF/lib" />
+    
+    <!-- add junit.jar  -->
+    <copy file="${jbpm.home}/lib/junit.jar" todir="${tomcat.home}/webapps/jbpm-test-webapp/WEB-INF/lib" />
+
+    <!-- add the cactus libs -->
+    <copy todir="${tomcat.home}/webapps/jbpm-test-webapp/WEB-INF/lib">
+      <fileset dir="../modules/test-cactus/target/jbpm.test.webapp.libs" />
+    </copy>
+
+    <!-- add the bsh lib -->
+    <copy file="${jbpm.home}/lib/bsh.jar" todir="${tomcat.home}/webapps/jbpm-test-webapp/WEB-INF/lib" />
+
+    <!-- start tomcat -->
+    <ant antfile="${jbpm.home}/install/build.xml" target="start.tomcat" />
+  </target>
+
+  <!-- TOMCAT TEARDOWN -->
+  <target name="testsuite.tomcat.teardown">
+    <ant antfile="${jbpm.home}/install/build.xml" target="stop.tomcat" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="drop.jbpm.schema" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="stop.hsqldb.server" />
+  </target>
+  
+  <!-- ################ -->
+  <!-- ### JBOSS    ### -->
+  <!-- ################ -->
+
+  <!-- JBOSS SETUP -->
+  <target name="testsuite.jboss.setup" 
+          depends="internal.jboss.test.setup.base"
+          description="reinstalls jbpm, reinstalls jboss, installs jbpm into jboss, starts jboss and then creates the jbpm schema">
+    <ant antfile="${jbpm.home}/install/build.xml" target="start.hsqldb.server" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="create.jbpm.schema" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="start.jboss" />
+  </target>
+
+  <!-- JBOSS TEARDOWN -->
+  <target name="testsuite.jboss.teardown"
+            description="drops the jbpm schema and stops jboss">
+    <ant antfile="${jbpm.home}/install/build.xml" target="stop.jboss" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="drop.jbpm.schema" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="stop.hsqldb.server" />
+  </target>
+
+  <!-- JBOSS SETUP DEBUG -->
+  <target name="testsuite.jboss.setup.for.debug" 
+          depends="internal.jboss.test.setup.base"
+          description="reinstalls jbpm, reinstalls jboss, installs jbpm into jboss, starts jboss and then creates the jbpm schema">
+    <ant antfile="${jbpm.home}/install/build.xml" target="start.hsqldb.server" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="create.jbpm.schema" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="enable.jboss.debug" />
+  </target>
+
+  <!-- JBOSS INTERNAL SETUP BASE -->
+  <target name="internal.jboss.test.setup.base" 
+          depends="reinstall.jbpm">
+    <ant antfile="${jbpm.home}/install/build.xml" target="reinstall.jboss" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="install.jbpm.into.jboss" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="create.user.webapp" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="install.hsqldb.server" />
+
+    <!-- to build the jbpm test webapp we start by copying the user webapp -->
+    <mkdir dir="${jboss.home}/server/default/deploy/jbpm-test-webapp.war" />
+    <copy todir="${jboss.home}/server/default/deploy/jbpm-test-webapp.war">
+      <fileset dir="${jbpm.home}/install/generated/user-webapp"/>
+    </copy>
+
+    <!-- customize the jbpm configuration for the testsuite -->
+    <copy todir="${jboss.home}/server/default/deploy/jbpm/jbpm-service.sar" overwrite="true">
+      <fileset dir="jboss.jbpm.cfg" />
+    </copy>
+
+    <!-- customize the configuration for the jbpm-test-webapp -->
+    <copy todir="${jboss.home}/server/default/deploy/jbpm-test-webapp.war" overwrite="true">
+      <fileset dir="cactus.webapp.cfg" />
+    </copy>
+        
+    <!-- delete the jbpm configuration files -->
+    <delete dir="${jboss.home}/server/default/deploy/jbpm-test-webapp.war/WEB-INF/classes" />
+    <delete file="${jboss.home}/server/default/deploy/jbpm-test-webapp.war/WEB-INF/lib/jta.jar" />
+
+    <!-- add examples.jar  -->
+    <ant antfile="${jbpm.home}/examples/build.xml" target="examples.jar" />
+    <copy file="${jbpm.home}/examples/target/examples.jar" todir="${jboss.home}/server/default/deploy/jbpm-test-webapp.war/WEB-INF/lib" />
+    
+    <!-- add junit.jar  -->
+    <copy file="${jbpm.home}/lib/junit.jar" todir="${jboss.home}/server/default/deploy/jbpm-test-webapp.war/WEB-INF/lib" />
+
+    <!-- add the cactus libs -->
+    <copy todir="${jboss.home}/server/default/deploy/jbpm-test-webapp.war/WEB-INF/lib">
+      <fileset dir="../modules/test-cactus/target/jbpm.test.webapp.libs" />
+    </copy>
+  </target>
+
+
+  <!-- ################# -->
+  <!-- ### ENTERPRISE ## -->
+  <!-- ################# -->
+
+  <!-- ENTERPRISE SETUP -->
+  <target name="testsuite.enterprise.setup" 
+          depends="internal.enterprise.test.setup.base"
+          description="reinstalls jbpm, reinstalls jboss, installs jbpm into jboss, starts jboss and then creates the jbpm schema">
+    <ant antfile="${jbpm.home}/install/build.xml" target="start.hsqldb.server" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="create.jbpm.schema" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="enable.jboss.debug" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="start.jboss" />
+  </target>
+
+  <!-- ENTERPRISE TEARDOWN -->
+  <target name="testsuite.enterprise.teardown"
+              description="drops the jbpm schema and stops jboss">
+    <ant antfile="${jbpm.home}/install/build.xml" target="stop.jboss" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="drop.jbpm.schema" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="stop.hsqldb.server" />
+  </target>
+  
+  <target name="testsuite.enterprise.setup.for.debug" 
+          depends="internal.enterprise.test.setup.base"
+          description="reinstalls jbpm, reinstalls jboss, installs jbpm into jboss, starts jboss and then creates the jbpm schema">
+    <ant antfile="${jbpm.home}/install/build.xml" target="start.hsqldb.server" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="create.jbpm.schema" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="enable.jboss.debug" />
+  </target>
+
+  <target name="internal.enterprise.test.setup.base" 
+          depends="internal.jboss.test.setup.base"
+          description="reinstalls jbpm, reinstalls jboss, installs jbpm into jboss, starts jboss and then creates the jbpm schema">
+    <!-- create the test queue -->
+    <copy file="enterprise/jbpm-test-destinations-service.xml"
+          todir="${jboss.home}/server/default/deploy/jbpm-test" />
+     
+    <!-- deploy the test ejbs -->
+    <copy file="../modules/test-enterprise/test-enterprise-ejb/target/jbpm-test-enterprise-ejb-${jbpm.version}.jar" 
+          todir="${jboss.home}/server/default/deploy/jbpm-test"/>
+
+    <!-- copy the test classes to the test web app  -->
+    <copy file="../modules/test-enterprise/test-enterprise-suite/target/jbpm-test-enterprise-suite-${jbpm.version}-tests.jar" 
+          todir="${jboss.home}/server/default/deploy/jbpm-test-webapp.war/WEB-INF/lib" />
+  </target>
+
+        
+  <!-- ################ -->
+  <!-- ### UPGRADE  ### -->
+  <!-- ################ -->
+  <property name="old.jbpm.home" value="${jbpm.parent.dir}/jbpm-${old.jbpm.version}" />
+  <target name="testsuite.upgrade.setup" depends="reinstall.jbpm">
+    <fail message="old.jbpm.version is a mandatory property" unless="old.jbpm.version" />
+    
+    <!-- install old jbpm version -->
+    <delete dir="${old.jbpm.home}" />
+    <unzip src="upgrade/target/jbpm-distro-${old.jbpm.version}.jar" dest="${jbpm.parent.dir}" />
+    
+    <!-- copy the oracle driver jar -->
+    <antcall target="copy.oracle.driver" />
+    
+    <!-- create jdbc properties files for PVM2 based on the originals -->
+    <delete dir="upgrade/target/jdbc" />
+      <mkdir dir="upgrade/target/jdbc" />
+    <copy todir="upgrade/target/jdbc">
+      <fileset dir="jdbc" />
+    </copy>
+    <replace dir="upgrade/target/jdbc">
+      <include name="*.properties" />
+      <replacefilter token="PVM1" value="PVM2" />
+      <replacefilter token="pvm1" value="pvm2" />
+    </replace>
+    <copy todir="upgrade/target/jdbc" overwrite="true" failonerror="false">
+      <fileset dir="${user.home}/.jbpm4/jdbc" />
+    </copy>
+    
+    <!-- install the jbpm-test-upgrade lib -->
+    <delete dir="upgrade/target/jbpm-test-upgrade" />
+    <mkdir dir="upgrade/target/jbpm-test-upgrade" />
+    <unzip dest="upgrade/target/jbpm-test-upgrade" src="upgrade/target/jbpm-test-upgrade.jar" />
+    <delete file="upgrade/target/jbpm-test-upgrade/hibernate.properties" />
+  	
+    <ant antfile="${jbpm.home}/install/build.xml" target="install.hsqldb.server" />
+  	<antcall target="start.hsqldb" />
+    <ant antfile="${jbpm.home}/install/build.xml" target="drop.jbpm.schema" />
+
+    <!-- create jbpm schema using the old jbpm distro -->
+    <condition property="is.old.jbpm.40">
+      <equals arg1="${old.jbpm.version}" arg2="4.0" />
+    </condition>
+    <antcall target="create.jbpm.schema.in.jbpm.40" />
+    <antcall target="create.jbpm.schema.in.jbpm.41plus" />
+    
+    <!-- start couple of processes using the old jbpm version -->
+    <copy todir="upgrade/target/jbpm-test-upgrade" overwrite="true">
+      <fileset dir="upgrade/cfg" />
+    </copy>
+    <java classname="org.jbpm.upgrade.BeforeUpgrade" fork="true">
+      <classpath>
+        <pathelement location="upgrade/target/jbpm-test-upgrade" />
+        <fileset dir="${old.jbpm.home}">
+          <include name="jbpm.jar"/>
+        </fileset>
+        <fileset dir="${old.jbpm.home}/lib">
+          <include name="*.jar"/>
+        </fileset>
+      </classpath>
+    </java>
+    
+    <!-- upgrade -->
+    <copy todir="${jbpm.home}/install/jdbc" overwrite="true">
+      <fileset dir="upgrade/target/jdbc" />
+    </copy>
+    <ant antfile="${jbpm.home}/install/build.xml" target="upgrade.jbpm.schema" inheritall="false">
+      <property name="database" value="${database}" />
+      <property name="tx" value="standalone.testsuite" />
+      <!--property name="logging" value="debug" /-->
+    </ant>
+  </target>
+
+  <target name="copy.oracle.driver" if="is.oracle">
+    <copy file="upgrade/target/ojdbc14.jar" todir="${old.jbpm.home}/lib" />
+    <copy file="upgrade/target/ojdbc14.jar" todir="${jbpm.home}/lib" />
+  </target>
+
+  
+  <target name="start.hsqldb" if="is.hsqldb">
+    <ant antfile="${jbpm.home}/install/build.xml" target="start.hsqldb.server" />
+  </target>
+  
+  <target name="stop.hsqldb" if="is.hsqldb">
+    <ant antfile="${jbpm.home}/install/build.xml" target="stop.hsqldb.server" />
+  </target>
+
+  <target name="create.jbpm.schema.in.jbpm.40" if="is.old.jbpm.40">
+    <echo message="creating schema in jbpm 4.0" />
+    <!-- copy the PVM2 jdbc properties files in the old jbpm distro -->
+    <copy todir="${old.jbpm.home}/db/jdbc">
+      <fileset dir="upgrade/target/jdbc" />
+    </copy>
+    <replace file="upgrade/target/jbpm-test-upgrade/jbpm.cfg.xml">
+      <replacetoken><![CDATA[<import resource="jbpm.businesscalendar.cfg.xml" />]]></replacetoken>
+      <replacevalue></replacevalue>
+    </replace>
+    <ant antfile="${old.jbpm.home}/db/build.xml" target="create.jbpm.schema" inheritall="false">
+      <property name="database" value="${database}" />
+    </ant>
+    <copy file="${old.jbpm.home}/db/hibernate.cfg/${database}.hibernate.cfg.xml" 
+          tofile="upgrade/target/jbpm-test-upgrade/jbpm.hibernate.cfg.xml" 
+          overwrite="true">
+      <filterset filtersfile="upgrade/target/jdbc/${database}.properties" />
+    </copy>
+  </target>
+
+  <target name="create.jbpm.schema.in.jbpm.41plus" unless="is.old.jbpm.40">
+      <echo message="creating schema in jbpm 4.1+" />
+    <!-- copy the PVM2 jdbc properties files in the old jbpm distro -->
+    <copy todir="${old.jbpm.home}/install/jdbc">
+      <fileset dir="upgrade/target/jdbc" />
+    </copy>
+    <ant antfile="${old.jbpm.home}/install/build.xml" target="create.jbpm.schema" inheritall="false">
+      <property name="database" value="${database}" />
+    </ant>
+    <copy file="${old.jbpm.home}/install/src/cfg/hibernate/jdbc/${database}.hibernate.cfg.xml" 
+          tofile="upgrade/target/jbpm-test-upgrade/jbpm.hibernate.cfg.xml" 
+          overwrite="true">
+      <filterset filtersfile="upgrade/target/jdbc/${database}.properties" />
+    </copy>
+  </target>
+  
+  <target name="testsuite.upgrade.teardown">
+    <ant antfile="${jbpm.home}/install/build.xml" target="drop.jbpm.schema" inheritall="false" />
+    <antcall target="stop.hsqldb" />
+  </target>
+
+  
+  <!-- ############################################ -->
+  <!-- ### REUSABLE TARGETS                     ### -->
+  <!-- ### These targets can be called directly ### -->
+  <!-- ############################################ -->
+
+  <!-- REINSTALL JBPM -->
+  <target name="reinstall.jbpm" 
+          description="deletes the jbpm installation and then reinstalls jbpm">
+    <delete dir="${jbpm.home}" />
+    <unzip src="${jbpm.distro.path}" dest="${jbpm.parent.dir}" />
+
+    <!-- overwrite the default jdbc properties in the distro with those specified in the qa jdbc directory -->
+    <copy file="jdbc/${database}.properties" 
+          todir="${jbpm.home}/install/jdbc" 
+          overwrite="true" 
+          failonerror="false" />
+    <!-- overwrite the jdbc properties in the distro with those specified in the user specific properties -->
+    <copy file="${user.home}/.jbpm4/jdbc/${database}.properties" 
+          todir="${jbpm.home}/install/jdbc" 
+          overwrite="true" 
+          failonerror="false" />
+    <!-- copy the oracle jar as it is not allowed to be part of our distro -->
+    <copy file="../modules/distro/target/libs/ojdbc14.jar" 
+          todir="${jbpm.home}/lib"/>
+  </target>
+
+</project>

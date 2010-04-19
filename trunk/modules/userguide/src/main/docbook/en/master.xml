@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE book [
+  <!ENTITY ch01-Introduction       SYSTEM "modules/ch01-Introduction.xml">
+  <!ENTITY ch02-Installation       SYSTEM "modules/ch02-Installation.xml">
+  <!ENTITY ch03-GraphicalProcessDesigner  SYSTEM "modules/ch03-GraphicalProcessDesigner.xml">
+  <!ENTITY ch04-DeployingBusinessArchives SYSTEM "modules/ch04-DeployingBusinessArchives.xml">
+  <!ENTITY ch05-Services           SYSTEM "modules/ch05-Services.xml">
+  <!ENTITY ch06-Jpdl               SYSTEM "modules/ch06-Jpdl.xml">
+  <!ENTITY ch07-Variables          SYSTEM "modules/ch07-Variables.xml">
+  <!ENTITY ch08-Scripting          SYSTEM "modules/ch08-Scripting.xml">
+  <!ENTITY ch09-Configuration      SYSTEM "modules/ch09-Configuration.xml">
+]>
+
+<book lang="en">
+
+  <bookinfo>
+    <title>jBPM User Guide</title>
+  </bookinfo>
+
+  <toc />
+
+  &ch01-Introduction;
+  &ch02-Installation;
+  &ch03-GraphicalProcessDesigner;
+  &ch04-DeployingBusinessArchives;
+  &ch05-Services;
+  &ch06-Jpdl;
+  &ch07-Variables;
+  &ch08-Scripting;
+  &ch09-Configuration;
+
+</book>

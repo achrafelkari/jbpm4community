@@ -1,0 +1,41 @@
+<project default="clean">
+
+	<!-- checking database property -->
+	<fail message="property database must be specified" unless="database"/>
+	
+  <!-- loading jdbc properties -->
+	<echo message="loading properties from ${user.home}/.jbpm4/jdbc/${database}.properties" />
+	<property file="../jdbc/${database}.properties" />
+	
+	<!-- default value for jdbc.schema -->
+  <property name="jdbc.schema" value="" />
+	
+	<target name="compile">
+		<mkdir dir="bin"/>
+		<javac srcdir="src" destdir="bin"/>
+	</target>
+	
+	<target name="clean" depends="compile">
+    <exec executable="mvn.bat" os="Windows Vista, Windows XP,Windows 2000,Windows 98">
+      <arg line="dependency:copy" />
+    </exec>
+    <path id="classpath.cleandb">
+      <fileset dir="lib" includes="*jar" excludes="ant.jar" />
+      <pathelement path="bin"/>
+    </path>
+		<taskdef name="cleandb" classname="org.jboss.qa.CleanDatabase" classpathref="classpath.cleandb" />
+		<echo>
+			url="${jdbc.url}" 
+			username="${jdbc.username}" 
+			password="${jdbc.password}" 
+			schema="${jdbc.schema}" 
+			driver="${jdbc.driver}" 
+		</echo>
+		<cleandb 
+			url="${jdbc.url}" 
+			username="${jdbc.username}" 
+			password="${jdbc.password}" 
+			schema="${jdbc.schema}" 
+			driver="${jdbc.driver}" />
+	</target>
+</project>

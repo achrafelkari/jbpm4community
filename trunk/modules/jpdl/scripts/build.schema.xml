@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ============================================================ -->
+<!--  JBoss, the OpenSource J2EE webOS                            -->
+<!--  Distributable under LGPL license.                           -->
+<!--  See terms of license at http://www.gnu.org.                 -->
+<!-- ============================================================ -->
+
+<!-- $Id: antrun-jbpmschema.xml 2999 2008-11-19 16:16:01Z thomas.diesler@jboss.com $ -->
+
+<project>
+
+  <!-- ================================================================== -->
+  <!-- jBPM Database schema                                               -->
+  <!-- ================================================================== -->
+
+  <target name="create-schema">
+    <echo message="${maven.runtime.classpath}"/>
+      
+    <taskdef name="schemaexport"
+        classname="org.hibernate.tool.hbm2ddl.SchemaExportTask">
+      <classpath path="${maven.runtime.classpath}"/>
+    </taskdef>
+    
+    <property name="cfg" value="target/classes/hibernate.cfg.xml" />
+
+    <mkdir dir="target/classes/create"/>
+    <mkdir dir="target/classes/drop"/>
+
+    <schemaexport properties="target/classes/db.properties/hsqldb.properties"
+                  output="target/classes/create/jbpm.hsqldb.create.sql" 
+                  create="yes" drop="no" config="${cfg}" text="yes" />
+    <schemaexport properties="target/classes/db.properties/hsqldb.properties"
+                  output="target/classes/drop/jbpm.hsqldb.drop.sql" 
+                  create="no" drop="yes" config="${cfg}" text="yes" />
+
+    <schemaexport properties="target/classes/db.properties/mysql.properties"
+                  output="target/classes/create/jbpm.mysql.create.sql"
+    	            delimiter=";"
+                  create="yes" drop="no" config="${cfg}" text="yes" />
+    <schemaexport properties="target/classes/db.properties/mysql.properties"
+                  output="target/classes/drop/jbpm.mysql.drop.sql" 
+                  delimiter=";"
+                  create="no" drop="yes" config="${cfg}" text="yes" />
+
+    <schemaexport properties="target/classes/db.properties/oracle.properties"
+                  output="target/classes/create/jbpm.oracle.create.sql" 
+                  create="yes" drop="no" config="${cfg}" text="yes" 
+                  delimiter=";" />
+    <schemaexport properties="target/classes/db.properties/oracle.properties"
+                  output="target/classes/drop/jbpm.oracle.drop.sql" 
+                  create="no" drop="yes" config="${cfg}" text="yes" 
+                  delimiter=";" />
+
+    <schemaexport properties="target/classes/db.properties/postgresql.properties"
+                  output="target/classes/create/jbpm.postgresql.create.sql" 
+                  create="yes" drop="no" config="${cfg}" text="yes" />
+    <schemaexport properties="target/classes/db.properties/postgresql.properties"
+                  output="target/classes/drop/jbpm.postgresql.drop.sql" 
+                  create="no" drop="yes" config="${cfg}" text="yes" />
+
+    <schemaexport properties="target/classes/db.properties/sybase.properties"
+                  output="target/classes/create/jbpm.sybase.create.sql" 
+                  create="yes" drop="no" config="${cfg}" text="yes" />
+    <schemaexport properties="target/classes/db.properties/sybase.properties"
+                  output="target/classes/drop/jbpm.sybase.drop.sql" 
+                  create="no" drop="yes" config="${cfg}" text="yes" />
+
+  </target>
+  
+</project>

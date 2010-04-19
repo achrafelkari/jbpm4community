@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process-definition 
+  xmlns="urn:jbpm.org:jpdl-3.2"
+  name="simple">
+   <start-state name="start">
+      <transition name="to_state" to="first2">
+         <action name="action" class="com.sample.action.MessageActionHandler">
+            <message>Going to the first state!</message>
+         </action>
+      </transition>
+   </start-state>
+   <state name="first">
+      <event type="node-enter">
+        <action class="org.jbpm.AnotherTest"/>
+      </event>
+      <transition name="to_end" to="end2">
+         <action name="action" class="com.sample.action.MessageActionHandler">
+            <message>About to finish!</message>
+         </action>
+      </transition>
+   </state>
+   <end-state name="end"></end-state>
+</process-definition>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="jbpm.examples">
+
+	<!-- DEVELOPER SPECIFIC CONFIGURATIONS -->
+	<property file="${user.home}/.jbpm4/build.properties" />
+
+	<!-- DEFAULT PROPERTY VALUES -->
+	<property name="database" value="hsqldb" />
+	<property name="jbpm.parent.dir" value="../.." />
+	<property name="jbpm.version" value="4.4-SNAPSHOT" />
+	<property name="jboss.version" value="5.0.0.GA" />
+	<property name="jbpm.home" value="${jbpm.parent.dir}/jbpm-${jbpm.version}" />
+
+	<!-- JDBC PROPERTIES -->
+	<property file="${user.home}/.jbpm4/jdbc/${database}.properties" />
+	<property file="${jbpm.home}/db/jdbc/${database}.properties" />
+
+	<!-- ### LOG PROPERTIES ################################################# -->
+	<target name="log.properties">
+		<echo message="database: ${database}" />
+		<echo message="jdbc.driver........ ${jdbc.driver}" />
+		<echo message="jdbc.url........... ${jdbc.url}" />
+		<echo message="jdbc.username...... ${jdbc.username}" />
+		<echo message="jbpm.version....... ${jbpm.version}" />
+		<echo message="jbpm.home.......... ${jbpm.home}" />
+	</target>
+
+	<target name="jbpm.libs.path">
+		<path id="jbpm.libs.incl.dependencies">
+			<pathelement location="${jbpm.home}/examples/target/classes" />
+			<fileset dir="${jbpm.home}">
+				<include name="jbpm.jar" />
+			</fileset>
+			<fileset dir="${jbpm.home}/lib" />
+		</path>
+	</target>
+
+	<!-- ### DEPLOY EXAMPLE BUSINESS ARCHIVES ############################### -->
+	<target name="create.and.deploy.examples" 
+		      depends="jbpm.libs.path, examples.jar">
+		<mkdir dir="${jbpm.home}/examples/target" />
+		<copy file="${jbpm.home}/install/src/cfg/hibernate/jdbc/${database}.hibernate.cfg.xml"
+			    tofile="${jbpm.home}/examples/target/classes/jbpm.hibernate.cfg.xml" 
+		      overwrite="true">
+			<filterset filtersfile="${jbpm.home}/install/jdbc/${database}.properties" />
+		</copy>
+		<jar destfile="${jbpm.home}/examples/target/examples.bar">
+			<fileset dir="${jbpm.home}/examples/src">
+				<exclude name="jbpm.cfg.xml" />
+				<exclude name="jbpm.hibernate.cfg.xml" />
+				<exclude name="jbpm.mail.properties" />
+				<exclude name="jbpm.mail.templates.examples.xml" />
+				<exclude name="logging.properties" />
+				<exclude name="org/jbpm/examples/task/swimlane/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/task/candidates/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/concurrency/graphbased/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/timer/repeat/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/script/text/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/decision/handler/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/mail/template/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/script/expression/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/task/assignee/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/mail/inline/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/mail/template/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/eventlistener/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/timer/event/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/task/assignmenthandler/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/java/JavaInstantiateTest.java" />	
+				<exclude name="org/jbpm/examples/decision/conditions/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/decision/expression/process.jpdl.xml" />
+			  <exclude name="org/jbpm/examples/java/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/task/notification process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/task/reminder process.jpdl.xml" />
+        <exclude name="org/jbpm/examples/rulesdecision/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/task/notification/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/task/reminder/process.jpdl.xml" />
+				<exclude name="org/jbpm/examples/bpmn/event/terminateend/terminate_end_event.bpmn.xml" />
+				<exclude name="org/jbpm/examples/bpmn/gateway/exclusive/exclusive_gateway.bpmn.xml" />
+				<exclude name="org/jbpm/examples/bpmn/gateway/exclusive/exclusive_gateway_default_seq_flow.bpmn.xml" />
+				<exclude name="org/jbpm/examples/bpmn/gateway/parallel/parallel_gateway.bpmn.xml" />
+				<exclude name="org/jbpm/examples/bpmn/task/service/service_task_java.bpmn.xml" />
+				<exclude name="org/jbpm/examples/bpmn/task/usertask/user_task_human_performer_variable.bpmn.xml" />
+				<exclude name="org/jbpm/examples/bpmn/task/script/script_task.bpmn.xml" />
+			</fileset>
+		</jar>
+		<taskdef name="jbpm-deploy" classname="org.jbpm.pvm.internal.ant.JbpmDeployTask" classpathref="jbpm.libs.incl.dependencies" />
+		<jbpm-deploy file="${jbpm.home}/examples/target/examples.bar" />
+	</target>
+
+	<target name="examples.jar" depends="jbpm.libs.path">
+		<mkdir dir="${jbpm.home}/examples/target/classes" />
+		<javac srcdir="${jbpm.home}/examples/src"
+           destdir="${jbpm.home}/examples/target/classes"
+			     source="1.5"
+           classpathref="jbpm.libs.incl.dependencies" />
+		<copy todir="${jbpm.home}/examples/target/classes">
+			<fileset dir="${jbpm.home}/examples/src">
+				<exclude name="**/*.java" />
+			</fileset>
+		</copy>
+		<jar destfile="${jbpm.home}/examples/target/examples.jar" >
+			<fileset dir="${jbpm.home}/examples/target/classes">
+				<include name="**/*.class" />
+			</fileset>
+		</jar>
+	</target>
+
+</project>

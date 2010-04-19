@@ -1,0 +1,10 @@
+<jbpm-configuration>
+
+  <process-engine-context>
+    <types resource="jbpm.pvm.types.xml" />
+  </process-engine-context>
+
+  <transaction-context>
+  </transaction-context>
+
+</jbpm-configuration>

@@ -1,0 +1,120 @@
+<chapter id="introduction">
+  <title>Introduction</title>
+  
+  <section>
+    <title>Target audience</title>
+    <para>This developers guide is intended for experienced developers that 
+    want to get the full flexibility out of jBPM.  The features described in this 
+    developers guide are currently not supported.  Use at your own risk. 
+    </para>
+  </section>
+
+  <section>
+    <title>Overview</title>
+    <para><xref linkend="incubation" /> explains the features that are intended to 
+    move to the userguide eventually and become part of the supported offering.  
+    Do note that incubation features are not yet considered stable (ie. there 
+    could be major syntax or implementation changes in next versions).  
+    </para>
+    <para><xref linkend="bpmn2"/> shows how the BPMN 2.0 process language can be used with jBPM.    
+    </para>
+    <para><xref linkend="processvirtualmachine" /> through <xref linkend="advancedgraphexecution" />
+    explain the core of jBPM, the process virtual machine (PVM) and how activity 
+    and event listener can be build for it.
+    </para>
+    <para><xref linkend="configuration" /> through <xref linkend="signavio" />
+    explain advanced usage of the jBPM framework.
+    </para>
+  </section>
+
+  <section>
+    <title>Sources and WIKI</title>
+    <para>The source code for jBPM can be found in our <ulink url="http://subversion.tigris.org/">SVN</ulink> repository:</para>
+    <ulink url="https://anonsvn.jboss.org/repos/jbpm/jbpm4/">https://anonsvn.jboss.org/repos/jbpm/jbpm4/</ulink>
+    <para>A description of how to build the sources is available in the wiki:</para>
+    <ulink url="http://www.jboss.org/community/docs/DOC-12867">http://www.jboss.org/community/docs/DOC-12867</ulink>
+    <para>The jBPM WIKI is located here:</para>
+    <ulink url="http://www.jboss.org/community/docs/DOC-11184">http://www.jboss.org/community/docs/DOC-11184</ulink>
+  </section>
+
+  <section>
+    <title>Maven repository</title>
+    <para>You can use jBPM with the libraries that ship in the distribution.  The <literal>jbpm.jar</literal>
+    in the distribution contains the classes of many jBPM modules: jbpm-api, jbpm-log, jbpm-test-base, jbpm-pvm,
+    jbpm-jpdl and jbpm-enterprise.  So the single <literal>jbpm.jar</literal> in the distribution 
+    does not allow to make a compile time distinction between the API classes and the implementation classes.
+    If you prefer to build your project with only a dependency on jBPM's API, then 
+    our repository can be used directly.  It is located here:
+    <ulink url="http://repository.jboss.com/maven2/org/jbpm/jbpm4/">http://repository.jboss.com/maven2/org/jbpm/jbpm4/</ulink>
+    </para>
+  </section>
+  
+  <section>
+    <title>Library dependencies</title>
+    <para>If you want to install/deploy jBPM into your own application, this is still as easy
+    as it was before: just put the right libs in your application classpath.  We didn't yet clean 
+    up the dependency description in the maven pom files.  So we can't yet give the exact 
+    minimal set of libraries from the <literal>lib</literal> directory that you need to include
+    in your application (See Jira issue 
+    <ulink url="https://jira.jboss.org/jira/browse/JBPM-2556">JBPM-2556</ulink>
+    and vote for it if you want to let us know that this issue has priority for you).
+    The versions of the libraries that are in the <literal>lib</literal>
+    directory are the ones that we tested with.  So we recommend you to use those very versions
+    of the libs.  To help you on your way, here's the current maven dependency list for jPDL:
+    </para>
+    <programlisting>[INFO] ------------------------------------------------------------------------
+[INFO] Building jBPM 4 - jPDL
+[INFO]    task-segment: [dependency:tree]
+[INFO] ------------------------------------------------------------------------
+[INFO] [dependency:tree]
+[INFO] org.jbpm.jbpm4:jbpm-jpdl:jar:4.0
+[INFO] +- org.jbpm.jbpm4:jbpm-pvm:jar:4.0:compile
+[INFO] |  +- org.jbpm.jbpm4:jbpm-api:jar:4.0:compile
+[INFO] |  |  \- jboss:jboss-j2ee:jar:4.2.2.GA:compile
+[INFO] |  +- org.jbpm.jbpm4:jbpm-log:jar:4.0:compile
+[INFO] |  +- org.jbpm.jbpm4:jbpm-test-base:jar:4.0:compile
+[INFO] |  |  \- org.hibernate:hibernate-core:jar:3.3.1.GA:compile
+[INFO] |  |     +- antlr:antlr:jar:2.7.6:compile
+[INFO] |  |     \- commons-collections:commons-collections:jar:3.1:compile
+[INFO] |  +- org.apache.ant:ant:jar:1.7.0:compile
+[INFO] |  |  \- org.apache.ant:ant-launcher:jar:1.7.0:compile
+[INFO] |  +- log4j:log4j:jar:1.2.14:compile
+[INFO] |  +- juel:juel:jar:2.1.0:compile
+[INFO] |  +- juel:juel-impl:jar:2.1.0:compile
+[INFO] |  +- juel:juel-engine:jar:2.1.0:compile
+[INFO] |  +- org.slf4j:slf4j-api:jar:1.5.2:compile
+[INFO] |  +- org.slf4j:slf4j-jdk14:jar:1.5.2:compile
+[INFO] |  +- org.jboss.identity.idm:idm-core:jar:1.0.0.Beta1:compile
+[INFO] |  |  +- org.jboss.identity.idm:idm-common:jar:1.0.0.Beta1:compile
+[INFO] |  |  +- org.jboss.identity.idm:idm-api:jar:1.0.0.Beta1:compile
+[INFO] |  |  +- org.jboss.identity.idm:idm-spi:jar:1.0.0.Beta1:compile
+[INFO] |  |  \- com.sun.xml.bind:jaxb-impl:jar:2.1.8:compile
+[INFO] |  |     \- javax.xml.bind:jaxb-api:jar:2.1:compile
+[INFO] |  |        \- javax.xml.stream:stax-api:jar:1.0-2:compile
+[INFO] |  +- org.jboss.identity.idm:idm-hibernate:jar:1.0.0.Beta1:compile
+[INFO] |  |  +- javassist:javassist:jar:3.4.GA:compile
+[INFO] |  |  +- org.hibernate:hibernate-cglib-repack:jar:2.1_3:compile
+[INFO] |  |  \- org.slf4j:slf4j-log4j12:jar:1.5.2:compile
+[INFO] |  +- org.hibernate:hibernate-entitymanager:jar:3.4.0.GA:compile
+[INFO] |  |  +- org.hibernate:ejb3-persistence:jar:1.0.2.GA:compile
+[INFO] |  |  +- org.hibernate:hibernate-commons-annotations:jar:3.1.0.GA:compile
+[INFO] |  |  +- org.hibernate:hibernate-annotations:jar:3.4.0.GA:compile
+[INFO] |  |  +- dom4j:dom4j:jar:1.6.1:compile
+[INFO] |  |  |  \- xml-apis:xml-apis:jar:1.0.b2:compile
+[INFO] |  |  \- javax.transaction:jta:jar:1.1:compile
+[INFO] |  +- org.livetribe:livetribe-jsr223:jar:2.0.5:compile
+[INFO] |  \- javax.mail:mail:jar:1.4.1:compile
+[INFO] |     \- javax.activation:activation:jar:1.1:compile
+[INFO] +- junit:junit:jar:3.8.1:compile
+[INFO] \- hsqldb:hsqldb:jar:1.8.0.7:test
+[INFO] ------------------------------------------------------------------------</programlisting>
+    <para>The jboss idm dependencies in sections 
+    <literal>org.jboss.identity.idm:*</literal> can be ignored, including the 
+    <literal>org.hibernate:hibernate-entitymanager</literal> </para>
+    <para>This list should already get you started to select a small subset of libs instead of 
+    including all the libs from the <literal>${jbpm.home}/lib</literal> directory.  
+    </para>
+  </section>
+  
+    
+</chapter>

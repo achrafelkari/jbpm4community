@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="JmsTopic">
+
+  <start g="20,20,48,48">
+    <transition to="send message" />
+  </start>
+
+  <jms name="send message" 
+        connection-factory="jms/ConnectionFactory"
+        destination="topic/ProductTopic"
+        g="96,16,83,52">
+    <map>
+      <entry>
+        <key><string value="product"/></key>
+        <value><string value="shampoo"/></value>
+      </entry>
+    </map>    
+    <transition to="wait" />
+  </jms>
+  
+  <state name="wait" g="352,17,88,52"/>
+
+</process>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter id="jobexecutor">
+  <title>JobExecutor</title>
+  
+  <para>
+	For jPDL features like asynchronous continuations and timers, jBPM
+	relies on transactional asynchronous messaging and
+	timers. Those are not available on the standard Java platform.
+	Therefore, jBPM includes the JobExecutor component, which executes
+	asynchronous messages and timers in any (potentially clustered)
+	environment. 
+  </para>
+
+  <section id="overview">
+    <title>Overview</title>
+    <para>
+		By default, when calling a jBPM service operation (eg. TaskService,
+		ExecutionService, etc.), the jBPM logic is executed on the same thread
+		as where the call came from. In most cases, this is sufficient since
+		most steps in a process don't take much time. This means that
+		signalling a process instance from one wait state to another, passing
+		by several other steps in the business process, can be done in one
+		transaction.
+    </para>
+    <para>
+		However, in some occasions business processes can be made more efficient by
+		introducing asynchronous continuations. By marking an activity as
+		asynchronous, the jBPM engine will take care that the logic
+		encapsulated in the activity isn't executed on the thread of the
+		caller, but on a separate dedicated thread. The same mechanism is used
+		for timers and asynchronous mailing (which means mails will be sent
+		later, in a separate thread). The following picture shows which components
+		come into play when using this mechanism.
+    </para>
+    <figure id="jobexecutor.overview.image">
+      <title>JobExecutor components overview</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/jobexecutor.overview.png"/></imageobject></mediaobject>
+    </figure>
+    <para>
+		When using timers or asynchronous continuations in a business process, the
+		jBPM engine will store a 'job' into the database (a job contains mainly a 
+		duedate and continuation logic). Do note that this mechanism is
+		pluggable, which means that in the future other destinations could be
+		used (JMS, JCR, etc).
+    </para>
+    <para>
+		Now the JobExecutor comes in to play, which is in fact a manager
+		for several subcomponents:
+		
+		<itemizedlist>
+			<listitem>
+				A <emphasis role="bold">shared BlockingQueue</emphasis>, 
+				which is used to temporary store job identifiers of jobs which 
+				are executable (e.g. due date is passed).
+			</listitem>
+			<listitem>
+				Every JobExecutor has one <emphasis role="bold">DispatcherThread.</emphasis> 
+				This thread	will query the database for 'acquirable jobs' (e.g. timers 
+				which due date is passed), using a dedicated command through the CommandService.
+				Since the dispatcher uses the CommandService, the command is
+				automatically made transactional and wrapped by the configured
+				interceptors. As long as jobs are available the dispatcher will put
+				job identifiers on the shared queue, until the queue is either full
+				(the thread will automatically be blocked by the JVM until a slot is
+				free) or until no new jobs can be found in the database. If the latter
+				case, the dispatcher will wait for a configured time (ie the 'idle
+				time').
+  		</listitem>
+			<listitem>
+				The JobExecutor also maintains a pool of job executor threads. The number of
+				executor threads can be configured and influences the size of the shared
+        queue used to transfer and hold submitted jobs. Each executor thread will take a
+				job from the queue. The shared queue blocks the executor threads until a job
+        is queued. The new job will be acquired by exactly one waiting executor thread.
+				After taking a job from the queue, the job is transactionally
+				executed using a dedicated command through the CommandService. Therefore,
+        the job will be executed completely on the executor thread
+        instead of the caller thread. In consequence, the order in which the jobs
+        are executed is unknown since	there are multiple competing executor threads.
+        However, it is certain that only one job will be done per transaction,
+        except for <emphasis>exclusive</emphasis> jobs. In this case,
+        all exclusive jobs are sequentially	executed.
+			</listitem>
+		</itemizedlist>
+    </para>
+   
+  </section>
+  
+  <section id="configuration">
+    <title>Configuration</title>
+    <para>
+      Enabling the jobExecutor is very easy by adding the following line to the 
+      jbpm.cfg.xml file (using default settings):
+    </para>
+    <programlisting>
+	  &lt;import resource=&quot;jbpm.jobexecutor.cfg.xml&quot; /&gt;
+	</programlisting>
+	<para>
+	  Additional attributes can be set to fine-tune the JobExecutor:
+	  <itemizedlist>
+	    <listitem>
+	      <emphasis role="bold">threads:</emphasis> defines the number of 
+	      JobexecutorThreads (default 3 threads)
+	    </listitem>
+	    <listitem>
+	      <emphasis role="bold">idle:</emphasis> number of milliseconds the dispatcher
+	      component waits after no new jobs were found in the database (default 5 seconds) 
+	    </listitem>
+	    <listitem>
+	      <emphasis role="bold">idle-max:</emphasis> each time an exception occurs, 
+	      the idle period will be doubled until the 'idle-max' is reached 
+	      (back-off mechanism used to avoid a constant load on a failing database)
+	    </listitem> 
+	    <listitem>
+	      <emphasis role="bold">lock-millis:</emphasis> Number of milliseconds 
+	      that a job will be locked after being acquired by the dispatcher. 
+	      This prevents starvation in case one of more JobExecutorThreads would die
+	      (eg when used in a cluster).
+	    </listitem>
+	  </itemizedlist>
+	  <programlisting>
+		
+		&lt;process-engine-context&gt;
+		  
+		    &lt;job-executor threads=&quot;4&quot; idle=&quot;15000&quot; idle-max=&quot;60000&quot; lock-millis=&quot;3600000&quot; /&gt;
+		
+		&lt;/process-engine-context&gt;
+	  </programlisting>
+	</para>
+  </section>
+  
+</chapter>

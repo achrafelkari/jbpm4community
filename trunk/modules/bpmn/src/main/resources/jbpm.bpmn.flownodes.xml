@@ -1,0 +1,28 @@
+<activities>
+	
+	<!-- Start / end events -->
+	<activity binding="org.jbpm.bpmn.flownodes.StartEventBinding" />
+	<activity binding="org.jbpm.bpmn.flownodes.EndEventBinding" />
+	
+	<!-- Events -->
+	<activity binding="org.jbpm.bpmn.flownodes.IntermediateCatchEventBinding" />
+	
+	<!-- Gateway bindings -->
+	<activity binding="org.jbpm.bpmn.flownodes.ExclusiveGatewayBinding" />
+	<activity binding="org.jbpm.bpmn.flownodes.ParallelGatewayBinding" />
+	<activity binding="org.jbpm.bpmn.flownodes.InclusiveGatewayBinding" />
+	
+	<!-- Activities -->
+	<activity binding="org.jbpm.bpmn.flownodes.ReceiveBinding" />
+	<activity binding="org.jbpm.bpmn.flownodes.SubProcessBinding" />
+	
+	<!-- Task bindings -->
+	<activity binding="org.jbpm.bpmn.flownodes.ManualTaskBinding" />
+  <activity binding="org.jbpm.bpmn.flownodes.ScriptTaskBinding" />
+  <activity binding="org.jbpm.bpmn.flownodes.ServiceTaskBinding" />
+	<activity binding="org.jbpm.bpmn.flownodes.TaskBinding" />
+	<activity binding="org.jbpm.bpmn.flownodes.UserTaskBinding" />
+
+</activities>
+
+

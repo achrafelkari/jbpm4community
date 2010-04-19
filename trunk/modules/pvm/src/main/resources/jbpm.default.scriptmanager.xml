@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jbpm-configuration>
+
+  <process-engine-context>
+  
+    <script-manager default-expression-language="juel"
+                    default-script-language="juel">
+      <script-language name="juel" factory="org.jbpm.pvm.internal.script.JuelScriptEngineFactory" />
+      <script-language name="bsh" factory="org.jbpm.pvm.internal.script.BshScriptEngineFactory" />
+      <script-language name="groovy" factory="org.jbpm.pvm.internal.script.GroovyScriptEngineFactory" />
+    </script-manager>
+    
+  </process-engine-context>
+
+</jbpm-configuration>

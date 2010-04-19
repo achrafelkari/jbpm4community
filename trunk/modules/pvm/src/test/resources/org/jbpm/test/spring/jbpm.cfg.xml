@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jbpm-configuration xmlns="http://jbpm.org/xsd/cfg">
+
+  <process-engine-context>
+  
+    <repository-service />
+    <repository-cache />
+    <execution-service />
+    <history-service />
+    <management-service />
+    <task-service />
+    <identity-service />
+    <command-service>
+      <retry-interceptor />
+      <environment-interceptor />
+      <spring-transaction-interceptor />
+    </command-service>
+    
+    <hibernate-configuration>
+      <cfg resource="jbpm.hibernate.cfg.xml" />     
+    </hibernate-configuration>
+
+    <object class="org.jbpm.pvm.internal.id.DatabaseDbidGenerator" init="eager">
+      <field name="commandService"><ref object="newTxRequiredCommandService" /></field>
+      <invoke method="initialize" />
+    </object>
+
+    <object class="org.jbpm.pvm.internal.id.DatabaseIdComposer" init="eager" />
+
+    <script-manager default-expression-language="juel"
+                    default-script-language="juel">
+        <script-language name="juel" factory="org.jbpm.pvm.internal.script.JuelScriptEngineFactory" />
+    </script-manager>
+    
+    <authentication />
+
+    <job-executor auto-start="false" />
+
+    <types resource="jbpm.variable.types.xml" />
+
+    <business-calendar>
+      <monday    hours="9:00-12:00 and 12:30-17:00"/>
+      <tuesday   hours="9:00-12:00 and 12:30-17:00"/>
+      <wednesday hours="9:00-12:00 and 12:30-17:00"/>
+      <thursday  hours="9:00-12:00 and 12:30-17:00"/>
+      <friday    hours="9:00-12:00 and 12:30-17:00"/>
+      <holiday period="01/07/2008 - 31/08/2008"/>
+    </business-calendar>
+  
+  </process-engine-context>
+
+  <transaction-context>
+    <repository-session />
+    <db-session />
+    <message-session />
+    <timer-session />
+    <history-session />
+    <hibernate-session />
+    <transaction /> 
+    <identity-session />
+  </transaction-context>
+
+</jbpm-configuration>

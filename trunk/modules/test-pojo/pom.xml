@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--                                                                        -->
+<!--  Distributable under LGPL license.                                     -->
+<!--  See terms of license at http://www.gnu.org.                           -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+
+<!-- $Id: pom.xml 6237 2010-03-28 00:04:36Z alex.guizar@jboss.com $ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <name>jBPM 4 - Test POJO</name>
+  <groupId>org.jbpm.jbpm4</groupId>
+  <artifactId>jbpm-test-pojo</artifactId>
+  <packaging>jar</packaging>
+
+  <!-- Parent -->
+  <parent>
+    <groupId>org.jbpm.jbpm4</groupId>
+    <artifactId>jbpm</artifactId>
+    <version>4.4-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <!-- Dependencies -->
+  <dependencies>
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+    </dependency>
+
+    <!-- TODO remove this once process factory api is complete -->
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-pvm</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+  </dependencies>
+  
+  <!-- Plugins -->
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <testSourceDirectory>src/main/java</testSourceDirectory>
+          <classesDirectory>target/classes</classesDirectory>
+          <testClassesDirectory>target/classes</testClassesDirectory>        
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <profiles>
+    <!-- skip tests if this is an integration test run 
+    (only examples and test-db are part of the integration test runs) -->
+    <profile>
+      <id>skip.tests.during.database.testrun</id>
+      <activation>
+        <property>
+          <name>database</name>
+        </property>
+      </activation>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+    </profile>
+  </profiles>
+
+</project>

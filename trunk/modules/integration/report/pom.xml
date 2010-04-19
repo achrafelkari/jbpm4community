@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <name>jBPM 4 - Integration Reports</name>
+  <description>JBoss jBPM - GWT console Report Templates</description>
+
+  <groupId>org.jbpm.jbpm4</groupId>
+  <artifactId>jbpm-console-reports</artifactId>
+  <packaging>jar</packaging>
+
+  <parent>
+    <groupId>org.jbpm.jbpm4</groupId>
+    <artifactId>jbpm-integration</artifactId>
+    <version>4.4-SNAPSHOT</version>
+  </parent>
+
+  <!-- Dependencies -->
+  <dependencies>
+    
+  </dependencies>
+
+</project>

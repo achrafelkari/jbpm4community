@@ -1,0 +1,1778 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter id="bpmn2">
+  
+  <title>BPMN 2.0</title>
+  
+  <section id="whatIsBpmn">
+    
+    <title>What is BPMN 2.0?</title>
+    
+    <para>
+			The Business Process Modeling Notation (BPMN) is a standard for the
+			graphical notation of business process models. The standard is
+			maitained by the Object Management Group (OMG).
+		</para>
+		<para>	
+			Basically, the BPMN specification defines how a task must look like, which constructs can
+			be connected to each other, etc. in a meaning that cannot be
+			misinterpreted.
+		</para>
+    <para>
+	    Earlier versions of the standard (&lt;= version 1.2) are limited to the modeling
+			only, aiming at a common understanding between all stakeholders
+			involved in documenting, discussing and implementing business
+			processes. The BPMN standard has proven itself, as many modeling tools
+			on the market today use the symbols and constructs specified in the
+			BPMN standard. In fact, the current JPDL designer also uses BPMN
+			symbols.
+		</para>
+    <para>
+		  Version 2.0 of the BPMN specification, which is currently in finalization phase and is
+			scheduled to be finished soon, allows to add precise technical
+			details to the shapes and symbols available in BPMN and at the same
+			time specify what the execution semantics of BPMN 'elements' are. By
+			using an XML language to specify the executable semantics of a business
+			process, the BPMN specification has evolved into a language for
+			business processes that can be executed on any BPMN2 compliant process
+			engine - while still having the powerful graphical notation.
+    </para>
+    
+  </section>
+  
+  <section id="historyAndGodl">
+  
+    <title>History and goal</title>
+    
+    <para>
+			The jBPM BPMN2 implementation was started in close collaboration with the
+			community in augustus 2009 after releasing jBPM 4.0. 
+			Later, it was decided that the first release (ie documented/QA'd) to
+			incorporate parts of the BPMN2 spec would be jBPM 4.3.
+		</para>
+    <para>
+			The goal of this effort is to build a <emphasis role="bold">native BPMN2 runtime engine </emphasis>
+			(or better said implementing 'BPMN2 exectuable') leveraging the Process
+			Virtual Machine (PVM).
+			Do note that the primary focus of this release is native executability,
+			not the graphical notation - but we recognize its importance for
+			further releases. 
+    </para>
+    
+    <para>
+      <emphasis role="bold">
+      Users who are already familiar with jBPM will find that
+      <itemizedlist>
+        <listitem>the configuration mechanism remains unchanged</listitem>
+        <listitem>the API is the same or very similar to the existing one</listitem>
+        <listitem>testing BPMN2 process still can be done with regular Java testing frameworks</listitem>
+        <listitem>the database schema remains unchanged</listitem>
+      </itemizedlist>
+      </emphasis>
+      So in general, our main goal is to keep everything that was good about jBPM, and enhance
+      it with a standards based process language.
+    </para>
+  
+  </section>
+  
+  <section id="jpdlVsBpmn2" >
+  
+    <title>JPDL vs BPMN 2.0</title>
+		
+		<para>
+			One of the first questions that might, rightfully, come to mind is why
+			BPMN2 is being implemented while there is jPDL. Both are languages
+			have as goal to define executable business processes. From a high-level
+			technical point of view, both languages are equivalent. The main
+			distinction is that BPMN2 is as vendor-neutral as you can have with
+			standards, while JPDL has always been tied to jBPM (although some might
+			argue that a vendor lock-in for an open-source process language such as
+			JPDL is less a lock-in than with closed-source products).
+		</para>
+    <para>
+			Within jBPM, both language implementations are built on top of the jBPM
+			Process Virtual Machine (PVM). This means that both languages share a
+			common foundation (persistence, transactions, configuration, but also
+			basic process constructs, etc.). As a result, optimizations to the core
+			of jBPM often benefits both languages. Leveraging the PVM, the BPMN2
+			implementation is built upon a foundation that has already proven
+			itself in the past and has a large end-user community.
+		</para>
+    <para>
+		  When evaluating the languages and comparing them which each other however,
+			following points must be taken into consideration:
+		  <itemizedlist>
+        <listitem>BPMN2 is based on a standard accepted by the BPM industry.</listitem>
+        <listitem>BPMN2 is implementation-unaware. The downside of this is that
+		      integrating with Java technology will always be easier with JPDL. So,
+		      from a Java developer's perspective JPDL is simpler and feels more
+		      natural (some of the 'layers' of BPEL/WSDL are in BPMN as well).</listitem>
+        <listitem>A focus of JPDL is XML readability. BPMN2 processes will still be
+		      readable to a certain level, but tooling or a more detailed knowledge
+		      of the spec will definitely be required to achieve the same level of
+		      productivity.</listitem>
+        <listitem>Java developers who are super-fast in JPDL since they know the JPDL
+		      language by heart, will find the use of tools sometimes bothersome and
+		      the language itself overly complicated.</listitem>
+        <listitem>BPMN2 contains a large set of constructs described in the
+		      specification. However, the "binding" of interfaces to code is left
+		      open in the spec (comparable with XPDL), even if WDSL is often considered the
+		      default. This means that a process portability can be lost when porting
+		      the process to an engine that doesn't support the same binding
+		      mechanism. Calling Java classes for example is already going to be such
+		      a jBPM specific binding.</listitem>
+      </itemizedlist>
+		</para>
+    <para>
+			It is natural to the political level of BPMN2 specification process to go
+			rather slow. JPDL on the other hand will be able to incorporate changes
+			faster, integrate with new technologies when they are released and
+			evolve generally at a quicker pace compared to BPMN2.
+		
+			Of course, since both are built on top of the same PVM, it is only
+			logical that additions to JPDL can be ported to BPMN2 as an extension
+			without much hassle.
+	</para>
+  
+  </section>
+  
+  <section id="Bpmn2Execution" >
+  
+    <title>Bpmn 2.0 execution</title>
+
+    <para>
+			The BPMN2 specification defines a very rich language for modeling and
+			executing business processes. However, this also means that it is quite
+			hard to get an overview of what's possible with BPMN2. To simplify this
+			situation, we've decided to categorize the BPMN2 constructs into three
+			'levels'. The separation itself is primarily based on the book 'BPMN
+			method and Style' by Bruce Silver (<ulink url="http://www.bpmnstyle.com/">http://www.bpmnstyle.com/</ulink>), the
+			training material of Dr. Jim Arlow
+			(<ulink url="http://www.slideshare.net/jimarlow/introductiontobpmn005">http://www.slideshare.net/jimarlow/introductiontobpmn005</ulink>), 
+			'How much BPMN do you need'
+			(<ulink url="http://www.bpm-research.com/2008/03/03/how-much-bpmn-do-you-need/">http://www.bpm-research.com/2008/03/03/how-much-bpmn-do-you-need/</ulink>),
+			and also our own experience.
+		</para>
+		<para>
+			We define three categories of BPMN2 constructs:
+		  <itemizedlist>
+		    <listitem><emphasis role="bold">Basic</emphasis>: constructs in this category are 
+		      straight-forward and easy to grasp. Constructs in this category can be used to 
+		      model simple business processes.</listitem>
+		    <listitem><emphasis role="bold">Advanced</emphasis>: contains more powerful or 
+		      expressive constructs, but this comes with higher modeling and execution semantics 
+		      learning curve. The majority of business processes are implementable with constructs from this
+		      and the previous category.</listitem>
+		    <listitem><emphasis role="bold">Complex</emphasis>: constructs in this category are 
+		      used in specific and/or rare cases, or their semantics are difficult to understand.</listitem>
+		  </itemizedlist>
+    </para>
+    
+  </section>  
+    
+  <section id="bpmn2Config">
+    
+    <title>Configuration</title>
+      
+    <para>
+      Enabling BPMN 2.0 in your application is extremely simple: just add the following line
+      to the <emphasis role="bold">jbpm.cfg.xml</emphasis> file.
+      <programlisting>
+&lt;import resource=&quot;jbpm.bpmn.cfg.xml&quot; /&gt;        
+      </programlisting>
+      This import will enable BPMN 2.0 process deployment by installing a BPMN 2.0 deployer
+      in the Process Engine. Do note that a Process Engine can cope with both JPDL and BPMN 2.0
+      processes. This means that in your application, some processes can be JPDL and others
+      can be BPMN 2.0.
+    </para>
+      
+    <para>
+      <emphasis role="bold">Process definitions are distinguished by the process engine
+      based on the extension of the definition file. For BPMN 2.0, use the *.bpmn.xml extension
+      (where JPDL is having the *.jpdl.xml extension).</emphasis>
+    </para>
+    
+  </section>
+    
+  <section id="bpmn2Examples">
+    
+    <title>Examples</title>
+    
+    <para>
+      The examples that are shipped with the distribution also contain examples for every 
+      construct that is discussed in the following sections. Look for example BPMN 2.0
+      processes and test cases in the <emphasis role="bold">org.jbpm.examples.bpmn.* package
+      </emphasis>.
+    </para>
+      
+    <para>
+      See the userguide, chapter 2 (Installation), for a walktough on how to import the examples.
+      Look for the section <emphasis role="bold">'Importing the Examples'</emphasis>.
+    </para>
+    
+  </section>
+  
+  <section id="definitionsAndProcess">
+  
+     <title>Process root element</title>
+     
+     <para>
+      The root of an BPMN 2.0 XML process is the <emphasis role="bold">definitions</emphasis> 
+      elements. As the name states, the subelements will contain the actual definitions of
+      the business process(es). Every <emphasis role="bold">process</emphasis> child
+      will be able to have an <emphasis role="bold">id (required)</emphasis> and
+      <emphasis role="bold">name (optional)</emphasis>. An empty business process in BPMN 2.0
+      looks as follows. Also note that it is handy to have the BPMN2.xsd on the classpath, to
+      enable XML completion.
+      <programlisting>
+&lt;definitions id=&quot;myProcesses&quot;
+  xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+  xsi:schemaLocation=&quot;http://schema.omg.org/spec/BPMN/2.0 BPMN20.xsd&quot;
+  xmlns=&quot;http://schema.omg.org/spec/BPMN/2.0&quot; 
+  typeLanguage=&quot;http://www.w3.org/2001/XMLSchema&quot;
+  expressionLanguage=&quot;http://www.w3.org/1999/XPath&quot; 
+  targetNamespace=&quot;http://jbpm.org/example/bpmn2&quot;&gt;
+
+  &lt;process id=&quot;My business processs&quot; name=&quot;myBusinessProcess&quot;&gt; 
+  
+      ...
+      
+  &lt;/process&gt;
+&lt;definitions&gt;     
+      </programlisting>
+      If a name is defined for the process element, it is be used as <emphasis role="bold">key</emphasis>
+      for that process (ie. starting a process can be done by calling executionService.startProcessInstanceByKey("myBusinessProcess").
+      If no name is defined, the id will be used as key. So having only an id defined, will allow
+      to start a process instance using that id. So basically, name and key are of equivalent 
+      in usage, for example to search process definitions. Note that for a key the same rules apply as with
+      JPDL: whitespace and non alpha-numeric characters are replaced by an underscore.
+     </para>
+  
+  </section>
+    
+  <section id="basicConstructs">
+    
+    <title>Basic constructs</title>
+      
+    <section id="basicConstructsEvents">
+      
+      <title>Events</title>
+        
+      <para>
+        Together with activitites and gateways, events are used in practically every business process.
+        Events allow process modelers to describe business processes in a very natural way, such as
+        <emphasis>'This process starts when I receive a customer order'</emphasis>,
+        <emphasis>'If the task is not finished in 2 days, terminate the process'</emphasis>
+        or <emphasis>'When I receive a cancel e-mail when the process is running,
+        handle the e-mail using this sub-process'</emphasis>. Notice that typical businesses
+        always work in a very event-driven way. People are not hard-coded sequential creatures,
+        but they tend to react on things that happen in their environment (ie. events).
+        In the BPMN specification, a great number of event types are described, to cover the
+        range of possible things that might occur in context of a business.  
+      </para>
+    
+    </section>  
+        
+    <section id="noneStartEvent">
+        
+      <title>Event: None start event</title>
+          
+      <para>
+        A start event indicates the start of process (or a subprocess). Graphically, it is visualized
+        as a circle with (possibly) a small icon inside. The icon specifies the actual type of event 
+        that will trigger the process instance creation.
+      </para>
+           
+      <para>
+        The 'none start event' is drawn as a circle without an icon inside, which means that the
+        trigger is unknown or unspecified. The start activity of JPDL basically has the same
+        semantics. Process instances whose process definition has a 'none start event' are 
+        created using the typical API calls on the <emphasis role="bold">executionService</emphasis>.
+       </para>
+          
+       <para>
+         A none start event is defined as follows. An id is required, a name is optional.
+         <programlisting>
+&lt;startEvent id=&quot;start&quot;  name=&quot;myStart&quot; /&gt;            
+          </programlisting>
+       </para>
+        
+    </section>
+
+    <section id="noneEndEvent">
+
+		  <title>Event: None end event</title>
+
+		  <para>
+			  An end event indicates the end of an execution path in a process
+			  instance. Graphically,
+			  it is visualized as a circle with a thick border with (possibly) a
+			  small icon inside.
+			  The icon specifies the type of signal that is thrown when the end is
+			  reached.
+      </para>
+           
+      <para>
+        The 'none end event' is drawn as a circle with thick border with no icon inside,
+        which means that no signal is thrown when the execution reaches the event.
+        The end activity in JPDL has the same semantics as the none end event.
+      </para>
+           
+      <para>
+        A none end event is defined as follows. An id is required, a name is optional.
+        <programlisting>
+&lt;endEvent id=&quot;end&quot; name=&quot;myEnd&quot; /&gt;            
+        </programlisting>
+       </para>
+           
+       <para>
+          The following example shows a process with only a none start and end event:
+          <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.none.start.end.event.png"/></imageobject></mediaobject>
+       </para>
+           
+       <para>
+          The corresponding executable XML for this process looks like this (omitting the 
+          <emphasis>definitions</emphasis> root element for clarity)
+          <programlisting>
+  &lt;process id=&quot;noneStartEndEvent&quot; name=&quot;BPMN2 Example none start and end event&quot;&gt;
+
+    <emphasis role="bold">&lt;startEvent id=&quot;start&quot; /&gt;</emphasis>
+
+    &lt;sequenceFlow id=&quot;flow1&quot; name=&quot;fromStartToEnd&quot;
+      sourceRef=&quot;start&quot; targetRef=&quot;end&quot; /&gt;
+
+    <emphasis role="bold">&lt;endEvent id=&quot;end&quot; name=&quot;End&quot; /&gt;</emphasis>
+
+  &lt;/process&gt;            
+          </programlisting>
+       </para>
+           
+       <para>
+          A process instances can now be created by calling the 
+          <emphasis role="bold">startProcessInstanceXXX</emphasis> operations.
+          <programlisting>
+ProcessInstance processInstance = executionService.startProcessInstanceByKey(&quot;noneStartEndEvent&quot;);
+          </programlisting>
+        </para>
+        
+    </section>
+        
+    <section id="terminateEndEvent">
+        
+      <title>Event: Terminate end event</title>
+        
+        <para>
+          The difference between a 'terminate' and a <link linkend="noneEndEvent">'none' end event</link> 
+          lies in the fact how a path of execution is treated (or a 'token' in BPMN 2.0 terminology).
+          The 'terminate' end event will end the complete process instance, whereas the 'none' 
+          end event will only end the current path of execution. They both don't throw anything
+          when the end event is reached.
+        </para>
+          
+        <para>
+          A terminate end event is defined as follows. An id is required, a name is optional.
+          <programlisting>
+&lt;endEvent id=&quot;terminateEnd&quot; name=&quot;myTerminateEnd&quot;&gt;
+  <emphasis role="bold">&lt;terminateEventDefinition/&gt;</emphasis>
+&lt;/endEvent&gt;            
+          </programlisting>
+        </para>
+          
+        <para>
+          A terminate end event is depicted as an end event (circle with thick border), 
+          with a full circle as icon inside. In the following example, completing the 'task1'
+          will end the process instance, while completing the 'task2' will only end the path
+          of execution which enters the end event, leaving the task1 open.
+          <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.terminate.end.event.example.png"/></imageobject></mediaobject>
+          See the examples shipped with the jBPM distribution for the unit test and XML counterpart
+          of this business process.
+        </para>
+        
+    </section>
+    
+    <section id="sequenceFlow">
+    
+      <title>Sequence Flow</title>
+      
+      <para>
+        A sequence flow is the connection between events, activities and gateways shown as a
+        solid line with an arrow in a BPMN diagram (JPDL equivalent is the transition).
+        Each sequence flow has exactly one <emphasis role="bold">source</emphasis> and exactly one 
+        <emphasis role="bold">target</emphasis> reference, that contains the <emphasis role="bold">id</emphasis> 
+        of an activity, event or gateway.
+        <programlisting>
+&lt;sequenceFlow id=&quot;myFlow&quot; name=&quot;My Flow&quot; 
+        sourceRef=&quot;sourceId&quot; targetRef=&quot;targetId&quot; /&gt;
+        </programlisting>
+      </para>
+      
+      <para>
+        An important difference with JPDL is the behaviour of multiple outgoing sequence flows.
+        In JPDL, only one transition is selected as outgoing transition, unless the activity
+        is a fork (or a custom activity with fork behaviour). However, in BPMN, the standard behaviour
+        of multiple outgoing sequence flow is to split the incoming token ('execution' in jBPM
+        terminology) into a collection of tokens, one for each outgoing sequence flow. In the following
+        situation, after completing the first task, there will be three tasks activated instead of one.
+       <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.sequence.flow.png"/></imageobject></mediaobject>
+       To avoid that a certain sequence flow is taken, one has to add a condition to the sequence flow.
+       At runtime, only when the condition evaluates to true, that sequence flow will
+       be taken.
+      </para>
+      
+      <para>
+        To put a condition on a sequence flow, add a <emphasis role="bold">conditionExpression
+        </emphasis> element to the sequence flow. Conditions are to be put between <emphasis role="bold">
+        ${}</emphasis>.
+        <programlisting>
+&lt;sequenceFlow id=....&gt;
+  <emphasis role="bold">&lt;conditionExpression xsi:type=&quot;tFormalExpression&quot;&gt;${amount &gt;= 500}&lt;/conditionExpression&gt;</emphasis>   
+&lt;/sequenceFlow&gt;    
+        </programlisting>
+        Note that is currently is necessary to add the <emphasis role="bold">
+        xsi:type=&quot;tFormalExpression&quot;</emphasis> to the <emphasis role="bold">
+        conditionExpression</emphasis>. A conditional sequence flow is visualized as a mini diamond
+        shape at the beginning of the sequence flow. Keep in mind that conditions always can be defined 
+        on sequence flow, but some constructs will not interprete them (eg. parallel gateway).
+      </para>
+      
+      <para>
+        Activities (such as the user task) and gateways (such as  the exclusive gateway) can have a
+        default sequence flow. This default sequence flow is taken only when all the other outgoing
+        sequence flow from an activity or gateway have a condition that evaluate to false. A
+        default sequence flow is graphically visualized as a sequence flow with a 'slash marker'.
+        <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.default.sequence.flow.png"/></imageobject></mediaobject>
+        The default sequence flow is specified by filling in the <emphasis role="bold">'default'
+        attribute </emphasis> of the activity or gateway.
+      </para>
+      
+      <para>
+         Also note that an expression on a default sequence flow is ignored.
+      </para>
+    
+    </section>
+    
+    <section id="gateway">
+    
+      <title>Gateways</title>
+    
+      <para>
+        A gateway in BPMN is used to control the flow through the process. More specifically, 
+        when a token (the BPMN 2.0 conceptual notion of an execution) arrives in a gateway, it can be merged 
+        or split depending on the gateway type.
+      </para>
+      
+      <para>
+        Gateways are depicted as a diamond shape, with an icon inside specifying the type 
+        (exclusive, inclusive, etc.).
+      </para>
+      
+      <para>
+        On every gateway type, the attribute <emphasis role="bold">gatewayDirection</emphasis>
+        can be set. following values are possible:
+        <itemizedlist>
+          <listitem>
+            <emphasis role="bold">unspecificed (default)</emphasis>: the gateway may have multiple
+            incoming and multiple sequence flow.
+          </listitem>
+          <listitem>
+            <emphasis role="bold">mixed</emphasis>: the gateway must have multiple incoming and
+            multiple outgoing sequence flow.
+          </listitem>
+          <listitem>
+            <emphasis role="bold">converging</emphasis>: the gateway must have multiple incoming
+            sequence flow, but can have only one outgoing sequence flow.
+          </listitem>
+          <listitem>
+            <emphasis role="bold">diverging</emphasis>: the gateway must have only one incoming
+            sequence flow and multiple outgoing sequence flow.
+          </listitem>
+        </itemizedlist>
+        Take for example the following example: a parallel gateway that has as gatewayDirection
+        'converging', will have a join behaviour.
+        <programlisting>
+&lt;parallelGateway id=&quot;myJoin&quot; name=&quot;My synchronizing join&quot; gatewayDirection=&quot;converging&quot; />        
+        </programlisting>
+        <emphasis role="bold">Note</emphasis>: the 'gatewayDirection' attribute is optional according 
+        to the specification. This means that we cannot rely on this attribute at runtime to
+        know which type of behaviour a certain gateway has (for example for a parallel gateway if
+        we have joining of forking behaviour). However, the 'gatewayDirection' attribute is used at parsing 
+        time as a constraint check for the incoming/outgoing sequence flow. So using this 
+        attribute will lower the chance on errors when referencing sequence flow, but is not
+        required.
+      </para>
+    
+    </section>
+    
+    <section id="exclusiveGateway">
+    
+      <title>Gateway: Exclusive Gateway</title>
+      
+      <para>
+        An exclusive gateway represents an <emphasis role="bold">exclusive decision</emphasis>
+        in the process. Exactly one outgoing sequence flow will be taken, depending on the conditions
+        defined on the sequence flow.
+      </para>
+      
+      <para>
+        The corresponding JPDL construct with the same semantics is the 
+        <emphasis role="bold">decision</emphasis> activity. The full technical name of the 
+        exclusive gateway is the <emphasis role="bold">'exclusive data-based gateway'</emphasis>,
+        but it is also often called the <emphasis role="bold">XOR Gateway</emphasis>.
+        The XOR gateway is depicted as a diamond with a 'X' icon inside. An empty diamond
+        without a gateway also signifies an exclusive gateway.
+      </para>
+      
+      <para>
+        The following diagram shows the usage of an exclusive gateway: depending on the value of the
+        amount variable, one of the three outgoing sequence flow out of the exclusive gateway
+        is chosen.
+        <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.exclusive.gateway.png"/></imageobject></mediaobject>
+        The corresponding executable XML of this process looks as follows.
+        Note that the conditions are defined on the sequence flow. The exclusive gateway will select
+        the single sequence flow for which its condition evaluates to true. If multiple conditions
+        evaluate to true, the first one encountered will be taken (a log message will indicate
+        this situation).
+        <programlisting>
+  &lt;process id=&quot;exclusiveGateway&quot; name=&quot;BPMN2 Example exclusive gateway&quot;&gt;
+
+    &lt;startEvent id=&quot;start&quot; /&gt;
+
+   &lt;sequenceFlow id=&quot;flow1&quot; name=&quot;fromStartToExclusiveGateway&quot;
+      sourceRef=&quot;start&quot; targetRef=&quot;decideBasedOnAmountGateway&quot; /&gt;
+      
+   <emphasis role="bold">&lt;exclusiveGateway id=&quot;decideBasedOnAmountGateway&quot; name=&quot;decideBasedOnAmount&quot; /&gt;</emphasis>
+   
+   &lt;sequenceFlow id=&quot;flow2&quot; name=&quot;fromGatewayToEndNotEnough&quot;
+      sourceRef=&quot;decideBasedOnAmountGateway&quot; targetRef=&quot;endNotEnough&quot;&gt;
+      <emphasis role="bold">&lt;conditionExpression xsi:type=&quot;tFormalExpression&quot;&gt;
+        ${amount &lt; 100}
+      &lt;/conditionExpression&gt;</emphasis>
+   &lt;/sequenceFlow&gt;
+      
+   &lt;sequenceFlow id=&quot;flow3&quot; name=&quot;fromGatewayToEnEnough&quot;
+      sourceRef=&quot;decideBasedOnAmountGateway&quot; targetRef=&quot;endEnough&quot;&gt;
+      <emphasis role="bold">&lt;conditionExpression xsi:type=&quot;tFormalExpression&quot;&gt;
+        ${amount &lt;= 500 &amp;&amp; amount &gt;= 100}
+        &lt;/conditionExpression&gt;</emphasis>
+   &lt;/sequenceFlow&gt;
+      
+   &lt;sequenceFlow id=&quot;flow4&quot; name=&quot;fromGatewayToMoreThanEnough&quot;
+      sourceRef=&quot;decideBasedOnAmountGateway&quot; targetRef=&quot;endMoreThanEnough&quot;&gt;
+      <emphasis role="bold">&lt;conditionExpression xsi:type=&quot;tFormalExpression&quot;&gt;
+        ${amount &gt; 500}
+      &lt;/conditionExpression&gt;</emphasis>
+   &lt;/sequenceFlow&gt;   
+
+   &lt;endEvent id=&quot;endNotEnough&quot; name=&quot;not enough&quot; /&gt;
+   
+   &lt;endEvent id=&quot;endEnough&quot; name=&quot;enough&quot; /&gt;
+   
+   &lt;endEvent id=&quot;endMoreThanEnough&quot; name=&quot;more than enough&quot; /&gt;
+
+  &lt;/process&gt;        
+        </programlisting>
+        This process needs a variable such that the expression can be evaluated at runtime.
+        Variables can be provided when starting the process instance (similar to JPDL):
+        <programlisting>
+Map&lt;String, Object&gt; vars = new HashMap&lt;String, Object&gt;();
+vars.put(&quot;amount&quot;, amount);
+ProcessInstance processInstance = executionService.startProcessInstanceByKey(&quot;exclusiveGateway&quot;, vars);        
+        </programlisting>
+      </para>
+      
+      <para>
+        The exclusive gateway requires that all outgoing sequence flow have conditions defined
+        on them. An exception to this rule is the default sequence flow.
+        Use the <emphasis role="bold">default attribute</emphasis> to reference an existing
+        <emphasis role="bold">id of a sequence flow</emphasis>. This sequence flow will be taken
+        when the conditions on the other outgoing sequence flow all evaluate to false.
+        <programlisting>
+&lt;exclusiveGateway id=&quot;decision&quot; name=&quot;decideBasedOnAmountAndBankType&quot; <emphasis role="bold">default=&quot;myFlow&quot;</emphasis>/&gt;
+   
+&lt;sequenceFlow id=&quot;myFlow&quot; name=&quot;fromGatewayToStandard&quot;
+    sourceRef=&quot;decision&quot; targetRef=&quot;standard&quot;&gt;
+&lt;/sequenceFlow&gt;        
+        </programlisting>
+        An exclusive gateway can have both convering and diverging functionality. The logic is 
+        easy to grasp: for every execution that arrives at the gateway, one outgoing sequence
+        flow is selected to continue the flow.  The following diagram is completely legal in
+        BPMN 2.0 (omitting names and conditions for clarity). 
+        <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.exclusive.gateway.splitting.and.merging.png"/></imageobject></mediaobject>
+      </para>
+    
+    </section>
+    
+    <section id="parallelGateway">
+    
+      <title>Gateway: Parallel Gateway</title>
+      
+      <para>
+        A parallel gateway is used to split or synchronize the respectively incoming or outgoing
+        sequence flow.
+        <itemizedlist>
+          <listitem>
+            A parallel gateway with one incoming sequence flow and more than one outgoing sequence
+            flow is called a <emphasis role="bold">'parallel split</emphasis> or an 
+            <emphasis role="bold">'AND-split'</emphasis>. All outgoing sequence flow are going to
+            be taken in parallel. <emphasis role="bold">Note: as defined by the specification,
+            conditions on the outgoing sequence flow are ignored.</emphasis>
+          </listitem>
+          <listitem>
+            A parallel gateway with multiple incoming sequence flow and one outgoing sequence flow
+            is called a <emphasis role="bold">'parallel join'</emphasis> or an 
+            <emphasis role="bold">AND-join</emphasis>. All incoming sequence flow need to arrive
+            in this parallel joing before the outgoing sequence flow is taken.
+          </listitem>
+        </itemizedlist>
+        A parallel gateway is defined as follows:
+        <programlisting>
+&lt;parallelGateway id=&quot;myParallelGateway&quot; name=&quot;My Parallel Gateway&quot; />        
+        </programlisting>
+        Note that the 'gatewayDirection' attribute can be used to catch modeling errors at parsing 
+        time (see above).
+      </para>
+      
+      <para>
+        The following diagram shows how a parallel gateway can be used. After process start,
+        both the 'prepare shipment' and 'bill customer' user tasks will be active.
+        The parallel gateway is depicted as a diamond shape with a plus icon inside, both for the 
+        splitting and joining behaviour.
+        <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.parallel.gateway.png"/></imageobject></mediaobject>
+        The XML counterpart of this diagram looks as follows:
+        <programlisting>
+  &lt;process id=&quot;parallelGateway&quot; name=&quot;BPMN2 example parallel gatewar&quot;&gt;
+  
+    &lt;startEvent id=&quot;Start&quot; /&gt;
+
+    &lt;sequenceFlow id=&quot;flow1&quot; name=&quot;fromStartToSplit&quot;
+      sourceRef=&quot;Start&quot;
+      targetRef=&quot;parallelGatewaySplit&quot;  /&gt;
+
+    <emphasis role="bold">&lt;parallelGateway id=&quot;parallelGatewaySplit&quot; name=&quot;Split&quot; 
+      gatewayDirection=&quot;diverging&quot;/&gt;</emphasis>
+
+    &lt;sequenceFlow id=&quot;flow2a&quot; name=&quot;Leg 1&quot;
+      sourceRef=&quot;parallelGatewaySplit&quot;
+      targetRef=&quot;prepareShipment&quot; /&gt;
+      
+    &lt;userTask id=&quot;prepareShipment&quot; name=&quot;Prepare shipment&quot; 
+      implementation=&quot;other&quot; /&gt;
+    
+    &lt;sequenceFlow id=&quot;flow2b&quot; name=&quot;fromPrepareShipmentToJoin&quot;
+      sourceRef=&quot;prepareShipment&quot;
+      targetRef=&quot;parallelGatewayJoin&quot;  /&gt;
+      
+    &lt;sequenceFlow id=&quot;flow3a&quot; name=&quot;Leg 2&quot; 
+      sourceRef=&quot;parallelGatewaySplit&quot;
+      targetRef=&quot;billCustomer&quot; /&gt;
+      
+    &lt;userTask id=&quot;billCustomer&quot; name=&quot;Bill customer&quot; 
+      implementation=&quot;other&quot; /&gt;
+    
+    &lt;sequenceFlow id=&quot;flow3b&quot; name=&quot;fromLeg2ToJoin&quot;
+      sourceRef=&quot;billCustomer&quot;
+      targetRef=&quot;parallelGatewayJoin&quot;  /&gt;
+
+    <emphasis role="bold">&lt;parallelGateway id=&quot;parallelGatewayJoin&quot; name=&quot;Join&quot; 
+      gatewayDirection=&quot;converging&quot;/&gt;</emphasis>
+      
+    &lt;sequenceFlow id=&quot;flow4&quot; 
+      sourceRef=&quot;parallelGatewayJoin&quot;
+      targetRef=&quot;End&quot;&gt;
+    &lt;/sequenceFlow&gt;
+
+    &lt;endEvent id=&quot;End&quot; name=&quot;End&quot; /&gt;
+    
+  &lt;/process&gt;
+        </programlisting>
+        A parallel gateway (as is the case for any gateway) can have both splitting and 
+        merging behaviour. The following diagram is completely legal BPMN 2.0. After process start,
+        both task A and B will be active. When both A en B are completed, tasks C,D and E will be 
+        active.                                 
+        <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.parallel.gateway.splitting.and.merging.png"/></imageobject></mediaobject>
+      </para>
+      
+    </section>
+    
+     <section id="inclusiveGateway">
+    
+      <title>Gateway: Inclusive Gateway</title>
+      
+      <para>
+        An inclusive gateway - also called an <emphasis role="bold">OR-gateway</emphasis> - is used
+        to 'conditionally' split or merge sequence flow. It basically behaves as a parallel 
+        gateway, but it also takes in account conditions on the outgoing sequence flow (split behaviour)
+        and calculates if there are executions left that could reach the gateway (merge behaviour).
+      </para>
+      
+      <para>
+        The inclusive gateway is depicted as a typical gateway shape with a circle inside (referring to 'OR' semantics).
+        Unlike the exclusive gateway, all condition expressions are evaluated (diverging or 'split' behaviour).
+        For every expression that evaluates to true, a new child execution is created. 
+        Sequence flow without a condition will always be taken (ie. a child execution will always be
+        created in that case). 
+     </para>
+     
+     <para>
+        A converging inclusive gateway ('merge' behaviour) has a somewhat more difficult execution logic.
+        When an execution (Token in BPMN 2.0 terminology) arrives at the merging inclusive gateway, 
+        the following is checked (quoting the specification literally): 
+        
+        <programlisting>
+For each empty incoming sequence flow, there is no 
+Token in the graph anywhere upstream of this sequence flow, i.e., there is no directed path 
+(formed by Sequence Flow)  from a Token to this sequence flow unless 
+a) the path visits the inclusive gateway or 
+b) the path visits a node that has a directed path to a non-empty
+   incoming sequence flow of the inclusive gateway. &quot;
+        </programlisting>
+        
+        In more simple words: when an execution arrives at the gateway, all active execution are
+        checked if they can reach the inclusive gateway, by only taking in account the sequence flow
+        (note: conditions are not evaluated!). When the inclusive gateway is used, it is usally
+        used in a pair of splitting/merging inclusive gateways. In those cases, the execution
+        behaviour is easy enough to grasph by just looking at the model. 
+        
+     </para>
+     
+     <para>   
+        Of course, it is not hard to imagine situations where the executions are split and merged 
+        in complex combinations using a variety of constructs including the inclusive gateway.
+        In those cases, it could very well be that the actual execution behaviour might not be what
+        the modelers' expects. So be careful when using the inclusive gateway and keep in mind
+        that it is often the best practice to use inclusive gateways just in pairs.
+      </para>
+      
+      <para>
+        The following diagram shows how the inclusive gateway can be used.
+        (example taken from &quot;BPMN method and style&quot; by Bruce Silver)
+        <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.inclusive.gateway.png"/></imageobject></mediaobject>
+        We can distinguish following cases:
+        <itemizedlist>
+           <listitem>
+             <emphasis role="bold">Cash more than 10000 and not a foreign bank: </emphasis>Only the
+             &quot;Large deposit&quot; task will be active.
+           </listitem>
+           <listitem>
+             <emphasis role="bold">Cash more than 10000 and a foreign bank: </emphasis> Both the 
+             &quot;Large deposit&quot; and &quot;Foreign deposit&quot; task will be active.
+           </listitem>
+           <listitem>
+             <emphasis role="bold">Cash lower than 10000 and a foreign bank: </emphasis> Only the 
+             &quot;Foreign deposit&quot; task will be active.
+           </listitem>
+           <listitem>
+             <emphasis role="bold">Cash lower than 10000 and not a foreign bank: </emphasis> In this 
+             case, both expressions evaluate to false. The default sequence flow will now be chosen.
+             In this example, this means that the &quot;Standard deposit&quot; task is active.
+           </listitem>
+        </itemizedlist>
+        No matter how many tasks are active after going through the inclusive gateway, the converging
+        inclusive gateway on the right will wait until all outgoing sequence flow of the inclusive
+        gateway on the left have reached the merging gateway (sometimes only one, sometimes two). Take a look at 
+        <emphasis role="bold">org.jbpm.examples.bpmn.gateway.inclusive.InclusiveGatewayTest</emphasis> 
+        to see how this example reflects in a unit test.
+      </para>
+      
+      <para>
+        The XML version of the example above looks as follows:
+        <programlisting>
+&lt;process id=&quot;inclusiveGateway&quot; name=&quot;BPMN2 Example inclusive gateway&quot;&gt;
+
+    &lt;startEvent id=&quot;start&quot; /&gt;
+
+   &lt;sequenceFlow id=&quot;flow1&quot; sourceRef=&quot;start&quot; targetRef=&quot;inclusiveGatewaySplit&quot; /&gt;
+   
+   <emphasis role="bold">&lt;inclusiveGateway id=&quot;inclusiveGatewaySplit&quot; default=&quot;flow3&quot;/&gt;</emphasis>
+   
+   &lt;sequenceFlow id=&quot;flow2&quot; sourceRef=<emphasis role="bold">&quot;inclusiveGatewaySplit&quot;</emphasis> targetRef=&quot;largeDeposit&quot;&gt;
+      &lt;conditionExpression xsi:type=&quot;tFormalExpression&quot;&gt;${cash &gt; 10000}&lt;/conditionExpression&gt;
+   &lt;/sequenceFlow&gt;
+      
+   &lt;sequenceFlow id=&quot;flow3&quot; sourceRef=<emphasis role="bold">&quot;inclusiveGatewaySplit&quot;</emphasis> targetRef=&quot;standardDeposit&quot; /&gt;
+      
+   &lt;sequenceFlow id=&quot;flow4&quot; sourceRef=<emphasis role="bold">&quot;inclusiveGatewaySplit&quot;</emphasis> targetRef=&quot;foreignDeposit&quot;&gt;
+      &lt;conditionExpression xsi:type=&quot;tFormalExpression&quot;&gt;${bank == 'foreign'}&lt;/conditionExpression&gt;
+   &lt;/sequenceFlow&gt;   
+   
+   &lt;userTask id=&quot;largeDeposit&quot; name=&quot;Large deposit&quot; /&gt;
+   
+   &lt;sequenceFlow id=&quot;flow5&quot; sourceRef=&quot;largeDeposit&quot; targetRef=<emphasis role="bold">&quot;inclusiveGatewayMerge&quot;</emphasis> /&gt;
+   
+   &lt;userTask id=&quot;standardDeposit&quot; name=&quot;Standard deposit&quot; /&gt;
+   
+   &lt;sequenceFlow id=&quot;flow6&quot; sourceRef=&quot;standardDeposit&quot; targetRef=<emphasis role="bold">&quot;inclusiveGatewayMerge&quot;</emphasis> /&gt;
+   
+   &lt;userTask id=&quot;foreignDeposit&quot; name=&quot;Foreign deposit&quot; /&gt;
+   
+   &lt;sequenceFlow id=&quot;flow7&quot; sourceRef=&quot;foreignDeposit&quot; targetRef=<emphasis role="bold">&quot;inclusiveGatewayMerge&quot;</emphasis> /&gt;
+   
+   <emphasis role="bold">&lt;inclusiveGateway id=&quot;inclusiveGatewayMerge&quot; /&gt;</emphasis>
+   
+    &lt;sequenceFlow id=&quot;flow8&quot; sourceRef=&quot;inclusiveGatewayMerge&quot; targetRef=&quot;theEnd&quot; /&gt;
+
+   &lt;endEvent id=&quot;theEnd&quot; /&gt;
+
+&lt;/process&gt;
+        </programlisting>
+      </para>
+      
+      <para>
+        As with any gateway type, the inclusive gateway type can have both merging and splitting
+        behaviour. In that case, the inclusive gateway will first wait until all executions
+        have arrived, before splitting again for every sequence flow that has a condition
+        that evauluates to true (or doesn't have a condition).
+         <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.inclusive.gateway.merging.and.splitting.png"/></imageobject></mediaobject>
+      </para>
+      
+    </section>  
+    
+    <section id="task">
+
+      <title>Tasks</title>
+    
+      <para>
+        A task represents work that needs to be done by an external
+        entity, such as a human actor or an automated service.
+      </para>
+      
+      <para>
+        It's important to note that the BPMN semantics of a 'task' differ from the JPDL semantics.
+        In JPDL, the concept 'task' is always used in the context of a human actor doing some 
+        type of work. When the process engine encounters a task in JPDL, it will create a task in some human
+        actor's task list and it will behave as a wait state. In BPMN 2.0 however, there are several
+        task types, some indicating a wait state (eg. the <emphasis role="bold">User Task</emphasis>
+        and some indicating an automatic activity (eg. the <emphasis role="bold">Service Task</emphasis>).
+        So take good care not to confuse the meaning of the task concept when switching languages.
+      </para>
+      
+      <para>
+        Tasks are depicted by a rounded rectangle, typically containing a text inside. The type
+        of the task (user task, service task, script task, etc.) is shown as a little icon on the left top 
+        corner of the rectangle. Depending on the task type, the engine will execute different 
+        functionality.
+      </para>
+    
+    </section>
+    
+    <section id="userTask">
+    
+      <title>Task: User Task</title>
+    
+      <para>
+        A <emphasis role="bold">User task</emphasis> is the typical 'human task' that is found
+        in practically every workflow or BPM software out there. When process execution reaches
+        such a user task, a new human task is created in task list for a given user.
+     </para>
+     
+      <para>   
+        The main difference with a <link linkend="manualTask">manual task</link> (which also signifies
+        work for a human actor) is that the task is known to the process engine. The engine can 
+        track the completion, assignee, time, etc which is not the case for a manual task.  
+      </para>
+      
+      <para>
+        A user task is depicted as a rounded rectangle with a small user icon in the top left corner.
+        <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.user.task.png"/></imageobject></mediaobject>
+        A user task is defined as follows in the BPMN 2.0 XML:
+        <programlisting>
+&lt;userTask id=&quot;myTask&quot; name=&quot;My task&quot; />      
+        </programlisting> 
+        According to the specification, multiple implementations are possible (Webservice, WS-humantask, etc.),
+        as stated by using the <emphasis role="bold">implementation</emphasis> attribute.
+        Currently, only the standard jBPM task mechanism is available, so there is no point (yet)
+        in defining the 'implementation' attribute.
+      </para>
+      
+      <para>
+        The BPMN 2.0 specification contains quite a few ways of assigning user tasks to user(s), 
+        group(s), role(s), etc. The current BPMN 2.0 jBPM implementation allows to assign tasks using
+        a <emphasis role="bold">resourceAssignmentExpression</emphasis>, combined
+        with the <emphasis role="bold">humanPerformer or PotentialOwner</emphasis> construct.
+        It is to be expected that this area will evolve future releases.
+      </para>
+      
+      <para>
+        A <emphasis role="bold">potentialOwner</emphasis> is used when you want to make a certain
+        user, group, role, etc. a <emphasis role="bold">candidate</emphasis> for a certain task.
+        Take the following example. Here the candidate group for the task 'My task' will be
+        the 'management' group. Also note that a resource must be defined <emphasis role="bold">
+        outside the process</emphasis>, such that the task assignment can reference the resource.
+        In fact, any activity can reference one or more resource elements.
+        Currently, only defining this resource is enough (since it is a required attribute by the spec),
+        but this will be enhanced in a later release (eg. resources can have runtime parameters).
+        <programlisting>
+&lt;resource id=&quot;manager&quot; name=&quot;manager&quot; /> 
+
+&lt;process ...&gt;
+
+...        
+        
+&lt;userTask id=&quot;myTask&quot; name=&quot;My task&quot;&gt;
+  &lt;potentialOwner resourceRef=&quot;manager&quot; jbpm:type=&quot;group&quot;&gt;
+    &lt;resourceAssignmentExpression&gt;
+      &lt;formalExpression&gt;management&lt;/formalExpression&gt;
+    &lt;/resourceAssignmentExpression&gt;
+  &lt;/potentialOwner&gt;
+&lt;/userTask&gt;        
+        </programlisting>
+        Note that we are using a specific extension here 
+        (<emphasis role="bold">jbpm:type=&quot;group&quot;</emphasis>), to define this is a group assignment.
+        If this attribute is removed, the group semantics will be used as default (which would be 
+        ok in this example).
+        Now suppose that Peter and Mary are a member of the management group (here using the default
+        identity service):
+        <programlisting>
+identityService.createGroup("management");
+    
+identityService.createUser("peter", "Peter", "Pan");
+<emphasis role="bold">identityService.createMembership("peter", "management");</emphasis>
+    
+identityService.createUser("mary", "Mary", "Littlelamb");
+<emphasis role="bold">identityService.createMembership("mary", "management");  </emphasis>      
+        </programlisting>
+        Then both peter and mary can look in their task list for this task (code snippet from the 
+        example unit test):
+        <programlisting>
+// Peter and Mary are both part of management, so they both should see the task
+List&lt;Task&gt; tasks = taskService.findGroupTasks(&quot;peter&quot;);
+assertEquals(1, tasks.size());
+<emphasis role="bold"> tasks = taskService.findGroupTasks(&quot;mary&quot;);</emphasis>
+assertEquals(1, tasks.size());
+    
+// Mary claims the task
+Task task = tasks.get(0);
+taskService.takeTask(task.getId(), &quot;mary&quot;);
+assertNull(taskService.createTaskQuery().candidate(&quot;peter&quot;).uniqueResult());
+    
+taskService.completeTask(task.getId());
+assertProcessInstanceEnded(processInstance);        
+        </programlisting>
+        When the assignment should be done to a <emphasis role="bold">candidate user</emphasis>,
+        just use the <emphasis role="bold">jbpm:type="user"</emphasis> attribute.
+        <programlisting>
+&lt;userTask id=&quot;myTask&quot; name=&quot;My User task&quot;&gt;
+  &lt;potentialOwner resourceRef=&quot;employee&quot; <emphasis role="bold">jbpm:type=&quot;user&quot;</emphasis>&gt;
+    &lt;resourceAssignmentExpression&gt;
+      &lt;formalExpression&gt;peter&lt;/formalExpression&gt;
+    &lt;/resourceAssignmentExpression&gt;
+  &lt;/potentialOwner&gt;
+&lt;/userTask&gt;        
+        </programlisting>
+        In this example, peter will be able to find the task since he's a candidate user for the task.
+        <programlisting>
+List&lt;Task&gt; tasks = taskService.createTaskQuery().candidate(&quot;peter&quot;).list();        
+        </programlisting>
+      </para>
+    </section>
+    
+    <para>
+      A <emphasis role="bold">human performer</emphasis> is used when you want to assign a task
+      directly to a certain user, group, role, etc. The way to do this looks very much
+      like that of the potential owner.
+      <programlisting>
+&lt;resource id="employee" name="employee" /&gt;      
+
+&lt;process ...&gt;
+
+...        
+         
+&lt;userTask id="myTask" name="My User task"&gt;
+  <emphasis role="bold">&lt;humanPerformer resourceRef="employee"&gt;</emphasis>
+    &lt;resourceAssignmentExpression&gt;
+      &lt;formalExpression&gt;mary&lt;/formalExpression&gt;
+    &lt;/resourceAssignmentExpression&gt;
+  &lt;/humanPerformer&gt;
+&lt;/userTask&gt;      
+      </programlisting>
+      In this example, the task will be directly assigned to Mary. She can now find the task
+      in her task list:
+      <programlisting>
+List&lt;Task&gt; tasks = taskService.findPersonalTasks(&quot;mary&quot;);       
+      </programlisting>
+      
+      
+    </para>
+    
+    <para>
+      Since the task assignment is done through the use of a 
+      <emphasis role="bold">formalExpression</emphasis>, it's also possible to define expressions
+      that are evaluated at runtime. The expressions itself need to be put inside a 
+      <emphasis role="bold">${}</emphasis>, as usual in jBPM.
+      For example, if a process variable 'user' is defined, then  it can be used inside an expression.
+      More complex expressions are of course possible.
+      <programlisting>
+&lt;userTask id="myTask" name="My User task"&gt;
+  &lt;humanPerformer resourceRef="employee"&gt;
+    &lt;resourceAssignmentExpression&gt;
+      <emphasis role="bold">&lt;formalExpression&gt;${user}&lt;/formalExpression&gt;</emphasis>
+    &lt;/resourceAssignmentExpression&gt;
+  &lt;/humanPerformer&gt;
+&lt;/userTask&gt;         
+      </programlisting>
+      Note that it is not needed to use the 'jbpm:type' on a humanPerformer element, since only
+      direct user assignments can be done. If a task needs to be assigned to a role or group, 
+      use the potentialOwner with a group type (when you assign a task to a group, all members
+      of that group will always be candidate users for that group - hence the usage of 
+      potentialOwner).
+    </para>
+    
+    <section id="serviceTask">
+    
+      <title>Task: Java Service Task</title>
+      
+      <para>
+        A <emphasis role="bold">Service Task</emphasis> is an automatic activity that calls some 
+        sort of service, such as a web service, Java service, etc. Currently, only Java service
+        invocations are supported by the jBPM engine, but Web service invocations are planned 
+        for a future release.
+          <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.service.task.png"/></imageobject></mediaobject>
+      </para>
+      
+      <para>
+        Defining a service task requires quite a few lines of XML (the BPEL influence is certainly
+        visible here). Of course, in the near future, we expect that tooling will simplify this area
+        a lot. A service task is defined as follows:
+        <programlisting>
+&lt;serviceTask id=&quot;MyServiceTask&quot; name=&quot;My service task&quot; 
+  implementation=&quot;Other&quot; operationRef=&quot;myOperation&quot; /&gt;
+        </programlisting>
+        The service task has a required <emphasis role="bold">id</emphasis> and an optional
+        <emphasis role="bold">name</emphasis>. The <emphasis role="bold">implementation</emphasis>
+        attribute is used to indicate what the type of the invoked service is. Possible values
+        are WebService, Other or Unspecified. Since we've only implemented the Java invocation,
+        only the <emphasis role="bold">Other</emphasis> choice will do something useful for the moment.
+      </para>
+      
+      <para>
+        The service task will invoke a certain operation that is referenced by the 
+        <emphasis role="bold">operationRef</emphasis> attribute using the id of an 
+        <emphasis role="bold">operation</emphasis>. Such an operation is part of an 
+        <emphasis role="bold">interface</emphasis> as shown below. Every operation has 
+        at least one <emphasis role="bold">input message</emphasis> and at most one
+        <emphasis role="bold">output message</emphasis>.
+        <programlisting>
+&lt;interface id=&quot;myInterface&quot;
+    name=&quot;org.jbpm.MyJavaServicek&quot;&gt;
+    &lt;operation id=&quot;myOperation2&quot; name=&quot;myMethod&quot;&gt;
+      &lt;inMessageRef&gt;inputMessage&lt;/inMessageRef&gt;
+      &lt;outMessageRef&gt;outputMessage&lt;/outMessageRef&gt;
+    &lt;/bpmn:operation&gt;
+&lt;/interface&gt;        
+        </programlisting>
+        For a Java service, the <emphasis role="bold">name of the interface</emphasis> is used
+        to specificy the fully qualified classname of the Java class. The <emphasis role="bold">
+        name of the operation</emphasis> is then used to specify the name of the method
+        that must be called. The input/output message that represent the parameters/return value of
+        the Java method are defined as follows:
+        <programlisting>
+&lt;message id=&quot;inputMessage&quot; name=&quot;input message&quot; structureRef=&quot;myItemDefinition1&quot; /&gt;        
+        </programlisting>
+        Several elements in BPMN are so-called 'item-aware', including this message construct.
+        This means that they are involved in storing or reading items during process execution.
+        The data structure to hold these elements is specified using a reference to an 
+        <emphasis role="bold">ItemDefinition</emphasis>. In this context, the message specifies 
+        its data structure by referencing an Itemdefinition in the 
+        <emphasis role="bold">structureRef</emphasis> attribute.
+        <programlisting>
+        
+  &lt;itemDefinition id=&quot;myItemDefinition1&quot; &gt;
+    &lt;jbpm:arg&gt;
+      &lt;jbpm:object expr=&quot;#{var1}&quot; /&gt;
+    &lt;/jbpm:arg&gt;
+  &lt;/itemDefinition&gt;
+  
+  &lt;itemDefinition id=&quot;myItemDefinition2&quot;&gt;
+    &lt;jbpm:var name=&quot;returnVar&quot; /&gt;
+  &lt;/itemDefinition&gt;
+          
+        </programlisting>
+        Do note that this is not fully standard BPMN 2.0 as by the specification (hence the 'jbpm' prefix).
+        In fact, according to the specification, the ItemDefinition shouldn't contain more
+        than a data structure definition. The actual mapping between input paramaters, with a ceratin
+        data structure, is done in the <emphasis role="bold">ioSpecification</emphasis> section
+        of the serviceTask. However, the current jBPM BPMN 2.0 implementation hasn't implemented
+        that construct yet. So, this means that the current usage as described above, will probably 
+        change in the near future.
+      </para>
+      
+      <para>
+        <emphasis role="bold">Important note: Interfaces, ItemDefinitions and messages are
+        defined outside a &lt;process&gt;.</emphasis> See the example <emphasis role="bold">
+        ServiceTaskTest</emphasis> for a concrete process and unit test.
+      </para> 
+    
+    </section>  
+    
+    <section id="scriptTask">
+    
+      <title>Task: Script Task</title>
+    
+      <para>
+        A script task is a an automatic activity upon which the process engine will execute 
+        a script when the task is reached. The script task is used as follows:
+        <programlisting>
+&lt;scriptTask id=&quot;scriptTask&quot; name=&quot;Script Task&quot; scriptLanguage=&quot;bsh&quot;&gt;
+  &lt;script&gt;&lt;![CDATA[
+    for(int i=0; i &lt; input.length; i++){
+      System.out.println(input[i] + &quot; x 2 = &quot; + (input[i]*2));
+    }]]&gt;
+  &lt;/script&gt;
+&lt;/scriptTask&gt;       
+        </programlisting>
+        The script task, besides the required <emphasis role="bold">id</emphasis> and the optional
+        <emphasis role="bold">name</emphasis>, allows for specifying a <emphasis role="bold">
+        scriptLanguage</emphasis> and a <emphasis role="bold">script</emphasis>. 
+        Since we're using JSR-223 ('Scripting for the Java platform'), changing the script language involves
+        <itemizedlist>
+          <listitem>changing the <emphasis role="bold">scriptLanguage</emphasis> attribute to the JSR-223 compliant name</listitem>
+          <listitem>adding the ScriptEngine implementation of the JSR specification to the classpath</listitem>
+        </itemizedlist>
+        The XML above is visualized as follows (adding a none start and end event).
+      </para>
+      
+      <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.script.task.png"/></imageobject></mediaobject>
+      
+      <para>
+        As shown in the example, process variables can be used inside the scripts. We can now start
+        a process instance for this example process, while also supplying some random input variables:
+        <programlisting>
+Map&lt;String, Object&gt; variables = new HashMap&lt;String, Object&gt;();
+Integer[] values = { 11, 23, 56, 980, 67543, 8762524 };
+variables.put(&quot;input&quot;, values);   
+executionService.startProcessInstanceBykey(&quot;scriptTaskExample&quot;, variables);     
+        </programlisting>
+        In the output console, we can now see the script being executed:
+        <programlisting>
+11 x 2 = 22
+23 x 2 = 46
+56 x 2 = 112
+980 x 2 = 1960
+67543 x 2 = 135086
+8762524 x 2 = 17525048        
+        </programlisting>
+      </para>
+    
+    </section>
+    
+    <section id="manualTask">
+    
+      <title>Task: Manual task</title>
+      
+      <para>
+         <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.manual.task.png"/></imageobject></mediaobject>
+         A manual task is a task that is performed by an external actor, but without the aid of 
+         a BPM system or a service that is invoked. In the real world, examples are plenty:
+         the installation of telephone system, sending of a letter using regular mail, calling 
+         a customer by phone, etc.
+         <programlisting>
+&lt;manualTask id=&quot;myManualTask&quot; name=&quot;Call customer&quot; /&gt;         
+         </programlisting>
+      </para>
+      
+      <para>
+        The purpose of the manual task is more documentation/modeling-wise, as it has no meaning for
+        execution on a process engine. As such, the process engine will simply pass through
+        a manual task when it encounters one.
+      </para>
+    
+    </section>
+    
+    <section id="receiveTaskJava">
+    
+      <title>Task: Java Receive task</title>
+      
+      <para>
+        A <emphasis role="bold">receive task</emphasis> is a task that waits for the arrival of 
+        an external message. Besides the obvious use case involving webservices, the specification
+        is liberal in what to do in other environments. The web service use case is not yet 
+        implemented, but the receive task can already be used in a Java environment.
+      </para>
+      
+      <para>
+        The receive task is depicted as a rounded rectangle (= task shape) with a little enveloppe
+        in the left top corner.
+        <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.receive.task.java.png"/></imageobject></mediaobject>
+      </para>
+      
+      <para>
+        In a Java environment, the receive task without any other attribute filled in besides
+        an id and (optionally) a name, behaves as a wait state. To introduce a wait state in your
+        business process, just add the following line:
+        <programlisting>
+&lt;receiveTask id=&quot;receiveTask&quot; name=&quot;wait&quot; /&gt;        
+        </programlisting>
+        Process execution will wait in such a receive task. The process can then be continued
+        using the familiar jBPM <emphasis role="bold">signal methods</emphasis>. Note that
+        this will probably change in the future, since a 'signal' has a completely different
+        meaning in BPMN 2.0.
+        <programlisting>
+Execution execution = processInstance.findActiveExecutionIn(&quot;receiveTask&quot;);
+executionService.signalExecutionById(execution.getId());        
+        </programlisting>
+      </para>
+    
+    </section>
+  
+  </section> <!-- End of basic constructs section -->
+  
+  <section id="advancedConstructs">
+  
+    <title>Advanced constructs</title>
+    
+    <section id="embeddedSubProcess">
+    
+      <title>Embedded sub-process</title>
+      
+      <para>
+        Subprocesses are in the first place a way of making a process "hierarchical", meaning that 
+        a modeller can create several 'levels' of detail. The top level view then explains the 
+        high-level way of doing things, while the lowest level focusses on the nitty gritty 
+        details.
+      </para>
+      
+      <para>
+        Take for example the following diagram. In this model, only the high level steps are shown.
+        The actual implementation of the &quot;Check credit&quot; step is hidden behind a
+        <emphasis role="bold">collapsed subprocess</emphasis>, which may be the perfect level
+        of detail to discuss business processes with end-users.
+        <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.collapsed.subprocess.png"/></imageobject></mediaobject>
+      </para>
+      
+      <para>
+        The second major use case for sub-processes is that the sub-process &quot;container&quot;
+        acts as a scope for events. When an event is fired from within the sub-process, the catch 
+        events on the boundary of the sub-process will be the first to receive this event.
+      </para>
+      
+      <para>
+        A sub-process that is defined within a top-level process is called an <emphasis role="bold">
+        embeddable sub-process</emphasis>. All process data that is available in the parent
+        process is also available in the sub-process. The following diagram shows the expanded
+        version of the model above.
+         <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.embedded.subprocess.png"/></imageobject></mediaobject>
+         The XML counterpart of this model looks as follows:$
+         <programlisting>
+&lt;process id=&quot;embeddedSubprocess&quot;&gt;
+
+    &lt;startEvent id=&quot;theStart&quot; /&gt;
+    &lt;sequenceFlow id=&quot;flow1&quot; sourceRef=&quot;theStart&quot; targetRef=&quot;receiveOrder&quot; /&gt;
+    &lt;receiveTask name=&quot;Receive order&quot; id=&quot;receiveOrder&quot; /&gt;
+    &lt;sequenceFlow id=&quot;flow2&quot; sourceRef=&quot;receiveOrder&quot; targetRef=&quot;checkCreditSubProcess&quot; /&gt;
+    <emphasis role="bold">&lt;subProcess id=&quot;checkCreditSubProcess&quot; name=&quot;Credit check&quot;&gt;</emphasis>
+    
+      ...
+
+    <emphasis role="bold">&lt;/subProcess&gt;</emphasis>
+    
+    &lt;sequenceFlow id=&quot;flow9&quot; sourceRef=&quot;checkCreditSubProcess&quot; targetRef=&quot;theEnd&quot; /&gt;
+    &lt;endEvent id=&quot;theEnd&quot; /&gt;
+
+&lt;/process&gt;
+         </programlisting>
+         Note that inside the sub-process, events, activities, tasks are defined as if it were
+         a top-level process (hence the three &quot;...&quot; within the XML example above. Sub-processes
+         are <emphasis role="bold">only allowed to have a none start event</emphasis>.
+      </para>
+      
+      <para>
+        Conceptually an embedded sub-process works as follows: when an execution arrives
+        at the subprocess, a child execution is created. The child execution can then later create
+        other (sub-)child executions, for example when a parallel gateway is used whithin the
+        sub-process. The sub-process however, is only completed when no executions are active anymore
+        within the subprocess. In that case, the parent execution is taken for further continuation
+        of the process.
+      </para>
+      <para>   
+        For example, in the following diagram, the &quot;Third task&quot;
+        will only be reached after both the &quot;First task&quot; and the &quot;Second task&quot;
+        are completed. Completing one of the tasks in the sub-process, will not trigger the
+        continuation of the sub-process, since one execution is still active within the sub-process.
+        <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.subprocess.two.endevents.png"/></imageobject></mediaobject>
+      </para>
+      
+      <para>
+        Sub-processes can have multiple start events. In that case, multiple parallel paths
+        will exist within the sub-process. The rules for sub-process completion are unchanged:
+        the sub-process will only be left when all the executions of the parallel paths are
+        ended.
+        <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.subprocess.parallel.paths.png"/></imageobject></mediaobject>
+      </para>
+      
+      <para>
+        Nested sub-processes are also possible. This way, the process can be divided into several
+        levels of detail. There is no limitation on the levels of nesting.
+        <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.subprocess.nested.png"/></imageobject></mediaobject>
+      </para>
+      
+      <para>
+        Implementation note: According to the BPMN 2 specification, an activity without ougoing sequence
+        flow implicitly ends the current execution. However currently, it is necessary for a correct functioning to  
+        specifically use an end event within the sub-process to end a certain path. This will
+        be enhanced in the future to be specification-compliant.
+      </para>
+    
+    </section> <!-- End of embedded subprocess -->
+    
+    <section id="Timer start event">
+    
+      <title>Timer start event</title>
+      
+      <para>
+        A timer start event is used to indicate that a process should be started when a given
+        time condition is met. This could be a specific point in time (eg. October 10th, 2010 at
+        5am), but also and more typically a recurring time (eg. every Friday at midnight).  
+      </para>  
+      
+      <para>
+        A timer start event is visualized as a circle with the clock icon inside.
+       <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.timer.start.event.png"/></imageobject></mediaobject>
+      </para>
+      
+      <para>
+        Using a Timer Start event is done by adding a <emphasis role="bold">timerEventDefinition</emphasis>
+        element below the startEvent element:
+        <programlisting>
+&lt;startEvent name=&quot;Every Monday morning&quot; id=&quot;myStart&quot;&gt;
+  <emphasis role="bold">&lt;timerEventDefinition/&gt;</emphasis>
+&lt;/startEvent&gt;        
+        </programlisting>
+        Following time definitions are possible:
+        <itemizedlist>
+          <listitem>
+            <emphasis role="bold">timeDate: </emphasis>specifies a fixed date when a process instance
+            must be created. The default format of the date specification is
+            &quot;dd/MM/yyyy hh:mm:ss&quot;. This can engine-wide be changed by setting the 
+            <emphasis role="bold">jbpm.duedatetime.format</emphasis> property in the configuration.
+            <programlisting>
+&lt;startEvent id=&quot;myStartEvent&quot; &gt;
+  &lt;timerEventDefinition&gt;
+    <emphasis role="bold">&lt;timeDate&gt;10/10/2099 00:00:00&lt;/timeDate&gt;</emphasis>
+  &lt;/timerEventDefinition&gt;
+&lt;/startEvent&gt;           
+            </programlisting>
+            Note that using a fixed duedate makes the process only useable for a single time.
+            After the process instance is created, the timer start event will never fire again.
+          </listitem>
+          <listitem>
+            <emphasis role="bold">timeCycle: </emphasis>specifies the recurring time when a new
+            process instance will be created. Two types are possible
+
+            <para>
+                <emphasis role="bold">Duration expression: </emphasis> 
+                <programlisting>
+quantity [business] {second | seconds | minute | minutes | 
+                     hour | hours | day | days | week | 
+                     weeks | month | months | year | years}                
+                </programlisting>
+                 This is completely similar to a timer duration definition in JPDL. Note that the 
+                 BPMN2 start timer event also understands &quot;business time&quot;. This
+                 allows for example to define a &quot;business day&quot; as an interval from
+                 9am to 5pm. This way, the time from 5pm to 9am will not be taken in account when
+                 the time on which the event will fire is calculated. 
+                 Please refer to the JPDL userguide for more details on how this business calendar can be customized.
+                 The following example shows a timer start event that will start a new process
+                 instance every five hours.
+                 <programlisting>
+&lt;startEvent id=&quot;myStartEvent&quot; &gt;
+  &lt;timerEventDefinition&gt;
+    <emphasis role="bold">&lt;timeCycle&gt;5 hours&lt;/timeCycle&gt;</emphasis>
+  &lt;/timerEventDefinition&gt;
+&lt;/startEvent&gt;               
+                 </programlisting>
+              </para>
+              <para>
+                <emphasis role="bold"><ulink url="http://en.wikipedia.org/wiki/CRON_expression">Cron expression:</ulink></emphasis>
+                altough duration expressions cover already a great deal of recurring time definitions, 
+                sometimes they are not easy to use. 
+                When for example a process instance should be started every Friday night 23pm,
+                cron expressions allow a more natural way of defining such repeating occurrences.
+              </para>
+              <para>
+                The following example shows a timer start event that will start a new process
+                instance every Friday at 23pm. 
+                <programlisting>
+&lt;startEvent id=&quot;myStartEvent&quot; &gt;
+  &lt;timerEventDefinition&gt;
+    <emphasis role="bold">&lt;timeCycle&gt;0 0 23 ? * FRI&lt;/timeCycle&gt;</emphasis>
+&lt;/timerEventDefinition&gt;
+&lt;/startEvent&gt;               
+                </programlisting>
+              </para>
+          </listitem>
+        </itemizedlist>
+      </para>
+      
+      <para>
+        The timer start event implementation in jBPM also has following features:
+        <itemizedlist>
+          <listitem>
+            Process definitions that have a timer start event, can be started as if it also
+            were a none start event. This means that calling for example 
+            executionService.startProcessInstanceByKey(key) just works.
+          </listitem>
+          <listitem>
+            The timer start event is internally implemented as a scheduled job. This means
+            that a <emphasis role="bold">job executor</emphasis> has to be configured for
+            the timer start event to work. The advantage of this implementation is that the
+            timer start event firing is transactional (eg. if a service tasks right after the 
+            timer start event fails, the transaction will be rolled back and the timer start event
+            will be retried later) and able to cope with a server crash (ie. the when the server
+            comes back up, the timer start event will be picked up by the job executor just as if
+            nothing has happened).
+          </listitem>
+          <listitem>
+            When a new version of a process definition with a timer start event is deployed, the
+            old timer start event job is removed from the system. This means that 
+            <emphasis role="bold">only the latest version of the process definition will be used</emphasis>
+            to create a new process instances.
+          </listitem>
+        </itemizedlist>        
+      </para>
+    
+    </section> <!-- end of Timer start event -->
+    
+    <section id="intermediateEvents">
+    
+      <title>Intermediate events</title>
+      
+      <para>
+        An intermediate event is used to model something that happens during a process (ie. after
+        the process has started and before it is ended). Intermediate events are visualized as
+        a circle with a double border, with an icon indicating the event type within the circle.
+      </para>
+      
+      <para>
+        There are several intermediate event types, such as a timer event, signal event, escalation
+        event, etc. Intermediate events can be either throwing or catching:
+        <itemizedlist>
+          <listitem>
+            <emphasis role="bold">Throwing: </emphasis>when an execution arrives in the event, it 
+            immediately fires a certain trigger (a signal, an error, etc.). Throwing events can
+            be graphically recognized by the icon that is filled in with black.
+          </listitem>
+           <listitem>
+            <emphasis role="bold">Catching: </emphasis>when an execution arrives in the event,
+            it will wait for a certain trigger to happen (an error, a timer, etc.). Catching events
+            can be graphically recognized by the icon that is not filled with black (ie. white inside).
+          </listitem>
+        </itemizedlist>
+      </para>
+    
+    </section> <!-- end of intermediate events -->
+    
+    <section id="intermediateCatchTimer">
+    
+      <title>Intermediate catch event: Timer </title>
+      
+      <para>
+        An intermediate timer event is used to represent a <emphasis role="bold">delay</emphasis>
+        in the process. Straightfoward use cases are for example polling of data, executing
+        heavy logic only at night when nobody is working, etc.
+      </para>
+      
+      <para>
+        Note that an intermediate timer only can be used as a catch event (throwing a timer event
+        makes no sense). The following diagram shows how the intermediate timer event is visualized.
+        <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.intermediate.timer.png"/></imageobject></mediaobject>
+        Defining an intermediate timer event is done in XML as follows:
+        <programlisting>
+&lt;intermediateCatchEvent id=&quot;myTimer&quot; name=&quot;Wait for an hour&quot;&gt;
+  &lt;timerEventDefinition&gt;
+    &lt;timeCycle&gt;1 hour&lt;/timeCycle&gt;
+  &lt;/timerEventDefinition&gt;
+&lt;/intermediateCatchEvent&gt;        
+        </programlisting>
+        There are two ways to specify the delay, using either a <emphasis role="bold">timeCycle
+        or a timeDate</emphasis>. In the example above, a timeCycle is used.
+      </para>
+      
+      <para>
+        Following delay definitions are possible (similar to those for a Timer Start Event).
+        <itemizedlist>
+          <listitem>
+            <emphasis role="bold">timeDate: </emphasis>specifies a fixed date when the timer will
+            fire and the process continues. The default format of the date specification is
+            &quot;dd/MM/yyyy hh:mm:ss&quot;. This can engine-wide be changed by setting the 
+            <emphasis role="bold">jbpm.duedatetime.format</emphasis> property in the configuration.
+            <programlisting>
+&lt;intermediateCatchEvent id=&quot;myTimer&quot; &gt;
+  &lt;timerEventDefinition&gt;
+    <emphasis role="bold">&lt;timeDate&gt;10/10/2099 00:00:00&lt;/timeDate&gt;</emphasis>
+  &lt;/timerEventDefinition&gt;
+&lt;/intermediateCatchEvent&gt;           
+            </programlisting>
+          </listitem>
+          <listitem>
+            <emphasis role="bold">timeCycle: </emphasis>specifies a delay duration relative to the
+            time when the execution enters the timer event. Two types are possible
+
+            <para>
+                <emphasis role="bold">Duration expression: </emphasis> 
+                <programlisting>
+quantity [business] {second | seconds | minute | minutes | 
+                     hour | hours | day | days | week | 
+                     weeks | month | months | year | years}                
+                </programlisting>
+                 This is completely similar to a timer duration definition in JPDL. Note that the 
+                 BPMN2 intermediate timer event also understands &quot;business time&quot;. This
+                 allows for example to define a &quot;business day&quot; as an interval from
+                 9am to 5pm. Timers that are started at 4pm with a duration of 2 hours, will fire
+                 at 10am the next business day. Please refer to the JPDL userguide for more details
+                 on how this business calendar can be customized.
+                 <programlisting>
+&lt;intermediateCatchEvent id=&quot;intermediateTimer&quot; &gt;
+  &lt;timerEventDefinition&gt;
+    <emphasis role="bold">&lt;timeCycle&gt;5 hours&lt;/timeCycle&gt;</emphasis>
+  &lt;/timerEventDefinition&gt;
+&lt;/intermediateCatchEvent&gt;               
+                 </programlisting>
+              </para>
+              <para>
+	              <emphasis role="bold">Cron expression: </emphasis>altough duration expressions cover
+	              already a great deal of delay definitions, sometimes they are not easy to use. When
+	              for example the process should be delayed until Friday night 23pm such that the
+	              processes can be executed in the weekend, duration expressions are hard to use
+	              (you need something like &quot;#{calculated_value} seconds&quot;, where you need
+	              to calculate the value first).
+	            </para>
+	            <para>
+	             <ulink url="http://en.wikipedia.org/wiki/CRON_expression">Cron expressions</ulink>
+	             allow to define delays in a way many people know (since cron expressions
+	             are used to define scheduled task on Unix machines). Note that a cron expression
+	             typically is used to define repetion. In this context however, the 
+	             <emphasis role="bold">first point in time where the cron expression is satisfied</emphasis>
+	             is used to set the due date of the timer event (so no repetition). The following example
+	             shows how an intermediate timer event can be specified to continue the process
+	             the next friday night at 23pm.
+	             <programlisting>
+&lt;intermediateCatchEvent id=&quot;intermediateTimer&quot; &gt;
+  &lt;timerEventDefinition&gt;
+    <emphasis role="bold">&lt;timeCycle&gt;0 0 23 ? * FRI&lt;/timeCycle&gt;</emphasis>
+      &lt;/timerEventDefinition&gt;
+&lt;/intermediateCatchEvent&gt;               
+	             </programlisting>
+	            </para>
+          </listitem>
+        </itemizedlist>
+      </para>
+    
+    </section> <!-- end of intermediate catch event -->
+    
+  </section> <!-- End of advanced constructs -->
+    
+    
+      
+  <section id="completeExample">
+  
+    <title>Complete example (including console task forms)</title>
+    
+    <para>
+      <emphasis role="bold">Prerequisites</emphasis>: to run the example, we assume that a working
+      jBPM console has been installed on your JBoss server. If not, please run the 'demo.setup.jboss' 
+      install script first.
+    </para>
+    
+    <para>
+      The business process we're implementing looks as follows:
+      <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.vacationrequest.example.png"/></imageobject></mediaobject>
+			You might recognize this example, since we’ve also implemented it in
+			JPDL as an example in our distribution.
+		</para>
+		<para>
+			The business process is simple: an employee can start a new process and
+			make a request for a certain amount of vacation days. After the request
+			task has been completed, the manager will find a verification task in
+			its tasklist. The Manager can now decide to accept or reject this
+			request. Depending on the outcome (that’s the little rhombus on the
+			outgoing sequence flow - it means there is a conditional expression on the sequence flow),
+			a rejection message is send or the process ends. Do note that in fact we've used a shortcut
+			here: instead of putting expressions on the outgoing sequence flow of the 'verify request'
+			task, we've could have used an exclusive gateway after the user task to control the flow
+			through the process. Also note that since we haven't implemented swimlanes yet (probably
+			the next release), it's difficult to actually see who does what in the business process.
+    </para> 
+    
+    <para>
+      The XML version of this process looks as follows:
+      <programlisting>
+&lt;process id=&quot;vacationRequestProcess&quot; name=&quot;BPMN2 Example process using task forms&quot;&gt;
+
+    &lt;startEvent id=&quot;start&quot; /&gt;
+
+    &lt;sequenceFlow id=&quot;flow1&quot; name=&quot;fromStartToRequestVacation&quot;
+      sourceRef=&quot;start&quot; targetRef=&quot;requestVacation&quot; /&gt;
+
+    &lt;userTask id=&quot;requestVacation&quot; name=&quot;Request Vacation&quot;
+      implementation=&quot;other&quot;&gt;
+     &lt;potentialOwner resourceRef=&quot;user&quot; jbpm:type=&quot;group&quot;&gt;
+        &lt;resourceAssignmentExpression&gt;
+          &lt;formalExpression&gt;user&lt;/formalExpression&gt;
+        &lt;/resourceAssignmentExpression&gt;
+      &lt;/potentialOwner&gt;
+      &lt;rendering id=&quot;requestForm&quot;&gt;
+        &lt;jbpm:form&gt;org/jbpm/examples/bpmn/usertask/taskform/request_vacation.ftl&lt;/jbpm:form&gt;
+      &lt;/rendering&gt;
+    &lt;/userTask&gt;
+
+    &lt;sequenceFlow id=&quot;flow2&quot;
+      name=&quot;fromRequestVacationToVerifyRequest&quot; sourceRef=&quot;requestVacation&quot;
+      targetRef=&quot;verifyRequest&quot; /&gt;
+
+    &lt;userTask id=&quot;verifyRequest&quot; name=&quot;Verify Request&quot;
+      implementation=&quot;other&quot;&gt;
+      &lt;potentialOwner resourceRef=&quot;user&quot; jbpm:type=&quot;group&quot;&gt;
+        &lt;resourceAssignmentExpression&gt;
+          &lt;formalExpression&gt;manager&lt;/formalExpression&gt;
+        &lt;/resourceAssignmentExpression&gt;
+      &lt;/potentialOwner&gt;
+      &lt;rendering id=&quot;verifyForm&quot;&gt;
+        &lt;jbpm:form&gt;org/jbpm/examples/bpmn/usertask/taskform/verify_request.ftl&lt;/jbpm:form&gt;
+      &lt;/rendering&gt;
+    &lt;/userTask&gt;
+
+    &lt;sequenceFlow id=&quot;flow3&quot; name=&quot;fromVerifyRequestToEnd&quot;
+      sourceRef=&quot;verifyRequest&quot; targetRef=&quot;theEnd&quot;&gt;
+      &lt;conditionExpression xsi:type=&quot;tFormalExpression&quot;&gt;
+        ${verificationResult == 'OK'}
+      &lt;/conditionExpression&gt;
+    &lt;/sequenceFlow&gt;
+
+    &lt;sequenceFlow id=&quot;flow4&quot;
+      name=&quot;fromVerifyRequestToSendRejectionMessage&quot; sourceRef=&quot;verifyRequest&quot;
+      targetRef=&quot;sendRejectionMessage&quot;&gt;
+      &lt;conditionExpression xsi:type=&quot;tFormalExpression&quot;&gt;
+        ${verificationResult == 'Not OK'}
+      &lt;/conditionExpression&gt;
+    &lt;/sequenceFlow&gt;
+
+    &lt;scriptTask id=&quot;sendRejectionMessage&quot; name=&quot;Send rejection Message&quot;
+      scriptLanguage=&quot;bsh&quot;&gt;
+      &lt;script&gt;
+        &lt;![CDATA[System.out.println(&quot;Vacation request refused!&quot;);]]&gt;
+      &lt;/script&gt;
+    &lt;/scriptTask&gt;
+
+    &lt;sequenceFlow id=&quot;flow5&quot;
+      name=&quot;fromSendRejectionMessageToEnd&quot; sourceRef=&quot;sendRejectionMessage&quot;
+      targetRef=&quot;theEnd&quot; /&gt;
+
+    &lt;endEvent id=&quot;theEnd&quot; name=&quot;End&quot; /&gt;
+&lt;/process&gt;          
+      </programlisting>
+      <emphasis role="bold">Note</emphasis>: this example is already installed when you've 
+      used the demo setup. Also note that we're using a Script Task here, to quickly write
+      something as output instead of sending a real message (the diagram is showing a Service
+      Task). Also note that we've taken some shortcuts here regarding task assignment (will
+      be fixed in the next release).
+    </para>
+ 
+    <para>
+      The constructs used in this implementation are all covered in the previous section.
+      Also note that we're using the <emphasis role="bold">taskform functionality</emphasis> 
+      here, which is a custom jBPM extension for the <emphasis role="bold">rendering</emphasis>
+      element of a User task.
+      <programlisting>
+&lt;userTask id=&quot;verifyRequest&quot; name=&quot;Verify Request&quot;
+       implementation=&quot;other&quot;&gt;
+  &lt;potentialOwner resourceRef=&quot;user&quot; jbpm:type=&quot;group&quot;&gt;
+    &lt;resourceAssignmentExpression&gt;
+      &lt;formalExpression&gt;user&lt;/formalExpression&gt;
+    &lt;/resourceAssignmentExpression&gt;
+  &lt;/potentialOwner&gt;
+  &lt;rendering id=&quot;verifyForm&quot;&gt;
+    &lt;jbpm:form&gt;org/jbpm/examples/bpmn/usertask/taskform/verify_request.ftl&lt;/jbpm:form&gt;
+  &lt;/rendering&gt;
+&lt;/userTask&gt;
+      </programlisting>  
+      The mechanism regarding task forms for BPMN 2.0 is complete equivalent to that of JPDL.
+      The form itself is a <ulink url="http://freemarker.org/">Freemarker</ulink> template file
+      that needs to be incorporated in the deployment. For example, the 'verify_request.ftl' form
+      looks like as follows.
+      <programlisting>
+&lt;html&gt;
+  &lt;body&gt;
+
+    &lt;form action=&quot;${form.action}&quot; method=&quot;POST&quot; enctype=&quot;multipart/form-data&quot;&gt;
+    
+      &lt;h3&gt;Your employee, <emphasis role="bold">${employee_name}</emphasis> would like to go on vacation&lt;/h3&gt;
+      Number of days: <emphasis role="bold">${number_of_days}&lt;</emphasis>br/&gt;
+      
+      &lt;hr&gt;
+      
+      In case you reject, please provide a reason:&lt;br/&gt;
+      <emphasis role="bold">&lt;input type=&quot;textarea&quot; name=&quot;reason&quot;/&gt;&lt;br/&gt;</emphasis>
+     
+      <emphasis role="bold">&lt;input type=&quot;submit&quot; name=&quot;verificationResult&quot; value=&quot;OK&quot;&gt;
+      &lt;input type=&quot;submit&quot; name=&quot;verificationResult&quot; value=&quot;Not OK&quot;&gt;</emphasis>
+      
+    &lt;/form&gt;
+  &lt;/body&gt;
+&lt;/html&gt;      
+      </programlisting>
+      Note that <emphasis role="bold">process variables can be 
+      accessed using the ${my_process_variable} construct.</emphasis> Also note that named
+      input controls (eg. input field, submit button) can be used to 
+      <emphasis role="bold">define new process variables</emphasis>. 
+      For example, the text input of the following field will be stored as the process
+      variable 'reason'
+      <programlisting>
+&lt;input type=&quot;textarea&quot; name=&quot;reason&quot;/&gt;     
+      </programlisting>
+      Note that there are two submit buttons (which makes sense if you look at the 'OK' and 'Not OK'
+      sequence flows going out the 'request vacation' task. By pressing one of these buttons, the
+      process variable 'verificationResult' will be stored. It can then be used to evaluate the
+      outgoing sequence flow:
+      <programlisting>
+&lt;sequenceFlow id=&quot;flow3&quot; name=&quot;fromVerifyRequestToEnd&quot;
+      sourceRef=&quot;verifyRequest&quot; targetRef=&quot;theEnd&quot;&gt;
+  &lt;conditionExpression xsi:type=&quot;tFormalExpression&quot;&gt;
+    <emphasis role="bold">${verificationResult == 'OK'}</emphasis>
+  &lt;/conditionExpression&gt;
+&lt;/sequenceFlow&gt;      
+      </programlisting>
+    </para>
+    
+    <para>
+      The process can now be deployed. You can use the ant deploy task for this (see examples),
+      or you can point your jBPM configuration to the database of the console. To deploy
+      your process programmatically, you need to add the task forms to your deployment:
+      <programlisting>
+NewDeployment deployment = repositoryService.createDeployment();
+deployment.addResourceFromClasspath(&quot;org/jbpm/examples/bpmn/usertask/taskform/vacationrequest.bpmn.xml&quot;);
+deployment.addResourceFromClasspath(&quot;org/jbpm/examples/bpmn/usertask/taskform/request_vacation.ftl&quot;);
+deployment.addResourceFromClasspath(&quot;org/jbpm/examples/bpmn/usertask/taskform/verify_request.ftl&quot;);
+deployment.deploy();      
+      </programlisting>
+      You can now embed (or run on a standalone server) this business process, by using the 
+      familiar jBPM API operations. For example, process instances can now be started using the 
+      key (ie. the process id for BPMN 2.0):
+      <programlisting>
+ProcessInstance pi = executionService.startProcessInstanceByKey(&quot;vacationRequestProcess&quot;);      
+      </programlisting>
+      Or tasks list can be retrieved:
+      <programlisting>
+Task requestTasktask = taskService.createTaskQuery().candidate(&quot;peter&quot;).uniqueResult();      
+      </programlisting>
+    </para>
+    
+    <para>
+      When deploying to the jBPM console database, you should see our new business process popping up.
+      <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.vacationrequest.example.console.01.png"/></imageobject></mediaobject>
+      
+      After you start a new process, a new task should be available in the employee's tasklist.
+      When clicking on 'view', the task form will be displayed, requesting to fill in some
+      variables for further use in the process.
+      <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.vacationrequest.example.console.02.png"/></imageobject></mediaobject>
+      
+      After task completion, the manager will find a new verification task in his task list.
+      He can now accept or reject the vacation request, based on the input of the employee.
+     <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.vacationrequest.example.console.03.png"/></imageobject></mediaobject>
+     
+     Since the database schema remains unchanged when we added BPMN 2.0 on top of the jBPM PVM, all
+     existing reports can be applied to our new BPMN 2.0 processes.
+      <mediaobject><imageobject><imagedata align="center" fileref="images/bpmn2.vacationrequest.example.console.04.png"/></imageobject></mediaobject>
+    </para>
+  
+  </section>
+  
+</chapter>

@@ -1,0 +1,1 @@
+java -cp hsqldb.jar org.hsqldb.Server -address localhost -port 1701 -dbname.0 jbpmDatabase

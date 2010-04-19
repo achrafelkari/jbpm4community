@@ -1,0 +1,27 @@
+<jbpm-configuration>
+
+  <process-engine-context>
+  
+    <hibernate-configuration>
+      <cfg resource="jbpm.hibernate.cfg.xml" />     
+      <cache-configuration resource="jbpm.cache.xml" 
+                           usage="nonstrict-read-write" />
+    </hibernate-configuration>
+    
+    <hibernate-session-factory />
+    
+    <types>
+      <type name="date" class="java.util.Date" variable-class="org.jbpm.pvm.internal.type.variable.DateVariable" />
+    </types>
+
+  </process-engine-context>
+
+  <transaction-context>
+
+    <transaction />
+    <hibernate-session />
+    <db-session />
+
+  </transaction-context>
+
+</jbpm-configuration>

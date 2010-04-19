@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="Resource">
+
+  <start>
+    <transition to="get return code" />
+  </start>
+
+  <state name="get return code">
+    <transition to="ok"/>
+  </state>
+
+  <end name="ok" state="completed"/>
+
+</process>

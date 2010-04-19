@@ -1,0 +1,117 @@
+<chapter id="variables">
+  <title>Variables</title>
+  
+  <para>Process variables can be accessed from outside the process with methods from the <literal>ExecutionService</literal>:
+  </para>
+  
+  <itemizedlist>
+    <listitem><literal>ProcessInstance startProcessInstanceById(String processDefinitionId, Map&lt;String, Object&gt; variables);</literal></listitem>
+    <listitem><literal>ProcessInstance startProcessInstanceById(String processDefinitionId, Map&lt;String, Object&gt; variables, String processInstanceKey);</literal></listitem>
+    <listitem><literal>ProcessInstance startProcessInstanceByKey(String processDefinitionKey, Map&lt;String, ?&gt; variables);</literal></listitem>
+    <listitem><literal>ProcessInstance startProcessInstanceByKey(String processDefinitionKey, Map&lt;String, ?&gt; variables, String processInstanceKey);</literal></listitem>
+    <listitem><literal>void setVariable(String executionId, String name, Object value);</literal></listitem>
+    <listitem><literal>void setVariables(String executionId, Map&lt;String, ?&gt; variables);</literal></listitem>
+    <listitem><literal>Object getVariable(String executionId, String variableName);</literal></listitem>
+    <listitem><literal>Set&lt;String&gt; getVariableNames(String executionId);</literal></listitem>
+    <listitem><literal>Map&lt;String, Object&gt; getVariables(String executionId, Set&lt;String&gt; variableNames);</literal></listitem>
+  </itemizedlist>
+  
+  <para>And from inside the process with methods from Execution interfaces passed to user code like 
+  <literal>ActivityExecution</literal> and <literal>EventListenerExecution</literal>:
+  </para>
+
+  <itemizedlist>
+    <listitem><literal>Object getVariable(String key);</literal></listitem>
+    <listitem><literal>void setVariables(Map&lt;String, ?&gt; variables);</literal></listitem>
+    <listitem><literal>boolean hasVariable(String key);</literal></listitem>
+    <listitem><literal>boolean removeVariable(String key);</literal></listitem>
+    <listitem><literal>void removeVariables();</literal></listitem>
+    <listitem><literal>boolean hasVariables();</literal></listitem>
+    <listitem><literal>Set&lt;String&gt; getVariableKeys();</literal></listitem>
+    <listitem><literal>Map&lt;String, Object&gt; getVariables();</literal></listitem>
+    <listitem><literal>void createVariable(String key, Object value);</literal></listitem>
+    <listitem><literal>void createVariable(String key, Object value, String typeName);</literal></listitem>
+  </itemizedlist>
+
+  <para>jBPM doesn't have a mechanism for detecting changes automatically to variable values.  So if you
+  get e.g. a serializable collection from the process variables and add an element, then you need to 
+  set the changed variable value explicitely for the changes to be saved to the DB.   
+  </para>
+  
+  <section>
+    <title>Variable scoping</title>
+    <para>By default variables are created in the top level process instance scope.  This means they are 
+    visible and accessible in all the paths of execution of the whole process instance.  Process variables are 
+    created dynamically.  Meaning that a variable is created the first time it is set 
+    through one of these methods.
+    </para>
+    <para>Each execution is a variable scope.  Variables declared in a nested execution level will 'see'
+    their own variables and variables declared in parent executions according to the normal scoping rules.
+    With the <literal>createVariable</literal> methods in the execution interfaces <literal>ActivityExecution</literal>
+    and <literal>EventListenerExecution</literal>, execution-local variables can be created. 
+    </para>
+	  <para>In one of the future releases, we might add variable declaration in the jPDL process language.
+	  </para>
+  </section>
+  
+  <section>
+    <title>Variable types</title>
+    <para>jBPM supports following Java types as process variables:</para>
+    <itemizedlist>
+      <listitem>java.lang.String</listitem>
+      <listitem>java.lang.Long</listitem>
+      <listitem>java.lang.Double</listitem>
+      <listitem>java.util.Date</listitem>
+      <listitem>java.lang.Boolean</listitem>
+      <listitem>java.lang.Character</listitem>
+      <listitem>java.lang.Byte</listitem>
+      <listitem>java.lang.Short</listitem>
+      <listitem>java.lang.Integer</listitem>
+      <listitem>java.lang.Float</listitem>
+      <listitem>byte[] (byte array)</listitem>
+      <listitem>char[] (char array)</listitem>
+      <listitem>hibernate entity with a long id</listitem>
+      <listitem>hibernate entity with a string id</listitem>
+      <listitem>serializable</listitem>
+    </itemizedlist>
+    <para>For persistence of these variable, the type of the variable is 
+    checked in the order of this list.  The first match will determine how 
+    the variable is stored.
+    </para>
+  </section>
+
+  <section>
+    <title>Updating serialized process variables</title>
+    <para>(Since jBPM 4.3)</para>
+    <para>In <literal>custom</literal>s, <literal>event-handler</literal>s and other 
+    user code, you can retrieve process variables.  In case a process variable 
+    is stored as a serialized object, you can just make updates to your deserialized 
+    objects without the need for an explicit save.  jBPM will manage deserialized process 
+    variables and update them automatically if you change.  For example (@see examples package 
+    org.jbpm.examples.serializedobject), look at this piece of user code inside a <literal>custom</literal>'s activity behaviour:   
+    </para>
+    <programlisting>public class UpdateSerializedVariables implements ActivityBehaviour {
+
+  public void execute(ActivityExecution execution) {
+    Set&lt;String&gt; messages = (Set&lt;String&gt;) execution.getVariable(&quot;messages&quot;);
+    messages.clear();
+    messages.add(&quot;i&quot;);
+    messages.add(&quot;was&quot;);
+    messages.add(&quot;updated&quot;);
+  }
+}</programlisting>
+    <para>When the transaction commits in which this usercode was called, the
+    updated messages set will be updated in the database automatically.  
+    </para>
+    <para>When reading process variables that are stored in serialized format from the DB 
+    jBPM will monitor that deserialized object.  Right before the commit of the transaction,
+    jBPM will serialize and update the variable automatically if that is necessary.  jBPM 
+    will ignore updates to the deserialized object if another object was set as the value 
+    in that scope  (which even can be of another type).  jBPM will also skip updating of the 
+    variable if the deserialized object has not been changed.  The check to see if the 
+    object has changed is based on comparing the byte arrays from serializing the object 
+    again and comparing that with the byte array that was originally loaded from the db.   
+    </para>
+  </section>
+  
+</chapter>

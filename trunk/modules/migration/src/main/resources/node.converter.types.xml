@@ -1,0 +1,20 @@
+<node-types>
+  <node-type element="start-state" class="org.jbpm.jpdl.internal.convert.node.StartState" />
+  <node-type element="end-state" class="org.jbpm.jpdl.internal.convert.node.EndState" />
+  <node-type element="node" class="org.jbpm.jpdl.internal.convert.node.Node" />
+  <node-type element="state" class="org.jbpm.jpdl.internal.convert.node.State" />
+  <node-type element="task-node" class="org.jbpm.jpdl.internal.convert.node.TaskNode" />
+  <node-type element="fork" class="org.jbpm.jpdl.internal.convert.node.Fork" />
+  <node-type element="join" class="org.jbpm.jpdl.internal.convert.node.Join" />
+  <node-type element="decision" class="org.jbpm.jpdl.internal.convert.node.Decision" />
+  <node-type element="process-state" class="org.jbpm.jpdl.internal.convert.node.ProcessState" />
+  <node-type element="mail-node" class="org.jbpm.jpdl.internal.convert.node.MailNode" />
+  <node-type element="super-state" class="org.jbpm.jpdl.internal.convert.node.SuperState"/>
+
+  <!-- node-type element="merge" class="org.jbpm.jpdl.internal.convert.node.Merge" />
+  <node-type element="milestone-node" class="oorg.jbpm.jpdl.internal.convert.node.MilestoneNode" />
+  <node-type element="interleave-start" class="org.jbpm.jpdl.internal.convert.node.InterleaveStart" />
+  <node-type element="interleave-end" class="org.jbpm.jpdl.internal.convert.node.InterleaveEnd"/> 
+  <node-type element="page" class="org.jboss.seam.pageflow.Page" />
+  <node-type element="start-page" class="org.jboss.seam.pageflow.Page" /-->
+</node-types>

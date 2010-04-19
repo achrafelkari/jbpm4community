@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions id="UserTaskSimple"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://schema.omg.org/spec/BPMN/2.0 ../../../../../../../bpmn/src/main/resources/BPMN20.xsd"
+	xmlns:bpmn="http://schema.omg.org/spec/BPMN/2.0" typeLanguage="http://www.w3.org/2001/XMLSchema"
+	expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://sample.bpmn.camunda.com/"
+	xmlns:jbpm="http://jbpm.org/4.0/bpmn2">
+
+	<bpmn:resource name="sampleHumanResource" />
+
+	<bpmn:process id="UserTaskSimpleProcess" name="Simple process with user task">
+
+		<bpmn:startEvent id="Start" />
+
+		<bpmn:sequenceFlow id="flow1" name="fromStartToUserTask"
+			sourceRef="Start" targetRef="UserTask" />
+
+		<bpmn:userTask id="UserTask" name="user task"
+			implementation="other">
+			<!-- use jbpm internal task management -->
+			<bpmn:performer id="myPerformer" resourceRef="sampleResource">
+				<bpmn:resourceAssignmentExpression
+					id="rae">
+					<bpmn:formalExpression language="juel">
+						${assignedUser}</bpmn:formalExpression>
+				</bpmn:resourceAssignmentExpression>
+			</bpmn:performer>
+			<bpmn:rendering id="myRendering">
+				<jbpm:form>MyForm.ftl</jbpm:form>
+			</bpmn:rendering>
+		</bpmn:userTask>
+
+		<bpmn:sequenceFlow id="flow2" name="fromUserTaskToEnd"
+			sourceRef="UserTask" targetRef="End" />
+
+		<bpmn:endEvent id="End" name="End" />
+	</bpmn:process>
+</bpmn:definitions>

@@ -1,0 +1,15 @@
+<chapter id="scripting">
+  <title>Scripting</title>
+  
+  <para>Only jUEL is configured as the scripting language.  jUEL is 
+  an implementation of the Unified Expression Language.  For detailed description 
+  of how to use UEL, please refer to  
+  <ulink url="http://java.sun.com/javaee/5/docs/tutorial/doc/bnahq.html">
+  the JEE 5 Tutorial, section Unified Expression Language</ulink>  
+  </para>
+  
+  <para>To configure other scripting languages then jUEL, please 
+  refer to the developer's guide (non supported).
+  </para>
+
+</chapter>

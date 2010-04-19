@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://schema.omg.org/spec/BPMN/2.0 ../../../../../../../../../../bpmn/src/main/resources/BPMN20.xsd"
+  xmlns="http://schema.omg.org/spec/BPMN/2.0"
+  typeLanguage="http://www.w3.org/2001/XMLSchema"
+  expressionLanguage="http://www.w3.org/1999/XPath" 
+  targetNamespace="http://jbpm.org/example/bpmn2/inclusive_gatewat"
+  xmlns:jbpm="http://jbpm.org/bpmn2">
+
+  <process id="inclusiveGateway">
+
+    <startEvent id="start" />
+
+   <sequenceFlow id="flow1" sourceRef="start" targetRef="inclusiveGatewaySplit" />
+   
+   <inclusiveGateway id="inclusiveGatewaySplit" default="flow3"/>
+   
+   <sequenceFlow id="flow2" sourceRef="inclusiveGatewaySplit" targetRef="largeDeposit">
+      <conditionExpression xsi:type="tFormalExpression">${cash &gt; 10000}</conditionExpression>
+   </sequenceFlow>
+      
+   <sequenceFlow id="flow3" sourceRef="inclusiveGatewaySplit" targetRef="standardDeposit" />
+      
+   <sequenceFlow id="flow4" sourceRef="inclusiveGatewaySplit" targetRef="foreignDeposit">
+      <conditionExpression xsi:type="tFormalExpression">${bank == 'foreign'}</conditionExpression>
+   </sequenceFlow>   
+   
+   <userTask id="largeDeposit" name="Large deposit" />
+   
+   <sequenceFlow id="flow5" sourceRef="largeDeposit" targetRef="inclusiveGatewayMerge" />
+   
+   <userTask id="standardDeposit" name="Standard deposit" />
+   
+   <sequenceFlow id="flow6" sourceRef="standardDeposit" targetRef="inclusiveGatewayMerge" />
+   
+   <userTask id="foreignDeposit" name="Foreign deposit" />
+   
+   <sequenceFlow id="flow7" sourceRef="foreignDeposit" targetRef="inclusiveGatewayMerge" />
+   
+   <inclusiveGateway id="inclusiveGatewayMerge" />
+   
+    <sequenceFlow id="flow8" sourceRef="inclusiveGatewayMerge" targetRef="theEnd" />
+
+   <endEvent id="theEnd" />
+
+  </process>
+  
+</definitions>

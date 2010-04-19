@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter id="springIntegration">
+  <title>Spring Integration</title>
+  
+  <para>
+  	The embeddability of the jBPM engine in different environments has always
+  	been one of its core strengths, but often extra libraries to do the integration
+  	were required. Since jBPM4 however, it is now possible to natively
+  	integrate jBPM with <ulink url="http://www.springsource.org/about">Spring</ulink>.
+  	This section will explain which steps are required for such an integration.
+  </para>
+  
+  <para>
+  	The Spring integration has started out as a community effort by
+  	<ulink url="http://www.inze.be/andries/">Andries Inz&#233;</ulink>.
+  	Do note that Spring integration currently is in 'incubation', before
+  	it is moved to the user guide.
+  </para>
+
+  <section id="spring_overview">
+    <title>Overview</title>
+    <para>
+		The default jBPM behaviour is to open a transaction for each operation
+		that is called on the service API. In a typical Spring setup, applications are 
+		accessed from the web tier and enter a transactional boundary by invoking
+		operations on service beans. These service beans will then access the jBPM services. 
+		All these operations run typically in a single transaction (ie one transaction
+		per request from the browser), which invalidates the standard jBPM 
+		transaction handling approach. Instead of starting and committing
+		a transaction for every service operation, the existing transaction
+		should be used (or a new one started if none exists).
+    </para>
+  </section>
+  
+  <section id="spring_configuration">
+  	<title>Configuration</title>
+  	<para>
+  	The easiest way to integrate Spring with jBPM is to import the <emphasis role="bold">jbpm.tx.spring.cfg.xml</emphasis>
+  	in your jbpm.cfg.xml file:
+  	<programlisting>
+&lt;import resource=&quot;jbpm.tx.spring.cfg.xml&quot; /&gt;  	
+  	</programlisting>
+  	This configuration uses the single transaction manager which is defined in the Spring configuration.
+  	Start from the content of this file if you need to tweak the jBPM-Spring integration 
+  	configuration.
+  	</para>
+    <para>
+		If you start from an existing configuration, replace the standard-transaction-interceptor with the 
+		spring-transaction-interceptor. The hibernate session needs the attribute current=”true”,
+		depending if you are using the 'current Session' strategy in Spring. 
+    Also, the &lt;transaction/&gt; must be removed from the transaction-context if you want the 
+    transactions to be handled by Spring only.
+		This forces jBPM to search for the current session, which will then be provided by Spring.
+		<programlisting>
+	&lt;process-engine-context&gt;
+	    &lt;command-service&gt;
+	      <emphasis role="bold">&lt;spring-transaction-interceptor /&gt;</emphasis>
+	      ...
+	    &lt;/command-service&gt;
+	    ...
+	&lt;/process-engine-context&gt;
+	&lt;transaction-context&gt;
+	    ...
+		<emphasis role="bold">&lt;hibernate-session current=&quot;true&quot;/&gt;</emphasis>
+	&lt;/transaction-context&gt;
+		</programlisting>
+	</para>
+	
+	<para>
+  The spring-transaction-interceptor will look by default for a PlatformTransactionManager 
+  implementation by doing a search by type on the defined beans. In the case of multiple 
+  transaction managers, it is possible to specifically define the name of the transaction manager
+  that must be used by the interceptor:
+  <programlisting>
+&lt;spring-transaction-interceptor transaction-manager=&quot;<emphasis role="bold">myTransactionManager</emphasis>&quot; /&gt;  
+  </programlisting>
+	</para>
+	
+	<para>
+		The Spring integration provides a special context, which is added to
+		the set of contexts where the jBPM engine will look for beans.
+		Using this SpringContext, it is now possible to retrieve beans from the 
+		Spring Application Context. The jBPM process engine can be configured in a Spring 
+		applicationContext.xml as follows:		
+		<programlisting>
+  <bean id="springHelper" class="org.jbpm.pvm.internal.processengine.SpringHelper">
+    <property name="jbpmCfg" value="org/jbpm/spring/jbpm.cfg.xml"></property>
+  </bean>
+
+  <bean id="processEngine" factory-bean="springHelper" factory-method="createProcessEngine" />
+    </programlisting>
+    Note that the <emphasis role="bold">jbpmCfg</emphasis> property for the SpringHelper is optional.
+    If a default jbpm.cfg.xml exists on the classpath (ie not in some package), this line can
+    be removed.
+	</para>
+	
+	<para>
+		The jBPM services can also be defined in the Spring applicationContext, as following:
+		<programlisting>
+&lt;bean id=&quot;repositoryService&quot; factory-bean=&quot;processEngine&quot; factory-method=&quot;getRepositoryService&quot; /&gt;
+&lt;bean id=&quot;executionService&quot; factory-bean=&quot;processEngine&quot; factory-method=&quot;getExecutionService&quot; /&gt;
+		</programlisting>
+	</para>
+
+  </section>
+  
+  <section id="spring_usage">
+  	<title>Usage</title>
+  	
+  	<para>
+  		The previous section already showed how the jBPM services can be made
+  		accessible for other Spring services. The other use case is calling
+  		Spring beans from within a process. This can be done by using
+  		an expression which resolves to the name of a Spring bean.
+  		
+  		<programlisting>
+&lt;java name=&quot;echo&quot; expr=&quot;#{echoService}&quot; method=&quot;sayHello&quot; &gt;
+    &lt;transition name=&quot;to accept&quot; to=&quot;join1&quot;/&gt;
+ &lt;/java&gt;
+  		</programlisting>
+  		
+  		The scripting engine will look into all contexts from the bean named echoService. 
+  		If you configured the ScriptManager as above, Spring will be the last context to search for.
+  		You can also add a Spring bean to the Spring Application context
+  		(eg IdentitySessionImpl with id <emphasis role="italic">identitySession</emphasis>)
+  		and use it in the jBPM config (eg by adding	&lt;env class=&quot;identitySession&quot; /&gt;)
+  	</para>
+  	
+  </section>
+  
+  <section id="spring_testing">
+  	<title>Testing</title>
+  	
+  	<para>
+  		Use the <emphasis role="bold">AbstractTransactionalJbpmTestCase</emphasis> 
+  		to test a process in isolation (ie without impact on the database).
+  		This class extends from
+  		the <emphasis role="italic">AbstractTransactionalDataSourceSpringContextTests</emphasis>
+  		class, which means that testing a process comes down to exactly the same
+  		approach as testing a DAO.
+  	</para>
+  
+  </section>
+    
+    
+  
+</chapter>
