@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.jbpm.jbpm4</groupId>
         <artifactId>jbpm-integration</artifactId>
-        <version>4.4-SNAPSHOT</version>
+        <version>4.3-hot-patch-v1</version>
     </parent>
 
     <!-- Properties -->
