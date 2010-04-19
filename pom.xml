@@ -21,7 +21,7 @@
   <artifactId>jbpm</artifactId>
   <packaging>pom</packaging>
 
-  <version>4.4-SNAPSHOT</version>
+  <version>4.3-hot-patch-v1</version>
 
   <organization>
     <name>JBoss, a division of Red Hat</name>

@@ -1,0 +1,47 @@
+
+table.s-grid {
+    border-collapse: collapse;
+    border: none;
+}
+
+table.s-grid th,
+table.s-grid td {
+    border: solid #999 1px;
+    padding: 3px 4px 3px 4px;
+}
+
+table.s-grid th {
+    background-color: #EEFFCC;
+}
+
+table.s-grid tr.odd {
+    background-color: white;
+}
+
+table.s-grid tr.even {
+    background-color: #F9F9F9;
+}
+
+table.s-grid tr.highlight {
+    background-color: #FFFF99;
+}
+
+span.preparing {
+    color: red;
+    background-color: yellow;
+}
+
+span.progressing {
+    color: white;
+    background-color: green;
+}
+
+span.refactoring {
+    color: black;
+    background-color: blue;
+}
+
+span.complete {
+    font-style: italic;
+    color: gray;
+}
