@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	       xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<name>jBPM 4 - Test Enterprise Suite</name>
+	<groupId>org.jbpm.jbpm4</groupId>
+	<artifactId>jbpm-test-enterprise-suite</artifactId>
+	<packaging>jar</packaging>
+
+	<!-- Parent -->
+	<parent>
+		<groupId>org.jbpm.jbpm4</groupId>
+		<artifactId>jbpm</artifactId>
+		<version>4.4-SNAPSHOT</version>
+		<relativePath>../../pom.xml</relativePath>
+	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.jbpm.jbpm4</groupId>
+			<artifactId>jbpm-test-enterprise-ejb</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jbpm.jbpm4</groupId>
+			<artifactId>jbpm-test-base</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>cactus</groupId>
+			<artifactId>cactus.core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.jms</groupId>
+			<artifactId>jms</artifactId>
+			<version>1.1</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+	<profiles>
+
+		<profile>
+			<id>enterprise</id>
+			<properties>
+				<skipTests>true</skipTests>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-jar-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>generate-test-jar</id>
+								<phase>package</phase>
+								<goals>
+									<goal>test-jar</goal>
+								</goals>
+								<configuration>
+									<excludes>
+										<exclude>jbpm-test-destinations-service.xml</exclude>
+										<exclude>cactus.properties</exclude>
+										<exclude>META-INF/*</exclude>
+									</excludes>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>copy.libs</id>
+								<phase>package</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>target/jbpm.test.webapp.libs</outputDirectory>
+									<artifactItems>
+										<artifactItem>
+											<groupId>aspectj</groupId>
+											<artifactId>aspectjrt</artifactId>
+										</artifactItem>
+										<artifactItem>
+											<groupId>cactus</groupId>
+											<artifactId>cactus.core</artifactId>
+										</artifactItem>
+										<artifactItem>
+											<groupId>commons-logging</groupId>
+											<artifactId>commons-logging</artifactId>
+											<version>1.1</version>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>runtest</id>
+			<dependencies>
+				<dependency>
+					<groupId>apache-httpclient</groupId>
+					<artifactId>commons-httpclient</artifactId>
+					<version>3.1</version>
+				</dependency>
+				<dependency>
+					<groupId>cactus</groupId>
+					<artifactId>cactus.core</artifactId>
+				</dependency>
+				<dependency>
+					<groupId>aspectj</groupId>
+					<artifactId>aspectjrt</artifactId>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-surefire-plugin</artifactId>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+	</profiles>
+
+</project>

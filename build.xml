@@ -1,0 +1,173 @@
+<project name="jbpm4" default="install" basedir=".">
+  
+  <!-- This ant build only serves as IDE integration to run maven jobs.
+       Now in eclipse it's possible to open the ant view and double click 
+       the targets in this ant build that will just delegate to the maven 
+       build.  Also, if there are html results being produced by a target, 
+       they are opened in a browser.
+  --> 
+  
+  <!-- Overwrite property values in your local 
+       file ${user.home}/.jbpm4/ant.properties 
+  -->
+  <property file="${user.home}/.jbpm4/ant.properties" />
+  
+  <property name="mvn.executable" value="mvn.bat" />
+  
+  <!-- BROWSER PROPERTIES -->
+  <!-- <property name="windows.browser" value="C:/Program Files/Internet Explorer/IEXPLORE.EXE" /> -->
+  <property name="windows.browser" value="C:/Program Files/Mozilla Firefox/firefox.exe" />
+  <property name="macos.browser" value="/usr/bin/open" />
+  <property name="linux.browser" value="mozilla" />
+
+  <property name="distro.installation.dir" value="c:/software" />
+  <property name="distro.version" value="4.4-SNAPSHOT" />
+  <property name="distro.jboss.version" value="5.0.0.GA" />
+  <property name="distro.eclipse" value="c:/downloads/eclipse/eclipse-jee-ganymede-SR1-win32.zip" />
+  <property name="distro.jboss" value="c:/downloads/jboss/jboss-${distro.jboss.version}.zip" />
+  <property name="distro.gef" value="c:/downloads/eclipse/GEF-runtime-3.4.1.zip" />
+
+  <target name="clean">
+    <exec executable="${mvn.executable}">
+      <arg line="clean" />
+    </exec>
+  </target>
+
+  <target name="install">
+    <exec executable="${mvn.executable}" os="Windows Vista, Windows XP,Windows 2000,Windows 98">
+      <arg line="-DskipTests install" />
+    </exec>
+  </target>
+  
+  <target name="javadoc">
+    <exec executable="${mvn.executable}" dir="modules/api" os="Windows Vista, Windows XP,Windows 2000,Windows 98">
+      <arg line="javadoc:javadoc" />
+    </exec>
+    <antcall target="show.html">
+      <param name="page" value="modules/api/target/site/apidocs/index.html"/>
+    </antcall>
+  </target>
+
+  <target name="test.pvm">
+    <exec dir="modules/pvm" executable="${mvn.executable}" os="Windows Vista, Windows XP,Windows 2000,Windows 98">
+      <arg line="${mvn.executable} surefire-report:report" />
+    </exec>
+    <antcall target="show.html">
+      <param name="page" value="modules/pvm/target/site/surefire-report.html"/>
+    </antcall>
+  </target>
+
+  <target name="distro.test" depends="distro.build, distro.install" />
+
+  <target name="distro.build">
+    <exec dir="." executable="cmd" os="Windows Vista, Windows XP,Windows 2000,Windows 98">
+      <arg line="/C ${mvn.executable} -Pdistro -Ddatabase=hsqldb -Djbpm.target.container=jboss500 -Djboss.home=${distro.installation.dir}/jbpm-${distro.version}/jboss-${distro.jboss.version}  clean install" />
+    </exec>
+  </target>
+
+  <target name="distro.install" >
+    <delete dir="${distro.installation.dir}/jbpm-${distro.version}" />
+    <unzip src="${distro.jboss}" dest="${distro.installation.dir}/jbpm-${distro.version}" />
+    <java jar="modules/distro/target/jbpm-installer-${distro.version}.jar" fork="true">
+    	<arg value="modules/distro/target/resources/auto-install-template.xml" />
+  	</java>
+  	
+  	<!-- 
+    <unzip src="${distro.eclipse}" dest="${distro.installation.dir}/jbpm-${distro.version}" />
+    <exec executable="cmd" os="Windows Vista, Windows XP,Windows 2000,Windows 98">
+      <arg line="/C start &quot;${distro.installation.dir}/jbpm-${distro.version}/eclipse/eclipse.exe&quot; &quot;-data&quot; &quot;${distro.installation.dir}/jbpm-${distro.version}/workspace&quot;" />
+    </exec>
+    <exec executable="cmd" os="Windows Vista, Windows XP,Windows 2000,Windows 98">
+      <arg line="/C start &quot;${windows.browser}&quot; &quot;file://${distro.installation.dir}/jbpm-${distro.version}&quot;" />
+    </exec>
+    -->
+  </target>
+
+  <target name="distro.eclipse.install">
+    <unzip src="${distro.eclipse}" dest="${distro.installation.dir}/jbpm-${distro.version}" />
+  </target>
+
+  <target name="distro.eclipse.start">
+    <exec executable="cmd" os="Windows Vista, Windows XP,Windows 2000,Windows 98">
+      <arg line="/C start &quot;${distro.installation.dir}/jbpm-${distro.version}/eclipse/eclipse.exe&quot; &quot;-data&quot; &quot;${distro.installation.dir}/jbpm-${distro.version}/workspace&quot;" />
+    </exec>
+  </target>
+
+  <target name="schemadocs">
+    <exec executable="${mvn.executable}" dir="modules/api">
+      <arg line="-Pschemadocs package" />
+    </exec>
+    <antcall target="show.html">
+      <param name="page" value="modules/api/target/schemadocs/index.html"/>
+    </antcall>
+  </target>
+    
+  <target name="devguide">
+    <exec executable="${mvn.executable}" dir="modules/devguide">
+      <arg line="jdocbook:resources jdocbook:generate" />
+    </exec>
+    <antcall target="show.html">
+      <param name="page" value="modules/devguide/target/docbook/publish/en/html_single/index.html"/>
+    </antcall>
+  </target>
+
+  <target name="userguide">
+    <exec executable="${mvn.executable}" dir="modules/userguide">
+      <arg line="jdocbook:resources jdocbook:generate" />
+    </exec>
+    <antcall target="show.html">
+      <param name="page" value="modules/userguide/target/docbook/publish/en/html_single/index.html"/>
+    </antcall>
+  </target>
+	
+  <!-- HTML -->
+  <target name="show.html">
+    <fail message="property page has to be specified to use this target" unless="page" />
+    <exec executable="cmd" os="Windows Vista, Windows XP,Windows 2000,Windows 98">
+      <arg value="/C start &quot;${windows.browser}&quot; &quot;file://${basedir}/${page}&quot;" />
+    </exec>
+    <exec executable="${macos.browser}" os="Mac OS X">
+      <arg value="file://${basedir}/${page}" />
+    </exec>
+    <exec executable="${linux.browser}" os="Linux">
+      <arg value="file://${basedir}/${page}" />
+    </exec>
+  </target>
+
+  <!-- target name="update.configurations" description="update the pvm, jpdl, example and test-db test resources by running the config tool">
+    <ant antfile="modules/distro/src/main/resources/config-tool/build.xml" target="create.configuration.files" inheritall="false">
+      <property name="config.files.dir" value="${basedir}/modules/pvm/src/test/resources" />
+      <property name="tmp.dir" value="${basedir}/modules/pvm/target/config-tmp" />
+      <property name="jpdl" value="exclude" />
+    </ant>
+    <ant antfile="modules/distro/src/main/resources/config-tool/build.xml" target="create.configuration.files" inheritall="false">
+      <property name="config.files.dir" value="${basedir}/modules/jpdl/src/test/resources" />
+      <property name="tmp.dir" value="${basedir}/modules/jpdl/target/config-tmp" />
+    </ant>
+    <ant antfile="modules/distro/src/main/resources/config-tool/build.xml" target="create.configuration.files" inheritall="false">
+    	<property name="config.files.dir" value="${basedir}/modules/examples/src/test/resources" />
+      <property name="tmp.dir" value="${basedir}/modules/examples/target/config-tmp" />
+  	</ant>
+    <ant antfile="modules/distro/src/main/resources/config-tool/build.xml" target="create.configuration.files" inheritall="false">
+      <property name="config.files.dir" value="${basedir}/modules/test-db/src/test/resources" />
+      <property name="tmp.dir" value="${basedir}/modules/test-db/target/config-tmp" />
+    </ant>
+  </target -->
+
+  <target name="test.configuration" description="create test configuration in target/config">
+    <ant antfile="modules/distro/src/main/resources/config-tool/build.xml" 
+    	   target="db.drop.create" inheritall="false">
+      <property name="jboss.bind.address" value="localhost" />
+      <property name="config.files.dir" value="${basedir}/target/config.tool/config.files" />
+      <property name="tmp.dir" value="${basedir}/target/config.tool/tmp" />
+      <property name="libs.dir" value="${basedir}/target/libs" />
+    </ant>
+  </target>
+
+	<target name="db.create.mysql">
+    <exec executable="${mvn.executable}">
+      <arg line=" -Ddatabase=mysql -DskipTests -Pdrop-tables -Pcreate-tables clean install" />
+    </exec>
+	</target>
+
+</project>

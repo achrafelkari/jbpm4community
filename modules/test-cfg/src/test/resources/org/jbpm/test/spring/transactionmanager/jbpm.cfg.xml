@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jbpm-configuration spring="enabled">
+
+	<import resource="jbpm.default.cfg.xml" />
+	<import resource="jbpm.jpdl.cfg.xml" />
+	<import resource="jbpm.bpmn.cfg.xml" />
+	<import resource="jbpm.identity.cfg.xml" />
+	<import resource="jbpm.businesscalendar.cfg.xml" />
+	<import resource="jbpm.console.cfg.xml" />
+
+	<!-- Spring specific configuration -->
+	<process-engine-context>
+
+		<command-service name="newTxRequiredCommandService">
+			<retry-interceptor />
+			<environment-interceptor policy="requiresNew" />
+			<spring-transaction-interceptor transaction-manager="someOtherTransactionManager" policy="requiresNew" />
+		</command-service>
+
+		<command-service name="txRequiredCommandService">
+			<retry-interceptor />
+			<environment-interceptor />
+			<spring-transaction-interceptor transaction-manager="someOtherTransactionManager"/>
+		</command-service>
+
+	</process-engine-context>
+
+	 <transaction-context>
+    <transaction type="spring" />
+    <hibernate-session current="true" />
+  </transaction-context>
+
+</jbpm-configuration>

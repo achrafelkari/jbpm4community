@@ -1,0 +1,824 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--                                                                        -->
+<!--  Distributable under LGPL license.                                     -->
+<!--  See terms of license at http://www.gnu.org.                           -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+
+<!-- $Id: pom.xml 6237 2010-03-28 00:04:36Z alex.guizar@jboss.com $ -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <name>jBPM 4</name>
+  <groupId>org.jbpm.jbpm4</groupId>
+  <artifactId>jbpm</artifactId>
+  <packaging>pom</packaging>
+
+  <version>4.4-SNAPSHOT</version>
+
+  <organization>
+    <name>JBoss, a division of Red Hat</name>
+    <url>http://www.jboss.org</url>
+  </organization>
+
+  <!-- Modules -->
+  <modules>
+    <module>modules/log</module>
+    <module>modules/api</module>
+    <module>modules/test-base</module>
+    <module>modules/pvm</module>
+    <module>modules/jpdl</module>
+    <module>modules/bpmn</module>
+    <module>modules/integration</module>
+    <module>modules/examples</module>
+    <module>modules/test-db</module>
+    <module>modules/test-pojo</module>
+    <module>modules/migration</module>
+  </modules>
+
+  <!-- Properties -->
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <apache.ant.version>1.7.0</apache.ant.version>
+    <beanshell.version>2.0b5</beanshell.version>
+    <groovy.version>1.5.6</groovy.version>
+    <cactus.version>1.8.1</cactus.version>
+    <drools.version>5.0.1</drools.version>
+    <aspectjrt.version>1.5.3</aspectjrt.version>
+    <freemarker.version>2.3.15</freemarker.version>
+    <gwt.console.version>2.0.2-SNAPSHOT</gwt.console.version>
+    <errai.version>1.1-SNAPSHOT</errai.version>
+    <jbpm.gpd.version>4.3</jbpm.gpd.version>
+    <hibernate.version>3.3.1.GA</hibernate.version>
+    <slf4j.version>1.5.2</slf4j.version>
+    <hsqldb.version>1.8.0.7</hsqldb.version>
+    <jboss.identity.version>1.0.0.Beta1</jboss.identity.version>
+    <jboss.j2ee.version>4.2.2.GA</jboss.j2ee.version>
+    <jboss.client.version>5.0.1.GA</jboss.client.version>
+    <jsr233.version>2.0.5</jsr233.version>
+    <juel.version>2.2.1</juel.version>
+    <juel.engine.version>2.1.0</juel.engine.version>
+    <junit.version>3.8.2</junit.version>
+    <log4j.version>1.2.14</log4j.version>
+    <mail.version>1.4.1</mail.version>
+    <report.engine.version>2.3.2</report.engine.version>
+    <servlet-api.version>2.5</servlet-api.version>
+    <signavio.jbpmeditor.version>1.1</signavio.jbpmeditor.version>
+    <spring.version>2.0.8</spring.version>
+    <stax.api.version>1.0.1</stax.api.version>
+  	<wiser.version>1.2</wiser.version>
+    <woodstox.version>3.2.6</woodstox.version>
+    <mysql.connector.version>5.0.8</mysql.connector.version>
+    <postgresql.version>8.3-603.jdbc3</postgresql.version>
+    <jtds.version>1.2.2</jtds.version>
+    <oracle.version>10.2.0.4</oracle.version>
+    <cdi.version>1.0</cdi.version>
+	</properties>
+
+  <!-- DependencyManagement -->
+  <dependencyManagement>
+    <dependencies>
+
+      <!-- Core engine components -->
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-db</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-enterprise</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-jboss</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-jpdl</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-bpmn</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-log</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-pvm</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-test-base</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-examples</artifactId>
+        <classifier>tests</classifier>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-test-db</artifactId>
+        <version>${project.version}</version>
+        <classifier>tests</classifier>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-test-enterprise-ejb</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-spi</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-jboss5</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-tomcat6</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+	    <dependency>
+	      <groupId>org.jbpm.jbpm4</groupId>
+	      <artifactId>jbpm-console-integration</artifactId>
+	      <version>${project.version}</version>      
+	    </dependency>
+	    <dependency>
+	      <groupId>org.jbpm.jbpm4</groupId>
+	      <artifactId>jbpm-console-form-plugin</artifactId>
+	      <version>${project.version}</version>
+	    </dependency>
+      <dependency>
+	      <groupId>org.jbpm.jbpm4</groupId>
+	      <artifactId>jbpm-console-graphView-plugin</artifactId>
+	      <version>${project.version}</version>
+	    </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-console-reports</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+	      <groupId>org.jbpm.jbpm4</groupId>
+	      <artifactId>jbpm-jboss4</artifactId>
+	      <version>${project.version}</version>
+	    </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-gpd</artifactId>
+        <type>zip</type>
+        <version>${jbpm.gpd.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4.dependencies.signavio</groupId>
+        <artifactId>jbpmeditor</artifactId>
+        <type>war</type>
+        <version>${signavio.jbpmeditor.version}</version>
+      </dependency>
+
+      <!-- External dependencies -->
+      <!-- Please sort by groupid -->
+	    <dependency>
+	      <groupId>aspectj</groupId>
+	      <artifactId>aspectjrt</artifactId>
+	      <version>${aspectjrt.version}</version>
+	    </dependency>
+      <dependency>
+        <groupId>cactus</groupId>
+        <artifactId>cactus.core</artifactId>
+        <version>${cactus.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cactus</groupId>
+        <artifactId>cactus.integration.ant</artifactId>
+        <version>${cactus.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cactus</groupId>
+        <artifactId>cactus.integration.shared.api</artifactId>
+        <version>${cactus.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>hsqldb</groupId>
+        <artifactId>hsqldb</artifactId>
+        <version>${hsqldb.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>jboss</groupId>
+        <artifactId>jboss-j2ee</artifactId>
+        <version>${jboss.j2ee.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>juel</groupId>
+        <artifactId>juel</artifactId>
+        <version>${juel.version}</version>
+      </dependency>
+      <dependency>
+        <!-- The juel engine is the library from scripting.java.sun.com that exposes juel as a jsr233 scripting engine.
+        It's not part of the juel distribution.  For some reason i don't recall, we uploaded it as 
+        an juel-engine artifact in the group juel.  And more problematic, used the juel version (2.1.0) for it.  
+        That is not intuitive. -->
+        <groupId>juel</groupId>
+        <artifactId>juel-engine</artifactId>
+        <version>${juel.engine.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>servlet-api</artifactId>
+        <version>${servlet-api.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.mail</groupId>
+        <artifactId>mail</artifactId>
+        <version>${mail.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.ant</groupId>
+        <artifactId>ant</artifactId>
+        <version>${apache.ant.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.beanshell</groupId>
+        <artifactId>bsh</artifactId>
+        <version>${beanshell.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.groovy</groupId>
+        <artifactId>groovy-all</artifactId>
+        <version>${groovy.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.drools</groupId>
+        <artifactId>drools-core</artifactId>
+        <version>${drools.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.drools</groupId>
+        <artifactId>drools-compiler</artifactId>
+        <version>${drools.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.birt</groupId>
+        <artifactId>report-engine</artifactId>
+        <type>zip</type>
+        <version>${report.engine.version}</version>
+      </dependency>
+      <dependency>
+       <groupId>org.freemarker</groupId>
+       <artifactId>freemarker</artifactId>
+       <version>${freemarker.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-core</artifactId>
+        <version>${hibernate.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.identity.idm</groupId>
+        <artifactId>idm-core</artifactId>
+        <version>${jboss.identity.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.identity.idm</groupId>
+        <artifactId>idm-hibernate</artifactId>
+        <version>${jboss.identity.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.bpm</groupId>
+        <artifactId>gwt-console</artifactId>
+        <version>${gwt.console.version}</version>
+        <classifier>jbpm</classifier>
+        <type>war</type>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.bpm</groupId>
+        <artifactId>gwt-console-server</artifactId>
+        <version>${gwt.console.version}</version>
+        <classifier>jbpm</classifier>
+        <type>war</type>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.bpm</groupId>
+        <artifactId>gwt-console-server-integration</artifactId>
+        <version>${gwt.console.version}</version>
+      </dependency>
+        <dependency>
+            <groupId>org.jboss.bpm</groupId>
+            <artifactId>gwt-console-rpc</artifactId>
+            <version>${gwt.console.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.errai</groupId>
+            <artifactId>errai-common</artifactId>
+            <version>${errai.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.errai</groupId>
+            <artifactId>errai-bus</artifactId>
+            <version>${errai.version}</version>
+        </dependency>
+      <dependency>
+        <groupId>org.jboss.javaee</groupId>
+        <artifactId>jboss-javaee</artifactId>
+        <version>${jboss.client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.jbossas</groupId>
+        <artifactId>jboss-as-client</artifactId>
+        <version>${jboss.client.version}</version>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>org.livetribe</groupId>
+        <artifactId>livetribe-jsr223</artifactId>
+        <version>${jsr233.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-jdk14</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-mock</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.subethamail</groupId>
+        <artifactId>subethasmtp-wiser</artifactId>
+        <version>${wiser.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.subethamail</groupId>
+        <artifactId>subethasmtp-smtp</artifactId>
+        <version>${wiser.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.woodstox</groupId>
+        <artifactId>wstx-lgpl</artifactId>
+        <version>${woodstox.version}</version>
+      </dependency>
+
+      <!-- Database Driver Versions  -->
+      <dependency>
+        <groupId>hsqldb</groupId>
+        <artifactId>hsqldb</artifactId>
+        <version>${hsqldb.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>${mysql.connector.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>${postgresql.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.sourceforge.jtds</groupId>
+        <artifactId>jtds</artifactId>
+        <version>${jtds.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.enterprise</groupId>
+        <artifactId>cdi-api</artifactId>
+        <version>${cdi.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <scm>
+    <connection>scm:svn:http://anonsvn.jboss.org/repos/jbpm/jbpm4</connection>
+    <developerConnection>scm:svn:https://svn.jboss.org/repos/jbpm/jbpm4</developerConnection>
+    <url>http://fisheye.jboss.com/browse/JbpmSvn/jbpm4</url>
+  </scm>
+
+  <!-- IssueManagement -->
+  <issueManagement>
+    <system>jira</system>
+    <url>http://jira.jboss.org/jira/browse/JBPM</url>
+  </issueManagement>
+
+  <!-- Licenses -->
+  <licenses>
+    <license>
+      <name>lgpl</name>
+      <url>http://repository.jboss.com/licenses/lgpl.txt</url>
+    </license>
+  </licenses>
+
+  <!-- Plugins -->
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+          <showDeprecation>true</showDeprecation>
+          <showWarnings>true</showWarnings>
+          <optimize>true</optimize>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <failIfNoTests>false</failIfNoTests>
+          <trimStackTrace>false</trimStackTrace>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <excludes>
+            <exclude>**/*TestCase.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+
+    <!-- PluginManagement -->
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>2.0.2.SP1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>2.2-beta-2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>1.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>buildnumber-maven-plugin</artifactId>
+          <version>1.0-beta-1</version>
+        </plugin>
+        <plugin>
+          <groupId>net.sourceforge.maven-taglib</groupId>
+          <artifactId>maven-taglib-plugin</artifactId>
+          <version>2.3</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>2.3</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+  <profiles>
+    <!-- schema for direct db integration test. see qa\hudson-jbpm4-db.* -->
+    <profile>
+      <id>docs</id>
+      <modules>
+        <module>modules/devguide</module>
+        <module>modules/userguide</module>
+      </modules>
+    </profile>
+
+    <!-- PROFILE DISTRO
+    -Pdistro 
+    -->
+    <profile>
+      <id>distro</id>
+      <modules>
+        <module>modules/enterprise</module>
+        <module>modules/jboss</module>
+        <module>modules/db</module>
+        <module>modules/distro</module>
+      </modules>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skipTests>true</skipTests>
+            </configuration>
+          </plugin>
+          <plugin>
+            <artifactId>maven-source-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- schema for direct db integration test. see qa\hudson-jbpm4-db.* -->
+    <profile>
+      <id>schema</id>
+      <modules>
+        <module>modules/db</module>
+      </modules>
+    </profile>
+
+    <!-- PROFILE NO-DATABASE
+    The default configurations are based on hsqldb 
+    -->
+    <profile>
+      <id>no-database</id>
+      <activation>
+        <property>
+          <name>!database</name>
+        </property>
+      </activation>
+      <properties>
+        <database>hsqldb</database>
+      </properties>
+      <dependencies>
+        <dependency>
+          <groupId>hsqldb</groupId>
+          <artifactId>hsqldb</artifactId>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- PROFILE HSQLDB
+    -Ddatabase=hsqldb
+    In the hudson matrix jobs, database=hsqldb is provided explicitely.
+    -->
+    <profile>
+      <id>hsqldb</id>
+      <activation>
+        <property>
+          <name>database</name>
+          <value>hsqldb</value>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>hsqldb</groupId>
+          <artifactId>hsqldb</artifactId>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- PROFILE ORACLE    
+    -Ddatabase=oracle 
+    -->
+    <profile>
+      <id>oracle</id>
+      <activation>
+        <property>
+          <name>database</name>
+          <value>oracle</value>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.oracle</groupId>
+          <artifactId>ojdbc14</artifactId>
+          <version>${oracle.version}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <repositories>
+        <repository>
+          <id>qa.jboss.com</id>
+          <url>http://www.qa.jboss.com/jdbc-drivers/maven2</url>
+        </repository>
+      </repositories>
+    </profile>
+
+    <!-- PROFILE MYSQL 
+    -Ddatabase=mysql -->
+    <profile>
+      <id>mysql</id>
+      <activation>
+        <property>
+          <name>database</name>
+          <value>mysql</value>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>mysql</groupId>
+          <artifactId>mysql-connector-java</artifactId>
+          <version>5.0.8</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- PROFILE POSTGRESQL 
+    -Ddatabase=postgresql -->
+    <profile>
+      <id>postgresql</id>
+      <activation>
+        <property>
+          <name>database</name>
+          <value>postgresql</value>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- PROFILE SYBASE 
+    -Ddatabase=sybase -->
+    <profile>
+      <id>sybase</id>
+      <activation>
+        <property>
+          <name>database</name>
+          <value>sybase</value>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>net.sourceforge.jtds</groupId>
+          <artifactId>jtds</artifactId>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>com.sybase</groupId>
+          <artifactId>jconnect</artifactId>
+          <version>6.0.5</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <repositories>
+        <repository>
+          <id>qa.jboss.com</id>
+          <url>http://www.qa.jboss.com/jdbc-drivers/maven2</url>
+        </repository>
+      </repositories>
+    </profile>
+
+    <!-- PROFILE INTEGRATION -->
+    <profile>
+      <id>integration</id>
+      <modules>
+        <module>modules/test-cactus</module>
+      </modules>
+    </profile>
+
+    <!-- PROFILE ENTERPRISE -->
+    <profile>
+      <id>enterprise</id>
+      <modules>
+        <module>modules/test-cactus</module>
+        <module>modules/test-enterprise/test-enterprise-ejb</module>
+        <module>modules/test-enterprise/test-enterprise-suite</module>
+      </modules>
+    </profile>
+
+    <!-- PROFILE LOAD -->
+    <profile>
+      <id>load</id>
+      <modules>
+        <module>modules/test-load</module>
+      </modules>
+    </profile>
+
+  </profiles>
+
+  <!-- Repositories -->
+  <repositories>
+    <repository>
+      <id>maven1.java.net</id>
+      <url>http://download.java.net/maven/1/</url>
+      <layout>legacy</layout>
+    </repository>
+    <repository>
+      <id>repository.jboss.org</id>
+      <url>http://repository.jboss.com/maven2</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>snapshots.jboss.org</id>
+      <url>http://snapshots.jboss.org/maven2</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>repository.codehaus.org</id>
+      <url>http://repository.codehaus.org</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>maven2.java.net</id>
+      <name>Java.net Repository for Maven 2</name>
+      <url>http://download.java.net/maven/2/</url>
+    </repository>
+    <repository>
+      <id>gwt-maven</id>
+      <url>http://gwt-maven.googlecode.com/svn/trunk/mavenrepo/</url>
+    </repository>
+  </repositories>
+
+  <!-- PluginRepositories -->
+  <pluginRepositories>
+    <pluginRepository>
+      <id>maven2.java.net</id>
+      <name>Java.net Repository for Maven 2</name>
+      <url>http://download.java.net/maven/2/</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>repository.jboss.com</id>
+      <url>http://repository.jboss.com/maven2</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>snapshots.jboss.org</id>
+      <url>http://snapshots.jboss.org/maven2</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>gwt-maven</id>
+      <url>http://gwt-maven.googlecode.com/svn/trunk/mavenrepo/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <!-- DistributionManagement -->
+  <distributionManagement>
+    <repository>
+      <id>repository.jboss.org</id>
+      <name>JBoss Maven Repository</name>
+      <url>file://${jboss.maven.repository}</url>
+    </repository>
+    <snapshotRepository>
+      <id>snapshots.jboss.org</id>
+      <name>JBoss Snapshot Repository</name>
+      <url>dav:https://snapshots.jboss.org/maven2</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+</project>

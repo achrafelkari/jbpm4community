@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<assembly xmlns="http://maven.apache.org/POM/4.0.0" 
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/assembly-1.1.0-SNAPSHOT.xsd">
+
+  <includeBaseDirectory>false</includeBaseDirectory>
+  <formats>
+    <format>dir</format>
+  </formats>
+  <dependencySets>
+  	<dependencySet>	
+      <unpack>false</unpack>
+      <includes>
+        <include>org.jbpm.jbpm4:jpdl-migration</include>
+      </includes>
+    </dependencySet>
+    <dependencySet>
+      <outputDirectory>lib</outputDirectory>	
+      <unpack>false</unpack>
+      <excludes>
+        <exclude>org.jbpm.jbpm4:jpdl-migration</exclude>
+      </excludes>
+    </dependencySet>
+   </dependencySets>
+   <fileSets>
+    <fileSet>
+      <directory>${project.basedir}/src/main/java</directory>
+      <outputDirectory>src</outputDirectory>	
+      <useDefaultExcludes>true</useDefaultExcludes>
+    </fileSet>
+  </fileSets>
+</assembly>

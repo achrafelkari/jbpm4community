@@ -1,0 +1,260 @@
+<chapter id="architecture">
+  <title>Architecture</title>
+  
+  <section id="apis">
+    <title>APIs</title>
+    <para>The Process Virtual Machine has 4 integrated API's that together 
+    offer a complete coverage of working with processes in the different execution modes.  
+    Each of the APIs has a specific purpose that fits within the following overall 
+    architecture.
+    </para>
+    <figure id="apis">
+      <title>The 4 API's of the Process Virtual Machine</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/apis.png"/></imageobject></mediaobject>
+    </figure>
+    <para>The services interfaces should be used from application code that wants to interact 
+    with the Process Virtual Machine which runs in transactional persistent mode, backed by a 
+    database.  This is the most typical way how users interact with the PVM as a workflow engine.
+    </para>
+    <para>To execute processes without persistence, the client API can be used to work with process 
+    and execution objects directly.  The client API expose the methods of the core model objects.
+    </para>
+    <para>The activity API is used to implement the runtime behaviour of activities.  So a activity 
+    type is in fact a component with at the core an implementation of the <literal>ActivityBehaviour</literal> 
+    interface.  ActivityBehaviour implementations can control the flow of execution.
+    </para>  
+    <para>The event listener API serves to write pieces of Java code that should be executed upon 
+    process events.  It's very similar to the activity API with that exception that event listeners
+    are not able to control the flow of execution. 
+    </para> 
+  </section>
+  
+  <section>
+    <title>Activity API</title>
+    <para>The activity API allows to implement the runtime activity behaviour in Java.
+    </para>
+    <programlisting>public interface ActivityBehaviour extends Serializable {
+  void execute(ActivityExecution execution) throws Exception;
+}</programlisting>
+    <para>An activity is the behaviour of the activity to which it is associated.
+    The provided execution is the execution that arrives in the activity.
+    The interface <literal>ActivityExecution</literal> exposes special 
+    methods to control the execution flow.
+    </para>
+    <programlisting>public interface ActivityExecution extends OpenExecution {
+
+  void waitForSignal();
+  void take(String transitionName);
+  void execute(String activityName);
+
+  ...
+
+}</programlisting>
+  </section>
+
+  <section>
+    <title>Event listener API</title>
+    <para>The event listener API allows for listeners to be developed in Java code 
+    and that are invoked on specific process events like entering a activity or leaving 
+    a activity.  It is very similar to the activity API, but the difference is  
+    that the propagation of the execution flow cannot be controlled.  E.g. when an execution 
+    is taking a transition, a listener to that event can be notified, but since the 
+    transition is already being taking, the execution flow cannot be changed 
+    by the event listeners.  
+    </para>
+    <programlisting>public interface EventListener extends Serializable {
+  
+  void notify(EventListenerExecution execution) throws Exception;
+
+}</programlisting>
+  </section>
+
+  <section>
+    <title>Client API</title>
+    <para>The client API is the interface that exposes the methods for 
+    managing executions on the plain process definition and execution objects directly. 
+    </para>
+    <para>At a minimal, the client API and the activity API are needed to create 
+    some a process definition with activities and execute it.
+    </para>
+  </section>
+
+  <section>
+    <title>Environment</title>
+    <para>In the persistent execution mode, the first purpose of the environment is 
+    to enable processes to be executed in different transactional environments like 
+    standard Java, enterprise Java, SEAM and Spring.
+    </para>
+    <para>The PVM code itself will only use transactional resources through self-defined 
+    interfaces.  For example, the PVM itself has interfaces for some methods on the hibernate 
+    session, a async messaging session and a timer session.
+    </para>
+    <para>The environment allows to configure the actual implementations, lazy 
+    initialization of the services on a request-basis and caching the service 
+    objects for the duration of the transaction. 
+    </para>
+    <para>An environment factory is static and one environment factory can serve 
+    all the threads in an application.
+    </para>
+    <programlisting>EnvironmentFactory environmentFactory = new PvmEnvironmentFactory("environment.cfg.xml");</programlisting>
+    <para>Environment blocks can surround persistent process operations 
+    like this:
+    </para>
+    <programlisting>Environment environment = environmentFactory.openEnvironment();
+try {
+
+  ... inside the environment block...
+
+} finally {
+  environment.close();
+}</programlisting>
+    <para>The PVM itself will fetch all it's transactional resources and configurations 
+    from the environment.  It's recommended that <literal>Activity</literal> implementations
+    do the same.
+    </para>
+    <para>The <literal>org.jbpm.pvm.internal.cfg.JbpmConfiguration</literal> acts as Configuration, 
+    ProcessEngine and EnvironmentFactory.
+    </para>
+  </section>
+
+  <section>
+    <title>Commands</title>
+    <para>Commands encapsulate operations that are to be executed within an environment 
+    block.  The main purpose for commands is to capture the logic of 
+    </para>
+    <programlisting>public interface Command&lt;T&gt; extends Serializable {
+
+  T execute(Environment environment) throws Exception;
+
+}</programlisting>
+    <para></para>
+  </section>
+
+  <section>
+    <title>Services</title>
+    <para>There are three main services: <literal>RepositoryService</literal>, 
+    <literal>ExecutionService</literal> and <literal>ManagementService</literal>.
+    In general, services are session facades that expose methods for persistent 
+    usage of the PVM. The next fragments show the essential methods as example 
+    to illustrate those services. 
+    </para>
+    <para>The <literal>RepositoryService</literal> manages the repository of 
+    process definitions.
+    </para>
+    <programlisting>public interface RepositoryService {
+
+  Deployment createDeployment();
+
+  ProcessDefinitionQuery createProcessDefinitionQuery();
+  
+  ...
+
+}</programlisting>
+    <para>The <literal>ExecutionService</literal> manages the runtime 
+    executions.</para>
+    <programlisting>public interface ExecutionService {
+
+  ProcessInstance startProcessInstanceById(String processDefinitionId);
+
+  ProcessInstance signalExecutionById(String executionId);
+   
+  ...
+
+}</programlisting>
+    <para>The <literal>ManagementService</literal> groups all management operations
+    that are needed to keep the system up and running.
+    </para>
+    <programlisting>public interface ManagementService {
+
+  JobQuery createJobQuery();
+
+  void executeJob(long jobDbid);
+  
+  ...
+  
+}</programlisting>
+    <para>The implementation of all these methods is encapsulated in 
+    <literal>Command</literal>s.  And the three services all delegate the 
+    execution of the commands to a <literal>CommandService</literal>:
+    </para>
+    <programlisting>public interface CommandService {
+
+  &lt;T&gt; T execute(Command&lt;T&gt; command);
+
+}</programlisting>
+    <para>The <literal>CommandService</literal> is configured in the 
+    environment.  A chain of CommandServices can act as interceptors 
+    around a command.  This is the core mechanism on how persistence and 
+    transactional support can be offered in a variety of environments.
+    </para>
+    <para>The default configuration file <literal>jbpm.default.cfg.xml</literal> 
+    includes following section that configures the services
+    </para>
+    <programlisting>&lt;jbpm-configuration&gt;
+
+  &lt;process-engine&gt;
+  
+    &lt;repository-service /&gt;
+    &lt;repository-cache /&gt;
+    &lt;execution-service /&gt;
+    &lt;history-service /&gt;
+    &lt;management-service /&gt;
+    &lt;identity-service /&gt;
+    &lt;task-service /&gt;</programlisting>
+    <para>And the file <literal>jbpm.tx.hibernate.cfg.xml</literal> contains the 
+    following command service configuration:</para>
+    <programlisting>&lt;jbpm-configuration&gt;
+
+  &lt;process-engine-context&gt;
+    &lt;command-service&gt;
+      &lt;retry-interceptor /&gt;
+      &lt;environment-interceptor /&gt;
+      &lt;standard-transaction-interceptor /&gt;
+    &lt;/command-service&gt;
+  &lt;/process-engine-context&gt;
+
+  ...</programlisting>
+    <para>The services like e.g. <literal>repository-service</literal>, <literal>execution-service</literal>
+    and <literal>management-service</literal> will look up the configured 
+    <literal>command-service</literal> by type.  The <literal>command-service</literal>
+    tag corresponds to the default command service that essentially does nothing else 
+    then just execute the command providing it the current environment.
+    </para>
+    <para>The configured <literal>command-service</literal> results into the following 
+    a chain of three interceptors followed by the default command executor. 
+    </para>
+    <figure id="interceptors">
+      <title>The CommandService interceptors</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/interceptors.png"/></imageobject></mediaobject>
+    </figure>
+    <para>The retry interceptor is the first in the chain and that one that will be exposed as the 
+    <literal>CommandService.class</literal> from the environment.  So the retry interceptor 
+    will be given to the respective services <literal>repository-service</literal>, <literal>execution-service</literal>
+    and <literal>management-service</literal>.  
+    </para>
+    <para>The <literal>retry-interceptor</literal> will catch hibernate StaleObjectExceptions 
+    (indicating optimistic locking failures) and retry to execute the command.
+    </para>
+    <para>The <literal>environment-interceptor</literal> will put an environment block 
+    around the execution of the command.
+    </para>
+    <para>The <literal>standard-transaction-interceptor</literal> will initialize a 
+    <literal>StandardTransaction</literal>.  The hibernate session/transaction will be 
+    enlisted as a resource with this standard transaction.
+    </para>
+    <para>Different configurations of this interceptor stack will also enable to 
+    </para>
+    <itemizedlist>
+      <listitem>delegate execution to a local ejb command service so that an container 
+      managed transaction is started.
+      </listitem>
+      <listitem>delegate to a remote ejb command service so that the command actually 
+      gets executed on a different JVM.
+      </listitem>
+      <listitem>package the command as an asynchronous message so that the command gets 
+      executed asynchronously in a different transaction.
+      </listitem>
+    </itemizedlist>
+  </section>
+
+</chapter>

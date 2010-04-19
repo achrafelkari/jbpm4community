@@ -1,0 +1,139 @@
+<chapter id="environment">
+  <title>Environment</title>
+  
+  <section>
+    <title>Introduction</title>
+    <para>The environment component together with the wire context is a kind of 
+    Inversion of Control (IoC) container.  It reads configuration information that 
+    describes how objects should be instantiated, configured and wired together.
+    </para>
+    <para>The environment is used to retrieve resources and services needed by 
+    <literal>Activity</literal> implementations and the Process Virtual Machine 
+    itself.  The main purpose is to make various aspects of the Process Virtual Machine 
+    configurable so that the PVM and the languages that run on top can work 
+    in a standard Java environment as well as an enterprise Java environment.
+    </para>
+    <para>The environment is partitioned into a set of contexts.  Each context 
+    can have its own lifecycle.  For instance, the process-engine context will 
+    strech over the full lifetime of the application.  The block context only 
+    for the duration of a try-finally block.  Typically a block context represents 
+    a database transaction.  Each context exposes a list of key-value 
+    pairs. 
+    </para>
+  </section>
+  
+  <section id="environmentfactory">
+    <title>EnvironmentFactory</title>
+    <para>To start working with an environment, you need an EnvironmentFactory.
+    One single environment factory object can be used throughout the complete 
+    lifetime of the application.  So typically this is kept in a static 
+    member field.  The EnvironmentFactory itself is the process-engine context.
+    </para>
+    <para>An <literal>EnvironmentFactory</literal> is typically obtained by 
+    parsing a configuration file like this:
+    </para>
+    <programlisting>static EnvironmentFactory environmentFactory = 
+        EnvironmentFactory.parse(new ResourceStreamSource("pvm.cfg.xml");</programlisting>
+    <para>See javadocs package org.jbpm.stream for more types of stream sources.
+    </para>
+    <para>There is a default parser in the environment factory that will 
+    create <literal>DefaultEnvironmentFactory</literal>s.  The idea is that we'll 
+    also support spring as an IoC container.  But that is still TODO.  Feel free 
+    to help us out :-).  The parser can be configured with the static setter 
+    method <literal>EnvironmentFactory.setParser(Parser)</literal>
+    </para>
+  </section>
+    
+  <section id="environmentblock">
+    <title>Environment block</title>
+    <para>An environment exists for the duration of a try-finally block.  This is how 
+    an environment block looks like:
+    </para>
+    <programlisting><emphasis role="bold">Environment environment = environmentFactory.openEnvironment();
+try {
+
+  ...
+
+} finally {
+  environment.close();
+}</emphasis></programlisting>
+    <para>The environment block defines another lifespan: the <literal>block</literal> context.  
+    A transaction would be a typical example of an object that is defined in the block 
+    context. 
+    </para>
+    <para>Inside such a block, objects can be looked up from the environment by name 
+    or by type.  If objects can looked up from the environment with method 
+    <literal>environment.get(String name)</literal> or 
+    <literal>&lt;T&gt; T environment.get(Class&lt;T&gt;)</literal>.  
+    </para>
+    <para>when an environment is created, it has a <literal>process-engine</literal> context 
+    and a <literal>block</literal>
+    context.  
+    </para>
+    <para>In the default implementation, the <literal>process-engine</literal> context and 
+    the <literal>block</literal> context are <literal>WireContext</literal>s.  A 
+    <literal>WireContext</literal> contains a description of how its objects are 
+    created and wired together to form object graphs.
+    </para>
+  </section>
+  
+  <section>
+    <title>Example</title>
+    <para>To start with a simple example, we'll need a <literal>Book</literal>:</para>
+    <programlisting>public class <emphasis role="bold">Book</emphasis> {
+  ...
+  public Book() {}
+  ...
+}</programlisting>
+    <para>Then let's create an environment factory that knows how to create book</para>
+    <programlisting>static EnvironmentFactory environmentFactory = EnvironmentFactory.parseXmlString(
+    "&lt;jbpm-configuration&gt;" +
+    "  &lt;process-engine&gt;" +
+    "    &lt;object name='book' class='org.jbpm.examples.ch09.Book' /&gt;" +
+    "  &lt;/process-engine&gt;" +
+    "&lt;/jbpm-configuration&gt;"
+));</programlisting>
+    <para>Now we'll create an environment block with this environment factory and 
+    we'll look up the book in the environment.  First the lookup is done by 
+    type and secondly by name.
+    </para>
+    <programlisting>Environment environment = environmentFactory.openEnvironment();
+try {
+  
+  Book book = <emphasis role="bold">environment.get(Book.class);</emphasis>
+  assertNotNull(book);
+  
+  assertSame(book, <emphasis role="bold">environment.get("book")</emphasis>);
+  
+} finally {
+  environment.close();
+}</programlisting>
+    <para>To prevent that you have to pass the environment as a parameter in 
+    all methods, the current environment is maintained in a threadlocal stack:
+    </para>
+    <programlisting>Environment environment = Environment.getCurrent();</programlisting>
+  </section>
+  
+  <section id="context">
+    <title>Context</title>
+    <para>Contexts can be added and removed dynamically.  Anything can be exposed 
+    as a <literal>Context</literal>.
+    </para>
+    <programlisting>public interface <emphasis role="bold">Context</emphasis> {
+  
+  <emphasis role="bold">Object get(String key);
+  &lt;T&gt; T get(Class&lt;T&gt; type);
+  Set&lt;String&gt; keys();</emphasis>
+
+  ...
+}</programlisting>
+    <para>When doing a lookup on the environment, there is a default search order 
+    in which the contexts will be scanned for the requested object.  The default 
+    order is the inverse of the sequence in which the contexts were added.  E.g.
+    if an object is defined in both the process-engine context and in the block context,
+    the block context is considered more applicable and that will be scanned first.
+    Alternatively, an explicit search order can be passed in with the 
+    <literal>get</literal> lookups as an optional parameter.
+    </para>
+  </section>
+</chapter>

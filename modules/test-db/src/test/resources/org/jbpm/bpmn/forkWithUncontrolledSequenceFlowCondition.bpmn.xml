@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions id="ForkWithUncontrolledSequenceFlowCondition"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://schema.omg.org/spec/BPMN/2.0 ../../../../../../../bpmn/src/main/resources/BPMN20.xsd"
+	xmlns:bpmn="http://schema.omg.org/spec/BPMN/2.0" typeLanguage="http://www.w3.org/2001/XMLSchema"
+	expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://sample.bpmn.camunda.com/">
+
+	<bpmn:resource name="sampleResource" />
+
+	<bpmn:process id="ForkWithUncontrolledSequenceFlowConditionProcess"
+		name="ForkWithUncontrolledSequenceFlowCondition">
+		<bpmn:startEvent id="Start" />
+
+		<bpmn:sequenceFlow id="flow1" name="fromStartToForkingTask"
+			sourceRef="Start" targetRef="forkingTask" />
+
+		<bpmn:userTask id="forkingTask" name="The Fork" />
+
+		<bpmn:sequenceFlow id="flow2a" name="Leg 1"
+			sourceRef="forkingTask" targetRef="UserTaskLeg1">
+			<bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${jbpm_outcome == 'flow'}</bpmn:conditionExpression>
+		</bpmn:sequenceFlow>
+
+		<bpmn:userTask id="UserTaskLeg1" name="user task leg1"
+			implementation="other">
+			<bpmn:potentialOwner resourceRef="sampleResource" />
+		</bpmn:userTask>
+
+		<bpmn:sequenceFlow id="flow2b" name="Leg 1 -> Join"
+			sourceRef="UserTaskLeg1" targetRef="parallelGatewayJoin" />
+
+		<bpmn:sequenceFlow id="flow3a" name="Leg 2"
+			sourceRef="forkingTask" targetRef="UserTaskLeg2" />
+		<bpmn:userTask id="UserTaskLeg2" name="user task leg2"
+			implementation="other">
+			<bpmn:potentialOwner resourceRef="sampleResource" />
+		</bpmn:userTask>
+
+		<bpmn:sequenceFlow id="flow3b" name="Leg 2 -> Join"
+			sourceRef="UserTaskLeg2" targetRef="parallelGatewayJoin" />
+
+
+		<bpmn:parallelGateway id="parallelGatewayJoin"
+			name="The Join" gatewayDirection="converging" />
+		<bpmn:sequenceFlow id="flow4" sourceRef="parallelGatewayJoin"
+			targetRef="End">
+		</bpmn:sequenceFlow>
+
+		<bpmn:endEvent id="End" name="End" />
+	</bpmn:process>
+</bpmn:definitions>

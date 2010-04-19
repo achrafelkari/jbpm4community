@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--                                                                        -->
+<!--  Distributable under LGPL license.                                     -->
+<!--  See terms of license at http://www.gnu.org.                           -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+
+<!-- $Id: pom.xml 5246 2009-07-06 11:07:48Z tom.baeyens@jboss.com $ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <name>jBPM 4 - Fetch old distro</name>
+  <groupId>org.jbpm.jbpm4</groupId>
+  <artifactId>jbpm-fetch-old-distro</artifactId>
+  <packaging>jar</packaging>
+  <version>4.4-SNAPSHOT</version>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <configuration>
+          <artifactItems>
+            <artifactItem>
+              <groupId>hsqldb</groupId>
+              <artifactId>hsqldb</artifactId>
+              <version>1.8.0.7</version>
+              <outputDirectory>lib</outputDirectory>
+              <destFileName>hsqldb.jar</destFileName>
+            </artifactItem>
+            <artifactItem>
+              <groupId>com.oracle</groupId>
+              <artifactId>ojdbc14</artifactId>
+              <version>10.2.0.4</version>
+              <outputDirectory>lib</outputDirectory>
+              <destFileName>ojdbc14.jar</destFileName>
+            </artifactItem>
+            <artifactItem>
+		          <groupId>mysql</groupId>
+		          <artifactId>mysql-connector-java</artifactId>
+		          <version>5.1.6</version>
+              <outputDirectory>lib</outputDirectory>
+              <destFileName>mysql-connector-java.jar</destFileName>
+            </artifactItem>
+            <artifactItem>
+		          <groupId>postgresql</groupId>
+		          <artifactId>postgresql</artifactId>
+              <version>8.3-603.jdbc3</version>
+              <outputDirectory>lib</outputDirectory>
+              <destFileName>mysql-connector-java.jar</destFileName>
+            </artifactItem>
+            <artifactItem>
+              <groupId>org.apache.ant</groupId>
+              <artifactId>ant</artifactId>
+              <version>1.7.0</version>
+              <outputDirectory>lib</outputDirectory>
+              <destFileName>ant.jar</destFileName>
+            </artifactItem>
+          </artifactItems>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <!-- Repositories -->
+  <repositories>
+    <repository>
+      <id>repository.jboss.org</id>
+      <url>http://repository.jboss.com/maven2</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>qa.jboss.com</id>
+      <url>http://www.qa.jboss.com/jdbc-drivers/maven2</url>
+    </repository>
+  </repositories>
+
+</project>

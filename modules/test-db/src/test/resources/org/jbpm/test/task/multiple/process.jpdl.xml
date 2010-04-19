@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="MultipleTasks" >
+   <start name="start1" >
+      <transition to="task1" />
+   </start>
+   <task name="task1" assignee="johndoe">
+      <transition to="task2" />
+   </task>
+   <task name="task2" assignee="johndoe">
+      <notification/>
+      <transition to="end" />
+   </task>
+   <end name="end" />
+</process>

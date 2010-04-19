@@ -1,0 +1,33 @@
+<!DOCTYPE jbosscmp-jdbc PUBLIC "-//JBoss//DTD JBOSSCMP-JDBC 4.0//EN"
+  "http://www.jboss.org/j2ee/dtd/jbosscmp-jdbc_4_0.dtd">
+
+<jbosscmp-jdbc>
+  <defaults>
+    <datasource>java:/JbpmDS</datasource>
+    <create-table>false</create-table>
+    <remove-table>false</remove-table>
+    <pk-constraint>false</pk-constraint>
+  </defaults>
+  <enterprise-beans>
+    <entity>
+      <ejb-name>Timer</ejb-name>
+      <table-name>JBPM4_JOB</table-name>
+      <cmp-field>
+        <field-name>dbid</field-name>
+        <column-name>DBID_</column-name>
+        <auto-increment/>
+      </cmp-field>
+      <cmp-field>
+        <field-name>dueDate</field-name>
+        <column-name>DUEDATE_</column-name>
+      </cmp-field>
+      <!--
+      <optimistic-locking>
+        <version-column />
+        <field-name>dbversion</field-name>
+        <column-name>DBVERSION_</column-name>
+      </optimistic-locking>
+      -->
+    </entity>
+  </enterprise-beans>
+</jbosscmp-jdbc>

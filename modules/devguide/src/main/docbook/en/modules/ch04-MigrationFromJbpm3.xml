@@ -1,0 +1,237 @@
+<chapter id="migrationfromjbpm3">
+  <title>Migration from jBPM 3</title>
+
+  <section>
+    <title>Goals of jBPM 4</title>
+    <para>In building jBPM 4, we have pursued 2 major goals:</para>
+    <itemizedlist>
+      <listitem><emphasis role="bold">Improve supportability:</emphasis> In jBPM 3 we relied only on community 
+      feedback for improving stability and portability.  In jBPM 4 we have added 
+      a clear indication of which environments and configurations that we support. 
+      Those environments will be backed with continuous integration in the JBoss QA 
+      Labs.  The build now supports all these environments and configurations so that
+      it is easier for us to reproduce and investigate problems if they pop up.
+      This coverage will also guarantee longer lifespan of jBPM 4.
+      </listitem>
+      <listitem><emphasis role="bold">Lowering the treshold and increasing adoption to the next level:</emphasis>
+      In jBPM 4 we created a clear differentiation between the common, basic usage on the 
+      one hand and the advanced usage on the other hand.  So it will be easier to 
+      get started and harder (but still possible) to leverage the bleeding edge stuff
+      on which developers can burn their fingers.
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section>
+    <title>Known limitations</title>
+    <para>As part of creating a clear separation between basic and advanced usage, the API 
+    has been completely revisited.  Basic usage is covered with the public API.  The same API 
+    is available in all the supported environments.  Package names in jBPM 4 are strictly 
+    separated from package names in jBPM 3.
+    </para>
+    <para>Instead of providing a full DB migration, we opted for a strategy to 
+    allow for jBPM 3 and jBPM 4 instances to run concurrently next to each 
+    other. The table prefix is changed from <literal>JBPM_</literal> to <literal>JBPM4_</literal>.  
+    There is no migration tool to convert jBPM 3 runtime database contents 
+    to jBPM 4.  We're not sure if we'll be able to build such a tool in one of the
+    next version.  One of the main reasons is that any QA for a data migration of the
+    DB contents would be impossible for the project team to achieve.  
+    </para>
+    <para>Furthermore, there are some features that are not yet available 
+    on jBPM 4.  They are ordered from likely to unlikely to get implemented in 
+    jBPM 4.
+    </para>
+    <itemizedlist>
+      <listitem>User provided transasctional resources such as JDBC connections 
+      or hibernate connections</listitem>
+      <listitem>Exception handlers</listitem>
+      <listitem>Transient variables</listitem>
+      <listitem>Identity expression to calculate the assignee of a task</listitem>
+      <listitem>Task form variable-to-parameter conversions</listitem>
+    </itemizedlist>
+  </section>
+  
+  <section id="processconversiontool">
+    <title>Process conversion tool</title>  
+    <para>In many cases, a lot of work has been put in the design of JPDL3 process
+    definitions. To avoid a complete manual translation of these processes to the
+    JPDL4 format, the jBPM distribution contains a subdirectory called
+    <emphasis role="bold">migration</emphasis>, which contains a command-line
+    tool for converting JPDL3 process definition files to JPDL process XML files.
+    </para>
+    
+    <para>Translated processes might not be executable any more.  The jBPM 4 
+    features might still be missing or the translation itself might not yet 
+    be implemented.  But the tedious work of reformatting will be handled 
+    by the tool.  It will also indicate the parts that it can't translate. 
+    </para>
+    
+    <para>
+    The tool itself uses only dom4j to do the translation between
+    the two formats and should be easy extensible (the source code is also in
+    the same directory). The design of the tool is deliberately kept very simple
+    (ie most of the logic can be found in the <emphasis role="bold">Jpdl3Converter</emphasis> class).
+    Note that this tool is experimental and tested only a small set of JPDL3 
+    process files. 
+    </para>
+  
+    <section>
+      <title>Overview</title>
+      <para>
+      The jPDL Conversion tool takes a jpdl3 process file as input, and 
+      converts it to a jpdl4 process file.
+    </para>
+    <para>    
+      Syntax:
+      <programlisting>java org.jbpm.jpdl.internal.convert.JpdlConverterTool -v -o &lt;outputfile&gt; &lt;processfile&gt;</programlisting>
+    </para>
+    </section>
+    
+    <section>
+      <title>Arguments</title>
+      <itemizedlist>
+        <listitem>
+          <emphasis role="bold">-v (verbose):</emphasis> The tool will print the detail 
+          messages while converting the process file. When this argument is used,
+           it will also print the error stacktrace if exceptions are thrown.
+        </listitem>
+        <listitem>
+          <emphasis role="bold">-o (output)</emphasis> Specifies the output file name.
+          By default, the tool will generate a file name ending in 'converted.jpdl.xml' 
+          using as a base file name the name derived from the input process file.
+          The output-filename can be an absolute file name path or a relative file name path.
+        </listitem>
+      </itemizedlist>
+    </section>
+    
+    <section>
+      <title>Usage examples</title>
+      <programlisting>
+java -jar jpdl-migration-XX.jar simple.jpdl.xml
+java -jar jpdl-migration-XX.jar -v simple.jpdl.xml
+java -jar jpdl-migration-XX.jar -o /home/scott/simple.converted.xml simple.jpdl.xml   
+      </programlisting>
+    </section>
+    
+    <section>
+      <title>Advanced</title>
+      <para>
+        The conversion tool can easily be integrated with regular Java code
+        (or with Maven or Ant). The following code example shows how to call the
+        internal api to convert the process file:
+        <programlisting>
+URL url = new URL(&quot;simple.jpdl&quot;);
+Jpdl3Converter jpdlConverter = new Jpdl3Converter(url);
+Document jpdl4Doc = jpdlConverter.readAndConvert();
+
+for (Problem problem : jpdlConverter.problems) {
+   //do something to handle the problem
+}
+
+Writer fileWriter = new FileWriter(outputFile);
+OutputFormat format = OutputFormat.createPrettyPrint();
+XMLWriter writer = new XMLWriter( fileWriter, format );
+writer.write(jpdl4Doc);
+writer.close();</programlisting>
+      </para>
+    </section>
+  </section>
+  
+  <section>
+    <title>Translations and changes</title>
+    <para>This section gives an indication of the most important renamings and changes that 
+    were applied in jBPM4
+    </para>
+
+    <table><title>General name changes</title>
+     <tgroup cols="2" rowsep="1" colsep="1">
+       <thead>
+         <row>
+           <entry>jBPM 3</entry>
+           <entry>jBPM 4</entry>
+           <entry>Remarks</entry>
+         </row>
+       </thead>
+       <tbody>
+         <row>
+           <entry>Node</entry>
+           <entry>Activity</entry>
+         </row>
+         <row>
+           <entry>Token</entry>
+           <entry>Execution</entry>
+           <entry>The root execution is now the same object as the 
+           process instance.  (In jBPM 3, the ProcessInstance had 
+           a pointer to the root token).  Also, unlike in jBPM 3, executions in jBPM 4 might 
+           get inactivated, create a child execution and let the child execution continue, even 
+           when logically this represents only one single path of execution.  This happens in 
+           scope activities (or composite activities) that have timers or variables declared.
+           </entry>
+         </row>
+         <row>
+           <entry>Action</entry>
+           <entry>Event listener</entry>
+         </row>
+        </tbody>
+      </tgroup>
+    </table>
+    
+    <table><title>jPDL XML changes</title>
+     <tgroup cols="2" rowsep="1" colsep="1">
+       <thead>
+         <row>
+           <entry>jBPM 3</entry>
+           <entry>jBPM 4</entry>
+         </row>
+       </thead>
+       <tbody>
+         <row>
+           <entry>process-definition</entry>
+           <entry>process</entry>
+         </row>
+         <row>
+           <entry>event type=&quot;...&quot;</entry>
+           <entry>on event=&quot;...&quot;</entry>
+         </row>
+         <row>
+           <entry>action</entry>
+           <entry>event-listener</entry>
+         </row>
+         <row>
+           <entry>node</entry>
+           <entry>custom</entry>
+         </row>
+         <row>
+           <entry>process-state</entry>
+           <entry>sub-process</entry>
+         </row>
+         <row>
+           <entry>super-state</entry>
+           <entry>group (still in incubation)</entry>
+         </row>
+       </tbody>
+     </tgroup>
+   </table>
+
+    <table><title>Default changes</title>
+     <tgroup cols="2" rowsep="1" colsep="1">
+       <thead>
+         <row>
+           <entry>jBPM 3</entry>
+           <entry>jBPM 4</entry>
+         </row>
+       </thead>
+       <tbody>
+         <row>
+           <entry>by default, propagated events trigger actions in outer process elements</entry>
+           <entry>by default, propagated events <emphasis role="bold">do not</emphasis> 
+           invoke event-listeners in outer elements, but only in the element on which the 
+           event listener is subscribed.</entry>
+         </row>
+       </tbody>
+     </tgroup>
+   </table>
+
+  </section>
+  
+</chapter>

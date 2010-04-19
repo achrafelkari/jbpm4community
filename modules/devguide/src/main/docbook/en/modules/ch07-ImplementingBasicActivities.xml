@@ -1,0 +1,486 @@
+<chapter id="implementingbasicactivities">
+  <title>Implementing basic activities</title>
+  
+  <para>This chapter explains the basics of process definitions, the features offered by 
+  the Process Virtual Machine and how activity implementations can be build.   At the same 
+  time the client API is shown to execute processes with those activity implementations.  
+  </para>
+
+  <!-- ### Activity ####################################################### -->
+  <section id="activity">
+    <title>ActivityBehaviour</title>
+    <para>The PVM library doesn't have a fixed set of process constructs. 
+    Instead, runtime behaviour of a activity is delegated to an <literal>ActivityBehaviour</literal>.  
+    In other words, <literal>ActivityBehaviour</literal> is an interface to implement the runtime 
+    behaviour of process constructs in plain Java.
+    </para>
+    <programlisting>public <emphasis role="bold">interface ActivityBehaviour</emphasis> extends Serializable {
+    
+  void <emphasis role="bold">execute</emphasis>(ActivityExecution execution) throws Exception;
+  
+}</programlisting>
+    <para>When an activity behaviour is called, it is in full control of the further 
+    propagation of the execution.  In other words, an activity behaviour can decide what the execution 
+    should do next.  For example, it can take a transition with 
+    <literal>execution.take(Transition)</literal> or go into a wait state with 
+    <literal>execution.waitForSignal()</literal>.  In case the activity behaviour does not invoke 
+    any of the above execution propagation methods, the execution will 
+    <link linkend="implicitproceedbehaviour">proceed in a default way</link>.
+    </para>
+  </section>
+
+  <!-- ### ActivityBehaviour example ############################################### -->
+  <section id="activitybehaviourexample">
+    <title>ActivityBehaviour example</title>
+    <para>We'll start with a very original hello world example.  A Display 
+    activity will print a message to the console:
+    </para>
+    <programlisting>public <emphasis role="bold">class Display</emphasis> implements <emphasis role="bold">ActivityBehaviour</emphasis> {
+
+  String message;
+
+  public Display(String message) {
+    this.message = message;
+  }
+
+  public void execute(ActivityExecution execution) {
+    <emphasis role="bold">System.out.println(message);</emphasis>
+  }
+}</programlisting>
+    <para>Let' build our first process definition with this activity:</para>
+    <figure id="activity.example">
+      <title>Display example process</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/process.ab.png"/></imageobject></mediaobject>
+    </figure>
+    <programlisting>TODO add ProcessBuilder example code</programlisting>
+    <para>Now we can execute this process as follows:</para>
+    <programlisting>Execution execution = processDefinition.startExecution();</programlisting>
+    <para>The invocation of <literal>startExecution</literal> will print hello world to the console:</para>
+    <programlisting>hello
+world</programlisting>
+    <para>One thing already worth noticing is that activities can be configured 
+    with properties.  In the Display example, you can see that the message property 
+    is configured differently in the two usages.  With configuration properties 
+    it becomes possible to write reusable activities. They can then be configured 
+    differently each time they are used in a process.  That is an essential part of 
+    how process languages can be build on top of the Process Virtual Machine.
+    </para>
+    <para>The other part that needs explanation is that this activity 
+    implementation does not contain any instructions for the propagation of the
+    execution.  When a new process instance is started, the execution is positioned
+    in the initial activity and that activity is executed.  The method 
+    <literal>Display.execute</literal> makes use of what is called implicit propagation 
+    of execution.  Concretely this means that the activity itself does not 
+    invoke any of the methods on the execution to propagate it.  In that case 
+    implicit propagation kicks in.  Implicit propagation will take the first 
+    transition if there is one.  If not, it will end the execution.  This explains 
+    why both activities <literal>a</literal> and <literal>b</literal> are executed and that 
+    the execution stops after activity <literal>b</literal> is executed. 
+    </para>
+    <para>More details about the implicit proceed behaviour can be found 
+    in <xref linkend="implicitproceedbehaviour" /></para>
+  </section>
+    
+  <!-- ### ExternalActivityBehaviour ############################################### -->
+  <section id="externalactivitybehaviour">
+    <title>ExternalActivityBehaviour</title>
+    <para>External activities are activities for which the responsibility for proceeding 
+    the execution is transferred externally, meaning outside the process system. This 
+    means that for the system that is executing the process, it's a wait state.  The 
+    execution will wait until an external trigger is given.  
+    </para>
+    <para>For dealing with external triggers, <literal>ExternalActivityBehaviour</literal> 
+    adds one method to the <literal>ActivityBehaviour</literal>:</para>
+    <programlisting>public <emphasis role="bold">interface ExternalActivity</emphasis> extends <emphasis role="bold">Activity</emphasis> {
+
+  void <emphasis role="bold">signal</emphasis>(Execution execution,
+              String signal, 
+              Map&lt;String, Object&gt; parameters) throws Exception;
+              
+}</programlisting>
+    <para>Just like with plain activities, when an execution arrives in a activity, the 
+    <literal>execute</literal>-method of the external activity behaviour is invoked.
+    In external activities, the execute method typically does something to 
+    transfer the responsibility to another system and then enters a wait 
+    state by invoking <literal>execution.waitForSignal()</literal>.  For 
+    example in the execute method, responsibility could be transferred to a 
+    person by creating a task entry in a task management system and then
+    wait until the person completes the task.
+    </para>
+    <para>In case a activity behaves as a wait state, then the execution will 
+    wait in that activity until the execution's <literal>signal</literal> method 
+    is invoked.  The execution will delegate that signal to the ExternalActivityBehaviour
+    object associated to the current activity.
+    </para>
+    <para>So the Activity's <literal>signal</literal>-method is invoked 
+    when the execution receives an external trigger during the wait state.  With the 
+    signal method, responsibility is transferred back to the process execution. For 
+    example, when a person completes a task, the task management system calls the 
+    signal method on the execution.
+    </para>  
+    <para>A signal can optionally have a signal name and a map of parameters.  Most 
+    common way on how activity behaviours interprete the signal and parameters is that 
+    the signal relates to the outgoing transition that needs to be taken and that the 
+    parameters are set as variables on the execution. But those are just examples, it 
+    is up to the activity to use the signal and the parameters as it pleases.
+    </para>
+  </section>
+  
+  <!-- ### ExternalActivity example ####################################### -->
+  <section id="externalactivityexample">
+    <title>ExternalActivity example</title>
+    <para>Here's a first example of a simple wait state implementation:
+    </para>
+    <programlisting>public <emphasis role="bold">class WaitState</emphasis> implements <emphasis role="bold">ExternalActivity</emphasis> {
+
+  public void execute(ActivityExecution execution) {
+    <emphasis role="bold">execution.waitForSignal();</emphasis>
+  }
+
+  public void signal(ActivityExecution execution, 
+                     String signalName, 
+                     Map&lt;String, Object&gt; parameters) {
+    <emphasis role="bold">execution.take(signalName);</emphasis>
+  }
+}</programlisting>
+    <para>The <literal>execute</literal>-method calls 
+    <literal>execution.waitForSignal()</literal>.  The invocation of 
+    <literal>execution.waitForSignal()</literal> will bring the process execution 
+    into a wait state until an external trigger is given. 
+    </para>
+    <para><literal>signal</literal>-method takes the transition with 
+    the signal parameter as the transition name.  So when an execution receives an 
+    external trigger, the signal name is interpreted as the name of an outgoing
+    transition and the execution will be propagated over that transition.
+    </para>
+    <para>Here's the same simple process that has a transition from a to b.  This 
+    time, the behaviour of the two activities will be WaitState's.
+    </para>
+    <figure id="process.diagram">
+      <title>The external activity example process</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/process.ab.png"/></imageobject></mediaobject>
+    </figure>
+    <programlisting>ClientProcessDefinition processDefinition = ProcessFactory.build()
+    <emphasis role="bold">.activity("a").initial().behaviour(new WaitState())</emphasis>
+      .transition().to("b")
+    <emphasis role="bold">.activity("b").behaviour(new WaitState())</emphasis>
+.done();</programlisting>
+    <para>Let's start a new process instance for this process definition:</para>
+    <programlisting>ClientExecution execution = processDefinition.startProcessInstance();</programlisting>
+    <para>Starting this process will execute the <literal>WaitState</literal> activity 
+    in activity <literal>a</literal>.  <literal>WaitState.execute</literal> will invoke 
+    <literal>ActivityExecution.waitForSignal</literal>.  So when the 
+    <literal>processDefinition.startProcessInstance()</literal> returns, the execution 
+    will still be positioned in activity a.  
+    </para>
+    <programlisting>assertEquals("a", execution.getActivityName());</programlisting>
+    <para>Then we provide the external trigger by calling the <literal>signal</literal> 
+    method.
+    </para>
+    <programlisting>execution.signal();</programlisting>
+    <para>The <literal>execution.signal()</literal> will delegate to the activity 
+    of the current activity.  So in this case that is the <literal>WaitState</literal>
+    activity in activity <literal>a</literal>.  The <literal>WaitState.signal</literal>
+    will invoke the <literal>ActivityExecution.take(String transitionName)</literal>.
+    Since we didn't supply a signalName, the first transition with name <literal>null</literal>
+    will be taken.  The only transition we specified out of activity <literal>a</literal> 
+    didn't get a name so that one will be taken.  And that transition points to activity 
+    <literal>b</literal>.  When the execution arrives in activity <literal>b</literal>,
+    the <literal>WaitState</literal> in activity <literal>b</literal> is executed. 
+    Similar as we saw above, the execution will wait in activity <literal>b</literal>
+    and this time the <literal>signal</literal> method will return, leaving the 
+    execution positioned in activity <literal>b</literal>.  
+    </para>
+    <programlisting>assertEquals("b", execution.getActivityName());</programlisting>
+  </section>
+  
+  <!-- ### BASIC PROCESS EXECUTION ######################################## -->
+  <section id="basicprocessexecution">
+    <title>Basic process execution</title>
+    <para>In this next example, we'll combine automatic activities and wait states.
+    This example builds upon the loan approval process with the <literal>WaitState</literal>
+    and <literal>Display</literal> activities that we've just created.  Graphically,
+    the loan process looks like this:  
+    </para>
+    <figure id="basicprocessexecution.loan.process">
+      <title>The loan process</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/process.loan.png"/></imageobject></mediaobject>
+    </figure>
+    <para>Building process graphs in Java code can be tedious because you have to keep track of all the 
+    references in local variables.  To resolve that, the Process Virtual Machine comes with a 
+    ProcessFactory.  The ProcessFactory is a kind of domain specific language (DSL) that is embedded 
+    in Java and eases the construction of process graphs.  This pattern is also known as 
+    a <ulink url="http://martinfowler.com/bliki/FluentInterface.html">fluent 
+    interface</ulink>.    
+    </para>
+    <programlisting>ClientProcessDefinition processDefinition = ProcessFactory.build("loan")
+  .activity(<emphasis role="bold">"submit loan request"</emphasis>).initial().behaviour(new Display("loan request submitted"))
+    .transition().to("evaluate")
+  <emphasis role="bold">.activity("evaluate").behaviour(new WaitState())</emphasis>
+    .transition("approve").to("wire money")
+    .transition("reject").to("end")
+  <emphasis role="bold">.activity("wire money").behaviour(new Display("wire the money"))</emphasis>
+    .transition().to("archive")
+  <emphasis role="bold">.activity("archive").behaviour(new WaitState())</emphasis>
+    .transition().to("end")
+  <emphasis role="bold">.activity("end").behaviour(new WaitState())</emphasis>
+.done();</programlisting>
+    <para>For more details about the ProcessFactory, see <ulink url="../../api/org/jbpm/pvm/package-summary.html">the
+    api docs</ulink>.  An alternative for 
+    the ProcessFactory would be to create an XML language and an XML parser for expressing 
+    processes.  The XML parser can then instantiate the classes of package 
+    <literal>org.jbpm.pvm.internal.model</literal> directly. That approach is typically taken by 
+    process languages.  
+    </para>
+    <para>The initial activity <literal>submit loan request</literal> and the activity 
+    <literal>wire the money</literal> are automatic activities.  In this example, 
+    the <literal>Display</literal> implementation of activity 
+    <literal>wire the money</literal> uses the Java API's to just print a 
+    message to the console.  But the witty reader can imagine an alternative 
+    <literal>Activity</literal> implementation that uses the Java API of a payment 
+    processing library to make a real automatic payment.  
+    </para>
+    <para>A new execution for the process above can be started like this
+    </para>
+    <programlisting>ClientExecution execution = processDefinition.startProcessInstance();</programlisting>
+    <para>When the <literal>startExecution</literal>-method returns, the activity 
+    <literal>submit loan request</literal> will be executed and the execution will be 
+    positioned in the activity <literal>evaluate</literal>.
+    </para>
+    <figure id="execution.loan.evaluate">
+      <title>Execution positioned in the 'evaluate' activity</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/execution.loan.evaluate.png"/></imageobject></mediaobject>
+    </figure>
+    <para>Now, the execution is at an interesting point.  There are two transitions out of 
+    the state <literal>evaluate</literal>.  One transition is called <literal>approve</literal> 
+    and one transition is called <literal>reject</literal>.  As we explained above, the WaitState
+    implementation will take the transition that corresponds to the signal that is given.  
+    Let's feed in the 'approve' signal like this:
+    </para>
+    <programlisting>execution.signal("approve");</programlisting>
+    <para>The <literal>approve</literal> signal will cause the execution to take the <literal>approve</literal>
+    transition and it will arrive in the activity <literal>wire money</literal>.
+    </para>
+    <para>In activity <literal>wire money</literal>, the message will be printed to the console.
+    Since, the <literal>Display</literal> activity didn't invoke the 
+    <literal>execution.waitForSignal()</literal>, nor any of the other execution propagation 
+    methods, the implicit proceed behaviour will just make the execution continue 
+    over the outgoing transition to activity <literal>archive</literal>, which is again 
+    a <literal>WaitState</literal>.
+    </para>
+    <figure id="execution.loan.archive">
+      <title>Execution positioned in 'archive' activity</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/execution.loan.archive.png"/></imageobject></mediaobject>
+    </figure>
+    <para>So only when the <literal>archive</literal> wait state is reached, 
+    the <literal>signal("approve")</literal> returns.   
+    </para>
+    <para>Another signal like this:</para>
+    <programlisting>execution.signal("approve");</programlisting>
+    <para>will bring the execution eventually in the end state.</para>
+    <figure id="execution.loan.end">
+      <title>Execution positioned in the 'end' activity</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/execution.loan.end.png"/></imageobject></mediaobject>
+    </figure>
+  </section>
+
+  <!-- ### EVENTS ######################################################### -->
+  <section id="events">
+    <title>Events</title>
+    <para>Events are points in the process definition to which a list of 
+    <literal>EventListener</literal>s can be subscribed. 
+    </para>
+    <programlisting>public interface EventListener extends Serializable {
+  
+  void notify(EventListenerExecution execution) throws Exception;
+
+}</programlisting>
+    <para>The motivation for events is to allow for 
+    developers to add programming logic to a process without changing the process diagram.  
+    This is a very valuable instrument in facilitating the collaboration between business analysts 
+    and developers.  Business analysts
+    are responsible for expressing the requirements.  When they use a process graph to document 
+    those requirements, developers can take this diagram and make it executable.  Events can 
+    be a very handy to insert technical details into a process (like e.g. some database insert) 
+    in which the business analyst is not interested.   
+    </para>
+    <para>Most common events are fired by the execution automatically:
+    </para>
+    <para>TODO: explain events in userguide</para>
+    <para>Events are identified by the combination of a process element 
+    and an event name.  Users and process languages can also fire events 
+    programmatically with the fire method on the Execution:
+    </para>
+    <programlisting>public interface Execution extends Serializable {
+  ...
+  void fire(String eventName, ProcessElement eventSource);
+  ...
+}</programlisting>
+    
+    <para>A list of <literal>EventListeners</literal> can be associated to an 
+    event. But event listeners can not influence the control flow of the execution since 
+    they are merely listeners to an execution which is already in progress.  This is different from 
+    activities that serve as the behaviour for activities.  Activity behaviour activities are responsible 
+    for propagating the execution. 
+    </para>
+    <para>We'll create a <literal>PrintLn</literal> event listener which is 
+    very similar to the <literal>Display</literal> activity from above.
+    </para>
+    <programlisting>public class PrintLn implements EventListener {
+  
+  String message;
+  
+  public PrintLn(String message) {
+    this.message = message;
+  }
+
+  public void notify(EventListenerExecution execution) throws Exception {
+    System.out.println("message");
+  }
+}</programlisting>
+    <para>Several <literal>PrintLn</literal> listeners will be subscribed to events in 
+    the process.</para>
+    <figure id="action.process">
+      <title>The PrintLn listener process</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/process.ab.png"/></imageobject></mediaobject>
+    </figure>
+    <programlisting>ClientProcessDefinition processDefinition = ProcessFactory.build()
+  .activity("a").initial().behaviour(new AutomaticActivity())
+    <emphasis role="bold">.event("end")
+      .listener(new PrintLn("leaving a"))
+      .listener(new PrintLn("second message while leaving a"))</emphasis>
+    .transition().to("b")
+      <emphasis role="bold">.listener(new PrintLn("taking transition"))</emphasis>
+  .activity("b").behaviour(new WaitState())
+    .event("start")
+      <emphasis role="bold">.listener(new PrintLn("entering b"))</emphasis>
+.done();</programlisting>
+     <para>The first event shows how to register multiple listeners to the same 
+     event.  They will be notified in the order as they are specified.
+     </para>
+     <para>Then, on the transition, there is only one type of event.  So in that case,
+     the event type must not be specified and the listeners can be added directly on 
+     the transition.
+     </para>
+     <para>A listeners will be called each time an execution fires the event to 
+     which the listener is subscribed.  The execution will be provided in the activity 
+     interface as a parameter and can be used by listeners except for the methods that
+     control the propagation of execution.
+     </para>   
+   </section>
+
+  <!-- ### EVENT PROPAGATION ############################################## -->
+  <section>
+    <title>Event propagation</title>
+    <para>Events are by default propagated to enclosing process elements.  The motivation 
+    is to allow for listeners on process definitions or composite activities that get executed
+    for all events that occur within that process element.  For example this feature 
+    allows to register an event listener on a process definition or a composite activity on 
+    <literal>end</literal> events.  Such action will be executed if that activity is 
+    left.  And if that event listener is registered on a composite activity, it will also be executed 
+    for all activities that are left within that composite activity. 
+    </para>
+    <para>To show this clearly, we'll create a <literal>DisplaySource</literal> event listener
+    that will print the message <literal>leaving</literal> and the source of the event
+    to the console.
+    </para>
+    <programlisting>public class <emphasis role="bold">DisplaySource</emphasis> implements EventListener {
+    
+  public void execute(EventListenerExecution execution) {
+    <emphasis role="bold">System.out.println("leaving "+execution.getEventSource());</emphasis>
+  }
+}</programlisting>
+    <para>Note that the purpose of event listeners is not to be visible, that's why the event listener 
+    itself should not be displayed in the diagram. A <literal>DisplaySource</literal> event listener
+    will be added as a listener to the event <literal>end</literal> on the composite activity.  
+    </para>
+    <para>The next process shows how the <literal>DisplaySource</literal> event listener is registered 
+    as a listener to to the 'end' event on the <literal>composite</literal> activity:</para>
+    <figure id="process.propagate">
+      <title>A process with an invisible event listener on a end event on a composite activity.</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/process.propagate.png"/></imageobject></mediaobject>
+    </figure>
+    <programlisting>TODO update code snippet</programlisting>
+    <para>Next we'll start an execution.</para>
+    <programlisting>ClientExecution execution = processDefinition.startProcessInstance();</programlisting>
+    <para>After starting a new execution, the execution will be in activity <literal>a</literal> as 
+    that is the initial activity.  No activities have been left so no message is logged.  Next a signal 
+    will be given to the execution, causing it to take the transition from <literal>a</literal>
+    to <literal>b</literal>.
+    </para>
+    <programlisting>execution.signal();</programlisting>  
+    <para>When the signal method returns, the execution will have taken the transition and 
+    the <literal>end</literal> event will be fired on activity <literal>a</literal>.  That 
+    event will be propagated to the 
+    composite activity and to the process definition.  Since our <literal>DisplaySource</literal> 
+    event listener is placed 
+    on the <literal>composite</literal> activity, it will receive the event and print the following 
+    message on the console:
+    </para>
+    <programlisting>leaving activity(a)</programlisting>
+    <para>Another</para>
+    <programlisting>execution.signal();</programlisting>
+    <para>will take the transition from b to c.  That will fire two activity-leave events.  One on  
+    activity b and one on activity composite.  So the following lines will be appended to the console 
+    output:</para>  
+    <programlisting>leaving activity(b)
+leaving activity(composite)</programlisting>
+    <para>Event propagation is build on the hierarchical composition structure of the process 
+    definition.  The top level element is always the process definition.  The process 
+    definition contains a list of activities.  Each activity can be a leaf activity or it can be a 
+    composite activity, which means that it contains a list of nested activities.  Nested activities 
+    can be used for e.g. super states or composite activities in nested process languages like BPEL.    
+    </para>
+    <para>So the even model also works similarly for composite activities as it did for the process 
+    definition above.  Suppose that 'Phase one' models 
+    a super state as in state machines.  Then event propagation allows to subscribe to all events 
+    within that super state.  The idea is that the hierarchical composition corresponds to 
+    diagram representation. If an element 'e' is drawn inside another element 'p', then p 
+    is the parent of e. A process definition has a set of top level activities.  Every activity can have 
+    a set of nested activities.  The parent of a transition is considered as the first common 
+    parent for it's source and destination.  
+    </para>
+    <para>If an event listener is not interested in propagated events, propagation can be disabled 
+    with <literal>propagationDisabled()</literal> while building the process with the 
+    <literal>ProcessFactory</literal>.  The next process is the same process 
+    as above except that propagated events will be disabled on the event listener.  The graph diagram
+    remains the same.
+    </para>
+    <figure id="process.propagate.propagation.disabled">
+      <title>A process with an event listener to 'end' events with propagation disabled.</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/process.propagate.png"/></imageobject></mediaobject>
+    </figure>
+    <para>Building the process with the process factory:
+    </para>
+    <programlisting>TODO update code snippet</programlisting>
+    <para>So when the first signal is given for this process, again the <literal>end</literal> 
+    event will be fired on activity <literal>a</literal>, but now the event listener on the composite 
+    activity will not be executed cause 
+    propagated events have been disabled.  Disabling propagation is a property on the individual 
+    event listener and doesn't influence the other listeners.  The event will always be fired and 
+    propagated over the whole parent hierarchy.
+    </para>
+    <programlisting>ClientExecution execution = processDefinition.startProcessInstance();</programlisting>
+    <para>The first signal will take the process from <literal>a</literal> to 
+    <literal>b</literal>.  No messages will be printed to the console.
+    </para>
+    <programlisting>execution.signal();</programlisting>
+    <para>Next, the second signal will take the transition from b to c.  
+    </para>
+    <programlisting>execution.signal()</programlisting>
+    <para>Again two <literal>end</literal>
+    events are fired just like above on activities <literal>b</literal> and <literal>composite</literal> 
+    respectively.  The first event 
+    is the <literal>end</literal> event on activity <literal>b</literal>.  That will be propagated 
+    to the <literal>composite</literal> activity.  So the event 
+    listener will not be executed for this event cause it has propagation disabled.  But the 
+    event listener will be executed for the <literal>end</literal> event on the 
+    <literal>composite</literal> activity.  That is not 
+    propagated, but fired directly on the <literal>composite</literal> activity.  So the event 
+    listener will now be executed 
+    only once for the composite activity as shown in the following console output: 
+    </para>
+    <programlisting>leaving activity(composite)</programlisting>
+  </section>
+
+</chapter>

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC
+      "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+      "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping package="org.jbpm.pvm.internal.jobexecutor" default-access="field">
+
+	<subclass name="TestMessage" extends="org.jbpm.pvm.internal.job.MessageImpl" discriminator-value="T">
+		<property name="messageId" />
+	</subclass>
+  
+	<subclass name="FailingTestMessage" extends="org.jbpm.pvm.internal.job.MessageImpl" discriminator-value="F">
+	</subclass>
+  
+	<subclass name="ExclusiveTestMessage" extends="org.jbpm.pvm.internal.job.MessageImpl" discriminator-value="E">
+	</subclass>
+  
+	<subclass name="FailOnceTestMessage" extends="org.jbpm.pvm.internal.job.MessageImpl" discriminator-value="O">
+		<property name="messageId" />
+	</subclass>
+  
+  <subclass name="TestTimer" extends="org.jbpm.pvm.internal.job.TimerImpl" discriminator-value="TestTimer">
+    <property name="name" />
+    <property name="nbMaxExecution" />
+    <property name="nbExecution" />
+    <property name="variableName" />
+  </subclass>
+
+</hibernate-mapping>

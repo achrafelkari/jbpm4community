@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="AsyncEventListener">
+
+  <start name="start" g="27,27,80,40">
+    <transition to="wait">
+      <mail continue="async">
+        <to addresses="you@yourcompany" />
+        <subject>hello</subject>
+        <text>hello</text>
+      </mail>
+    </transition>
+  </start>
+
+  <state name="wait" g="97,26,82,49"/>
+
+</process>

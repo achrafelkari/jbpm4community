@@ -1,0 +1,1087 @@
+<html>
+  <head>
+    <title>jBPM 4 Readme and Release Notes</title>
+  </head>
+  <body>
+    <h1>Readme</h1>
+    
+    <p>Currently the userguide and devguide only show well in <a href="http://www.mozilla.com/firefox">firefox</a>.
+    We'll fix this in one of the next versions.  
+    See <a href="https://jira.jboss.org/jira/browse/JBPM-1895">JBPM-1895</a>.
+    </p>
+    
+    <table>
+      <tr>
+        <th>Link</th>
+        <th>Description</th>
+      </tr>
+      <tr>
+        <td valign="top" style="white-space:nowrap;"><a href="doc/userguide/html_single/index.html">User guide</a></td>
+        <td>Userguide docs describing the stable and supported ways of how to work with jBPM.</td>
+      </tr>
+      <tr>
+        <td valign="top" style="white-space:nowrap;"><a href="doc/javadocs/index.html">Javadocs</a></td>
+        <td>Javadocs describing the stable and supported API</td>
+      </tr>
+      <tr>
+        <td valign="top" style="white-space:nowrap;"><a href="doc/schemadocs/index.html">Schemadocs</a></td>
+        <td>Javadoc-like documentation of the jPDL XML schema and the jBPM configuration file XML schema</td>
+      </tr>
+      <tr>
+        <td valign="top" style="white-space:nowrap;"><a href="doc/devguide/html_single/index.html">Developers guide</a></td>
+        <td>Describes more configuration, usage and tweaking options.  
+        Unleash all the flexibility in jBPM.  But beware, the parts documented in this dev 
+        guide are not guaranteed to be forward compatible.</td>
+      </tr>
+    </table>
+    
+<h1 id="4.3">Release Notes for jBPM 4.3</h1>
+
+<h2>Main improvements</h2>
+
+<ul>
+  <li>Added <b>BPMN 2.0</b> runtime engine!</li>
+  <li>Extended <span style="font-family:courier new; font-weight:bold;">java</span> activity with ejb method invocation. <a href="https://jira.jboss.org/jira/browse/JBPM-2412">JBPM-2412</a></li>
+  <li>Added <span style="font-family:courier new; font-weight:bold;">jms</span> activity (including test facilities) <a href="https://jira.jboss.org/jira/browse/JBPM-2300">JBPM-2300</a></li>
+  <li>Added integrated rules deployment and activities <span style="font-family:courier new; font-weight:bold;">rules</span> and <span style="font-family:courier new; font-weight:bold;">rules-decision</span> <a href="https://jira.jboss.org/jira/browse/JBPM-2006">JBPM-2006</a></li>
+  <li>Added enhanced spring integration and created continuous integration for it <a href="https://jira.jboss.org/jira/browse/JBPM-2529">JBPM-2529</a> &amp; <a href="https://jira.jboss.org/jira/browse/JBPM-2631">JBPM-2631</a></li>
+  <li>Automatic saving of updated deserialized variables <a href="https://jira.jboss.org/jira/browse/JBPM-2684">JBPM-2684</a></li>
+  <li>Added <span style="font-family:courier new; font-weight:bold;">count()</span> capabilities to all queries in the api <a href="https://jira.jboss.org/jira/browse/JBPM-2567">JBPM-2567</a></li>
+  <li>Fixes various bugs</li>
+</ul>
+
+<h2>DB changes</h2>
+
+<p>No DB upgrade necessary for upgrading from 4.2 to 4.3</p>
+
+<h2>API changes</h2>
+
+<ul>
+  <li>
+    <i>DeploymentQuery.PROPERTY_NAME</i> has been removed due to errors when sorting on name on Oracle
+    (was already deprecated in a previous release).
+  </li>
+  <li>
+    <i>DeploymentQuery.deploymentDbId(long dbid)</i> has been changed to <i>DeploymentQuery.deploymentId(String id)</i> 
+    to be conistent with the query API.
+  </li>
+  <li>
+    The behaviour of <i>taskService.getOutcomes(taskId)</i> have been changed. See issue
+    <a href="https://jira.jboss.org/jira/browse/JBPM-2492">[JBPM-2492]</a>.
+  </li>
+</ul>
+
+<h2>jPDL changes</h2>
+
+<ul>
+  <li>No backward incompatible changes</li>
+  <li>Added <code>jms</code>, <code>rules</code> and <code>rules-decision</code> activities</li>
+  <li>Added attribute <code>ejb-jndi-name</code> to java activity</li>
+  <li>Added attribute <code>propagation</code> to all event-listeners</li>
+</ul>
+
+<h2>Configuration changes</h2>
+
+<ul>
+  <li>
+    <b>Spring integration</b>: Creating a processEngine bean is now done through the 
+    <i>org.jbpm.pvm.internal.processengine.SpringHelper</i> class (instead of the <i>SpringConfiguration</i> class).
+    See the Spring chapter in the  developers guide for more information.
+  </li>
+</ul>
+
+<h2>Known Limitation</h2>
+
+<ul>
+  <li>
+    Reporting in the jBPM console does not work on Tomcat. See
+    [<a href='https://jira.jboss.org/jira/browse/JBPM-2627'>JBPM-2627</a>]
+  </li>
+</ul>
+
+
+<h2>        Bug
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2491'>JBPM-2491</a>] -         Deleting a ProcessInstance having a running Sub-ProcessInstance fails
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2492'>JBPM-2492</a>] -         improve task outcomes
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2529'>JBPM-2529</a>] -         jBPM-Spring Integration doesn't work for EvenListener-s
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2575'>JBPM-2575</a>] -         event-listener propagation attribute not in jpdl-4.0.xsd
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2577'>JBPM-2577</a>] -         QuerySyntaxException in HistoryService
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2618'>JBPM-2618</a>] -         Source level problem running Ant script: /examples/build.xml
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2628'>JBPM-2628</a>] -         Calling executionService.startProcessInstanceByKey with a non-existent key throws an unhelful exception
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2639'>JBPM-2639</a>] -         Task with taskform and timer leads to NPE
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2643'>JBPM-2643</a>] -         adding tasks not belonging to an execution breaks the console
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2649'>JBPM-2649</a>] -         HistoryActivityInstanceQueryImpl references wrong property for processDefinitionId
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2651'>JBPM-2651</a>] -         Error on executing a process with sub processes
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2654'>JBPM-2654</a>] -         instal.jbpm.into.jboss does not copy the MySQL driver
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2657'>JBPM-2657</a>] -         No override of convenience methods in SpringConfiguration
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2683'>JBPM-2683</a>] -         Upgrade 4.1 to 4.2 Breaks subprocess - integrity constraint (JBPM_DEV.FK_EXEC_SUBPI) violated - child record found
+</li>
+</ul>
+        
+<h2>        Feature Request
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2412'>JBPM-2412</a>] -         extend java activity targets with ejb
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2538'>JBPM-2538</a>] -         Make a TaskQuery resuable
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2558'>JBPM-2558</a>] -         SpringTransactionInterceptor: Resolve transactionManager by name
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2567'>JBPM-2567</a>] -         TaskQuery Should allow to .count() Tasks in addition of  .list() them
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2576'>JBPM-2576</a>] -         Extending HistorySession - add public getters in HistoryEvents
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2661'>JBPM-2661</a>] -         BPMN2: Exclusive gateway
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2662'>JBPM-2662</a>] -         BPMN2: parallel gateway
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2663'>JBPM-2663</a>] -         BPMN2: service task (Java based)
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2664'>JBPM-2664</a>] -         BPMN2: Manual task
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2665'>JBPM-2665</a>] -         BPMN2: receive task (java message only)
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2666'>JBPM-2666</a>] -         BPMN2: script task
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2667'>JBPM-2667</a>] -         BPMN2: User task
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2668'>JBPM-2668</a>] -         BPMN2: none start/end event
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2669'>JBPM-2669</a>] -         BPMN2: terminate end event
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2670'>JBPM-2670</a>] -         BPMN2: sequence flow
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2671'>JBPM-2671</a>] -         BPMN2: conditional sequence flow
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2673'>JBPM-2673</a>] -         BPMN2: Interface (basic: Java only)
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2674'>JBPM-2674</a>] -         BPMN2: resource
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2675'>JBPM-2675</a>] -         BPMN2: document 'getting started'
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2676'>JBPM-2676</a>] -         BPMN: default sequence flow
+</li>
+</ul>
+                    
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2006'>JBPM-2006</a>] -         drools integration
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2300'>JBPM-2300</a>] -         jms activity
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2616'>JBPM-2616</a>] -         clean up JpdlDeployer
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2623'>JBPM-2623</a>] -         remove duplicate inclusion of xsd docs in the distro
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2631'>JBPM-2631</a>] -         set up spring hudson job
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2632'>JBPM-2632</a>] -         move XPathScriptEngine classes from bpmn to pvm
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2660'>JBPM-2660</a>] -         BPMN2: create basic example and document it
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2680'>JBPM-2680</a>] -         core.jar creates exception in some nested deployment on jboss
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2684'>JBPM-2684</a>] -         automatic saving of updates to serializable variables
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2695'>JBPM-2695</a>] -         investigate user testibility of java ejb invoke activity and jms
+</li>
+</ul>
+    
+    
+<h1>Release Notes for jBPM 4.2</h1>
+
+<h2>Known limitations</h2>
+
+<p>On oracle, using DeploymentQuery.PROPERTY_NAME is causing a problem.
+We've deprecated the property because of that reason and in one of the next 
+releases, the DeploymentQuery.PROPERTY_NAME will be removed.
+</p> 
+
+<h2>API changes</h2> 
+
+<ul>
+  <li>
+    <b>Execution.isProcessInstance()</b> is renamed to <b>Execution.getIsProcessInstance</b> 
+    due to [ <a href="https://jira.jboss.org/jira/browse/JBPM-2494">JBPM-2494</a>].
+  </li>
+</ul>     
+
+<h2>        Bug
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2467'>JBPM-2467</a>] -         ForkActivity setActivity(null) breaks console integration (process state diagram and others)
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2487'>JBPM-2487</a>] -         Bug in GroupActivity.execute(ExecutionImpl execution)
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2494'>JBPM-2494</a>] -         Cannot resolve processInstance through expression
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2502'>JBPM-2502</a>] -         Queries ignore order by
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2504'>JBPM-2504</a>] -         TaskQuery has wrong / missing property constants
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2507'>JBPM-2507</a>] -         org.jbpm.integration.console.ModelAdaptor adoptTask does not copy over the task description
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2513'>JBPM-2513</a>] -         Variable value is set after history event
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2519'>JBPM-2519</a>] -         jbpm4 user guide : wrong location for the GPD plugin
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2540'>JBPM-2540</a>] -         Fix replacement of Signavio repository path on Windows
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2544'>JBPM-2544</a>] -         Console shows &quot;HTTP Status 500&quot; error message when process definition contains fork
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2554'>JBPM-2554</a>] -         jPDL schema does not contain an attribute &quot;description&quot; for the element task
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2593'>JBPM-2593</a>] -         processDefinition.getDescription() does not return the process definition description as defined in the process definition XML file
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2599'>JBPM-2599</a>] -         Unable to start new process
+</li>
+</ul>
+        
+<h2>        Feature Request
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-165'>JBPM-165</a>] -         process instance versioning
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2521'>JBPM-2521</a>] -         User docs are showing many v4.0 entries instead of current version (4.1)
+</li>
+</ul>
+    
+<h2>        Patch
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2520'>JBPM-2520</a>] -         The install build.xml is not reporting the new Signavio installtion target (patch attached)
+</li>
+</ul>
+                
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1460'>JBPM-1460</a>] -         remove ObjectReference
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2200'>JBPM-2200</a>] -         add process classloading
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2388'>JBPM-2388</a>] -         extend coverage of jpdl process conversion tool
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2430'>JBPM-2430</a>] -         review classloading when deploying process
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2501'>JBPM-2501</a>] -         revisit jboss jbpm service archive architecture
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2509'>JBPM-2509</a>] -         database migration installation script
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2511'>JBPM-2511</a>] -         move tmp directory of signavio installation to install/generated
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2516'>JBPM-2516</a>] -         Investigate console behaviour with 2 taskforms after a fork
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2524'>JBPM-2524</a>] -         enable user domain model integration
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2526'>JBPM-2526</a>] -         implement jbpm key generation
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2547'>JBPM-2547</a>] -         Verify JDK5 compatibility of Signavio
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2548'>JBPM-2548</a>] -         deprecate deployment query name property to fix oracle name clob orderBy problem
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2557'>JBPM-2557</a>] -         remove install\src\org\jbpm\db\DbUpgrade.class from distro
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2565'>JBPM-2565</a>] -         ensure backwards compatibility for previous jpdl versions
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2569'>JBPM-2569</a>] -         update jpdl namespace
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2578'>JBPM-2578</a>] -         add process customization to developer api for debugging and simulation
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2586'>JBPM-2586</a>] -         add support for sunos in installation scripts
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2597'>JBPM-2597</a>] -         fix oracle schema creation errors
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2598'>JBPM-2598</a>] -         remove schema generation from distro build
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2600'>JBPM-2600</a>] -         Update to console 1.2.0
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2601'>JBPM-2601</a>] -         make sure upgrade on postgresql deletes the hibernate_sequence table
+</li>
+</ul>
+
+<h2>        Feature Request
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBIDE-4069'>JBIDE-4069</a>] -         When we create a transition to a node (GPD), JBDS/Tools could create the transition name automatically.
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBIDE-4066'>JBIDE-4066</a>] -         Trim transition name in the 'Transition Properties Editor' of the GPD (jBPM Editor).
+</li>
+</ul>
+                    
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBIDE-4197'>JBIDE-4197</a>] -         JBDS 2.0.0 GA will not deploy JBPM archive
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBIDE-3119'>JBIDE-3119</a>] -         Exception logged on connection test in jBPM editor
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBIDE-3915'>JBIDE-3915</a>] -         jBPM Eclipse plugin can't save graphical view if gpd.xml is marked as read only
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBIDE-3618'>JBIDE-3618</a>] -         jPDL designer loses changes and cannot edit file anymore
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBIDE-4571'>JBIDE-4571</a>] -         Some JBoss plugins have no Provider Name in Installation Details.
+</li>
+</ul>
+            
+    
+<h1>Release Notes for jBPM 4.1</h1>  
+
+<h2>DB Migration</h2>
+
+
+<p>Add column <code>CLASSNAME_</code> to the <code>JBPM4_VARIABLE</code> table.
+The type of the column is dependent on the database and can be found in this table:
+</p>
+<table border="1">
+  <tr><td>Hsqldb</td><td>varchar(255)</td></tr>
+  <tr><td>MySQL</td><td>varchar(255)</td></tr>
+  <tr><td>Oracle</td><td>varchar2(255 char)</td></tr>
+  <tr><td>PostgreSQL</td><td>varchar(255)</td></tr>
+</table>
+<p>Tech details of the update in the jira 
+issue: <a href="https://jira.jboss.org/jira/browse/JBPM-2474">JBPM-2474</a> 
+</p>  
+
+<h2>Changed functionality</h2>  
+
+<ul>
+<li>
+  Calling <i>taskService.completeTask(String taskId, String outcome)</i> with an unexisting outcome will
+  throw an exception instead of suspending the process instance. (see <a href="https://jira.jboss.org/jira/browse/JBPM-2425">[JBPM-2425]</a>)
+</li>
+</ul>
+
+<h2>        Bug
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2040'>JBPM-2040</a>] -         Inconsistent behaviour depending on the ordering of events (fork+end state+join)
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2418'>JBPM-2418</a>] -         fix dueDate property in TaskQuery
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2425'>JBPM-2425</a>] -         Completing task with nonexistent outcome silently does nothing
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2436'>JBPM-2436</a>] -         Mail activity details lost when switching between source and diagram
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2452'>JBPM-2452</a>] -         freemarker templating for task forms: outcome (transitions) vs. outcome (result) clash
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2455'>JBPM-2455</a>] -         add template attribute to notification and reminder in xsd
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2466'>JBPM-2466</a>] -         task-reminder should not use task-notification template when sending mail
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2474'>JBPM-2474</a>] -         Process variables of type hibernate-long-id/hibernate-string-id don't work
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2476'>JBPM-2476</a>] -         creating new process instance from console fails to set process variables properly
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2486'>JBPM-2486</a>] -         jbpm4 user guide : small errors in doc
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2490'>JBPM-2490</a>] -         Inconsistency in user's guide: decide or select in DecisionHandler
+</li>
+</ul>
+        
+<h2>        Feature Request
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1995'>JBPM-1995</a>] -         build script to calculate jBPM DB differences
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2210'>JBPM-2210</a>] -         Add support for AS 5.1.x
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2334'>JBPM-2334</a>] -         make business calendar customizable and pluggable
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2343'>JBPM-2343</a>] -         completeTask with submitting variables
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2479'>JBPM-2479</a>] -         Integrate Signavio in distro build
+</li>
+</ul>
+    
+<h2>        Patch
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2407'>JBPM-2407</a>] -         Join  multiplicity  FIX
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2445'>JBPM-2445</a>] -         JBPM4-Spring 1.2 integration problems
+</li>
+</ul>
+    
+<h2>        Quality Risk
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2446'>JBPM-2446</a>] -         Jira freeze
+</li>
+</ul>
+            
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2301'>JBPM-2301</a>] -         add start forms to jpdl and the api
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2316'>JBPM-2316</a>] -         review executability of examples in console
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2317'>JBPM-2317</a>] -         task forms examples refinement
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2351'>JBPM-2351</a>] -         review task forms
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2353'>JBPM-2353</a>] -         remove explicit jta transaction demarcation in console and deployer
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2360'>JBPM-2360</a>] -         fix deletion of deployments in cluster
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2392'>JBPM-2392</a>] -         review duedate in jpdl3 converter
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2402'>JBPM-2402</a>] -         verify job executor threads in case of errors
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2408'>JBPM-2408</a>] -         fix duplicate schemdoc entries in the distro zip file
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2409'>JBPM-2409</a>] -         expand qa capabilities and ci
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2410'>JBPM-2410</a>] -         clean up obsolete qa dbs
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2411'>JBPM-2411</a>] -         configuration tool
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2419'>JBPM-2419</a>] -         change Job.dueDate in Job.duedate
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2432'>JBPM-2432</a>] -         problem displaying process image in console
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2433'>JBPM-2433</a>] -         Review existing BI reports and enhance/add existing/new reports
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2435'>JBPM-2435</a>] -         verify online presence of xsd's
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2437'>JBPM-2437</a>] -         add start task form capability to console
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2438'>JBPM-2438</a>] -         move settings to the bottom
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2439'>JBPM-2439</a>] -         make task lists the home page
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2440'>JBPM-2440</a>] -         define subset of jpdl schema for tooling
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2480'>JBPM-2480</a>] -         Create demo for JBW
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2498'>JBPM-2498</a>] -         improve exception message when execution not found
+</li>
+</ul>
+            
+<h1>Release Notes for jBPM 4.0 (GA)</h1>
+
+<h2>Known Issues
+</h2>
+<p>There are still 2 known minor inconveniences in the Graphical Process Designer (GPD).  For workarounds, see the jira issues:</p>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-306'>GPD-306</a>] - Self Referencing Connections
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-336'>GPD-336</a>] - image generation fails
+</li>
+</ul>
+
+
+<h2>        Bug
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2022'>JBPM-2022</a>] -         EnvironmentFactory cannot be bound to JNDI
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2055'>JBPM-2055</a>] -         Executions that are ended show up in query
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2303'>JBPM-2303</a>] -         Exception with a process containing a fork/join
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2313'>JBPM-2313</a>] -         Unabled to enlist resource exception
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2319'>JBPM-2319</a>] -         Finished executions are not changed to &quot;ended&quot; (they stay in the &quot;active&quot; state)
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2331'>JBPM-2331</a>] -         StaleObjectException on Timer execution.
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2332'>JBPM-2332</a>] -         task query candidate problem
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2335'>JBPM-2335</a>] -         Subprocess Element causes Exception if followed by an &lt;end&gt; Element
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2340'>JBPM-2340</a>] -         TaskService getTaskComments throws NullPointerException if the task is not found
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2344'>JBPM-2344</a>] -         JTA interceptor breaks console and deployer
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2355'>JBPM-2355</a>] -         Unable to retrieve suspended process defintions
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2387'>JBPM-2387</a>] -         integrity constraint violation in process that runs end to end with no wait
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2389'>JBPM-2389</a>] -         Reassignment is not reflected in task history
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2390'>JBPM-2390</a>] -         add tasks and task comments the history
+</li>
+</ul>
+        
+<h2>        Feature Request
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2052'>JBPM-2052</a>] -         Suspend / Resume executions
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2102'>JBPM-2102</a>] -         Provide process definition lifecycle
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2305'>JBPM-2305</a>] -         Implement a method in TaskService to return all active tasks of a process instance
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2309'>JBPM-2309</a>] -         Add method to support getTaskDefinition and getProcessInstance from interface Task
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2342'>JBPM-2342</a>] -         extend repo service to get a list of deployments
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2352'>JBPM-2352</a>] -         jPDL Schema definition needs some tweaks
+</li>
+</ul>
+                    
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1214'>JBPM-1214</a>] -         check optimistic locking in case of loops
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1895'>JBPM-1895</a>] -         verify html documentation style sheets for internet explorer
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2004'>JBPM-2004</a>] -         finish database cleanup of all the tests
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2016'>JBPM-2016</a>] -         finalize test support
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2110'>JBPM-2110</a>] -         Delegate deployment-service dependency resolution to the dependecy deployer in AS 5
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2183'>JBPM-2183</a>] -         process conversion tool
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2212'>JBPM-2212</a>] -         review string == comparisons for execution.state
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2223'>JBPM-2223</a>] -         event propagate property
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2275'>JBPM-2275</a>] -         handle async message jobs after process instance deletion
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2286'>JBPM-2286</a>] -         create test case with fork and join in one transaction
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2304'>JBPM-2304</a>] -         investigate non-null return values for collections in the api 
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2306'>JBPM-2306</a>] -         fix developers guide
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2307'>JBPM-2307</a>] -         prune api where possible
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2314'>JBPM-2314</a>] -         Clean up validate(Timer)
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2322'>JBPM-2322</a>] -         enable module test-db in integration test suite
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2323'>JBPM-2323</a>] -         instantiate user defined classes at parsing time
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2328'>JBPM-2328</a>] -         move timers to devguide
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2330'>JBPM-2330</a>] -         fine tuning of the execution id generator
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2336'>JBPM-2336</a>] -         fix delete task mismatch
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2339'>JBPM-2339</a>] -         Complete JTA transaction refactoring
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2348'>JBPM-2348</a>] -         make ids consistent
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2350'>JBPM-2350</a>] -         move jboss process deployment to incubation
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2354'>JBPM-2354</a>] -         fix excluded integration tests for test-db
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2356'>JBPM-2356</a>] -         fine tuning of execution persistence hierarchy
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2357'>JBPM-2357</a>] -         Change findExecutionById to show suspended executions
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2359'>JBPM-2359</a>] -         reporting test fails on oracle
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2362'>JBPM-2362</a>] -         integrate andries' spring integration
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2363'>JBPM-2363</a>] -         document purpose of ant script installations
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2364'>JBPM-2364</a>] -         split mail documentation in userguide and devguide part
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2365'>JBPM-2365</a>] -         Clarification (and API) how &quot;Start process with task form&quot; should work
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2367'>JBPM-2367</a>] -         verify examples classes deployment in demo.setup script
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2370'>JBPM-2370</a>] -         Incorporate Migration tool in distribution
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2371'>JBPM-2371</a>] -         add mysql schema diagram to db docs
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2372'>JBPM-2372</a>] -         complete javadocs
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2374'>JBPM-2374</a>] -         image problem
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2376'>JBPM-2376</a>] -         putting a task back in the group
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2378'>JBPM-2378</a>] -         add continue attribute to xsd
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2379'>JBPM-2379</a>] -         regression on oracle related to clobs
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2393'>JBPM-2393</a>] -         expand task history to full audit logs
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2395'>JBPM-2395</a>] -         fix mail listener: change task variable to task scope
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2396'>JBPM-2396</a>] -         remove TaskServive.getVariable method
+</li>
+</ul>
+
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-226'>GPD-226</a>] -         Define a repeatable build for these plugins to be exported as a feature
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-229'>GPD-229</a>] -         Write up the initial test scenario's to test the GPD (automated or manual)
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-288'>GPD-288</a>] -         Errors show up in problems view
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-301'>GPD-301</a>] -         migration support
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-331'>GPD-331</a>] -         Support HQL attributes and elements
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-333'>GPD-333</a>] -         Ensure backwards compatibility between GPD 3.1.x and GPD 4.x
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-334'>GPD-334</a>] -         update jbpm roadmap with gpd features
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-341'>GPD-341</a>] -         renaming swimlane should make editor dirty
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-351'>GPD-351</a>] -         Modify project and jpdl creation wizards to allow for jBPM 3 and jBPM 4 to coexist
+</li>
+</ul>
+                        
+
+    <h1>Release notes for jBPM 4.0.0.CR1</h1>
+    
+      <h2>Known Limitations</h2>
+        <ul>
+          <li>In the Graphical Process Designer, the hql and sql nodes are not yet configurable</li>
+          <li>In the Graphical Process Designer, the custom node is supported but not completely configurable</li>
+          <li>In the Graphical Process Designer, the wire object type configurations are limited to strings</li>
+        </ul>
+
+<h2>        Bug
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2284'>JBPM-2284</a>] -         Process definition search by name does not work
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2296'>JBPM-2296</a>] -         Fork activities create the wrong type of child executions
+</li>
+</ul>
+        
+<h2>        Feature Request
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2266'>JBPM-2266</a>] -         Task history on canceled instances/tasks
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2279'>JBPM-2279</a>] -         The java,hql,sql activities should be able to receive execution context variables
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2294'>JBPM-2294</a>] -         examples fail against postgresql
+</li>
+</ul>
+                    
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2048'>JBPM-2048</a>] -         simplify sessions
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2124'>JBPM-2124</a>] -         remove task id property
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2147'>JBPM-2147</a>] -         Fix integration test suite
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2148'>JBPM-2148</a>] -         StringBuffer Use in jBPM 4
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2150'>JBPM-2150</a>] -         Update hibernate oracle dialect
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2174'>JBPM-2174</a>] -         verify different table names for jbpm 4
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2184'>JBPM-2184</a>] -         View Process Image
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2214'>JBPM-2214</a>] -         consider sub process parameters
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2215'>JBPM-2215</a>] -         make the set of value types concrete
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2216'>JBPM-2216</a>] -         add custom activity
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2220'>JBPM-2220</a>] -         add method TaskService.getOutcomes()
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2221'>JBPM-2221</a>] -         null outcome for a task must bind to the single transition
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2228'>JBPM-2228</a>] -         remove esb activity
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2231'>JBPM-2231</a>] -         introduce system variables
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2242'>JBPM-2242</a>] -         add deployment state
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2250'>JBPM-2250</a>] -         decide on task list names
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2251'>JBPM-2251</a>] -         separate specific integration test suite deployments
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2252'>JBPM-2252</a>] -         update api usage of the state activity docs
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2256'>JBPM-2256</a>] -         add async continuations
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2257'>JBPM-2257</a>] -         verify persistence of task variables
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2261'>JBPM-2261</a>] -         check history information
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2264'>JBPM-2264</a>] -         removed previous methods
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2265'>JBPM-2265</a>] -         refactor 4.0.0 to 4.0
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2269'>JBPM-2269</a>] -         add resource lookup by process definition id
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2277'>JBPM-2277</a>] -         refactor job configuration
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2278'>JBPM-2278</a>] -         verify publication of enterprise module jar
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2281'>JBPM-2281</a>] -         figure out dependecies for Element.setUserData
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2282'>JBPM-2282</a>] -         document how to deploy a process
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2283'>JBPM-2283</a>] -         document migration strategy and limitations
+</li>
+</ul>
+            
+<h2>        Sub-task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2026'>JBPM-2026</a>] -         add group activity
+</li>
+</ul>
+
+<h2>        Bug
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-338'>GPD-338</a>] -         saving a process changes the namespace
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-340'>GPD-340</a>] -         on elements are removed from activities
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-345'>GPD-345</a>] -         XML namespaces are not consistent between GPD and the engine
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-348'>GPD-348</a>] -         jdpl.xml xmlns altered wrong
+</li>
+</ul>
+                            
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-304'>GPD-304</a>] -         Analyze backwards compatibility between GPD 3.1.x and GPD 4.x
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-316'>GPD-316</a>] -         show problems in problems view
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-320'>GPD-320</a>] -         save process image
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-322'>GPD-322</a>] -         create sub-process image in userguide
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-323'>GPD-323</a>] -         timer on events and on transitions
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-324'>GPD-324</a>] -         support process attributes and elements
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-325'>GPD-325</a>] -         Support decision attributes
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-326'>GPD-326</a>] -         support end event attributes
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-327'>GPD-327</a>] -         support sub-process elements
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-328'>GPD-328</a>] -         support Java attributes and elements
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-329'>GPD-329</a>] -         support Script attributes and elements
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-332'>GPD-332</a>] -         Event Listeners on activities and transitions
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-335'>GPD-335</a>] -         add proper licence text
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-342'>GPD-342</a>] -         decision handler element should be deserialized properly
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-343'>GPD-343</a>] -         Adding second swimlane should be reflected in details view
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-346'>GPD-346</a>] -         Allow for configuration of jBPM 4 runtime locations 
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-349'>GPD-349</a>] -         support the custom node
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-350'>GPD-350</a>] -         Remove ESB node temporarily
+</li>
+</ul>
+
+    <h1>Release Notes - JBoss jBPM - Version jBPM 4.0.0.Beta2</h1>
+        
+    
+<h2>        Bug
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2158'>JBPM-2158</a>] -         ClassCastException when start a processDeifinition which is not in the RepositoryCache.
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2222'>JBPM-2222</a>] -         StackOverflowError in HistoryActivityInstanceQueryImpl
+</li>
+</ul>
+        
+<h2>        Feature Request
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1926'>JBPM-1926</a>] -         Remove dependency on jBPM3
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2101'>JBPM-2101</a>] -         TX interceptor with 'required' semantics
+</li>
+</ul>
+                    
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1459'>JBPM-1459</a>] -         getDefaultTransition
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2015'>JBPM-2015</a>] -         Update to hibernate 3.3.1.GA
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2058'>JBPM-2058</a>] -         email templates
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2123'>JBPM-2123</a>] -         rename exclusive to decision
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2134'>JBPM-2134</a>] -         remove execution mgmt methods from ActivityExecution
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2150'>JBPM-2150</a>] -         Update hibernate oracle dialect
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2159'>JBPM-2159</a>] -         recreate jbpm.jar file
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2162'>JBPM-2162</a>] -         revert process archive deployment in examples
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2163'>JBPM-2163</a>] -         configuration phase 2
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2165'>JBPM-2165</a>] -         rename xsd
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2168'>JBPM-2168</a>] -         align query methods with hibernate
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2170'>JBPM-2170</a>] -         ant task for deployment
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2171'>JBPM-2171</a>] -         clarifying api by introducing ProcessInstance interface
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2173'>JBPM-2173</a>] -         rename api packages to org.jbpm.api
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2175'>JBPM-2175</a>] -         add xsd back to distribution
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2176'>JBPM-2176</a>] -         allow for easy creation of demo data
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2177'>JBPM-2177</a>] -         expose activity coordinates programmatically
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2179'>JBPM-2179</a>] -         Include GWT console Beta3
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2180'>JBPM-2180</a>] -         add attribute form to task
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2181'>JBPM-2181</a>] -         remove cfg.xsd
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2182'>JBPM-2182</a>] -         change jpdl namespace
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2204'>JBPM-2204</a>] -         sub-process images in the userguide
+</li>
+</ul>
+            
+<h2>        Sub-task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2025'>JBPM-2025</a>] -         add sub-process
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2027'>JBPM-2027</a>] -         add event listeners
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2029'>JBPM-2029</a>] -         add timers
+</li>
+</ul>
+
+<h2>        Bug
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-311'>GPD-311</a>] -         subelements of transition are removed when saving
+</li>
+</ul>
+                            
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-282'>GPD-282</a>] -         Implement jPDL properties mechanism for jBPM 4
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-310'>GPD-310</a>] -         remove empty transition names
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-314'>GPD-314</a>] -         activity renamings
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-315'>GPD-315</a>] -         make pallete consistent
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-320'>GPD-320</a>] -         save process image
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-322'>GPD-322</a>] -         create sub-process image in userguide
+</li>
+</ul>
+            
+<h2>        Sub-task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-317'>GPD-317</a>] -         swimlane configuration
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-318'>GPD-318</a>] -         event listener configuration
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-319'>GPD-319</a>] -         timer configuration
+</li>
+</ul>
+
+<h1>Release notes for jBPM 4.0.0.Beta1</h1>
+    
+<h2>        Bug
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2109'>JBPM-2109</a>] -         Server shutdown undeployment calls have unmet dependency 
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2120'>JBPM-2120</a>] -         javax.el.* API conflict in AS 5
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2144'>JBPM-2144</a>] -         Oracle JDBC properties are not replaced in distro
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2145'>JBPM-2145</a>] -         oracle-ds doesn't work on JDK 6
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2149'>JBPM-2149</a>] -         Storing the archive location exceeds max character limitation
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2151'>JBPM-2151</a>] -         no environment to get org.jbpm.session.RepositorySession
+</li>
+</ul>
+        
+<h2>        Feature Request
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1999'>JBPM-1999</a>] -         Add the notion of &quot;outcome&quot; to the base task model 
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2054'>JBPM-2054</a>] -         Introduce REST friendly ID's
+</li>
+</ul>
+                    
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2030'>JBPM-2030</a>] -         Leverage examples as integration test suite
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2073'>JBPM-2073</a>] -         Update the screenshots of the examples
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2075'>JBPM-2075</a>] -         revisit deployment
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2077'>JBPM-2077</a>] -         config tool
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2080'>JBPM-2080</a>] -         finish task activity
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2104'>JBPM-2104</a>] -         task example scenarios
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2108'>JBPM-2108</a>] -         Provide deployers for jboss 4 &amp; 5
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2113'>JBPM-2113</a>] -         Re-introduce database config and DDL scripts in distro
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2118'>JBPM-2118</a>] -         add task variable methods
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2152'>JBPM-2152</a>] -         Document the jboss integration
+</li>
+</ul>
+            
+<h2>        Sub-task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2024'>JBPM-2024</a>] -         add swimlanes
+</li>
+</ul>
+
+     
+    <h1>Release notes for jBPM 4.0.0.Alpha2</h1>
+
+<h2>        Bug
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1980'>JBPM-1980</a>] -         Failed to initialze ScriptEngineManager on JDK 1.5
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1981'>JBPM-1981</a>] -         Example tests fail
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2049'>JBPM-2049</a>] -         hbm2ddl.auto doesn't work within AS
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2072'>JBPM-2072</a>] -         ConnectionManager deadlock running XA transaction on AS 4
+</li>
+</ul>
+        
+<h2>        Feature Request
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1946'>JBPM-1946</a>] -         IzPack installer for jBPM4 that supports JBoss
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1993'>JBPM-1993</a>] -         Interface with the JBoss identity component
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1998'>JBPM-1998</a>] -         Dinstinction between candiadate-groups and candidate-users in Task API and model 
+</li>
+</ul>
+                    
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1246'>JBPM-1246</a>] -         document build
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1280'>JBPM-1280</a>] -         build out job executor basic test coverage
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1411'>JBPM-1411</a>] -         migrate enterprise into separate module
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1753'>JBPM-1753</a>] -         review event names
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1759'>JBPM-1759</a>] -         cleanup excluded tests
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1861'>JBPM-1861</a>] -         complete taskservice api
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1967'>JBPM-1967</a>] -         rename flow to transition
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1971'>JBPM-1971</a>] -         fix test-load hudson job in qa lab
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1972'>JBPM-1972</a>] -         introduce process definition attachments
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1973'>JBPM-1973</a>] -         finish programmatic process definition creation
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1974'>JBPM-1974</a>] -         rename node to activity
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1977'>JBPM-1977</a>] -         Provide process management through the GWT console on jbpm4
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1978'>JBPM-1978</a>] -         configure pvm2 user for hudson job jbpm4-load
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1983'>JBPM-1983</a>] -         rename context environment to transaction
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1986'>JBPM-1986</a>] -         rename ExecutionService.startExecutionXxx methods to startProcessInstanceXxx
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-1997'>JBPM-1997</a>] -         API package refactoring
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2003'>JBPM-2003</a>] -         document release procedure in a wiki page
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2020'>JBPM-2020</a>] -         fix timer mapping
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2032'>JBPM-2032</a>] -         verify blob caching
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2039'>JBPM-2039</a>] -         initial history infrastructure
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2041'>JBPM-2041</a>] -         move task mgmt into pvm module
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2044'>JBPM-2044</a>] -         Distribute GPD through the installer
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2063'>JBPM-2063</a>] -         examples hibernate configuration file
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2064'>JBPM-2064</a>] -         re-introduce schema sql scripts in distro
+</li>
+</ul>
+            
+<h2>        Sub-task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2011'>JBPM-2011</a>] -         Move non public classes to **/internal
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/JBPM-2012'>JBPM-2012</a>] -         Split jars into *-api.jar and *-impl.jar
+</li>
+</ul>
+
+<h2>        Task
+</h2>
+<ul>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-281'>GPD-281</a>] -         Release jBPM Designer 4.0.0 Alpha2
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-283'>GPD-283</a>] -         Implement a tree structured details view for graphical entities
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-287'>GPD-287</a>] -         XML preservation
+</li>
+<li>[<a href='https://jira.jboss.org/jira/browse/GPD-294'>GPD-294</a>] -         Update to new icons
+</li>
+</ul>
+            
+        
+    <h1>Release notes for jBPM 4.0.0.Alpha1</h1>
+    <p>Finally..  phew !</p>
+  </body>
+</html>

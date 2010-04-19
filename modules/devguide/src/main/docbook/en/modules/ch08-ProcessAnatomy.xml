@@ -1,0 +1,67 @@
+<chapter id="processanatomy">
+  <title>Process anatomy</title>
+  
+  <para>Above we already touched briefly on the two main process constructs: 
+  Activities, transitions and activity composition.  This chapter explores in full 
+  all the possibilities of the process definition structures.
+  </para>
+  
+  <para>There are basically two forms of process languages: graph based and composite 
+  process languages.  First of all, the process supports both.  Even graph based execution 
+  and activity composition can be used in combination to implement something like UML super states.
+  Furthermore, automatic functional activities can be implemented so that they can be 
+  used with transitions as well as with activity composition.
+  </para>
+
+  <figure id="process.anatomy">
+    <title>UML class diagram of the logical process structure</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/process.anatomy.classes.png"/></imageobject></mediaobject>
+  </figure>
+  
+  <para>By separating the structure of a process from the behaviour of the activities, 
+  any process model can be formed in the PVM.  It's up to the activity implementations 
+  to use this structure.  Activities can also impose restrictions on the diagram 
+  structures they can support.  Typically activities that control process concurrency
+  will impose restrictions on the process model structures that they can support.  
+  Next we'll show a series of example diagram structures that can be formed 
+  with the PVM process model.
+  </para>
+  
+  <figure id="transition">
+    <title>Any two activities can be connected with a transition.</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/transition.png"/></imageobject></mediaobject>
+  </figure>
+
+  <figure id="self.transition">
+    <title>A self transition.</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/self.transition.png"/></imageobject></mediaobject>
+  </figure>
+  <figure id="composite.activity">
+    <title>Composite activity is a list of nested activities.</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/composite.activity.png"/></imageobject></mediaobject>
+  </figure>
+  <figure id="transition.into.composite">
+    <title>Transition to a activity inside a composite.</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/transition.into.composite.png"/></imageobject></mediaobject>
+  </figure>
+  <figure id="transition.out.of.composite">
+    <title>Transition from a activity inside a composite to a activity outside the composite.</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/transition.out.of.composite.png"/></imageobject></mediaobject>
+  </figure>
+  <figure id="transition.inheritence">
+    <title>Transition of composite activities are inherited.  The activity inside can take the transition of the composite activity.</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/transition.inheritence.png"/></imageobject></mediaobject>
+  </figure>
+  <figure id="transition.to.outer">
+    <title>Transition from a activity to an outer composite.</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/transition.to.outer.png"/></imageobject></mediaobject>
+  </figure>
+  <figure id="transition.to.inner">
+    <title>Transition from a composite activity to an inner composed activity.</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/transition.to.inner.png"/></imageobject></mediaobject>
+  </figure>
+  <figure id="initial.in.composite">
+    <title>An initial activity inside a composite activity.</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/initial.in.composite.png"/></imageobject></mediaobject>
+  </figure>
+</chapter>

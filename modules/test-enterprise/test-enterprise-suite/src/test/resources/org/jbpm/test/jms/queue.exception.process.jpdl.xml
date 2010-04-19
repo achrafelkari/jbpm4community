@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="JmsQueueException">
+
+  <start g="20,20,48,48">
+    <transition to="send message" />
+  </start>
+
+  <jms name="send message" 
+       connection-factory="java:JmsXA"
+       destination="queue/jbpm-test-queue"
+       g="96,16,83,52">
+    <text>This is the body</text>    
+    <transition to="buzzz" />
+  </jms>
+  
+  <custom name="buzzz"
+          class="org.jbpm.test.jms.Buzzz" 
+          g="352,17,88,52"/>
+
+</process>

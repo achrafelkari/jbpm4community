@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bookmarks>
+   <site url="http://m2eclipse.sonatype.org/update" selected="true" name="Maven"/>
+   <site url="http://download.eclipse.org/technology/subversive/0.7/update-site/" selected="true" name="Subversive"/>
+   <site url="http://www.polarion.org/projects/subversive/download/eclipse/2.0/update-site/" selected="true" name="SVN Connectors"/>
+</bookmarks>

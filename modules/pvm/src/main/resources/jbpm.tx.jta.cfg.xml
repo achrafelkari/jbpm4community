@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jbpm-configuration>
+
+  <process-engine-context>
+    <command-service name="txRequiredCommandService">
+      <skip-interceptor />
+      <environment-interceptor />
+      <retry-interceptor type="jta" />
+      <jta-transaction-interceptor />
+    </command-service>
+
+    <command-service name="newTxRequiredCommandService">
+      <environment-interceptor policy="requiresNew" />
+      <retry-interceptor type="jta" />
+      <jta-transaction-interceptor policy="requiresNew" />
+    </command-service>
+
+    <command-service>
+      <environment-interceptor />
+    </command-service>
+    
+    <hibernate-configuration>
+      <cfg resource="jbpm.hibernate.cfg.xml" />     
+    </hibernate-configuration>
+
+    <hibernate-session-factory />
+    
+  </process-engine-context>
+
+  <transaction-context>
+    <transaction type="jta" />
+    <hibernate-session current="true" />
+  </transaction-context>
+
+</jbpm-configuration>

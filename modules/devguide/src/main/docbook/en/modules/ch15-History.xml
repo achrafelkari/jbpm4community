@@ -1,0 +1,36 @@
+<chapter id="history">
+  <title>History</title>
+
+    <para>History information is the information that will be maintained in the database 
+    for querying purposes.  This information is kept in the database after the 
+    process or task has ended.  But it is always up to date with the runtime 
+    information.  History information is updated inside of the runtime 
+    transaction.
+    </para>
+    
+    <para>We maintain history information on 4 entities: process instance, activity instance
+    task and variable.  Each entity has a list of details associated to it.
+    Preferably use the history queries to access this information through the API.
+    </para>
+
+    <para>HistoryEvents are fired during process execution and dispatched to the configured 
+    HistorySession.  (see HistoryEvent.fire)  All the HistoryEvents are delegated to a HistorySession.  The default HistorySessionImpl 
+    will invoke the process() method on the history events themselves.
+    </para>
+
+    <para>The HistoryEvents are temporary events.  In the process method, they build up the information 
+    in the history model.  There is a HistoryProcessInstance and there is a whole class hierarchy starting with HistoryActivityInstance.   
+    </para>
+
+    <para>In the HistoryEvent.process methods, the history events create model entities or merge 
+    information into the history entities.  For instance, a ProcessInstanceCreate history event will 
+    create a HistoryProcessInstance entity/record.  And the ProcessInstanceEnd will set the endTime 
+    property in the existing HistoryProcessInstance entity/record.  
+    </para>
+
+    <para>Similar pattern for the activities.  But for automatic activities, there is an optimisation 
+    so that only 1 event is created and all the information is stored in one single insert (as all 
+    this happens inside 1 transaction).
+    </para>
+
+</chapter>

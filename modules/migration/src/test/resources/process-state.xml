@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process-definition xmlns="urn:jbpm.org:jpdl-3.2" name="hire">
+  <start-state>
+    <transition to="initial interview" />
+  </start-state>
+  <process-state name="initial interview">
+    <sub-process name="interview" />
+    <variable name="a" access="read,write" mapped-name="aa" />
+    <variable name="b" access="read" mapped-name="bb" />
+    <transition to="end" />
+  </process-state>
+   <end-state name="end"></end-state>
+</process-definition>
+

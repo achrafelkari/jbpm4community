@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--                                                                        -->
+<!--  Distributable under LGPL license.                                     -->
+<!--  See terms of license at http://www.gnu.org.                           -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+
+<!-- $Id: pom.xml 6112 2010-01-21 09:17:34Z jbarrez $ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <name>jBPM 4 - Test DB</name>
+  <groupId>org.jbpm.jbpm4</groupId>
+  <artifactId>jbpm-test-db</artifactId>
+  <packaging>jar</packaging>
+
+  <!-- Parent -->
+  <parent>
+    <groupId>org.jbpm.jbpm4</groupId>
+    <artifactId>jbpm</artifactId>
+    <version>4.4-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <!-- Dependencies -->
+  <dependencies>
+
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-test-base</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-jpdl</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-bpmn</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-test-base</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-console-reports</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-compiler</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.subethamail</groupId>
+      <artifactId>subethasmtp-wiser</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-test-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+            <configuration>
+              <excludes>
+                <exclude>jbpm.*</exclude>
+                <exclude>logging.properties</exclude>
+                <exclude>META-INF/*</exclude>
+              </excludes> 
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <failIfNoTests>false</failIfNoTests>
+          <trimStackTrace>false</trimStackTrace>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <excludes>
+
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+
+    <!-- -Ddatabase= -->
+    <profile>
+      <id>run.database.testsuite</id>
+      <activation>
+        <property>
+          <name>database</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>database-test-cfg-customization</id>
+                <phase>test-compile</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <tasks>
+                    <echo message="database: ${database}" />
+                    <mkdir dir="target/jdbc.properties" />
+                    <copy todir="target/jdbc.properties" overwrite="true">
+                      <fileset dir="../../qa/jdbc" />
+                    </copy>
+                    <copy todir="target/jdbc.properties" overwrite="true" failonerror="false">
+                      <fileset dir="${user.home}/.jbpm4/jdbc" />
+                    </copy>
+                    <ant antfile="../distro/src/main/files/install/build.xml" target="create.cfg">
+                      <property name="tx" value="standalone.testsuite" />
+                      <property name="mail.cfg" value="testsuite" />
+                      <property name="database" value="${database}" />
+                      <property name="cfg.dest.dir" value="target/test-classes" />
+                      <property name="install.src.dir" value="../distro/src/main/files/install/src" />
+                      <property name="jdbc.properties.dir" value="target/jdbc.properties" />
+                      <property name="logging" value="none" /> <!-- then the original logging.properties in the resources of this project will be used -->
+                    </ant> 
+                  </tasks>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    
+    <!-- Note: Spring profile cannot be used together with 'database' 
+         property currently (see http://jira.codehaus.org/browse/MNG-3328) -->
+    <profile>
+      <id>run.spring.testsuite</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>spring-test-cfg-customization</id>
+                <phase>test-compile</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <tasks>
+                    <ant antfile="../distro/src/main/files/install/build.xml" target="create.cfg">
+                      <property name="tx" value="spring.testsuite" />
+                      <property name="hibernate.connection.type" value="spring" />
+                      <property name="database" value="hsqldb.inmem" />
+                      <property name="mail.cfg" value="testsuite" />
+                      <property name="cfg.dest.dir" value="target/test-classes" />
+                      <property name="install.src.dir" value="../distro/src/main/files/install/src" />
+                      <property name="jdbc.properties.dir" value="../distro/src/main/files/install/jdbc" />
+                      <property name="logging" value="none" />
+                    </ant> 
+                  </tasks>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+		      <plugin>
+		        <artifactId>maven-surefire-plugin</artifactId>
+		        <configuration>
+		          <failIfNoTests>false</failIfNoTests>
+		          <trimStackTrace>false</trimStackTrace>
+		          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+		          <excludes>
+		            <exclude>org/jbpm/test/reporting/SQLStmtTest.java</exclude>
+		          </excludes>
+		        </configuration>
+		      </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+  </profiles>
+
+</project>

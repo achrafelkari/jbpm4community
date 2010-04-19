@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jbpm-configuration>
+
+  <process-engine-context>
+    <jboss-idm-identity-session-factory jndi="java:/IdentitySessionFactory" />
+  </process-engine-context>
+
+  <transaction-context>
+    <jboss-idm-identity-session realm="realm://JBossIdentity" />
+  </transaction-context>
+
+</jbpm-configuration>

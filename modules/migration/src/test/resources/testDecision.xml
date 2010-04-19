@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process-definition 
+  xmlns="urn:jbpm.org:jpdl-3.2"
+  name="decision process">
+   <start-state name="start">
+      <transition name="to_state" to="make_decision">
+         <action name="action" class="com.test.MessageActionHandler">
+         </action>
+      </transition>
+   </start-state>
+
+  <decision name="make_decision">
+    <transition to="second">
+      <condition>a==&quot;OKOK&quot;</condition>
+    </transition>
+    <transition to="second">
+      <condition>a=="NOK"</condition>
+    </transition>
+  </decision>
+
+   <state name="second">
+      <transition name="to_end" to="end">
+         <action name="action" class="com.test.MessageActionHandler">
+            <message>About to finish!</message>
+         </action>
+      </transition>
+   </state>
+   <end-state name="end"></end-state>
+</process-definition>

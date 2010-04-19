@@ -1,0 +1,19 @@
+<chapter id="processlanguages">
+  <title>Process languages</title>
+  
+  <para>TODO: xml parser infrastructure
+  </para>
+  <para>TODO: inherit from ProcessDefinitionImpl, ExecutionImpl
+  </para>
+  <para>TODO: overriding the default proceed()
+  </para>
+  <para>TODO: activity type implementations
+  </para>
+  <para>TODO: persistence
+  </para>
+  <para>TODO: compensation: languages like bpel and bpnm define that 
+       as a normal contination that fits within the process 
+       structures available in the pvm (taking a transition and 
+       executing a nested activity). 
+  </para>
+</chapter>

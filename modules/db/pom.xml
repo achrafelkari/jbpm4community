@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--                                                                        -->
+<!--  Distributable under LGPL license.                                     -->
+<!--  See terms of license at http://www.gnu.org.                           -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+
+<!-- $Id: pom.xml 3010 2008-11-20 08:30:16Z tom.baeyens@jboss.com $ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <!-- Module Info -->
+  <modelVersion>4.0.0</modelVersion>
+  <name>jBPM 4 - DB</name>
+  <groupId>org.jbpm.jbpm4</groupId>
+  <artifactId>jbpm-db</artifactId>
+  <packaging>jar</packaging>
+
+  <!-- Parent -->
+  <parent>
+    <groupId>org.jbpm.jbpm4</groupId>
+    <artifactId>jbpm</artifactId>
+    <version>4.4-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <profiles>
+    <profile>
+      <id>schema</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>create-drop-script</id>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <tasks>
+                    <property name="project.output.dir" value="${project.build.outputDirectory}" />
+                    <ant antfile="scripts/antrun-schema.xml" target="create-schema" inheritRefs="yes" />
+                  </tasks>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>upgrade</id>
+      <activation>
+        <property>
+          <name>old.version</name>
+        </property>
+      </activation>
+
+      <properties>
+        <old.scripts.directory>${project.build.directory}/create-drop-${old.version}</old.scripts.directory>
+      </properties>
+
+      <dependencies>
+        <dependency>
+          <groupId>com.oracle</groupId>
+          <artifactId>ojdbc14</artifactId>
+          <version>${oracle.version}</version>
+          <scope>compile</scope>
+        </dependency>
+      </dependencies>
+
+      <repositories>
+        <repository>
+          <id>qa.jboss.com</id>
+          <url>http://www.qa.jboss.com/jdbc-drivers/maven2</url>
+        </repository>
+      </repositories>
+
+      <build>
+        <plugins>
+
+          <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>previous-version</id>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.jbpm.jbpm4</groupId>
+                      <artifactId>jbpm-db</artifactId>
+                      <version>${old.version}</version>
+                    </artifactItem>
+                  </artifactItems>
+                  <outputDirectory>${old.scripts.directory}</outputDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>upgrade-script</id>
+                <phase>compile</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <tasks>
+                    <!-- keep directory properties, explicit paths are bad practice -->
+                    <property name="project.output.dir" value="${project.build.outputDirectory}" />
+                    <property name="old.scripts.dir" value="${old.scripts.directory}"/>
+                    <!-- upgrade scripts could be written to distro directly -->
+                    <property name="upgrade.scripts.dir"
+                      value="${project.build.directory}/upgrade-${old.version}-to-${project.version}" />
+                    <!-- for some reason that i don't get, the user.home must be passed explicitly -->
+                    <property name="user.home" value="${user.home}" />
+                    <ant antfile="scripts/antrun-schema.xml" target="schema-upgrade"
+                      inheritRefs="yes" />
+                  </tasks>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    
+  </profiles>
+
+  <!-- Dependencies -->
+  <dependencies>
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-jpdl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>hsqldb</groupId>
+      <artifactId>hsqldb</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+  </dependencies>
+
+
+</project>

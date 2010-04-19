@@ -1,0 +1,44 @@
+<chapter id="graphicalprocessdesigner">
+  <title>Graphical Process Designer (GPD)</title>
+  
+  <para>This chapter will explain how to work with the Graphical Process Designer. 
+  After installing the GPD and setting up the examples, you'll see that the 
+  jPDL process files will get a special icon.  Double clicking such a file 
+  in the package view will open up the jPDL process in the GPD.
+  </para>
+  <figure id="gpd">
+    <title>The GPD</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/gpd.png"/></imageobject></mediaobject>
+  </figure>
+  
+  <section id="creatingnewprocessfile">
+    <title>Creating a new process file</title>
+    <para>CRTL+N will open up the wizard selector.
+    </para>
+    <figure id="gpd.new.process.wizard">
+      <title>Select wizard dialog</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/gpd.new.process.wizard.png"/></imageobject></mediaobject>
+    </figure>
+    <para>Select jBPM --> jPDL 4 File.  Click 'Next &gt;'.  Then the 
+    'New jPDL 4 File' wizard opens.  
+    </para>
+    <figure id="gpd.new.process.file">
+      <title>Create a new process dialog</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/gpd.new.process.file.png"/></imageobject></mediaobject>
+    </figure>
+    <para>Select the parent directory, enter a file name and click 'Finish'.  Voila, 
+    you've created your first jPDL process file.
+    </para>
+  </section>
+
+  <section id="editingtheprocesssource">
+    <title>Editing the process source</title>
+    <para>The GPD contains a 'Source' tab with the XML sources. These are directly editable in
+    this tab and the graphical view will reflect the changes when you switch back to the diagram.</para>
+    <figure id="gpd.source.tab">
+       <title>Editing jPDL using the source view</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/gpd.xml.view.png"/></imageobject></mediaobject>
+    </figure>
+  </section>
+  
+</chapter>

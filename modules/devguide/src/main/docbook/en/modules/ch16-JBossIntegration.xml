@@ -1,0 +1,140 @@
+<chapter id="jbossintegration">
+  <title>JBoss Integration</title>
+
+  <para>
+    jBPM provides integration with JBoss 4.2.x and JBoss 5.0.0.GA.
+    As part of the <link linkend="runningtheinstaller">installation</link>, the ProcessEngine and a deployer for jBPM archives
+    will be installed as a JBoss service.
+  </para>
+
+  <para>
+    After a successful installation you should see that the ProcessEngine
+    has been started and bound to JNDI:
+  </para>
+
+  <programlisting>
+    [...]
+    14:12:09,301 INFO  [JBPMService] jBPM 4 - Integration JBoss 4
+    14:12:09,301 INFO  [JBPMService] 4.0.0.Beta1
+    14:12:09,301 INFO  [JBPMService] ProcessEngine bound to: java:/ProcessEngine
+  </programlisting>
+
+  <section>
+    <title>Packaging process archives</title>
+    <para>
+      When jBPM is deployed on a JBoss instance, process deployments are treated like
+      any other deployment artifact (i.e. *.war, *.ear) and processed by the JBPMDeployer.
+      In order to deploy a process archive simply create a *.jpdl archive (zip file) that contains
+      the process definition (*.jpdl.xml) and all required resources to execute the process (i.e. classes, property files):
+    </para>
+    <programlisting>
+      Bonanova:Desktop hbraun$ jar -tf OrderProcess.jpdl
+
+      META-INF/MANIFEST.MF
+      OrderProcess.jpdl.xml
+      org/mycompany/order/*.class
+    </programlisting>
+  </section>
+
+  <section>
+    <title>Deploying processes archives to a JBoss instance</title>
+    <para>
+      In order to deploy a process archive simply copy it to $JBOSS_HOME/server/&lt;config>/deploy:
+    </para>
+
+    <programlisting>
+      (1) cp OrderProcess.jpdl $JBOSS_HOME/server/default/deploy
+
+      (2) less $JBOSS_HOME/server/default/log
+      [...]
+      2009-04-08 14:12:21,947 INFO  [org.jbpm.integration.jboss4.JBPMDeployer]
+      Deploy file:/Users/hbraun/dev/prj/jboss/tags/JBoss_4_2_2_GA
+      /build/output/jboss-4.2.2.GA/server/default/deploy/OrderProcess.jpdl
+    </programlisting>
+
+    <para>
+      In order to remove a process simply remove the process archive from the deploy directory.
+    </para>
+  </section>
+
+  <section>
+    <title>Process deployments and versioning</title>
+    <para>
+      TBD: A prelimenary explanation cn be found <ulink url="http://relative-order.blogspot.com/2009/03/rfc-process-deployment-use-cases.html">here</ulink>
+    </para>
+  </section>
+
+  <section>
+    <title>ProcessEngine and J2EE/JEE programming models</title>
+    <para>
+      As described above the ProcessEngine will be installed as JBoss service and bound to JNDI.
+      This means that any EE component (i.e. servlet, ejb) can access it doing a JNDI lookup:
+    </para>
+
+    <programlisting>
+    private ProcessEngine processEngine;
+    [...]
+
+    try
+    {
+      InitialContext ctx = new InitialContext();
+      this.processEngine = (ProcessEngine)ctx.lookup("java:/ProcessEngine");
+    }
+    catch (Exception e)
+    {
+      throw new RuntimeException("Failed to lookup process engine");
+    }
+    </programlisting>
+
+    <para>
+      Once you obtained an instance of the ProcessEngine you can invoke on it
+      as described in <link linkend="services">chapter services</link>
+    </para>
+
+    <programlisting>
+    UserTransaction tx = (UserTransaction)ctx.lookup("UserTransaction");        (1)
+    Environment env = ((EnvironmentFactory)processEngine).openEnvironment();
+
+    try
+    {
+
+      ExecutionService execService = (ExecutionService)
+              this.processEngine.get(ExecutionService.class);
+
+      // begin transaction
+      tx.begin();
+
+      // invoke on process engine
+      executionService.signalExecutionById("ICL.82436");
+
+      // commit transaction
+      tx.commit();
+      
+    }
+    catch (Exception e)
+    {
+      if(tx!=null)
+      {
+        try
+        {
+          tx.rollback();
+        }
+        catch (SystemException e1) {}
+      }
+
+      throw new RuntimeException("...", e);
+
+    }
+    finally
+    {
+      env.close();
+    }
+    </programlisting>
+
+    <para>
+      (1) Wrapping the call in a UserTransaction is not necessary if the invocation comes a
+      CMT component, i.e. an EJB.
+    </para>
+  </section>
+
+</chapter>

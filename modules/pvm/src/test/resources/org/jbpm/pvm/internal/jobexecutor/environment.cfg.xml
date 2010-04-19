@@ -1,0 +1,46 @@
+<jbpm-configuration>
+
+	<process-engine-context>
+	
+	  <job-executor threads="1" auto-start="false" />
+	  
+	  <command-service>
+      <environment-interceptor />
+      <transaction-interceptor />
+    </command-service>
+	
+    <hibernate-configuration>
+      <properties resource="hibernate.properties" />
+      <mapping resource="jbpm.pvm.typedefs.hbm.xml" />
+      <mapping resource="jbpm.pvm.wire.hbm.xml" />
+      <mapping resource="jbpm.pvm.definition.hbm.xml" />
+      <mapping resource="jbpm.pvm.execution.hbm.xml" />
+      <mapping resource="jbpm.pvm.variable.hbm.xml" />
+      <mapping resource="jbpm.pvm.job.hbm.xml" />
+      <mapping resource="org/jbpm/pvm/internal/jobexecutor/mappings.hbm.xml" />
+      <cache-configuration resource="jbpm.pvm.cache.xml" 
+                           usage="nonstrict-read-write" />
+    </hibernate-configuration>
+    
+    <hibernate-session-factory />
+
+    <types resource="jbpm.pvm.types.xml" />
+
+    <!-- used in JobExecutorTest -->
+    <list name="processedMessageIds" synchronized="true" />
+    <map name="exclusiveThreadIds" synchronized="true" />
+    <list name="failOnceMessageIds" synchronized="true" />
+
+    <!-- used in JobExecutorTimerSessionTest -->
+    <map name="timerVariables" synchronized="true" />
+  </process-engine-context>
+
+  <transaction-context>
+    <transaction />
+    <hibernate-session />
+    <db-session />
+    <message-session />
+    <timer-session />
+  </transaction-context> 
+
+</jbpm-configuration>

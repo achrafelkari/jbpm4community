@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+	<!--
+		======================================================================
+	-->
+	<!--
+	-->
+	<!--
+		JBoss, the OpenSource J2EE webOS
+	-->
+	<!--
+	-->
+	<!--
+		Distributable under LGPL license.
+	-->
+	<!--
+		See terms of license at http://www.gnu.org.
+	-->
+	<!--
+	-->
+	<!--
+		======================================================================
+	-->
+
+	<!-- $Id: pom.xml 5246 2009-07-06 11:07:48Z tom.baeyens@jboss.com $ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<!-- Module Info -->
+	<modelVersion>4.0.0</modelVersion>
+	<name>jBPM 4 - BPMN</name>
+	<groupId>org.jbpm.jbpm4</groupId>
+	<artifactId>jbpm-bpmn</artifactId>
+	<packaging>jar</packaging>
+
+	<!-- Parent -->
+	<parent>
+		<groupId>org.jbpm.jbpm4</groupId>
+		<artifactId>jbpm</artifactId>
+		<version>4.4-SNAPSHOT</version>
+		<relativePath>../../pom.xml</relativePath>
+	</parent>
+
+	<!--
+		mvn install:install-file -DgroupId=com.sun.script
+		-DartifactId=bsh-engine -Dversion=1.0.1 -Dpackaging=jar
+		-Dfile=bsh-engine-1.0.1.jar
+	-->
+	<!-- Dependencies -->
+	<dependencies>
+
+		<dependency>
+			<groupId>org.jbpm.jbpm4</groupId>
+			<artifactId>jbpm-pvm</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.beanshell</groupId>
+			<artifactId>bsh</artifactId>
+			<version>2.0b4</version>
+		</dependency>
+		<!-- 3rd Party -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
+		<!-- EXCLUDED THIS DEPENDENCY BECAUSE IT FAILED TO RESOLVE
+		     IF YOU REINTRODUCE IT, MAKE SURE IT RESOLVES  
+		<dependency>
+			<groupId>com.sun.script</groupId>
+			<artifactId>bsh-engine</artifactId>
+			<version>1.0.1</version>
+		</dependency -->
+	</dependencies>
+
+	<!-- Plugins -->
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>org/jbpm/test/xml/DbGenTest.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<!-- Profiles -->
+	<profiles>
+		<!--
+			skip tests if this is an integration test run (only examples and
+			test-db are part of the integration test runs)
+		-->
+		<profile>
+			<id>integration.test</id>
+			<activation>
+				<property>
+					<name>jboss.bind.address</name>
+				</property>
+			</activation>
+			<properties>
+				<skipTests>true</skipTests>
+			</properties>
+		</profile>
+	</profiles>
+
+</project>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="ImageTest">
+
+  <start g="20,20,48,48">
+    <transition to="wait"/>
+  </start>
+
+  <state name="wait" g="115,17,88,52" />
+
+</process>

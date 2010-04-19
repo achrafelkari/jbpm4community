@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE mbeans-descriptors PUBLIC
+ "-//Apache Software Foundation//DTD Model MBeans Configuration File"
+ "http://jakarta.apache.org/commons/dtds/mbeans-descriptors.dtd">
+<mbeans-descriptors>
+  <mbean name="JbpmConsoleRealm" className="org.apache.catalina.mbeans.ClassNameMBean"
+    description="Implementation of custom Realm for jBPM console"
+    domain="Catalina" group="Realm"
+    type="org.jbpm.integration.tomcat6.JbpmConsoleRealm">
+
+    <attribute name="driverName" description="The driver name"
+      type="java.lang.String" />
+
+    <attribute name="connectionUrl" description="The connectionUrl"
+      type="java.lang.String" />
+
+    <attribute name="connectionName" description="The connectionName"
+      type="java.lang.String" />
+
+    <attribute name="connectionPassword" description="The dconnectionPassword"
+      type="java.lang.String" />
+
+  </mbean>
+
+</mbeans-descriptors>
+

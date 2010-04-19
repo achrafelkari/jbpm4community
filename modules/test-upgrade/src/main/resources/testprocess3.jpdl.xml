@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="testprocess3" xmlns="http://jbpm.org/4.3/jpdl">
+
+	<start>
+		<transition to="do something important" />
+	</start>
+
+	<task name="do something important" assignee="johnDoe">
+		<transition name="timeout" to="timed out">
+      <timer duedate="3 days" />
+		</transition>
+		<transition name="done" to="end" />
+	</task>
+
+	<state name="timed out">
+		<transition to="end" />
+	</state>
+
+	<end name="end" />
+
+</process>

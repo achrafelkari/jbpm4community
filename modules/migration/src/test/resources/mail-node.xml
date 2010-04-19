@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process-definition 
+  xmlns="urn:jbpm.org:jpdl-3.2"
+  name="mail-node">
+   <start-state name="start">
+      <transition name="to_state" to="send_mail_to">
+         <action name="action" class="com.test.MessageActionHandler">
+            <message>Going to the first state!</message>
+         </action>
+      </transition>
+   </start-state>
+   <mail-node name="send_mail_to" to="test@jbpm.org">
+       <subject>my_subject</subject>
+       <text>my_text</text>
+       <transition to="send_mail_actors"/>
+   </mail-node>
+   
+   <mail-node name="send_mail_actors" actors="aa,bb,cc">
+       <subject>my_subject</subject>
+       <text>my_text</text>
+       <transition to="send_mail_template"/>
+   </mail-node>
+   
+   <mail-node name="send_mail_template" template="my-template">
+       <transition to="end"/>
+   </mail-node>
+   
+   <end-state name="end"></end-state>
+</process-definition>

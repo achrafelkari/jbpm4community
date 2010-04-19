@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE book [
+  <!ENTITY ch01-Introduction                   SYSTEM "modules/ch01-Introduction.xml">
+  <!ENTITY ch02-Incubation                     SYSTEM "modules/ch02-Incubation.xml">
+  <!ENTITY ch03-Bpmn2                          SYSTEM "modules/ch03-Bpmn2.xml">
+  <!ENTITY ch04-MigrationFromJbpm3             SYSTEM "modules/ch04-MigrationFromJbpm3.xml">
+  <!ENTITY ch05-ProcessVirtualMachine          SYSTEM "modules/ch05-ProcessVirtualMachine.xml">
+  <!ENTITY ch06-Architecture                   SYSTEM "modules/ch06-Architecture.xml">
+  <!ENTITY ch07-ImplementingBasicActivities    SYSTEM "modules/ch07-ImplementingBasicActivities.xml">
+  <!ENTITY ch08-ProcessAnatomy                 SYSTEM "modules/ch08-ProcessAnatomy.xml">
+  <!ENTITY ch09-ImplementingAdvancedActivities SYSTEM "modules/ch09-ImplementingAdvancedActivities.xml">
+  <!ENTITY ch10-Configuration                  SYSTEM "modules/ch10-Configuration.xml">
+  <!ENTITY ch11-Persistence                    SYSTEM "modules/ch11-Persistence.xml">
+  <!ENTITY ch12-JobExecutor                    SYSTEM "modules/ch12-JobExecutor.xml">
+  <!ENTITY ch13-AdvancedEmail                  SYSTEM "modules/ch13-AdvancedEmail.xml">
+  <!ENTITY ch14-SoftwareLogging                SYSTEM "modules/ch14-SoftwareLogging.xml">
+  <!ENTITY ch15-History                        SYSTEM "modules/ch15-History.xml">
+  <!ENTITY ch16-JBossIntegration               SYSTEM "modules/ch16-JBossIntegration.xml">
+  <!ENTITY ch17-SpringIntegration              SYSTEM "modules/ch17-SpringIntegration.xml">
+  <!ENTITY ch18-Signavio                       SYSTEM "modules/ch18-Signavio.xml">
+]>
+
+<book lang="en">
+
+  <bookinfo>
+    <title>jBPM Developers Guide</title>
+  </bookinfo>
+
+  <toc />
+
+  &ch01-Introduction;
+  &ch02-Incubation;
+  &ch03-Bpmn2;
+  &ch04-MigrationFromJbpm3;
+  &ch05-ProcessVirtualMachine;
+  &ch06-Architecture;
+  &ch07-ImplementingBasicActivities;
+  &ch08-ProcessAnatomy;
+  &ch09-ImplementingAdvancedActivities;
+  &ch10-Configuration;
+  &ch11-Persistence;
+  &ch12-JobExecutor;
+  &ch13-AdvancedEmail;
+  &ch14-SoftwareLogging;
+  &ch15-History;
+  &ch16-JBossIntegration;
+  &ch17-SpringIntegration;
+  &ch18-Signavio;
+
+</book>

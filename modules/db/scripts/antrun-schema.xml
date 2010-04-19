@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ============================================================ -->
+<!--  JBoss, the OpenSource J2EE webOS                            -->
+<!--  Distributable under LGPL license.                           -->
+<!--  See terms of license at http://www.gnu.org.                 -->
+<!-- ============================================================ -->
+
+<!-- $Id: antrun-jbpmschema.xml 2999 2008-11-19 16:16:01Z thomas.diesler@jboss.com $ -->
+
+<project>
+
+  <!-- ##################### -->
+  <!-- ### CREATE SCHEMA ### -->
+  <!-- ##################### -->
+
+  <target name="create-schema">
+    <taskdef name="schemaexport"
+             classname="org.hibernate.tool.hbm2ddl.SchemaExportTask"
+             classpathref="maven.compile.classpath" />
+
+    <mkdir dir="${project.output.dir}" />
+
+    <create-ddl db="hsqldb" />
+    <create-ddl db="oracle" />
+    <create-ddl db="postgresql" />
+    <create-ddl db="mysql" />
+    <replace file="${project.output.dir}/jbpm.mysql.create.sql"
+             token="BLOB_VALUE_ blob"
+             value="BLOB_VALUE_ longblob" />
+  </target>
+
+  <macrodef name="create-ddl">
+    <attribute name="db" />
+
+    <sequential>
+      <echo />
+      <echo>=====================</echo>
+      <echo>Schema Create @{db}</echo>
+      <echo>=====================</echo>
+
+      <schemaexport output="${project.output.dir}/jbpm.@{db}.create.sql"
+                    create="yes"
+                    drop="no"
+                    config="../distro/src/main/files/install/src/cfg/hibernate/jdbc/@{db}.hibernate.cfg.xml"
+                    text="yes"
+                    delimiter=";"
+                    quiet="yes" />
+
+      <echo />
+      <echo>=====================</echo>
+      <echo>Schema Drop @{db}</echo>
+      <echo>=====================</echo>
+      <schemaexport output="${project.output.dir}/jbpm.@{db}.drop.sql"
+                    create="no"
+                    drop="yes"
+                    config="../distro/src/main/files/install/src/cfg/hibernate/jdbc/@{db}.hibernate.cfg.xml"
+                    text="yes"
+                    delimiter=";"
+                    quiet="yes" />
+
+    </sequential>
+  </macrodef>
+
+
+  <!-- ###################### -->
+  <!-- ### SCHEMA UPGRADE ### -->
+  <!-- ###################### -->
+  <target name="schema-upgrade">
+    <taskdef name="schemaupdate"
+             classname="org.hibernate.tool.hbm2ddl.SchemaUpdateTask"
+             classpathref="maven.compile.classpath" />
+
+    <!-- By default, the qa lab databases are used.  the jdbc properties are taken from the qa/jdbc directory.
+         If you want to use your local database, specify property upgrade.jdbc.properties.dir in your local build properties -->
+    <echo>loading properties from ${user.home}/.jbpm4/build.properties</echo>
+    <property file="${user.home}/.jbpm4/build.properties" />
+    <property name="upgrade.jdbc.properties.dir" location="../../qa/jdbc" />
+    <echo>upgrade.jdbc.properties.dir: ${upgrade.jdbc.properties.dir}</echo>
+    <mkdir dir="${upgrade.scripts.dir}" />
+
+    <antcall target="start.hsqldb" inheritrefs="true" />
+    <upgrade-ddl db="hsqldb" />
+    <antcall target="stop.hsqldb" />
+    <upgrade-ddl db="mysql" />
+    <upgrade-ddl db="oracle" />
+    <upgrade-ddl db="postgresql" />
+  </target>
+
+  <target name="start.hsqldb">
+    <java classname="org.hsqldb.Server"
+          classpathref="maven.compile.classpath"
+          fork="yes"
+          spawn="yes">
+      <arg value="-port" />
+      <arg value="1701" />
+      <arg value="-database.0" />
+      <arg value="target/hsqldb-upgrade-db/jbpmdb" />
+    </java>
+    <waitfor>
+      <socket server="localhost" port="1701" />
+    </waitfor>
+  </target>
+
+  <target name="stop.hsqldb">
+    <sql url="jdbc:hsqldb:hsql://localhost:1701"
+         driver="org.hsqldb.jdbcDriver"
+         userid="sa"
+         password=""
+         classpathref="maven.compile.classpath"
+         autocommit="yes">
+      SHUTDOWN
+    </sql>
+  </target>
+
+  <macrodef name="upgrade-ddl">
+    <attribute name="db" />
+    <sequential>
+      <property file="${upgrade.jdbc.properties.dir}/@{db}.properties" prefix="@{db}." />
+      <echo />
+      <echo>driver. ${@{db}.jdbc.driver}</echo>
+      <echo>url.... ${@{db}.jdbc.url}</echo>
+      <echo>user... ${@{db}.jdbc.username}</echo>
+
+      <echo>=====================</echo>
+      <echo>Dropping current schema @{db}</echo>
+      <echo>=====================</echo>
+      <sql src="${project.output.dir}/jbpm.@{db}.drop.sql"
+           url="${@{db}.jdbc.url}"
+           driver="${@{db}.jdbc.driver}"
+           userid="${@{db}.jdbc.username}"
+           password="${@{db}.jdbc.password}"
+           classpathref="maven.compile.classpath"
+           autocommit="yes"
+           onerror="continue" />
+
+      <echo />
+      <echo>=====================</echo>
+      <echo>Creating old schema @{db}</echo>
+      <echo>=====================</echo>
+      <sql src="${old.scripts.dir}/jbpm.@{db}.create.sql"
+           url="${@{db}.jdbc.url}"
+           driver="${@{db}.jdbc.driver}"
+           userid="${@{db}.jdbc.username}"
+           password="${@{db}.jdbc.password}"
+           classpathref="maven.compile.classpath"
+           autocommit="yes"
+           onerror="continue" />
+
+      <mkdir dir="target/cfg" />
+      <copy tofile="target/cfg/@{db}.hibernate.cfg.xml"
+            file="../distro/src/main/files/install/src/cfg/hibernate/jdbc/@{db}.hibernate.cfg.xml"
+            overwrite="true">
+        <filterset filtersfile="${upgrade.jdbc.properties.dir}/@{db}.properties" />
+      </copy>
+
+      <echo />
+      <echo>=====================</echo>
+      <echo>Schema Upgrade @{db}</echo>
+      <echo>=====================</echo>
+      <schemaupdate outputFile="${upgrade.scripts.dir}/jbpm.@{db}.upgrade.sql"
+                    config="target/cfg/@{db}.hibernate.cfg.xml"
+                    properties="${upgrade.jdbc.properties.dir}/@{db}.properties"
+                    delimiter=";" />
+
+      <echo />
+      <echo>=====================</echo>
+      <echo>Dropping old schema @{db}</echo>
+      <echo>=====================</echo>
+      <sql src="${old.scripts.dir}/jbpm.@{db}.drop.sql"
+           url="${@{db}.jdbc.url}"
+           driver="${@{db}.jdbc.driver}"
+           userid="${@{db}.jdbc.username}"
+           password="${@{db}.jdbc.password}"
+           classpathref="maven.compile.classpath"
+           autocommit="yes"
+           onerror="continue" />
+
+    </sequential>
+  </macrodef>
+
+</project>

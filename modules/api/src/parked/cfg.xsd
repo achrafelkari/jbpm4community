@@ -1,0 +1,1296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://jbpm.org/4/cfg"
+        xmlns:tns="http://jbpm.org/4/cfg"
+        elementFormDefault="qualified">
+        
+  <annotation>
+    <documentation>Schema for the jBPM configuration file; configuration
+    is the top level element.
+    </documentation>
+  </annotation>
+
+  <!-- ### ELEMENTS ######################################################## -->
+
+  <element name="business-calendar">
+    <annotation><documentation>A BusinessCalendar that knows about working hours</documentation></annotation>
+    <complexType>
+      <sequence>
+        <element name="monday"    type="tns:businessCalendarDayType" minOccurs="0"/>
+        <element name="tuesday"   type="tns:businessCalendarDayType" minOccurs="0"/>
+        <element name="wednesday" type="tns:businessCalendarDayType" minOccurs="0"/>
+        <element name="thursday"  type="tns:businessCalendarDayType" minOccurs="0"/>
+        <element name="friday"    type="tns:businessCalendarDayType" minOccurs="0"/>
+        <element name="saturday"  type="tns:businessCalendarDayType" minOccurs="0"/>
+        <element name="sunday"    type="tns:businessCalendarDayType" minOccurs="0"/>
+        <element name="holiday" minOccurs="0" maxOccurs="unbounded">
+          <complexType>
+            <attribute name="period">
+              <annotation><documentation>Two dates in date-format, separated by 
+              a dash that specify a holiday period.  If it's just one day, a single day 
+              is also valid.</documentation></annotation>
+            </attribute>
+          </complexType>
+        </element>
+      </sequence>
+      <attribute name="timezone" type="string">
+        <annotation><documentation>Optional specification of the timezone as specified by 
+        java.util.TimeZone.getTimeZone(String)</documentation></annotation>
+      </attribute>
+      <attribute name="hour-format" type="string" default="HH:mm">
+        <annotation><documentation>Indicates how to interpret the hour specifications 
+        in this business calendar in java.text.SimpleDateFormat(String)</documentation></annotation>
+      </attribute>
+      <attribute name="date-format" type="string" default="dd/MM/yyyy">
+        <annotation><documentation>Indicates how to interpret the date specifications 
+        in this business calendar in java.text.SimpleDateFormat(String)</documentation></annotation>
+      </attribute>
+    </complexType>
+  </element>
+
+  <element name="byte">
+    <annotation><documentation>A java.lang.Byte</documentation></annotation>
+	  <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="value" type="byte" use="required" />
+	  </complexType>
+  </element>
+
+  <element name="char">
+    <annotation><documentation>A java.lang.Character</documentation></annotation>
+	  <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="value" use="required">
+	      <simpleType>
+	        <restriction base="string">
+	          <maxLength value="1" />
+	        </restriction>
+	      </simpleType>
+	    </attribute>
+	  </complexType>
+  </element>
+  
+  <element name="class">
+    <annotation><documentation>A java.lang.Class</documentation></annotation>
+		<complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+		  <attribute name="init" type="tns:initType" default="lazy">
+		    <annotation><documentation>Specifies when and how this object should be 
+		    created and initialized. Default is lazy.</documentation></annotation>
+		  </attribute>
+		  <attribute name="class-name" use="required" type="string">
+		    <annotation><documentation>A fully qualified name of a
+		      class that can be found on the wire context classpath or 
+		      (if that is not specified) on the current thread's context 
+		      classpath.  
+		    </documentation></annotation>
+		  </attribute>
+		</complexType>
+  </element>
+  
+  <element name="context-ref">
+    <annotation><documentation>The context.  This refers to
+    the contexts transaction or process-engine.
+    </documentation></annotation>
+    <complexType>
+      <attribute name="context-name" type="string">
+        <annotation><documentation>The name of the context in the current 
+        environment.  If this attribute is omitted, the enclosing 
+        context will be given. 
+        </documentation></annotation>
+      </attribute>
+    </complexType>
+  </element>
+
+  <element name="jbpm-configuration">
+    <annotation><documentation>Defines an environment factory and 
+    an environment.
+    </documentation></annotation>
+    <complexType>
+      <sequence>
+        <element ref="tns:process-engine-context" />
+        <element ref="tns:environment" />
+      </sequence>
+    </complexType>
+  </element>
+
+  <element name="process-engine-context" type="tns:contextType">
+    <annotation><documentation>Defines the environment factory 
+    context.  (Aka application context)
+    </documentation></annotation>
+  </element>
+
+  <element name="environment" type="tns:contextType">
+    <annotation><documentation>Defines the environment 
+    context.  This context exists stretches for the duration of 
+    an Environment try-finally block.
+    </documentation></annotation>
+  </element>
+
+  <element name="deployer-manager">
+    <annotation><documentation>Has a list of deployers (org.jbpm.pvm.internal.deploy.Deployer)
+    for handling deployments.  
+    </documentation></annotation>
+	  <complexType>
+      <choice maxOccurs="unbounded">
+        <group ref="tns:deployers" />
+      </choice>
+	  </complexType>
+  </element>
+
+  <element name="double">
+    <annotation><documentation>A java.lang.Double</documentation></annotation>
+	  <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="value" type="double" use="required" />
+	  </complexType>
+  </element>
+
+  <element name="env-ref">
+    <annotation><documentation>Obtains the current environment.  The environment 
+    is only available in objects declared inside the environment context.  So it 
+    can't be used inside the session-factory context. 
+    </documentation></annotation>
+  </element>
+
+  <element name="process-engine-ref">
+    <annotation><documentation>Obtains the current environment.  The environment 
+    is only available in objects declared inside the environment context.  So it 
+    can't be used inside the session-factory context. 
+    </documentation></annotation>
+  </element>
+
+  <element name="false">
+    <annotation><documentation>java.lang.Boolean.FALSE 
+    </documentation></annotation>
+    <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+    </complexType>
+  </element>
+
+  <element name="float">
+    <annotation><documentation>A java.lang.Float
+    </documentation></annotation>
+	  <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="value" type="float" use="required" />
+	  </complexType>
+  </element>
+  
+  <element name="hibernate-configuration" type="tns:hibernateConfigurationType">
+    <annotation><documentation>A hibernate Configuration to be used in the 
+    process-engine context</documentation></annotation>
+  </element>
+  
+  <element name="hibernate-session">
+    <annotation><documentation>A hibernate Session to be used in the 
+    environment context</documentation></annotation>
+	  <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>Optional name of this hibernate session.
+	      Typically a session is looked up by type.  Only if multiple sessions 
+	      are declared, a name can be used to distinct them. 
+	      </documentation></annotation>
+	    </attribute>
+	    <attribute name="init" type="tns:initType" default="lazy">
+	      <annotation><documentation>Specifies when and how this object should be 
+	      initialized. Default is lazy.</documentation></annotation>
+	    </attribute>
+	    <attribute name="factory" type="string">
+	      <annotation><documentation>Optional name referring to the session-factory.
+	      If no factory name is provided, the SessionFactory is looked up by type.
+	      </documentation></annotation>
+	    </attribute>
+	    <attribute name="tx" type="tns:booleanValueType">
+	      <annotation><documentation>Indicates if a hibernate transaction should 
+	      be started and ended in this environment.  Default is true.
+	      </documentation></annotation>
+	    </attribute>
+	    <attribute name="current" type="tns:booleanValueType">
+	      <annotation><documentation>Indicates if the SessionFactory.getCurrentSession()
+	      should be used instead of opening and closing a new session.  Default is false.
+	      If 'current' is set to true, then the default of 'close' will be set to false. 
+	      </documentation></annotation>
+	    </attribute>
+	    <attribute name="close" type="tns:booleanValueType">
+	      <annotation><documentation>Indicates if the session should be closed when the
+	      environment closes.  The default is true (unless 'current' is set to true) 
+	      </documentation></annotation>
+	    </attribute>
+	    <attribute name="standard-transaction" type="string">
+	      <annotation><documentation>Optional name of the standard transaction.
+	      If 'tx' is set to true, a StandardTransaction needs to be found to enlist 
+	      this hibernate session.  By default, the lookup of the StandardTransaction 
+	      is done by type.  But this attribute allows to refer to the standard 
+	      transaction by name.   
+	      </documentation></annotation>
+	    </attribute>
+	    <attribute name="connection" type="string">
+	      <annotation><documentation>Optional name of the JDBC connection to use 
+	      when creating this hibernate session.  If no connection name is specified,
+	      the creation of the connection is left to the hibernate session.
+	      </documentation></annotation>
+	    </attribute>
+	  </complexType>
+  </element>
+  
+  <element name="hibernate-session-factory">
+    <annotation><documentation>A hibernate SessionFactory to be used in the 
+    process-engine context.  The hibernate Configuration can be inlined in this 
+    'session-factory', it can be refered by type or referred by name.
+    </documentation></annotation>
+	  <complexType>
+	    <complexContent>
+	      <extension base="tns:hibernateConfigurationType">
+	        <attribute name="configuration" type="string">
+			      <annotation><documentation>The name of the configuration to use to build 
+			      this hibernate SessionFactory.  This is optional as the alternative methods 
+			      to specify a configuration are just inlining it here in this hibernate 
+			      session-factory element or looking up the hibernate Configuration by type.
+			      </documentation></annotation>
+			    </attribute>
+	      </extension>
+	    </complexContent>
+	  </complexType>
+  </element>
+  
+  <element name="int">
+    <annotation><documentation>A java.lang.Integer
+    </documentation></annotation>
+	  <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="value" type="int" use="required"/>
+	  </complexType>
+  </element>
+  
+  <element name="jndi">
+    <annotation><documentation>A lookup from JNDI through the InitialContext
+    </documentation></annotation>
+	  <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="jndi-name" type="string" use="required" />
+	  </complexType>
+  </element>
+  
+  <element name="job-executor">
+    <annotation><documentation>The default component for executing timers and messages.
+    A job-executor requires a CommandService.  
+    </documentation></annotation>
+		<complexType>
+		  <attribute name="name" type="string">
+		    <annotation><documentation>Optional name of this object used to look up 
+		    this object from the environment.  This name (along with ip-address) is 
+        used as the basis for the names of the threads in the job executor's thread 
+		    pool.  So when you're running more then one job-executor on the same 
+		    machine, you should be specifying custom job executor names.</documentation></annotation>
+		  </attribute>
+		  <attribute name="init" type="tns:initType" default="lazy">
+		    <annotation><documentation>Specifies when and how this object should be 
+		    initialized. Default is lazy.</documentation></annotation>
+		  </attribute>
+		  <attribute name="command-service" type="string">
+		    <annotation><documentation>Optional name of the command service to use.  If 
+		    this attribute is not present, the command service will be looked up 
+		    by type.</documentation></annotation>
+		  </attribute>
+		  <attribute name="threads" type="int">
+		    <annotation><documentation>Number of worker threads.  One extra thread will 
+		    be created for scanning and acquisition of jobs (DispatcherThread).</documentation></annotation>
+		  </attribute>
+		  <attribute name="idle" type="int">
+		    <annotation><documentation>Number of milliseconds the dispatcher thread  
+		    will normally wait inbetween checks for new jobs.  Each time an exception
+		    occurs, the idle period will be doubled until the 'idle-max' is reached.
+		    This is a back-off mechanism in case the job executor can't access the 
+		    database. 
+		    </documentation></annotation>
+		  </attribute>
+		  <attribute name="idle-max" type="int">
+		    <annotation><documentation>Maxumum number of milliseconds the dispatcher thread  
+		    will wait inbetween checks for new jobs.  
+		    </documentation></annotation>
+		  </attribute>
+		  <attribute name="history" type="int">
+		    <annotation><documentation>Number of history records of job executions that will be 
+		    kept in memory.</documentation></annotation>
+		  </attribute>
+		  <attribute name="lock" type="int">
+		    <annotation><documentation>Number of milliseconds that a job will be locked at 
+		    acquisition time.  When a job is acquired, the job executor will write it's name 
+		    in the lock owner field of the job and the lockExpirationTime
+		    will be set to the current time plus 'lock' milliseconds.  The lock by that thread should 
+		    be considered as released if the lockExpirationTime has passed.  This prevents starvation 
+		    in case one of more JobExecutors in a cluster would die.</documentation></annotation>
+		  </attribute>
+		  <attribute name="auto-start" type="tns:booleanValueType">
+		    <annotation><documentation>Indicates if the job-executor should be started when it 
+		    is created.  Default is true.  If the job-executor is not auto-started, it can be 
+		    started programmatically with the start method on the JobExecutor.</documentation></annotation>
+		  </attribute>
+		</complexType>
+  </element>
+
+  <element name="job-test-helper">
+    <annotation><documentation>A test helper for controlling job executions</documentation></annotation>
+  </element>
+
+  <element name="list">
+    <annotation><documentation>A java.util.List</documentation></annotation>
+	  <complexType>
+	    <choice minOccurs="0" maxOccurs="unbounded">
+	      <group ref="tns:persistableDescriptors" />
+	    </choice>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="init" type="tns:initType" default="lazy">
+	      <annotation><documentation>Specifies when and how this object should be 
+	      created and initialized. Default is lazy.</documentation></annotation>
+	    </attribute>
+	    <attribute name="class" type="string" default="java.util.ArrayList">
+	      <annotation><documentation>Implementation class for this list.
+	      </documentation></annotation>
+	    </attribute>
+	    <attribute name="synchronized" type="tns:booleanValueType" default="false">
+	      <annotation><documentation>Indicates if this collection should be synchronized
+	      with Collections.synchronizedList(List)</documentation></annotation>
+	    </attribute>
+	  </complexType>
+  </element>
+  
+  <element name="long">
+    <annotation><documentation>A java.lang.Long</documentation></annotation>
+	  <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="value" type="long" use="required"/>
+	  </complexType>
+  </element>
+  
+  <element name="map">
+    <annotation><documentation>A java.util.Map</documentation></annotation>
+	  <complexType>
+	    <choice minOccurs="0" maxOccurs="unbounded">
+	      <element name="entry">
+	        <complexType>
+	          <choice minOccurs="0">
+	            <element name="key" minOccurs="0">
+	              <complexType>
+	                <group ref="tns:persistableDescriptors" />
+	              </complexType>
+	            </element>
+	            <element name="value" minOccurs="0">
+	              <complexType>
+	                <group ref="tns:persistableDescriptors" />
+	              </complexType>
+	            </element>
+	          </choice>
+	        </complexType>
+	      </element>
+	    </choice>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="init" type="tns:initType" default="lazy">
+	      <annotation><documentation>Specifies when and how this object should be 
+	      created and initialized. Default is lazy.</documentation></annotation>
+	    </attribute>
+	    <attribute name="class" type="string" default="java.util.HashMap">
+	      <annotation><documentation>Implementation class for this map.
+	      </documentation></annotation>
+	    </attribute>
+	    <attribute name="synchronized" type="tns:booleanValueType" default="false">
+	      <annotation><documentation>Indicates if this collection should be synchronized
+	      with Collections.synchronizedMap(Map)</documentation></annotation>
+	    </attribute>
+	  </complexType>
+  </element>
+  
+  <element name="message-session">
+    <annotation><documentation>Specifies an implementation of the MessageSession 
+    interface that sends messages to the JobExecutor.  The main usage of MessageSession 
+    is by the PVM implementation for asynchronous continuations.  The PVM will look 
+    up the message session by type.  All message-session implementations depend on a 
+    DbSession like e.g. the 'db-session'.  A DbSession will be looked up by type.
+    </documentation></annotation>
+	  <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="target" type="tns:messageSessionTargetType" default="job-executor">
+	      <annotation><documentation>
+	      <p>Specifies the implementation of the message session.
+	      </p>  
+	      <p><code><b>job-executor</b></code>: Is the default and sends to messages to the 
+	      job-executor.  In this case the message session has a dependency on 
+	      a DbSession (like the PvmDbSession) and a Transaction to which the 
+	      message session will register a listener to notify the job executor upon 
+	      successfull completion.
+	      </p>
+	      <p><code><b>jms</b></code>: Sends the messages over JMS and a JMS listener is assumed 
+	      (like the command executor MDB) that executes the message.  If 'jms' is specified, 
+	      attributes 'session-jndi' and 'destination-jndi' become required.
+	      </p>
+	      </documentation></annotation>
+	    </attribute>
+	    <attribute name="session-jndi" type="string" use="optional">
+	      <annotation><documentation>The JNDI name of the JMS Session.  Only used in case of
+	      target <b>jms</b>. </documentation></annotation>
+	    </attribute>
+	    <attribute name="destination-jndi" type="string" use="optional">
+	      <annotation><documentation>The JNDI name of the Queue destination to use. Only used 
+	      in case of target <b>jms</b>.</documentation></annotation>
+	    </attribute>
+	  </complexType>
+  </element>
+
+  <element name="null">
+    <annotation><documentation>the null value 
+    </documentation></annotation>
+  </element>
+  
+  <element name="object">
+    <annotation><documentation>Any java object that will be created by reflection.                                                                        .
+    <p>There are three main ways to create an object: by constructor or by a factory 
+    object or a static factory method.</p>
+    <p><b>Using the constructor</b>: Then the <code>class</code> attribute must provide the 
+    fully qualified class name.  In case another constructor then the default is 
+    targetted, a <code>constructor</code> child element can be provided.
+    The <code>factory</code> attribute should not be provided for using a constructor. 
+    </p>
+    <p><b>Using a factory</b>: Then the <code>factory</code> attribute or one 
+    <code>factory</code> element must be provided along with the attribute 
+    <code>method</code>. 
+    </p>
+    <p><b>Using a static factory method</b>: Then the <code>class</code> and 
+    <code>method</code> attributes should be specified.  There should be no 
+    reference to a <code>factory</code> attribute of element. 
+    </p>
+    <p><b>Construction and initialization</b>: all objects (constructor and factory)
+    are build in two phases: construction and initialisation phase.  During construction
+    all is done until a pointer is obtained to the object.  In initialisation, operations 
+    are applied to the object until it is ready to be used.  The separation between 
+    construction and initialisation is made to allow for bidirectional references.  In 
+    that case, at least one of both ends can not be fully initialised before it is injected 
+    into the other end.
+    </p>
+    <p><b>Operations</b>: after construction, various operations can be applied to objects 
+    like e.g. direct field injection, injection through setters, method invocation, 
+    enlist with the standard transaction, subscribe the object as a listener to an observable  
+    </p>
+    <p><b>Arguments</b>: There are two different places for arguments.  The <code>arg</code> 
+    elements for the factory method invocation should be placed as child elements under the 
+    <code>object</code> element.  The <code>arg</code> elements for the constructor should be 
+    placed as child elements under the <code>constructor</code> element.    
+    </p>
+    </documentation></annotation>
+	  <complexType>
+	    <choice minOccurs="0" maxOccurs="unbounded">
+	      <element name="factory">
+	        <annotation><documentation>Contains one element that describes the factory object.</documentation></annotation>
+	        <complexType>
+	          <group ref="tns:persistableDescriptors" />
+	        </complexType>
+	      </element>
+	      <element name="constructor">
+	        <annotation><documentation>Specifies the arguments to use for a non-default constructor.</documentation></annotation>
+	        <complexType>
+	          <choice maxOccurs="unbounded">
+	            <element name="arg" type="tns:argType" />
+	          </choice>
+	        </complexType>
+	      </element>
+	      <element name="arg" type="tns:argType">
+	        <annotation><documentation>The factory method arguments.</documentation></annotation>
+	      </element>
+	      <group ref="tns:operations" />
+	    </choice>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="init" type="tns:initType" default="lazy">
+	      <annotation><documentation>Specifies when and how this object should be 
+	      initialized. Default is lazy.</documentation></annotation>
+	    </attribute>
+	    <attribute name="class" type="string">
+	      <annotation><documentation>The fully qualified class name</documentation></annotation>
+	    </attribute>
+	    <attribute name="factory" type="string">
+	      <annotation><documentation>The name of the factory object</documentation></annotation>
+	    </attribute>
+	    <attribute name="method" type="string">
+	      <annotation><documentation>The factory method name</documentation></annotation>
+	    </attribute>
+	    <attribute name="auto-wire" type="string">
+	      <annotation><documentation>Indicates if the member fields and setter properties 
+	      should be automatically wired based on matching the property names and types with the 
+	      object names and types</documentation></annotation>
+	    </attribute>
+	  </complexType>
+  </element>
+
+  <element name="process-service">
+    <annotation><documentation>The default process service implementation 
+    that delegates method implementations to a CommandService.  process-service 
+    depends on a command service.
+    </documentation></annotation>
+  </element>
+  
+  <element name="properties">
+    <annotation><documentation>A java.util.Properties</documentation></annotation>
+	  <complexType>
+	    <choice minOccurs="0" maxOccurs="unbounded">
+	      <element name="property">
+	        <complexType>
+	          <attribute name="name" type="string" use="required" />
+	          <attribute name="value" type="string" use="required" />
+	        </complexType>
+	      </element>
+	    </choice>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="file" type="string">
+	      <annotation><documentation>A file on the file system</documentation></annotation>
+	    </attribute>
+	    <attribute name="resource" type="string">
+	      <annotation><documentation>A file as a resource in the classpath</documentation></annotation>
+	    </attribute>
+	    <attribute name="url" type="string">
+	      <annotation><documentation>the contents is fetched by loading a url</documentation></annotation>
+	    </attribute>
+	    <attribute name="is-xml" type="tns:booleanValueType">
+	      <annotation><documentation>optionally indicates if the content of referenced file in attributes
+	      'file', 'resource' or 'url' is XML.  The default is the 
+	      plain properties format with a space or the equals character (=) separating key and value on 
+	      each line.</documentation></annotation>
+	    </attribute>
+	  </complexType>
+  </element>
+
+  <element name="db-session">
+    <annotation><documentation>A hibernate based PvmDbSession</documentation></annotation>
+	  <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="init" type="tns:initType" default="lazy">
+	      <annotation><documentation>Specifies when and how this object should be 
+	      initialized. Default is lazy.</documentation></annotation>
+	    </attribute>
+	    <attribute name="session" type="string" />
+	  </complexType>
+  </element>
+
+  <element name="ref">
+    <annotation><documentation>A reference to another object by name</documentation></annotation>
+    <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="object" type="string" use="required">
+	      <annotation><documentation>The name of the referred object</documentation></annotation>
+	    </attribute>
+    </complexType>
+  </element>
+
+  <element name="set">
+    <annotation><documentation>A java.util.Set 
+    </documentation></annotation>
+    <complexType>
+	    <choice minOccurs="0" maxOccurs="unbounded">
+	      <group ref="tns:persistableDescriptors" />
+	    </choice>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="init" type="tns:initType" default="lazy">
+	      <annotation><documentation>Specifies when and how this object should be 
+	      initialized. Default is lazy.</documentation></annotation>
+	    </attribute>
+	    <attribute name="class" type="string" default="java.util.HashList">
+	      <annotation><documentation>Implementation class for this set.
+	      </documentation></annotation>
+	    </attribute>
+	    <attribute name="synchronized" type="tns:booleanValueType" default="false">
+	      <annotation><documentation>Indicates if this collection should be synchronized
+	      with Collections.synchronizedSet(Set)</documentation></annotation>
+	    </attribute>
+    </complexType>
+  </element>
+
+  <element name="short">
+    <annotation><documentation>a java.lang.Short
+    </documentation></annotation>
+    <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+      <attribute name="value" type="short" use="required"/>
+    </complexType>
+  </element>
+
+  <element name="command-service">
+    <annotation><documentation>The command service for usage in standard  
+    Java environments.
+    </documentation></annotation>
+    <complexType>
+	    <choice minOccurs="0" maxOccurs="unbounded">
+	      <group ref="tns:interceptors" />
+	    </choice>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="init" type="tns:initType" default="lazy">
+	      <annotation><documentation>Specifies when and how this object should be 
+	      initialized. Default is lazy.</documentation></annotation>
+	    </attribute>
+    </complexType>
+  </element>
+
+  <element name="string">
+    <annotation><documentation>a java.lang.String 
+    </documentation></annotation>
+    <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+    <attribute name="value" type="string" use="required"/>
+    </complexType>
+  </element>
+
+  <element name="timer-session">
+    <annotation><documentation>A timer session is used during process execution to create 
+    timers.  Different implementations of the timer service make the process portable 
+    over different environments. 
+    </documentation></annotation>
+    <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="init" type="tns:initType" default="lazy">
+	      <annotation><documentation>Specifies when and how this object should be 
+	      initialized. Default is lazy.</documentation></annotation>
+	    </attribute>
+	    <attribute name="target" default="job-executor">
+	      <annotation><documentation>Specifies the target implementation.  Use 
+	      <code>job-executor</code> when the job executor is responsible for executing the 
+	      timers (default).  Use <code>ejb</code> in case the EJB Timer Service should be used.
+	      If the target is job-executor, there is a dependency on the transaction, the job-executor
+	      and a db-session. 
+	      </documentation></annotation>
+	      <simpleType>
+	        <restriction base="string">
+	          <enumeration value="job-executor" />
+	          <enumeration value="ejb" />
+	        </restriction>
+	      </simpleType>
+	    </attribute>
+    </complexType>
+  </element>
+
+  <element name="transaction">
+    <annotation><documentation>The transaction binding.  Specifies how the transaction in the 
+    pvm environment gets bound to the actual transaction in the real environment.  
+    </documentation></annotation>
+    <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="target" default="standard">
+	      <annotation><documentation>The real transaction to be wrapped.  Use <code>standard</code>
+	      in standard environments and enterprise in enterprise environments.  In case of the 
+	      <code>enterprise</code> target, the <code>jndi</code> name of the user transaction and 
+	      the <code>manage</code> attribute can optionally be specified. 
+	      </documentation></annotation>
+	      <simpleType>
+	        <restriction base="string">
+	          <enumeration value="standard" />
+	          <enumeration value="enterprise" />
+	        </restriction>
+	      </simpleType>
+	    </attribute>
+	    <attribute name="jndi" type="string" default="java:comp/UserTransaction">
+	      <annotation><documentation>The jndi name of the user transaction  
+	      </documentation></annotation>
+	    </attribute>
+	    <attribute name="manage" type="tns:booleanValueType" default="false">
+	      <annotation><documentation>Indicates if the user transaction be controlled (=managed) 
+	      by the environment.  
+	      </documentation></annotation>
+	    </attribute>
+    </complexType>
+  </element>
+
+  <element name="transaction-ref">
+    <annotation><documentation>Reference to the org.jbpm.pvm.api.env.Transaction in the 
+    current environment. 
+    </documentation></annotation>
+  </element>
+
+  <element name="true">
+    <annotation><documentation>java.lang.Boolean.TRUE 
+    </documentation></annotation>
+    <complexType>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+    </complexType>
+  </element>
+
+  <element name="types">
+    <annotation><documentation>Specifies automatic variable type resolution, transforming 
+    variable values of any java class into their persistable format.  When the 
+    type of a variable needs to be automatically detected.  Each of the type elements will 
+    be scanned in order.  When the type matches, it is used to store the value. 
+    </documentation></annotation>
+    <complexType>
+      <choice minOccurs="0" maxOccurs="unbounded">
+        <element name="type">
+          <complexType>
+            <choice>
+              <element name="matcher">
+                <annotation><documentation>Alternative to the <code>class</code> attribute to 
+                specify the matcher for this type.</documentation></annotation>
+                <complexType>
+          	      <group ref="tns:allDescriptors" />
+                </complexType>
+              </element>
+            </choice>
+				    <attribute name="name" type="string">
+				      <annotation><documentation>The name of the type is optional.  It's used when 
+				      users declare variables in the process.</documentation></annotation>
+				    </attribute>
+				    <attribute name="class" type="string">
+				      <annotation><documentation>Specifies a matcher based on the class of the 
+				      object.  The java class name of the values that will be 
+				      stored in this type.  Apart from Java class names following literals can be 
+				      used as well:
+				      <p><b><code>persistable</code></b>: Matches when the class of the object is 
+				      known by the hibernate-session-factory so that a generic reference (any-mapping)
+				      can be created to the persistable object.  If <code>class="persistable"</code>
+				      the attribute <code>id-type</code> becomes required. 
+				      </p>
+				      <p><b><code>serializable</code></b>: Matches if the object implements the 
+				      java.io.Serializable interface. 
+				      </p>
+				      <p>If no <code>class</code> is provided, a matcher can also be specified 
+				      as a separate child element.</p>
+				      </documentation></annotation>
+				    </attribute>
+				    <attribute name="hibernate-session-factory" type="string">
+				      <annotation><documentation>The name of the hibernate-session-factory. Only 
+				      required if <code>class="persistable"</code> is used and if there is more then 
+				      one hibernate session factory specified in the environment.
+				      </documentation></annotation>
+				    </attribute>
+				    <attribute name="id-type">
+				      <annotation><documentation>The type of the id property in the persistable object. 
+				      </documentation></annotation>
+				      <simpleType>
+				        <restriction base="string">
+				          <enumeration value="long" />
+				          <enumeration value="string" />
+				        </restriction>
+				      </simpleType>
+				    </attribute>
+				    <attribute name="converter" type="string">
+				      <annotation><documentation>The class name of the converter.  The converter must implement 
+				      the Converter interface and have a default constructor</documentation></annotation>
+				    </attribute>
+				    <attribute name="variable-class" type="string" use="required">
+				      <annotation><documentation>The class name of the variable class.  The variable class must be 
+				      a sub class of Variable and must have a default constructor.</documentation></annotation>
+				    </attribute>
+          </complexType>
+        </element>
+      </choice>
+	    <attribute name="name" type="string">
+	      <annotation><documentation>The name of the object.  It's optional and serves 
+	      as an id to refer to this object from other object declarations.  This name can 
+	      also be used lookup the object programmatically.</documentation></annotation>
+	    </attribute>
+	    <attribute name="init" type="tns:initType" default="lazy">
+	      <annotation><documentation>Specifies when and how this object should be 
+	      initialized. Default is lazy.</documentation></annotation>
+	    </attribute>
+	    <attribute name="file" type="string">
+	      <annotation><documentation>Imports variable types from a file.  All the 
+	      top level elements of the root document element are imported.</documentation></annotation>
+	    </attribute>
+	    <attribute name="url" type="string">
+	      <annotation><documentation>Imports variable types from a URL.  All the 
+	      top level elements of the root document element are imported.</documentation></annotation>
+	    </attribute>
+	    <attribute name="resource" type="string">
+	      <annotation><documentation>Imports variable types from a resource.  All the 
+	      top level elements of the root document element are imported.</documentation></annotation>
+	    </attribute>
+    </complexType>
+  </element>
+
+  <!-- ### COMPLEX TYPES ################################################### -->
+
+  <complexType name="argType">
+    <annotation><documentation>The method arguments.
+    Each 'arg' element should have exactly one child element 
+    that represents the value of the argument.
+    </documentation></annotation>
+    <attribute name="type" type="string">
+      <annotation><documentation>The java class name representing 
+      the type of the method.  This is optional and can be used to 
+      indicate the appropriate method in case of method overloading. 
+      </documentation></annotation>
+    </attribute>
+  </complexType>
+  
+  <complexType name="contextType">
+    <annotation><documentation>A context is a set of object 
+    descriptions.
+    </documentation></annotation>
+    <choice minOccurs="0" maxOccurs="unbounded">
+      <group ref="tns:allDescriptors" />
+    </choice>
+  </complexType>
+
+  <complexType name="hibernateConfigurationType">
+    <choice minOccurs="0" maxOccurs="unbounded">
+      <element name="mapping">
+        <annotation><documentation>Imports a hibernate mapping file</documentation></annotation>
+        <complexType>
+          <attribute name="resource" type="string">
+            <annotation><documentation>Adds the referenced resource file as a mapping 
+            file to the hibernate configuration</documentation></annotation>
+          </attribute>
+          <attribute name="file" type="string">
+            <annotation><documentation>Adds the referenced file as a mapping 
+            file to the hibernate configuration</documentation></annotation>
+          </attribute>
+          <attribute name="class" type="string">
+            <annotation><documentation>Adds the resource file that matches the given class 
+            name as a mapping file to the hibernate configuration. Matching means 
+            .hbm.xml instead of .java</documentation></annotation>
+          </attribute>
+          <attribute name="url" type="string">
+            <annotation><documentation>Adds file supplied by the URL as a mapping 
+            file to the hibernate configuration</documentation></annotation>
+          </attribute>
+        </complexType>
+      </element>
+      <element ref="tns:properties" />
+      <element name="cache-configuration">
+        <complexType>
+          <choice minOccurs="0" maxOccurs="unbounded">
+            <element name="class-cache">
+              <annotation><documentation>Persistent class for which hibernate should 
+              activate its second level cache</documentation></annotation>
+              <complexType>
+                <attribute name="class">
+                  <annotation><documentation>Fully qualified classname</documentation></annotation>
+                </attribute>
+              </complexType>
+            </element>
+            <element name="collection-cache">
+              <annotation><documentation>Persistent collection for which hibernate should 
+              activate its second level cache</documentation></annotation>
+              <complexType>
+                <attribute name="collection">
+                  <annotation><documentation>Fully qualified classname, a dot (.) and 
+                  then the property name of the collection</documentation></annotation>
+                </attribute>
+              </complexType>
+            </element>
+          </choice>
+          <attribute name="usage" type="tns:hibernateCacheUsageType">
+            <annotation><documentation>The caching strategy. see hibernate 
+            docs for more info.</documentation></annotation>
+          </attribute>
+          <attribute name="file" type="string">
+            <annotation><documentation>Import source for class-cache elements</documentation></annotation>
+          </attribute>
+          <attribute name="resource" type="string">
+            <annotation><documentation>Import source for class-cache elements</documentation></annotation>
+          </attribute>
+          <attribute name="url" type="string">
+            <annotation><documentation>Import source for class-cache elements</documentation></annotation>
+          </attribute>
+        </complexType>
+      </element>
+    </choice>
+    <attribute name="name" type="string">
+      <annotation><documentation>Optional name of this hibernate session factory.
+      Typically a session factory is looked up by type.  Only if multiple sessions 
+      are declared, a name can be used to distinct them. 
+      </documentation></annotation>
+    </attribute>
+    <attribute name="init" type="tns:initType" default="lazy">
+      <annotation><documentation>Specifies when and how this object should be 
+      initialized. Default is lazy.</documentation></annotation>
+    </attribute>
+    <attribute name="annotations">
+      <annotation><documentation>Indicates if annotations should be enabled or 
+      disabled.</documentation></annotation>
+      <simpleType>
+        <restriction base="string">
+          <enumeration value="enabled" />
+          <enumeration value="disabled" />
+        </restriction>
+      </simpleType>
+    </attribute>
+  </complexType>
+
+  <complexType name="businessCalendarDayType">
+    <attribute name="hours" type="string">
+      <annotation><documentation>The working hours of this day.  Day parts are separated 
+      with 'and'.  Begin and end hours are separated by '-'.  E.g:
+      9:00-12:00 and 12:30-17:00
+      </documentation></annotation>
+    </attribute>
+  </complexType>
+  
+
+
+  <!-- ### SIMPLE VALUE TYPES ############################################## -->
+
+  <simpleType name="booleanValueType">
+    <restriction base="string">
+      <enumeration value="true" />
+      <enumeration value="on" />
+      <enumeration value="enabled" />
+      <enumeration value="false" />
+      <enumeration value="off" />
+      <enumeration value="disabled" />
+    </restriction>
+  </simpleType>
+
+  <simpleType name="hibernateSchemaOperationType">
+    <restriction base="string">
+      <enumeration value="update" />
+      <enumeration value="create" />
+    </restriction>
+  </simpleType>
+  
+  <simpleType name="hibernateCacheUsageType">
+    <restriction base="string">
+      <enumeration value="read-only" />
+      <enumeration value="nonstrict-read-write" />
+      <enumeration value="read-write" />
+      <enumeration value="transactional" />
+    </restriction>
+  </simpleType>
+  
+  <simpleType name="initType">
+    <annotation><documentation>Specifies when and how this object should be 
+      initialized. Default is lazy.
+      
+      <p><code><b>lazy</b></code>: The object is only created when it is asked for.  
+        In case of transitive dependencies, the object might not yet be initialized.
+      </p>
+         
+      <p><code><b>eager</b></code>: The object is created when the context is created.  
+        In case of transitive dependencies, the object might not yet be initialized.
+      </p>
+        
+      <p><code><b>eager</b></code>: The object is created when the context is created.  
+        In case of transitive dependencies, the initialization is also mandatory.
+      </p>
+        
+      <p><code><b>eager</b></code>: The object is only created when it is asked for.  
+        In case of transitive dependencies, initialization is mandatory.  
+      </p>
+     </documentation></annotation>
+    <restriction base="string">
+      <enumeration value="lazy" />
+      <enumeration value="eager" />
+      <enumeration value="immediate" />
+      <enumeration value="required" />
+    </restriction>
+  </simpleType>
+
+  <simpleType name="messageSessionTargetType">
+    <restriction base="string">
+      <enumeration value="job-executor" />
+      <enumeration value="jms" />
+      <enumeration value="test" />
+    </restriction>
+  </simpleType>
+  
+  
+  <!-- ### GROUPS ########################################################## -->
+
+  <group name="persistableDescriptors">
+    <choice>
+      <element ref="tns:byte" />
+      <element ref="tns:char" />
+      <element ref="tns:class" />
+      <element ref="tns:context-ref" />
+      <element ref="tns:double" />
+      <element ref="tns:env-ref" />
+      <element ref="tns:process-engine-ref" />
+      <element ref="tns:false" />
+      <element ref="tns:float" />
+      <element ref="tns:int" />
+      <element ref="tns:jndi" />
+      <element ref="tns:list" />
+      <element ref="tns:long" />
+      <element ref="tns:map" />
+      <element ref="tns:message-session" />
+      <element ref="tns:null" />
+      <element ref="tns:object" />
+      <element ref="tns:db-session" />
+      <element ref="tns:properties" />
+      <element ref="tns:ref" />
+      <element ref="tns:set" />
+      <element ref="tns:short" />
+      <element ref="tns:string" />
+      <element ref="tns:timer-session" />
+      <element ref="tns:transaction-ref" />
+      <element ref="tns:true" />
+    </choice>
+  </group>
+  
+  <group name="allDescriptors">
+    <choice>
+      <group ref="tns:persistableDescriptors" />
+      <element ref="tns:business-calendar" />
+      <element ref="tns:process-service" />
+      <element ref="tns:deployer-manager" />
+      <element ref="tns:hibernate-configuration" />
+      <element ref="tns:hibernate-session-factory" />
+      <element ref="tns:hibernate-session" />
+      <element ref="tns:job-executor" />
+      <element ref="tns:job-test-helper" />
+      <element ref="tns:command-service" />
+      <element ref="tns:transaction" />
+      <element ref="tns:types" />
+    </choice>
+  </group>
+  
+  <group name="interceptors">
+    <choice>
+		  <element name="environment-interceptor">
+		    <annotation><documentation>Interceptor that can be used as part of declaring 
+		    a command service. 
+		    </documentation></annotation>
+		  </element>
+		  <element name="retry-interceptor">
+		    <annotation><documentation>Interceptor that retries the method invocation in 
+		    case of exceptions. 
+		    </documentation></annotation>
+		    <complexType>
+		      <attribute name="retries" default="3">
+		        <annotation><documentation>Max number of attempts before giving up</documentation></annotation>
+		      </attribute>
+		      <attribute name="delay" default="50">
+		        <annotation><documentation>Delay in milliseconds after the first exception</documentation></annotation>
+		      </attribute>
+		      <attribute name="delay-factor" default="4">
+		        <annotation><documentation>Factor with which the delay is multiplied after subsequent 
+		        failed attempts.  This enables back-off to reduce load in case of repetitive failures.
+		        </documentation></annotation>
+		      </attribute>
+		    </complexType>
+		  </element>
+		  <element name="transaction-interceptor">
+		    <annotation><documentation>Interceptor that will make sure the transaction is initialized before each 
+		    invocation and it will issue a setRollbackOnly on the transaction in case an exception occors. 
+		    </documentation></annotation>
+		  </element>
+    </choice>
+  </group>
+
+  <group name="deployers">
+    <choice>
+      <element name="create-process">
+        <annotation><documentation>Deployer that can instantiate the 
+	      process definition of a given type. 
+	      </documentation></annotation>
+	      <complexType>
+  		    <attribute name="name" type="string" />
+	  	    <attribute name="class" type="string" use="required"/>
+		    </complexType>
+      </element>
+      <element name="check-version">
+        <annotation><documentation>Deployer checks if the version of the 
+        deployed process is exactly 1 more then the last version of the same 
+        process.   If a version already exists, it is left untouched.  
+        If no version exists, by default, this deployer will assign 
+        a version to the process definition that is 1 higher then the 
+        highest deployed version in the DB for that process name.  This 
+        default can be overridden by the 'assign' attribute. 
+        </documentation></annotation>
+        <complexType>
+          <attribute name="assign" default="true">
+            <annotation><documentation>In case there the process definition 
+            has not be given a version explicitely, this attribute specifies 
+            if this deployer should assign a version.  The assigned version 
+            will be 1 higher then the highest version in the db for processes
+            with the same name.  Starting with 1 if no similarly named procses 
+            definitions are found.  
+            </documentation></annotation>
+          </attribute>
+        </complexType>
+      </element>
+      <element name="create-id">
+        <annotation><documentation>Deployer verifies if the version of the 
+        deployed process is exactly 1 more then the last version of the same 
+        process. 
+        </documentation></annotation>
+      </element>
+      <element name="save-process">
+        <annotation><documentation>Deployer that saves the process with
+        the PvmDbSession. 
+	      </documentation></annotation>
+      </element>
+    </choice>
+  </group>
+
+  <group name="operations">
+    <choice>
+      <element name="enlist">
+        <annotation><documentation>Enlists this object (assumes a org.jbpm.tx.Resource) with the current org.jbpm.tx.StandardTransaction</documentation></annotation>
+        <complexType>
+			    <attribute name="transaction" type="string">
+			      <annotation><documentation>Optional reference to the name of the 
+			      standard transaction.  If no transaction name is specified, the transaction 
+			      is looked up by type in the environment.
+			      </documentation></annotation>
+			    </attribute>
+        </complexType>
+      </element>
+      <element name="field">
+        <annotation><documentation>Injects a value into a member field of this object.
+        Exactly one child element must specify the value.
+        </documentation></annotation>
+        <complexType>
+          <group ref="tns:persistableDescriptors" />
+          <attribute name="name">
+            <annotation><documentation>The member field name</documentation></annotation>
+          </attribute>
+        </complexType>
+      </element>
+		  <element name="invoke">
+		    <annotation><documentation>Invokes a method</documentation></annotation>
+			  <complexType>
+			    <choice minOccurs="0" maxOccurs="unbounded">
+			      <element name="arg" type="tns:argType" />
+			    </choice>
+			    <attribute name="method" type="string" use="required">
+			      <annotation><documentation>the method name</documentation></annotation>
+			    </attribute>
+			  </complexType>
+		  </element>
+		  <element name="subscribe">
+		    <annotation><documentation>Subscribes this object to an observable</documentation></annotation>
+			  <complexType>
+			    <choice minOccurs="0" maxOccurs="unbounded">
+			      <element name="arg" type="tns:argType" />
+			    </choice>
+			    <attribute name="context" type="string">
+			      <annotation><documentation>The context in which to find the observable.  If not specified, 
+			      the context of this object will be taken.  If no observable object names are specified, the 
+			      context object itself will be used as the observable.</documentation></annotation>
+			    </attribute>
+			    <attribute name="to" default="object-events">
+			      <annotation><documentation>Indicates if this object is interested in the events fired by 
+			      the object itself (object-events) or in the wire events fired by the wire context 
+			      (wire-events).</documentation></annotation>
+			      <simpleType>
+			        <restriction base="string">
+			          <enumeration value="wire-events" />
+			          <enumeration value="object-events" />
+			        </restriction>
+			      </simpleType>
+			    </attribute>
+			    <attribute name="event" type="string">
+			      <annotation><documentation>A single event.  See 'events' for more information.</documentation></annotation>
+			    </attribute>
+			    <attribute name="events" type="string">
+			      <annotation><documentation>Comma separated list of events to listen to, filtering out all other events.  
+			      If no events are specified or if the '*' wildcard is specified, the object will be notified of all events.
+			      </documentation></annotation>
+			    </attribute>
+			    <attribute name="object" type="string">
+			      <annotation><documentation>A single object name.  See 'objects' for more information.</documentation></annotation>
+			    </attribute>
+			    <attribute name="objects" type="string">
+			      <annotation><documentation>Comma separated list of object names to listen to.  
+			      If no objects are specified the specified context will be used as the observable.
+			      </documentation></annotation>
+			    </attribute>
+			    <attribute name="method" type="string">
+			      <annotation><documentation>Name of the method to invoke.  If no method is specified, it is assumed that the 
+			      object implements the Listener interface.  Nested 'arg' elements can be used to provide arguments
+			      in the method invocation. 
+			      </documentation></annotation>
+			    </attribute>
+			  </complexType>
+		  </element>
+    </choice>
+  </group>
+
+</schema>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter id="signavio">
+  
+  <title>Signavio web modeler</title>
+  
+  <section id="signavioIntroduction">
+    
+    <title>Introduction</title>
+    
+    <para>Since version 4.1, jBPM ships with a completely open-source web-based BPMN 
+    modeling tool called 'Signavio'. This Signavio web modeler is the result
+    of a close collaboration between the JBoss jBPM team, 
+    <ulink url="http://www.signavio.com/en.html">the company also named 'Signavio'</ulink>
+    and the Hasso Plattner Instut (HPI) in Germany. Signavio is based on the 
+    web-based modeling tool <ulink url="http://bpt.hpi.uni-potsdam.de/Oryx">
+    Oryx</ulink>, which was developed in open-source by HPI. Both HPI and
+    Signavio have comitted themselves to continue investing in Oryx and Signavio.
+    More information about the initiative can be found 
+    <ulink url="http://code.google.com/p/signavio-oryx-initiative/">here</ulink>.</para>
+    
+    <para>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/signavio.screenshot.png"/></imageobject></mediaobject>
+    </para>
+    
+    <para>
+    Using the Signavio web-based BPMN modeler, it is possible to let business 
+    analyst model the business processes through their browser. The file format
+    which is used to store the BPMN processes is actually jPDL. This means that
+    the resulting processes can directly be imported into the Eclipse GPD and vice-versa. The process
+    files will be stored on the hard disk, in 
+    <literal>$jbpm_home/signavio-repository</literal> if you've used the default
+    installation scripts.
+    </para>
+    
+    <para>
+    NOTE: The web-based BPMN modeling tool which ships with jBPM is 100% open-source
+    (MIT-licence). The company <ulink url="http://www.signavio.com/en.html">Signavio</ulink>
+    also offers commercial versions of the same modeling tool, enhanced with additional 
+    features. Do note that new features, beneficial for the jBPM project, always
+    will be comitted in the open-source repository of the modeling tool.
+    </para>
+    
+  </section>
+  
+    <section id="signavioInstallation">
+    
+    <title>Installation</title>
+    
+    <para>
+    There are several ways of installing Signavio into your web container:
+    <itemizedlist>
+      <listitem>
+      Use the demo.setup.jboss/tomcat scripts in <literal>$jbpm_home/install</literal>
+      </listitem>
+      <listitem>
+      Use the install.signavio.into.jboss/tomcat scripts in <literal>$jbpm_home/install</literal>
+      </listitem>
+      <listitem>
+      Copy the <literal>$jbpm_home/install/src/signavio/jbpmeditor.war</literal> 
+      to your web container
+      </listitem>
+    </itemizedlist>
+    </para>
+    
+  </section>
+  
+  <section id="signavioConfiguration">
+    
+    <title>Configuration</title>
+    
+    <para>
+    Most of the Signavio configuration parameters can be changed in the 
+    <literal>web.xml</literal> file, which you can find in <literal>jbpmeditor.war/WEB-INF/</literal>.
+    The only parameters which is of real importance is the <literal>fileSystemRootDirectory</literal>
+    parameter. The value of this parameter must point to an existing folder
+    on your hard disk and indicates where the processes must be stored:
+    <programlisting>
+&lt;/context-param&gt;
+  &lt;context-param&gt;
+    &lt;description&gt;Filesystem directory that is used to store models&lt;/description&gt;
+    &lt;param-name&gt;fileSystemRootDirectory&lt;/param-name&gt;&lt;param-value&gt;/home/jbarrez/dev/temp/jbpm-4.4-SNAPSHOT/signavio-repository&lt;/param-value&gt;
+&lt;/context-param&gt;    
+   </programlisting>
+    </para>
+    
+    <para>
+    If you use the installation scripts provided in <literal>$jbpm_home/install</literal>,
+    this parameter is automatically set to <literal>$jbpm_home/signavio-repository</literal>
+    during installation.
+    </para>
+    
+  </section>
+  
+</chapter>

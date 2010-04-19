@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="Rules" xmlns="http://jbpm.org/4.3/jpdl">
+
+	<start g="49,93,80,40">
+    <transition to="evaluateStatus"/>
+	</start>
+
+	<rules name="evaluateStatus">
+    <fact var="room" />
+    <transition to="checkForFires" />
+	</rules>
+
+  <decision g="215,93,80,40" name="checkForFires">
+    <transition to="getFireExtinguisher" g="240,69:">
+      <condition expr="#{room.onFire}" />
+    </transition>
+    <transition to="goToPub" g="240,164:"/>
+  </decision>
+
+  <state g="294,43,120,52" name="getFireExtinguisher"/>
+	<state g="292,139,124,49" name="goToPub"/>
+
+</process>

@@ -1,0 +1,542 @@
+<chapter id="services">
+  <title>Services</title>
+  
+  <section id="processdefinitionprocessinstanceandexecutions">
+    <title>Process definition, process instance and executions</title>
+    <para>A process definition is description of the steps in a procedure.
+    For example, an insurance company could have a <literal>loan</literal> 
+    process definition that describes the steps of how the company deals 
+    with loan requests.
+    </para> 
+    <figure id="loan.process.definition.example">
+      <title>The loan process definition example</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/loan.process.definition.png"/></imageobject></mediaobject>
+    </figure>
+    <para>One process instance represents one particular run of a process definition.
+    For example, the loan request of John Doe last Friday to finance his new boat 
+    is represented in one process instance of the loan process definition.
+    </para>
+    <para>A process instance contains all the runtime state.  The 
+    most prominent property is the pointer that keeps track of the current activity.
+    </para>
+    <figure id="loan.process.instance.example">
+      <title>The loan process instance example</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/loan.process.instance.png"/></imageobject></mediaobject>
+    </figure>
+    <para>Suppose that wiring the money and archiving can be done in parallel.
+    Then the main process instance will have two child executions to keep 
+    track of the state like this:   
+    </para>
+    <figure id="loan.executions.example">
+      <title>The loan executions example</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/loan.executions.png"/></imageobject></mediaobject>
+    </figure>
+    <para>More general, a process instance is the root of a tree of executions.
+    When a new process instance is started, the process instance is in fact the root 
+    execution scope.  Only leaf executions can be active.
+    </para>
+    <para>The motivation to work with a tree structure like this is that
+    this conceptually remains simple in the case where there is only one path 
+    of execution.  The services API doesn't need to make a functional difference 
+    between process instances and executions.  Therefore, the API has only 
+    one Execution type to refer to both <literal>ProcessInstance</literal>s and 
+    <literal>Execution</literal>s. 
+    </para>
+  </section>
+
+  <section id="processengine">
+    <title>ProcessEngine</title>
+    <para>Interacting with jBPM occurs through services.
+    The service interfaces can be obtained from the <literal>ProcessEngine</literal>
+    which is build from a <literal>Configuration</literal>.  
+    </para>
+    <para>A <literal>ProcessEngine</literal> is thread safe and can be stored in a 
+    static member field or even better in JNDI or some other central location.  
+    One <literal>ProcessEngine</literal> object can be used by all requests and 
+    threads in an application.  Here's how you can obtain a <literal>ProcessEngine</literal>
+    </para>
+    
+    <para>The code snippets in this section and the next section about process 
+    deployments are taken from the example 
+    <literal>org.jbpm.examples.services.ServicesTest</literal> 
+    </para>
+    
+    <programlisting>ProcessEngine processEngine = new Configuration()
+      .buildProcessEngine();</programlisting>
+    
+    <para>The previous code snippet shows how to build a <literal>ProcessEngine</literal>
+    from the default configuration file <literal>jbpm.cfg.xml</literal> which is 
+    expected in the root of the classpath.  If you want to specify another 
+    resource location, use the <literal>setResource</literal> method like this: 
+    </para>
+    
+    <programlisting>ProcessEngine processEngine = new Configuration()
+      .setResource("my-own-configuration-file.xml")
+      .buildProcessEngine();</programlisting>
+    
+    <para>There are other <literal>setXxxx</literal> methods that allow to specify 
+    the configuration content as an <literal>InputStream</literal>, an 
+    <literal>xmlString</literal>, <literal>InputSource</literal>, 
+    <literal>URL</literal> or  <literal>File</literal>.  
+    </para>
+  
+    <para>From a <literal>ProcessEngine</literal> the following services 
+    can be obtained:
+    </para>
+    
+    <programlisting><emphasis role="bold">RepositoryService</emphasis> repositoryService = processEngine.getRepositoryService();
+<emphasis role="bold">ExecutionService</emphasis> executionService = processEngine.getExecutionService();
+<emphasis role="bold">TaskService</emphasis> taskService = processEngine.getTaskService();
+<emphasis role="bold">HistoryService</emphasis> historyService = processEngine.getHistoryService();
+<emphasis role="bold">ManagementService</emphasis> managementService = processEngine.getManagementService();</programlisting>
+
+    <para>Process engine objects defined in the configuration can also be retrieved by 
+    type (<literal>processEngine.get(Class&lt;T&gt;)</literal>) 
+    or by name (<literal>processEngine.get(String)</literal>)</para>
+
+  </section>
+
+  <section id="deployingaprocess">
+    <title>Deploying a process</title>
+    <para>The <literal>RepositoryService</literal> groups all methods to manage 
+    the repository of deployments.  In this first example, we'll deploy one process 
+    resource from the classpath with the <literal>RepositoryService</literal>:
+    </para>
+    <programlisting>String deploymentId = repositoryService.createDeployment()
+    .addResourceFromClasspath("org/jbpm/examples/services/Order.jpdl.xml")
+    .deploy();</programlisting>
+    <para>Analogue to the <literal>addResourceFromClasspath</literal> method above, 
+    the source of the processes definitions XML can be picked up from a file, url, string, 
+    input stream or zip input stream.
+    </para>
+    <para>Each deployment is composed of a set of named resources.  The content 
+    of each resource is a byte array.  jPDL process files are recognized by their extension 
+    <literal>.jpdl.xml</literal>.  Other resource types are task forms and java classes.  
+    </para>
+    <para>A deployment works with a set of named resources and can potentially contain 
+    multiple process descriptions and multiple other artifact types.  The jPDL deployer 
+    will recognise process files based on the <literal>.jpdl.xml</literal> 
+    extension automatically.  
+    </para>
+    <para>During deployment, an <literal>id</literal> is assigned to the process 
+    definitions.  The <literal>id</literal> will have format 
+    <literal>{key}-{version}</literal> with a dash between key and version
+    </para>
+    <para>If <literal>key</literal> is not provided, it is generated automatically 
+    based on the name.  All non alpha numeric characters in the name will be replaced 
+    by underscores to generate the key.
+    </para>
+    <para>The same <literal>name</literal> can only be associated to one 
+    <literal>key</literal> and vice versa.
+    </para>
+    <para>If <literal>version</literal> is not provided, a <literal>version</literal> 
+    will be automatically be assigned.  For version 
+    assignment, the versions of all deployed process definitions with the same name will 
+    be taken into account.  The assigned <literal>version</literal> will be one higher 
+    then the highest <literal>version</literal> number of deployed process definitions 
+    with the same <literal>key</literal>.  If no process definitions with a similar
+    <literal>key</literal> have been deployed, version number 1 is assigned. 
+    </para>
+    <para>In this first example, we'll supply a name and nothing else.</para>
+    <programlisting>&lt;process name=&quot;Insurance claim&quot;&gt;
+...
+&lt;/process&gt;</programlisting>
+    <para>Let's assume that this is the first time that this process gets deployed.
+    Then it will get the following properties:
+    </para>
+    <table><title>Process properties without key</title>
+      <tgroup cols="3" rowsep="1" colsep="1">
+        <thead>
+          <row>
+            <entry>Property</entry>
+            <entry>Value</entry>
+            <entry>Source</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><literal>name</literal></entry>
+            <entry>Insurance claim</entry>
+            <entry>process xml</entry>
+          </row>
+          <row>
+            <entry><literal>key</literal></entry>
+            <entry>Insurance_claim</entry>
+            <entry>generated</entry>
+          </row>
+          <row>
+            <entry><literal>version</literal></entry>
+            <entry>1</entry>
+            <entry>generated</entry>
+          </row>
+          <row>
+            <entry><literal>id</literal></entry>
+            <entry>Insurance_claim-1</entry>
+            <entry>generated</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+    <para>And as a second example, we'll show how you can get shorter ids by 
+    specifying a process key:</para>
+    <programlisting>&lt;process name=&quot;Insurance claim&quot; key=&quot;ICL&quot;&gt;
+...
+&lt;/process&gt;</programlisting>
+    <para>Then the process definition properties look like this:</para>
+    <table><title>Process properties with key</title>
+      <tgroup cols="2" rowsep="1" colsep="1">
+        <thead>
+          <row>
+            <entry>Property</entry>
+            <entry>Value</entry>
+            <entry>Source</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><literal>name</literal></entry>
+            <entry>Insurance claim</entry>
+            <entry>process xml</entry>
+          </row>
+          <row>
+            <entry><literal>key</literal></entry>
+            <entry>ICL</entry>
+            <entry>process xml</entry>
+          </row>
+          <row>
+            <entry><literal>version</literal></entry>
+            <entry>1</entry>
+            <entry>generated</entry>
+          </row>
+          <row>
+            <entry><literal>id</literal></entry>
+            <entry>ICL-1</entry>
+            <entry>generated</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+  </section>
+  
+<!-- 
+  <section id="undeployingdeployments">
+    <title>Undeploying deployments</title>
+    <para>TODO</para>
+  </section>
+-->
+
+  <section id="deletingadeployment">
+    <title>Deleting a deployment</title>
+    <para>Deleting a deployment will remove it from the DB.</para>
+    <programlisting>repositoryService.deleteDeployment(deploymentId);</programlisting>
+    <para>That method will throw an exception when there are still active 
+    process executions for process definitions in that deployment.
+    </para>
+    <para>If you want to cascade deletion of a deployment to all 
+    the process instances of all the process definitions, use
+    <literal>deleteDeploymentCascade</literal>.
+    </para>
+  </section>
+
+  <section id="startinganewprocessinstance">
+    <title>Starting a new process instance</title>
+    
+    <section id="inlatest">
+      <title>In latest</title>
+      <para>Simplest and most common way to start a new process instance for a process 
+      definition is like this: 
+      </para>
+      <programlisting>ProcessInstance processInstance = executionService.startProcessInstanceByKey(&quot;ICL&quot;);</programlisting>
+      <para>In this case, the service method will first look up the latest version of 
+      the processes with key <literal>ICL</literal>.  Then a new 
+      process instance is started in that latest process definition.
+      </para>
+      <para>When a new version of the insurance claim process 
+      is deployed, all invocations of <literal>startProcessInstanceByKey</literal>
+      will automatically switch to the newly deployed version.
+      </para>
+    </section>
+
+    <section id="specificprocessversion">
+      <title>Specific process version</title>
+      <para>If instead you want to start a new process instance in a very 
+      specific version, you can use the id of the process definition like this:
+      </para>
+      <programlisting>ProcessInstance processInstance = 
+    executionService.startProcessInstanceById(&quot;ICL-1&quot;);</programlisting>
+    </section>
+
+    <section id="withakey">
+      <title>With a key</title>
+      <para>A new process instance can optionally be given a key.  This key is 
+      a user defined reference to the execution and is sometimes referred to as
+      the 'business key'.  A business key must be unique within the 
+      scope of all versions of a process definition. Typically it is easy 
+      to find such a key in the domain of the business process. For example, an 
+      order id or an insurance claim number.
+      </para>
+      <programlisting>ProcessInstance processInstance = 
+    executionService.startProcessInstanceByKey(&quot;ICL&quot;, &quot;CL92837&quot;);</programlisting>
+      <para>The key is used to create the id of the process instance.  
+      The format used is <literal>{process-key}.{execution-id}</literal>.  
+      With a dot between process-key and execution-id. 
+      So execution created in the previous code snippet will have id 
+      <literal>ICL.CL92837</literal>.
+      </para>  
+      <para>If no user defined key is provided, the DB primary key is taken
+      as the key.  In that case, the id can be retrieved like this:   
+      <programlisting>ProcessInstance processInstance = 
+    executionService.startProcessInstanceByKey(&quot;ICL&quot;);
+String pid = processInstance.getId();</programlisting>
+      </para> 
+      <para>It is a best practice to use a user defined business key. Typically in your application 
+      domain, finding such a key is not difficult. By providing a user defined key, you can 
+      then compose the id of the execution, rather then performing a query based 
+      on the process variables - which is also more costly performance-wise.
+      </para>
+    </section>
+    
+    <section id="withvariables">
+      <title>With variables</title>
+      <para>A map of named parameter objects can be provided when starting a 
+      new process instance.  These parameters will be set as variables on the process 
+      instance between creation and start of the process instance.
+      </para>
+      <programlisting>Map&lt;String,Object&gt; variables = new HashMap&lt;String,Object&gt;();
+variables.put(&quot;customer&quot;, &quot;John Doe&quot;);
+variables.put(&quot;type&quot;, &quot;Accident&quot;);
+variables.put(&quot;amount&quot;, new Float(763.74));
+
+ProcessInstance processInstance = 
+    executionService.startProcessInstanceByKey(&quot;ICL&quot;, variables);</programlisting>
+    </section>
+  </section>
+
+  <section id="singallingawaitingexecution">
+    <title>Signalling a waiting execution</title>
+    <para>When using a <literal>state</literal> activity, the execution (or process instance) 
+    will halt when it arrives in a state, waiting for a signal (aka external trigger).  
+    The method <literal>signalExecution</literal> and alike can be used for that.  Executions are 
+    referenced by an execution id (String).
+    </para>
+    <para>In some cases, the execution that arrives in a state will be the process instance 
+    itself.  But that is not always the case.  In case of timers or concurrency, a process 
+    is the root execution of a tree of executions.  So you have to make sure that you signal
+    the right path of execution.
+    </para>
+    <para>The preferred way to capture the right execution is by associating an event listener to 
+    the state activity like this:
+    </para>
+    <programlisting>&lt;state name=&quot;wait&quot;&gt;
+  &lt;on event=&quot;start&quot;&gt;
+    &lt;event-listener class=&quot;org.jbpm.examples.StartExternalWork&quot; /&gt;
+  &lt;/on&gt;
+  ...
+&lt;/state&gt;</programlisting>
+    <para>In event listener <literal>StartExternalWork</literal> you can kick off what needs to
+    be done externally.  In that event listener you can also obtain the exact execution id
+    with <literal>execution.getId()</literal>.  It's that executionId that you'll need to provide 
+    with the signal later on when the external work is done:
+    </para>
+    <programlisting>executionService.signalExecutionById(executionId);</programlisting>
+    <para>There is an alternatively (less preferrable) way to obtain the executionId 
+    when the execution arrives in the <literal>state</literal> activity.  
+    It's only possible to obtain the execution id this way if you know after which jBPM 
+    API call the execution will have entered the <literal>state</literal> activity:
+    </para>
+    <programlisting>// assume that we know that after the next call
+// the process instance will arrive in <literal>state</literal> external work
+
+ProcessInstance processInstance = 
+  executionService.startProcessInstanceById(processDefinitionId);
+// or ProcessInstance processInstance = 
+//  executionService.signalProcessInstanceById(executionId);
+
+Execution execution = processInstance.findActiveExecutionIn("external work");
+String executionId = execution.getId();</programlisting>
+  </section>
+  
+  <para>
+  Do note that the above solution couples the application logic (too) closely
+  by using knowledge about the actual process structure.
+  </para>
+
+  <section id="taskservice">
+    <title>TaskService</title>
+    <para>The primary purpose of the TaskService is to provide access to 
+    task lists.  The code sample will show how to get the task list for 
+    the user with id <literal>johndoe</literal>.  
+    </para>
+    <programlisting>List&lt;Task&gt; taskList = taskService.findPersonalTasks(&quot;johndoe&quot;);</programlisting>
+    <para>Typically tasks are associated with a form and displayed in some user 
+    interface.  The form needs to be able to read and write data related to the task.   
+    </para>
+    <programlisting>long taskId = task.getId();
+
+Set&lt;String&gt; variableNames = taskService.getVariableNames(taskId);
+variables = taskService.getVariables(taskId, variableNames);
+
+variables = new HashMap&lt;String, Object&gt;();
+variables.put(&quot;category&quot;, &quot;small&quot;);
+variables.put(&quot;lires&quot;, 923874893);
+taskService.setVariables(taskId, variables);</programlisting>
+    <para>The taskService is also used to complete tasks</para>
+    <programlisting>
+taskService.completeTask(taskId);
+taskService.completeTask(taskId, variables);
+taskService.completeTask(taskId, outcome);
+taskService.completeTask(taskId, outcome, variables);
+</programlisting>
+    <para>
+    The API allows to provide a map of variables that will be added as process
+    variables before the task is completed. It is also possible to provide
+    an 'outcome', that will be used to determine which outgoing transition
+    will be chosen. The logic is as follows:
+    </para>
+    <para>
+      <emphasis role="bold">
+      If a task has one outgoing transition without a name then:
+      </emphasis>
+	    <itemizedlist>
+	      <listitem>taskService.getOutcomes() returns a collection that includes one null value</listitem>
+	      <listitem>taskService.completeTask(taskId) will take that outgoing transition</listitem>
+	      <listitem>taskService.completeTask(taskId, null) will take that outgoing transition</listitem>
+	      <listitem>taskService.completeTask(taskId, "anyvalue") will result in an exception</listitem>
+	    </itemizedlist>
+    </para>
+    <para>
+      <emphasis role="bold">
+      If a task has one outgoing transition with a name then: 
+      </emphasis>
+      <itemizedlist>
+        <listitem>gtaskService.etOutcomes() returns a collection that includes only the name of the transition</listitem>
+        <listitem>taskService.completeTask(taskId) will take the single outgoing transition</listitem>
+        <listitem>taskService.completeTask(taskId, null) will will result in an exception (as there is no transition without a name)</listitem>
+        <listitem>taskService.completeTask(taskId, "anyvalue") will result in an exception</listitem>
+        <listitem>taskService.completeTask(taskId, "myName") will take the transition with the given name</listitem>
+      </itemizedlist>
+    </para>
+    <para>
+      <emphasis role="bold">
+      If a task has multiple outgoing transitions. One transition has no a name and the other transition have a name:
+      </emphasis>
+      <itemizedlist>
+        <listitem>taskService.getOutcomes() returns a collection that includes a null value and the names of the other transitions</listitem>
+        <listitem>taskService.completeTask(taskId) will take the transition without a name</listitem>
+        <listitem>taskService.completeTask(taskId, null) will take the transition without a name</listitem>
+        <listitem>taskService.completeTask(taskId, "anyvalue") will result in an exception</listitem>
+        <listitem>taskService.completeTask(taskId, "myName") will take the 'myName' transition</listitem>
+      </itemizedlist>
+    </para>
+    <para>
+      <emphasis role="bold">
+      If a task has multiple outgoing transitions and all of them are uniquely named, then:  
+      </emphasis>
+      <itemizedlist>
+        <listitem>taskService.getOutcomes() returns a collection that includes all the names of all the transitions</listitem>
+        <listitem>taskService.completeTask(taskId) will result in an exception, since there is no transition without a name</listitem>
+        <listitem>taskService.completeTask(taskId, null) will result in an exception, since there is no unnamed transition</listitem>
+        <listitem>taskService.completeTask(taskId, "anyvalue") will result in an exception</listitem>
+        <listitem>taskService.completeTask(taskId, "myName") will take the 'myName' transition</listitem>
+      </itemizedlist>
+    </para>    
+    <para>Tasks can also be offered to a set of candidates.  Candidates can be 
+    users or groups.  Users can take tasks for which they are a candidate.  Taking 
+    a task means that this user will be set as the assignee.  After that, other users 
+    will be blocked from taking the task.
+    </para>
+    <para>People should not work on 
+    a task unless they are assigned to that task.  The user interface should display 
+    forms and allow users to complete tasks if they are assigned to it.
+    For unassigned tasks for which the user is a candidate, the only action that 
+    should be exposed is 'take'.      
+    </para>
+    <para>More on tasks in <xref linkend="task" /> </para>
+  </section>
+
+  <section id="historyservice">
+    <title>HistoryService</title>
+    <para>During runtime execution of process instances, events are generated.  And from 
+    those events, history information on both running and completed process executions are 
+    collected in the history tables.  The <literal>HistoryService</literal> provides 
+    access to that information. 
+    </para>
+    <para>Querying for all process instances for a specific process definition can be 
+    done like this:</para>
+    <programlisting>List&lt;HistoryProcessInstance&gt; historyProcessInstances = historyService
+  .createHistoryProcessInstanceQuery()
+  .processDefinitionId(&quot;ICL-1&quot;)
+  .orderAsc(HistoryProcessInstanceQuery.PROPERTY_STARTTIME)
+  .list();</programlisting>
+    <para>Also individual activity executions are stored in the history information as 
+    <literal>HistoryActivityInstance</literal>s.
+    </para>
+    <programlisting>List&lt;HistoryActivityInstance&gt; histActInsts = historyService
+    .createHistoryActivityInstanceQuery()
+    .processDefinitionId(&quot;ICL-1&quot;)
+    .activityName(&quot;a&quot;)
+    .list();</programlisting>
+    <para>Convenience methods <literal>avgDurationPerActivity</literal> and 
+    <literal>choiceDistribution</literal> are also available.  See javadocs for more 
+    information on those methods.
+    </para>
+    <para>Sometimes there is a need to get complete list of nodes executed for a given process instance. 
+    Following query can be used to get list of all nodes executed:</para>
+    <programlisting>List&lt;HistoryActivityInstance&gt; histActInsts = historyService
+    .createHistoryActivityInstanceQuery()
+    .processInstanceId(&quot;ICL.12345&quot;)
+    .list();</programlisting>
+    <para>Above query is a bit different then querying by execution id. Sometimes execution id is different than process instance id, for instance when an activity has a timer then 
+    execution id will get additional suffix, which makes that node excluded from a result list while querying by execution id.</para>
+  </section>
+
+  <section id="managementservice">
+    <title>ManagementService</title>
+    <para>The management service is mostly used to manage the jobs.  See javadocs for 
+    more information.  This functionality is also exposed through the jBPM web console.
+    </para>
+  </section>
+
+  <section id="queryApi">
+    <title>Query API</title>
+    <para>
+    Starting from jBPM 4.0, a new API has been introuced with a query system that 
+    covers most of the queries you can think of. Developers who need to write company-specific
+    queries can of course still rely on Hibernate. But for most use cases,
+    the query API will be more then suffice. 
+    Queries can be written in a unified way on all major jBPM concepts: 
+    Process Instances, Tasks, Deployments, Historical processes, etc.
+    </para>
+    <para>
+    For example:
+    <programlisting>
+List&lt;ProcessInstance&gt; results = executionService.createProcessInstanceQuery()
+                                       .processDefinitionId(&quot;my_process_definition&quot;)
+                                       .notSuspended()
+                                       .page(0, 50)
+                                       .list();
+    </programlisting>
+    This example returns all the process instances of the given process definition
+    which are not suspended. The result is also paged, and the first page of 50
+    results is given. 
+    </para><para>Querying tasks is done in completely the same way:
+    <programlisting>
+List&lt;Task&gt; myTasks = taskService.createTaskQuery()
+    .processInstanceId(piId)
+    .assignee(&quot;John&quot;)
+    .page(100, 120)
+    .orderDesc(TaskQuery.PROPERTY_DUEDATE)
+    .list();
+</programlisting>
+This query will give all the tasks for a given process instance assigned to John, 
+paged of course, in a descending order based on the duedate. 
+    </para>
+    <para>
+    Every service has operations of creating such unified queries (eg. querying
+    jobs through the <literal>ManagementService</literal>, querying completed
+    process instances through the <literal>HistoryService</literal>. Do check
+    the Javadoc of the services to learn everything about the query API.
+    </para>
+  </section>
+
+</chapter>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<process name='simpleProcess'>
+  <start>
+    <transition to='a' />
+  </start>
+  <state name='a'>
+    <transition to='b' />
+  </state>
+  <state name='b'>
+    <transition to='c' />
+  </state>
+  <end name='c' />
+</process>

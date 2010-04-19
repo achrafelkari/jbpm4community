@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="GroupSimple">
+
+  <start>
+    <transition to="evaluate document" />
+  </start>
+  
+  <group name="evaluate document">
+    <start>
+      <transition to="distribute document" />
+    </start>
+    <state name="distribute document">
+      <transition to="collect feedback" />
+    </state>
+    <state name="collect feedback">
+      <transition name="approved" to="done" />
+      <transition name="rejected" to="update document" />
+    </state>
+    <state name="update document">
+      <transition to="distribute document" />
+    </state>
+    <end name="done" />
+    <transition to="publish document" />
+  </group>
+  
+  <state name="publish document" />
+
+</process>

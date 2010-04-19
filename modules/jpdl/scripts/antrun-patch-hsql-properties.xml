@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--                                                                        -->
+<!--  Distributable under LGPL license.                                     -->
+<!--  See terms of license at http://www.gnu.org.                           -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+
+<!-- $Id: antrun-jbpm-config.xml 3602 2009-01-08 04:27:48Z alex.guizar@jboss.com $ -->
+
+<project>
+
+  <path id="build.path">
+    <pathelement location="${build.path.system}"/>
+  </path>
+
+  <target name="patch">
+
+    <pathconvert targetos="unix" property="build.path.unix" refid="build.path"/>
+    <echo>DEBUG: Build path: ${build.path.unix} </echo>
+
+    <mkdir dir="${to.dir}"/>
+
+    <copy todir="${to.dir}" filtering="true" verbose="true" overwrite="true">
+      <filterset>
+        <filter token="project.build.directory" value="${build.path.unix}"/>
+      </filterset>
+      <fileset dir="${from.dir}">
+        <include name="**/hibernate.properties.hsqldb.xml"/>
+      </fileset>
+    </copy>
+
+  </target>
+</project>

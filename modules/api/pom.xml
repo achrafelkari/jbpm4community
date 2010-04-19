@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== -->
+<!--                                                                        -->
+<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--                                                                        -->
+<!--  Distributable under LGPL license.                                     -->
+<!--  See terms of license at http://www.gnu.org.                           -->
+<!--                                                                        -->
+<!-- ====================================================================== -->
+
+<!-- $Id: pom.xml 6056 2010-01-05 09:13:54Z tom.baeyens@jboss.com $ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <!-- Module info -->
+  <modelVersion>4.0.0</modelVersion>
+  <name>jBPM 4 - API</name>
+  <groupId>org.jbpm.jbpm4</groupId>
+  <artifactId>jbpm-api</artifactId>
+  <packaging>jar</packaging>
+
+  <!-- Parent -->
+  <parent>
+    <groupId>org.jbpm.jbpm4</groupId>
+    <artifactId>jbpm</artifactId>
+    <version>4.4-SNAPSHOT</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <!-- Dependencies -->
+  <dependencies>
+    <dependency>
+      <groupId>jboss</groupId>
+      <artifactId>jboss-j2ee</artifactId>
+    </dependency>
+  </dependencies>
+  
+  <!-- Profiles -->
+  <profiles>
+    <profile>
+      <id>docs</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-javadoc-plugin</artifactId>
+          </plugin>
+		      <plugin>
+		        <groupId>org.apache.maven.plugins</groupId>
+		        <artifactId>maven-dependency-plugin</artifactId>
+		        <executions>
+		          <execution>
+		            <id>unpack</id>
+		            <phase>process-resources</phase>
+		            <goals>
+		              <goal>unpack</goal>
+		            </goals>
+		            <configuration>
+		              <artifactItems>
+                    <artifactItem>
+				              <groupId>org.jbpm.jbpm4.dependencies.xsddoctool</groupId>
+				              <artifactId>xsddoctool</artifactId>
+				              <version>1.0</version>
+				              <type>zip</type>
+				              <outputDirectory>target/xsddoctool</outputDirectory>
+				            </artifactItem>
+				          </artifactItems>
+		            </configuration>
+		          </execution>
+		        </executions>
+		      </plugin>
+		      <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>schemadocs-generation</id>
+                <phase>compile</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <tasks>
+                    <java classname="com.docflex.xml.Generator" maxmemory="512m" fork="true">
+                      <classpath>
+							         <pathelement location="target/xsddoctool/xercesImpl.jar" />
+							         <pathelement location="target/xsddoctool/docflex-xml-re.jar" />
+							        </classpath>
+							        <!-- specify the template -->
+							        <arg value="-template"/>
+							        <arg value="target/xsddoctool/XSDDoc/FramedDoc.tpl"/>
+							        <arg value="-format"/>
+							        <arg value="HTML"/>
+ 							        <arg value="-d"/>
+							        <arg value="target/schemadocs"/>
+							        <arg value="-nodialog"/>
+							        <arg value="-launchviewer=false"/>
+							        <arg value="-p:docTitle=jPDL 4.0 Schema"/> 
+							        <arg value="src/main/resources/jpdl-4.0.xsd"/>
+                    </java>
+							    </tasks>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>         
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  
+</project>

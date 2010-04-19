@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jbpm-configuration>
+
+  <process-engine-context>
+  
+    <deployer-manager>
+      <assign-file-type>
+        <file extension=".jpdl.xml" type="jpdl" />
+      </assign-file-type>
+      <check-process />
+      <check-problems />
+      <save />
+    </deployer-manager>
+    
+    <process-service />
+    <execution-service />
+    <management-service />
+  
+    <command-service>
+      <retry-interceptor />
+      <environment-interceptor />
+      <transaction-interceptor />
+    </command-service>
+  
+    <hibernate-configuration>
+      <properties resource="hibernate.properties" />
+      <mapping resource="jbpm.pvm.typedefs.hbm.xml" />
+      <mapping resource="jbpm.pvm.wire.hbm.xml" />
+      <mapping resource="jbpm.pvm.definition.hbm.xml" />
+      <mapping resource="jbpm.pvm.execution.hbm.xml" />
+      <mapping resource="jbpm.pvm.variable.hbm.xml" />
+      <mapping resource="jbpm.pvm.job.hbm.xml" />
+      <cache-configuration resource="jbpm.pvm.cache.xml" 
+                           usage="nonstrict-read-write" />
+    </hibernate-configuration>
+    <hibernate-session-factory />
+    <types resource="jbpm.pvm.types.xml" />
+  </process-engine-context>
+
+  <transaction-context>
+    <transaction />
+    <hibernate-session />
+    <db-session />
+  </transaction-context>
+
+</jbpm-configuration>

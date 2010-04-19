@@ -1,0 +1,35 @@
+<bindings>
+
+  <activity binding="org.jbpm.jpdl.internal.activity.StartBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.StateBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.DecisionBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.EndBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.EndCancelBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.EndErrorBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.ForkBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.JoinBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.HqlBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.SqlBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.JavaBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.ScriptBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.TaskBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.SubProcessBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.MailBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.GroupBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.CustomBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.AssignBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.PassthroughBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.RulesBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.RulesDecisionBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.JmsBinding" />
+
+  <eventlistener binding="org.jbpm.jpdl.internal.activity.EventListenerBinding" />
+  <eventlistener binding="org.jbpm.jpdl.internal.activity.JavaBinding" />
+  <eventlistener binding="org.jbpm.jpdl.internal.activity.HqlBinding" />
+  <eventlistener binding="org.jbpm.jpdl.internal.activity.SqlBinding" />
+  <eventlistener binding="org.jbpm.jpdl.internal.activity.ScriptBinding" />
+  <eventlistener binding="org.jbpm.jpdl.internal.activity.MailBinding" />
+  <eventlistener binding="org.jbpm.jpdl.internal.activity.AssignBinding" />
+  <eventlistener binding="org.jbpm.jpdl.internal.activity.JmsBinding" />
+
+</bindings>

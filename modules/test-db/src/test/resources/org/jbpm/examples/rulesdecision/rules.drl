@@ -1,0 +1,25 @@
+global java.lang.Integer amount;
+global java.lang.String product;
+global org.jbpm.jpdl.internal.rules.Outcome outcome;
+
+rule "LessThen3IsIrrelevant"
+  when
+    eval(amount < 3)
+  then 
+    outcome.set("irrelevant");
+end
+
+rule "MoreThen24IsImportant"
+	when
+    eval(amount > 24)
+  then 
+    outcome.set("important");
+end
+
+rule "TwelveTempranillosIsImportant"
+  when
+    eval(product == "Tempranillo")
+    eval(amount > 12)
+  then 
+    outcome.set("important");
+end

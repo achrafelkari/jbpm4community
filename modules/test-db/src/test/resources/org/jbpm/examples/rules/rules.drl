@@ -1,0 +1,6 @@
+rule "CheckRoomOnFire"
+  when
+    room : org.jbpm.examples.rules.Room( temperature > 30, smoke == true )
+  then 
+    room.setOnFire( true );
+end

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="Purchase order" xmlns="http://jbpm.org/4.3/jpdl">
+
+  <start />
+
+  <buzzz>
+  
+  </buzzz>
+
+</process>

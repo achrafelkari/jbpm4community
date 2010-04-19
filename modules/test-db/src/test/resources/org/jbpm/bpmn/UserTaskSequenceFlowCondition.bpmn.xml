@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions id="UserTaskSequenceFlowCondition"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://schema.omg.org/spec/BPMN/2.0 ../../../../../../../bpmn/src/main/resources/BPMN20.xsd"
+	xmlns:bpmn="http://schema.omg.org/spec/BPMN/2.0" typeLanguage="http://www.w3.org/2001/XMLSchema"
+	expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://sample.bpmn.camunda.com/">
+
+	<bpmn:resource name="sampleHumanResource" />
+
+	<bpmn:process id="UserTaskSequenceFlowConditionProcess"
+		name="Simple process with user task and condition on sequenceFlow">
+
+		<bpmn:startEvent id="Start" />
+
+		<bpmn:sequenceFlow id="flow1" name="fromStartToUserTask"
+			sourceRef="Start" targetRef="UserTask" />
+
+		<bpmn:userTask id="UserTask" name="user task"
+			implementation="other">
+			<!-- use jbpm internal task management -->
+			<bpmn:performer id="myPerformer" resourceRef="sampleResource" />
+		</bpmn:userTask>
+
+		<bpmn:sequenceFlow id="flow2" name="fromUserTaskToUSerTask2"
+			sourceRef="UserTask" targetRef="UserTask2">
+			<bpmn:conditionExpression id="flow2Cond"
+				xsi:type="bpmn:tFormalExpression">${jbpm_outcome == 'flow'}</bpmn:conditionExpression>
+		</bpmn:sequenceFlow>
+
+		<bpmn:userTask id="UserTask2" name="another user task"
+			implementation="other">
+			<!-- use jbpm internal task management -->
+			<bpmn:performer id="myPerformer2" resourceRef="sampleResource" />
+		</bpmn:userTask>
+
+		<bpmn:sequenceFlow id="flow3" name="fromUserTask2ToEnd"
+			sourceRef="UserTask2" targetRef="End">
+		</bpmn:sequenceFlow>
+
+		<bpmn:endEvent id="End" name="End" />
+	</bpmn:process>
+</bpmn:definitions>

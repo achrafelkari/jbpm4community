@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ============================================================ -->
+<!--  JBoss, the OpenSource J2EE webOS                            -->
+<!--  Distributable under LGPL license.                           -->
+<!--  See terms of license at http://www.gnu.org.                 -->
+<!-- ============================================================ -->
+
+<!-- $Id: ant.properties.ant.xml 3400 2008-12-16 13:57:21Z tom.baeyens@jboss.com $ -->
+
+<project default="configure.db.properties">
+
+  <target name="configure.db.properties">
+  
+    <echo message="installing properties for db: ${database}" />
+
+    <copy file="target/test-classes/hibernate.properties" 
+          token="hibernate.dialect=org.hibernate.dialect.HSQLDialect" 
+          value="hibernate.dialect=${hibernate.property.dialect}" />
+
+    <replace file="target/test-classes/hibernate.properties" 
+             token="hibernate.connection.driver_class=org.hsqldb.jdbcDriver" 
+             value="hibernate.dialect=${hibernate.property.driver}" />
+  </target>
+  
+</project>

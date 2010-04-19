@@ -1,0 +1,401 @@
+<chapter id="executionmodes">
+  <title>Execution modes</title>
+  
+  <para>There are basically three process execution modes: object, persistent 
+  and embedded.  For the persistent and embedded execution modes, the process 
+  execution has to participate in a transaction.  In that case, the process 
+  execution has to take place inside of an Environment.  The environment will be 
+  used to bind process execution updates to a transaction in the application 
+  transaction.  The environment can be used to bind  to e.g. a JDBC connection, 
+  JTA, BMT, Spring transactions and so on.  
+  </para>
+
+  <section id="objectexecutionmode">
+    <title>Object execution mode</title>
+    <para>Object execution mode is the simplest form of working with the Process
+    Virtual Machine.  This means working with the process definition and execution 
+    objects directly through the client API. Let's show this by an example.  We 
+    start by creating a <literal>ClientProcessDefinition</literal> that looks like this: 
+    </para>
+  
+    <para>Object execution mode is the simplest form of working with the Process
+    Virtual Machine.  This means working with the process definition and execution 
+    objects directly through the client API. Let's show this by an example.  We 
+    start by creating a <literal>ClientProcessDefinition</literal> that looks like this: 
+    </para>
+    <figure id="loan.process">
+      <title>The loan process</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/process.loan.png"/></imageobject></mediaobject>
+    </figure>
+    <programlisting>ClientProcessDefinition processDefinition = ProcessFactory.build("loan")
+  .activity("submit loan request").initial().behaviour(AutomaticActivity.class)
+    .transition().to("evaluate")
+  .activity("evaluate").behaviour(WaitState.class)
+    .transition("approve").to("wire money")
+    .transition("reject").to("end")
+  .activity("wire money").behaviour(AutomaticActivity.class)
+    .transition().to("archive")
+  .activity("archive").behaviour(WaitState.class)
+    .transition().to("end")
+  .activity("end").behaviour(WaitState.class)
+.done();</programlisting>
+      <para>The <literal>ProcessFactory</literal> is a helper class that provides convenience 
+      for building an object graph that represents a process definition.  
+      <literal>AutomaticActivity</literal> is a pass-through activity without anything 
+      happening and <literal>WaitState</literal> will wait until an external signal is given.  Both 
+      activity implementations will be covered in more depth later.
+      </para>
+      <para>The <literal>processDefinition</literal> object serves as a factory for process 
+      instance objects.  A process instance represents one execution of the process definition.
+      More precise, the process instance is the main path of execution.  
+      </para>
+      <programlisting>ClientExecution execution = processDefinition.startProcessInstance();</programlisting>
+      <para>A process instance 
+      itself is also an <literal>Execution</literal>.  Potentially, an execution can have 
+      child executions to represent concurrent paths of execution.
+      </para>  
+      <para>The <literal>execution</literal> can be seen as a state machine that operates as 
+      described in the process definition.  Starting a process 
+      instance means that the initial activity of the process definition is executed.
+      Since this is an automatic activity, the execution will proceed to the 
+      <literal>evaluate</literal> activity.  The <literal>evaluate</literal> activity is a wait state.
+      When the execution arrived at the evaluate activity, the method <literal>startProcessInstance</literal>
+      will return and waits until an external signal is provided with the <literal>signal</literal>
+      method.  So after the <literal>startProcessInstance</literal> we can verify if the 
+      execution is positioned in the evaluate activity. 
+      </para>
+      <programlisting>assertEquals("evaluate", execution.getActivityName());</programlisting>
+      <para>To make the process execute further, we provide an external trigger with the 
+      <literal>signal</literal> method.  The result of the evaluation will be given as the 
+      signalName parameter like this:
+      </para>
+      <programlisting>execution.signal("approve");</programlisting>
+      <para>The <literal>WaitState</literal> activity implementation will take the transition 
+      that corresponds to the given signalName.  So the execution will first execute 
+      the automatic activity <literal>wire money</literal> and then return after entering 
+      the next wait state <literal>archive</literal>.
+      </para>
+      <programlisting>assertEquals("archive", execution.getActivityName());</programlisting>
+      <para>When the execution is waiting in the archive activity, the default signal will
+      make it take the first unnamed transition.
+      </para>
+      <programlisting>execution.signal();
+assertEquals("end", execution.getActivityName());</programlisting>
+      <para>The process has executed in the thread of the client.  The 
+      <literal>startProcessInstance</literal> method only returned when the <literal>evaluate</literal> 
+      activity was reached.  In other words, the <literal>ClientProcessDefinition.startProcessInstance</literal>
+      and <literal>ClientExecution.signal</literal> methods are blocking until the next 
+      wait state is reached.
+      </para>
+    </section>
+    
+    <section id="persistentexecutionmode">
+      <title>Persistent execution mode</title>
+      <para>The Process Virtual Machine also contains the hibernate mappings to store the 
+      process definitions and executions in any database.  A special session facade called 
+      <literal>ExecutionService</literal> is provided for working with process executions 
+      in such a persistent environment. 
+      </para>
+      <para>Two configuration files should be available on the classpath: an environment 
+      configuration file and a <literal>hibernate.properties</literal> file.  A basic  
+      configuration for persistent execution mode in a standard Java environment looks 
+      like this:
+      </para>
+      <literal><emphasis role="bold">environment.cfg.xml</emphasis>:</literal>
+      <programlisting>&lt;jbpm-configuration&gt;
+
+  &lt;process-engine-context&gt;
+  
+    &lt;deployer-manager&gt;
+      &lt;assign-file-type&gt;
+        &lt;file extension=&quot;.jpdl.xml&quot; type=&quot;jpdl&quot; /&gt;
+      &lt;/assign-file-type&gt;
+      &lt;parse-jpdl /&gt;
+      &lt;check-process /&gt;
+      &lt;check-problems /&gt;
+      &lt;save /&gt;
+    &lt;/deployer-manager&gt;
+    
+    &lt;process-service /&gt;
+    &lt;execution-service /&gt;
+    &lt;management-service /&gt;
+  
+    &lt;command-service&gt;
+      &lt;retry-interceptor /&gt;
+      &lt;environment-interceptor /&gt;
+      &lt;standard-transaction-interceptor /&gt;
+    &lt;/command-service&gt;
+    
+    &lt;hibernate-configuration&gt;
+      &lt;properties resource=&quot;hibernate.properties&quot; /&gt;
+      &lt;mapping resource=&quot;jbpm.pvm.typedefs.hbm.xml&quot; /&gt;
+      &lt;mapping resource=&quot;jbpm.pvm.wire.hbm.xml&quot; /&gt;
+      &lt;mapping resource=&quot;jbpm.pvm.definition.hbm.xml&quot; /&gt;
+      &lt;mapping resource=&quot;jbpm.pvm.execution.hbm.xml&quot; /&gt;
+      &lt;mapping resource=&quot;jbpm.pvm.variable.hbm.xml&quot; /&gt;
+      &lt;mapping resource=&quot;jbpm.pvm.job.hbm.xml&quot; /&gt;
+      &lt;cache-configuration resource=&quot;jbpm.pvm.cache.xml&quot; 
+                           usage=&quot;nonstrict-read-write&quot; /&gt;
+    &lt;/hibernate-configuration&gt;
+    
+    &lt;hibernate-session-factory /&gt;
+    
+    &lt;types resource=&quot;jbpm.pvm.types.xml&quot; /&gt;
+    &lt;job-executor auto-start=&quot;false&quot; /&gt;
+  
+  &lt;/process-engine-context&gt;
+
+  &lt;transaction-context&gt;
+    &lt;hibernate-session /&gt;
+    &lt;transaction /&gt;
+    &lt;db-session /&gt;
+    &lt;message-session /&gt;
+  &lt;/transaction-context&gt;
+
+&lt;/jbpm-configuration&gt;</programlisting>
+      <para>And next to it a hibernate.properties like this</para>
+      <literal>hibernate.properties:</literal>
+      <programlisting>hibernate.dialect                      org.hibernate.dialect.HSQLDialect
+hibernate.connection.driver_class      org.hsqldb.jdbcDriver
+hibernate.connection.url               jdbc:hsqldb:mem:.
+hibernate.connection.username          sa
+hibernate.connection.password
+hibernate.hbm2ddl.auto                 create-drop
+hibernate.cache.use_second_level_cache true
+hibernate.cache.provider_class         org.hibernate.cache.HashtableCacheProvider
+# hibernate.show_sql                     true
+hibernate.format_sql                   true
+hibernate.use_sql_comments             true</programlisting>
+      <para>Then you can obtain the services from the environment factory like this:
+      </para>
+      <programlisting>EnvironmentFactory environmentFactory = new PvmEnvironmentFactory(&quot;environment.cfg.xml&quot;);
+
+ProcessService processService = environmentFactory.get(ProcessService.class);
+ExecutionService executionService = environmentFactory.get(ExecutionService.class);
+ManagementService managementService = environmentFactory.get(ManagementService.class);</programlisting>
+      <para>The responsibility of the <literal>ProcessService</literal> is to manage
+      the repository of process definitions.  Before we can start a process execution, 
+      the process definition needs to be deployed into the process repository.
+      Process definitions can be supplied in various formats and process definition 
+      languages.  A deployment collects process definition information from various 
+      sources like a ZIP file, an XML file or a process definition object.
+      The method <literal>ProcessService.deploy</literal> will take a deployment 
+      through all the deployers that are configured in the configuration file.    
+      </para>
+      <para>In this example, we'll supply a process definition programmatically
+      for deployment.</para>
+      <programlisting>ClientProcessDefinition processDefinition = ProcessFactory.build("loan")
+  .activity("submit loan request").initial().behaviour(AutomaticActivity.class)
+    .transition().to("evaluate")
+  .activity("evaluate").behaviour(WaitState.class)
+    .transition("approve").to("wire money")
+    .transition("reject").to("end")
+  .activity("wire money").behaviour(AutomaticActivity.class)
+    .transition().to("archive")
+  .activity("archive").behaviour(WaitState.class)
+    .transition().to("end")
+  .activity("end").behaviour(WaitState.class)
+.done();
+
+Deployment deployment = new Deployment(processDefinition);
+processService.deploy(deployment);</programlisting>
+    <para>Now, a version of that process definition is stored in the database. 
+    The <literal>check-version</literal> deployer will have assigned version 1 
+    to the  stored process definition.  The <literal>create-id</literal> deployer 
+    will have distilled id <literal>loan:1</literal> from the process name and the 
+    assigned version.
+    </para>
+    <para>Deploying that process again will lead to a new process definition 
+    version being created in the database.  But an incremented version number will 
+    be assigned.  For the purpose of versioning, process definitions are considered 
+    equal if they have the same name.</para>
+    <para>It is recommended that a user provided key reference is supplied for 
+    all process executions.  Starting a new process execution goes like this:
+    </para>
+    <programlisting>Execution execution = executionService.startExecution("loan:1", "request7836");</programlisting>
+    <para>The return value is an execution interface, which prevents navigation of relations.  
+    That is because outside of the service methods, the transaction and hibernate session 
+    is not guaranteed to still be open.  In fact, the default configuration as given 
+    above will only keep the transaction and session open for the duration of the
+    service method.  So navigating the relations outside of the service methods might result 
+    into a hibernate <literal>LazyInitializationException</literal>.  But the 
+    current activity name can still be verified:
+    </para>
+    <programlisting>assertEquals("evaluate", execution.getActivityName());</programlisting>
+    <para>Also very important is the generated id that can be obtained.  The default 
+    DatabaseIdComposer will use the process definition id and the 
+    given key to make a unique id for the process execution like this:</para>
+    <programlisting>assertEquals("loan:1/request7836", execution.getId());</programlisting>
+    <para>That id must be when providing the subsequent external triggers to the 
+    process execution like this:
+    </para>
+    <programlisting>executionService.signalExecution("loan:1/request7836", "approve");</programlisting>
+    <para>More information about service interfaces to run in persistent 
+    mode can be found in package 
+    <ulink url="../../api/org/jbpm/pvm/package-summary.html"><literal>org.jbpm.pvm</literal> of the
+    api docs</ulink>. 
+    </para>
+  </section>
+
+  <section id="embeddedexecutionmode">
+    <title>Embedded execution mode</title>
+    <para>Embedded execution mode means that the state of a process is stored 
+    as a string column inside a user domain object like e.g. a loan.
+    </para>
+    <programlisting>public class Loan {
+
+  <emphasis role="bold">/** the loan process definition as a static resource */
+  private static final ClientProcessDefinition processDefinition = createLoanProcess();
+  
+  private static ClientProcessDefinition createLoanProcess() {
+    ClientProcessDefinition processDefinition = ProcessFactory.build(&quot;loan&quot;)
+      .activity(&quot;submit loan request&quot;).initial().behaviour(AutomaticActivity.class)
+        .transition().to(&quot;evaluate&quot;)
+      .activity(&quot;evaluate&quot;).behaviour(WaitState.class)
+        .transition(&quot;approve&quot;).to(&quot;wire money&quot;)
+        .transition(&quot;reject&quot;).to(&quot;end&quot;)
+      .activity(&quot;wire money&quot;).behaviour(AutomaticActivity.class)
+        .transition().to(&quot;archive&quot;)
+      .activity(&quot;archive&quot;).behaviour(WaitState.class)
+        .transition().to(&quot;end&quot;)
+      .activity(&quot;end&quot;).behaviour(WaitState.class)
+    .done();
+    
+    return processDefinition;
+  }
+
+  /** exposes the process definition to the execution hibernate type */
+  private static ClientProcessDefinition getProcessDefinition() {
+    return processDefinition;
+  }
+  </emphasis>
+
+  long dbid;
+  String customer;
+  double amount;
+  <emphasis role="bold">ClientExecution execution;</emphasis>
+  
+  /** constructor for persistence */
+  protected Loan() {
+  }
+
+  public Loan(String customer, double amount) {
+    this.customer = customer;
+    this.amount = amount;
+    <emphasis role="bold">this.execution = processDefinition.startProcessInstance();</emphasis>
+  }
+
+  public void approve() {
+    <emphasis role="bold">execution.signal(&quot;approve&quot;);</emphasis>
+  }
+
+  public void reject() {
+    <emphasis role="bold">execution.signal(&quot;reject&quot;);</emphasis>
+  }
+
+  public void archiveComplete() {
+    <emphasis role="bold">execution.signal();</emphasis>
+  }
+
+  public String getState() {
+    return <emphasis role="bold">execution.getActivityName()</emphasis>;
+  }
+
+  ...getters...
+}</programlisting>
+    <para>If you ignore the bold parts for a second, you can see that this is a 
+    POJO without anything fancy.  It's just a bean that can be stored with hibernate. 
+    The bold part indicate that implementation part of the class that is related 
+    to process and execution.  Not that nothing of the process definition or 
+    execution is exposed to the user of the Loan class.
+    </para>
+    <para>Each <literal>Loan</literal> object corresponds to a <literal>loan</literal> 
+    process instance.  Some methods of the <literal>Loan</literal> class correspond 
+    to the external triggers that need to be given during the lifecycle of a
+    <literal>Loan</literal> object.
+    </para>
+    <para>Next we'll show how to use this class.  To get started we need a</para>
+    <emphasis role="bold"><literal>hibernate.cfg.xml:</literal></emphasis>
+    <programlisting>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+
+&lt;!DOCTYPE hibernate-configuration PUBLIC
+          &quot;-//Hibernate/Hibernate Configuration DTD 3.0//EN&quot;
+          &quot;http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd&quot;&gt;
+
+&lt;hibernate-configuration&gt;
+  &lt;session-factory&gt;
+
+    &lt;property name=&quot;hibernate.dialect&quot;&gt;org.hibernate.dialect.HSQLDialect&lt;/property&gt;
+    &lt;property name=&quot;hibernate.connection.driver_class&quot;&gt;org.hsqldb.jdbcDriver&lt;/property&gt;
+    &lt;property name=&quot;hibernate.connection.url&quot;&gt;jdbc:hsqldb:mem:.&lt;/property&gt;
+    &lt;property name=&quot;hibernate.connection.username&quot;&gt;sa&lt;/property&gt;
+    &lt;property name=&quot;hibernate.connection.password&quot;&gt;&lt;/property&gt;
+    &lt;property name=&quot;hibernate.hbm2ddl.auto&quot;&gt;create&lt;/property&gt;
+    &lt;property name=&quot;hibernate.show_sql&quot;&gt;true&quot;&lt;/property&gt;
+    &lt;property name=&quot;hibernate.format_sql&quot;&gt;true&quot;&lt;/property&gt;
+    &lt;property name=&quot;hibernate.use_sql_comments&quot;&gt;true&quot;&lt;/property&gt;
+    
+    &lt;mapping resource=&quot;Loan.hbm.xml&quot;/&gt;
+    
+  &lt;/session-factory&gt;
+&lt;/hibernate-configuration&gt;</programlisting>
+    <para>And a</para>
+    <emphasis role="bold"><literal>Loan.hbm.xml:</literal></emphasis>
+    <programlisting>&lt;?xml version=&quot;1.0&quot;?&lt;
+
+&lt;!DOCTYPE hibernate-mapping PUBLIC 
+          &quot;-//Hibernate/Hibernate Mapping DTD 3.0//EN&quot; 
+          &quot;http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd&quot;&lt;
+
+&lt;hibernate-mapping package=&quot;org.jbpm.pvm.api.db.embedded&quot; default-access=&quot;field&quot;&lt;
+
+  &lt;typedef name=&quot;execution&quot; class=&quot;org.jbpm.pvm.internal.hibernate.ExecutionType&quot; /&lt;
+
+  &lt;class name=&quot;Loan&quot; table=&quot;LOAN&quot;&lt;
+
+    &lt;id name=&quot;dbid&quot;&lt;
+      &lt;generator class=&quot;sequence&quot;/&lt;
+    &lt;/id&lt;
+
+    &lt;property name=&quot;execution&quot; type=&quot;execution&quot; /&lt;
+    &lt;property name=&quot;customer&quot; /&lt;
+    &lt;property name=&quot;amount&quot; /&lt;
+    
+  &lt;/class&lt;
+
+&lt;/hibernate-mapping&lt;</programlisting>
+    <para>Then you can use the Loan class like this in a test</para>
+    <programlisting>Configuration configuration = new Configuration();
+configuration.configure();
+SessionFactory sessionFactory = configuration.buildSessionFactory();
+
+// start a session/transaction
+Session session = sessionFactory.openSession();
+Transaction transaction = session.beginTransaction();
+
+Loan loan = new Loan("john doe", 234.0);
+session.save(loan);
+assertEquals("evaluate", loan.getState());
+
+// start a new session/transaction
+transaction.commit();
+session.close();
+session = sessionFactory.openSession();
+transaction = session.beginTransaction();
+
+loan = (Loan) session.get(Loan.class, loan.getDbid());
+assertEquals("evaluate", loan.getState());
+loan.approve();
+assertEquals("archive", loan.getState());
+
+// start a new session/transaction
+transaction.commit();
+session.close();</programlisting>
+    <para>After executing this code snippet, this is the loan record in the DB:</para>
+    <figure id="loan.db">
+      <title>The loan record in the DB</title>
+      <mediaobject><imageobject><imagedata align="center" fileref="images/loan.db.png"/></imageobject></mediaobject>
+    </figure>
+  </section>
+
+</chapter>

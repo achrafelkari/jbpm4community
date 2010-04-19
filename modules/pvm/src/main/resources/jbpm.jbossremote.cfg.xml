@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jbpm-configuration>
+
+  <process-engine-context>
+  
+    <repository-service />
+    <repository-cache />
+    <execution-service />
+    <history-service />
+    <management-service />
+    <task-service />
+    <identity-service />
+
+    <ejb-remote-command-service name="txRequiredCommandService"
+        initial-context-factory="org.jnp.interfaces.NamingContextFactory"
+        provider-url="jnp://localhost"
+        url-pkg-prefixes="org.jboss.naming:org.jnp.interfaces">
+      <retry-interceptor />
+    </ejb-remote-command-service>
+
+  </process-engine-context>
+
+</jbpm-configuration>

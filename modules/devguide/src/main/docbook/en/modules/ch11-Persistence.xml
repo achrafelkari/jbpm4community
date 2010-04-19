@@ -1,0 +1,28 @@
+<chapter id="persistence">
+  <title>Persistence</title>
+
+  <para>Currently jBPM's persistence is based on hibernate.  But in the future we might 
+  switch to JPA.  That is why we recommend to stick with the API as much as possible as 
+  the API will hide you from those changes.
+  </para>
+
+  <para>Here's the jBPM database schema in an ER diagram.  Thanks to 
+  <ulink url="http://dev.mysql.com/workbench/">MySQL Workbench></ulink>.
+  </para>
+  
+  <figure id="erd.repo.and.runtime">
+    <title>The jBPM repository and runtime schema ER diagram</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/erd.repo.and.runtime.png"/></imageobject></mediaobject>
+  </figure>
+  
+  <figure id="erd.history">
+    <title>The jBPM history schema ER diagram</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/erd.history.png"/></imageobject></mediaobject>
+  </figure>
+  
+  <figure id="erd.identity">
+    <title>The jBPM identity schema ER diagram</title>
+    <mediaobject><imageobject><imagedata align="center" fileref="images/erd.identity.png"/></imageobject></mediaobject>
+  </figure>
+  
+</chapter>

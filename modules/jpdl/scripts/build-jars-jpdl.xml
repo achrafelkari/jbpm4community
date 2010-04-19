@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ============================================================ -->
+<!--  JBoss, the OpenSource J2EE webOS                            -->
+<!--  Distributable under LGPL license.                           -->
+<!--  See terms of license at http://www.gnu.org.                 -->
+<!-- ============================================================ -->
+
+<!-- $Id: build-jars-jpdl.xml 1466 2008-07-02 14:29:43Z heiko.braun@jboss.com $ -->
+
+<project>
+
+   <description>jPDL test archive</description>
+
+   <target name="build-jars-jpdl" description="Build the deployments.">
+
+      <echo>
+         * Build jPDL test artifacts
+         * Location: ${tests.output.dir}/test-libs
+         * Resources: ${tests.resources.dir}
+      </echo>
+      
+      <mkdir dir="${tests.output.dir}/test-libs"/>
+
+      <!-- enterprise tests -->
+      <!--war warfile="${tests.output.dir}/test-libs/pvm-test-enterprise-war.war"
+           webxml="${tests.resources.dir}/enterprise/WEB-INF/web.xml">
+         <webinf dir="${tests.resources.dir}/enterprise/WEB-INF">
+            <include name="jboss-web.xml"/>
+         </webinf>
+      </war>
+
+      <jar jarfile="${tests.output.dir}/test-libs/pvm-test-enterprise-ejb.jar">
+         <metainf dir="${tests.resources.dir}/enterprise/META-INF">
+            <include name="ejb-jar.xml"/>
+            <include name="jboss.xml"/>
+            <include name="jboss-cmp-jdbc.xml"/>
+         </metainf>         
+      </jar>
+
+      <ear destfile="${tests.output.dir}/test-libs/pvm-test-enterprise.ear"
+           appxml="${tests.resources.dir}/enterprise/META-INF/application.xml">
+         <fileset dir="${tests.output.dir}/test-libs">
+            <include name="pvm-test-enterprise-ejb.jar"/>
+            <include name="pvm-test-enterprise-war.war"/>
+         </fileset>
+      </ear-->
+
+      <!-- Please add alphabetically -->
+
+   </target>
+
+</project>

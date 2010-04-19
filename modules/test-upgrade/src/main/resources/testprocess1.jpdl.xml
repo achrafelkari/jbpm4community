@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	
+	<process name="testprocess1" xmlns="http://jbpm.org/4.3/jpdl">
+	
+	   <start>
+	      <transition to="theFork"/>
+	   </start>
+	   
+	   <fork name="theFork">
+	      <transition to="send invoice"/>
+	      <transition to="load truck"/>
+	      <transition to="print documents"/>
+	   </fork>
+	   
+	   <state name="send invoice">
+	      <transition to="theJoin"/>
+	   </state>
+	   
+	   <state name="load truck">
+	      <transition to="shipping join"/>
+	   </state>
+	   
+	   <state name="print documents">
+	      <transition to="shipping join"/>
+	   </state>
+	   
+	   <join name="shipping join">
+	      <transition to="drive truck"/>
+	   </join>
+	   
+	   <state name="drive truck">
+	      <transition to="theJoin"/>
+	   </state>
+	   
+	   <join name="theJoin">
+	      <transition to="end"/>
+	   </join>
+	   
+	   <end name="end"/>
+	
+	</process>
