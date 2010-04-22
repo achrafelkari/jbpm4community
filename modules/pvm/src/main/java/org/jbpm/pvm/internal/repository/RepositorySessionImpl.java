@@ -33,7 +33,6 @@ import org.jbpm.api.ProcessDefinition;
 import org.jbpm.api.ProcessDefinitionQuery;
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.id.DbidGenerator;
-import org.jbpm.pvm.internal.lob.Lob;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.model.ProcessDefinitionImpl;
 import org.jbpm.pvm.internal.query.ProcessDefinitionQueryImpl;

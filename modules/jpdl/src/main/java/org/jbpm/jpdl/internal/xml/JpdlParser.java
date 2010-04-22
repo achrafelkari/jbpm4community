@@ -43,7 +43,6 @@ import org.jbpm.pvm.internal.el.Expression;
 import org.jbpm.pvm.internal.email.impl.MailProducerImpl;
 import org.jbpm.pvm.internal.email.impl.MailTemplate;
 import org.jbpm.pvm.internal.email.impl.MailTemplateRegistry;
-import org.jbpm.pvm.internal.email.spi.MailProducer;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.model.ActivityCoordinatesImpl;
 import org.jbpm.pvm.internal.model.ActivityImpl;
@@ -63,10 +62,10 @@ import org.jbpm.pvm.internal.task.SwimlaneDefinitionImpl;
 import org.jbpm.pvm.internal.task.TaskDefinitionImpl;
 import org.jbpm.pvm.internal.util.XmlUtil;
 import org.jbpm.pvm.internal.wire.Descriptor;
-import org.jbpm.pvm.internal.wire.WireContext;
 import org.jbpm.pvm.internal.wire.binding.MailTemplateBinding;
 import org.jbpm.pvm.internal.wire.binding.ObjectBinding;
 import org.jbpm.pvm.internal.wire.descriptor.ObjectDescriptor;
+import org.jbpm.pvm.internal.wire.descriptor.ProvidedObjectDescriptor;
 import org.jbpm.pvm.internal.wire.usercode.UserCodeReference;
 import org.jbpm.pvm.internal.wire.xml.WireParser;
 import org.jbpm.pvm.internal.xml.Bindings;
@@ -96,9 +95,6 @@ public class JpdlParser extends Parser {
     SCHEMA_RESOURCES.add("jpdl-4.2.xsd");
     SCHEMA_RESOURCES.add("jpdl-4.3.xsd");
   }
-
-  public static final WireParser wireParser = WireParser.getInstance();
-  public static final ObjectBinding objectBinding = ObjectBinding.INSTANCE;
 
   // array elements are mutable, even when final
   // never make a static array public
@@ -603,7 +599,7 @@ public class JpdlParser extends Parser {
       
       Element initDescriptorElement = XmlUtil.element(variableElement);
       if (initDescriptorElement!=null) {
-        Descriptor initValueDescriptor = (Descriptor) wireParser.parseElement(initDescriptorElement, parse);
+        Descriptor initValueDescriptor = (Descriptor) WireParser.getInstance().parseElement(initDescriptorElement, parse);
         variableDefinition.setInitDescriptor(initValueDescriptor);
         sources++;
       }
@@ -644,29 +640,31 @@ public class JpdlParser extends Parser {
     }
     
     // associate mail producer to event listener
-    MailProducer mailProducer = parseMailProducer(element, parse, mailTemplateName);
-    eventListener.setMailProducer(mailProducer);
+    UserCodeReference mailProducer = parseMailProducer(element, parse, mailTemplateName);
+    eventListener.setMailProducerReference(mailProducer);
   }
 
-  public MailProducer parseMailProducer(Element element, Parse parse, String defaultTemplateName) {
+  public UserCodeReference parseMailProducer(Element element, Parse parse, String defaultTemplateName) {
     // check whether the element is a generic object descriptor
     if (ObjectBinding.isObjectDescriptor(element)) {
-      // TODO test custom mail producer
-      ObjectDescriptor objectDescriptor = parseObjectDescriptor(element, parse);
-      return (MailProducer) WireContext.create(objectDescriptor);
+      return parseUserCodeReference(element, parse);
     }
 
-    // parse the default producer
-    MailProducerImpl mailProducer = new MailProducerImpl();
-    mailProducer.setTemplate(parseMailTemplate(element, parse, defaultTemplateName));
-    return mailProducer;
+    // parse the default mail producer
+    MailTemplate mailTemplate = parseMailTemplate(element, parse, defaultTemplateName);
+    ObjectDescriptor descriptor = new ObjectDescriptor(MailProducerImpl.class);
+    descriptor.addPropertyInjection("template", new ProvidedObjectDescriptor(mailTemplate));
+
+    UserCodeReference userCodeReference = new UserCodeReference();
+    userCodeReference.setDescriptor(descriptor);
+    return userCodeReference;
   }
 
   private MailTemplate parseMailTemplate(Element element, Parse parse,
       String defaultTemplateName) {
     if (element.hasAttribute("template")) {
       // fetch template from configuration
-      return findTemplate(element, parse, element.getAttribute("template"));
+      return findMailTemplate(element, parse, element.getAttribute("template"));
     }
     if (!XmlUtil.isTextOnly(element)) {
       // parse inline template
@@ -674,14 +672,14 @@ public class JpdlParser extends Parser {
     }
     if (defaultTemplateName != null) {
       // fetch default template
-      return findTemplate(element, parse, defaultTemplateName);
+      return findMailTemplate(element, parse, defaultTemplateName);
     }
     parse.addProblem("mail template must be referenced in the 'template' attribute "
         + "or specified inline", element);
     return null;
   }
 
-  private MailTemplate findTemplate(Element element, Parse parse, String templateName) {
+  private MailTemplate findMailTemplate(Element element, Parse parse, String templateName) {
     MailTemplateRegistry templateRegistry = EnvironmentImpl.getFromCurrent(MailTemplateRegistry.class);
     if (templateRegistry != null) {
       MailTemplate template = templateRegistry.getTemplate(templateName);
@@ -711,11 +709,11 @@ public class JpdlParser extends Parser {
   }
 
   public ObjectDescriptor parseObjectDescriptor(Element element, Parse parse) {
-    return (ObjectDescriptor) objectBinding.parse(element, parse, wireParser);
+    return (ObjectDescriptor) ObjectBinding.parseObjectDescriptor(element, parse, WireParser.getInstance());
   }
 
   public Descriptor parseDescriptor(Element element, Parse parse) {
-    return (Descriptor) wireParser.parseElement(element, parse);
+    return (Descriptor) WireParser.getInstance().parseElement(element, parse);
   }
 
   public Set<String> getActivityTagNames() {

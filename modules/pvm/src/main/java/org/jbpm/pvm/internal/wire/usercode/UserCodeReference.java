@@ -32,7 +32,6 @@ import org.jbpm.pvm.internal.model.TransitionImpl;
 import org.jbpm.pvm.internal.util.ReflectUtil;
 import org.jbpm.pvm.internal.wire.Descriptor;
 
-
 /**
  * @author Tom Baeyens
  */
@@ -71,19 +70,18 @@ public class UserCodeReference implements Serializable {
   }
 
   protected ProcessDefinitionImpl getProcessDefinition(Execution execution) {
-    ProcessDefinitionImpl processDefinition = null;
     ExecutionImpl executionImpl = (ExecutionImpl) execution;
     ActivityImpl activity = executionImpl.getActivity();
-    TransitionImpl transition = executionImpl.getTransition();
     if (activity!=null) {
-      processDefinition = activity.getProcessDefinition();
+      return activity.getProcessDefinition();
     }
-    if ( (processDefinition==null)
-         && (transition!=null)
-       ) {
-      processDefinition = transition.getProcessDefinition();
+
+    TransitionImpl transition = executionImpl.getTransition();
+    if (transition!=null) {
+      return transition.getProcessDefinition();
     }
-    return processDefinition;
+
+    return null;
   }
 
   public void setCached(boolean isCached) {

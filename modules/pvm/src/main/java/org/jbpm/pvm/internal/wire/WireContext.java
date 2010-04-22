@@ -429,10 +429,9 @@ public class WireContext extends DefaultObservable implements Context, Closable,
     }
     
     // if the objectName is found in the execution or task
-    if (scopeInstance!=null) {
-      if (scopeInstance.hasVariable(objectName)) {
-        return scopeInstance.getVariable(objectName);
-      }
+    if (scopeInstance!=null && scopeInstance.hasVariable(objectName)) {
+      log.trace("delivering "+objectName+" from scope");
+      return scopeInstance.getVariable(objectName);
     }
     
     // then check if we can find it in the environment (if one is available)
@@ -704,8 +703,21 @@ public class WireContext extends DefaultObservable implements Context, Closable,
       if (name!=null) {
         log.trace("found "+type.getName()+" in "+this);
         return type.cast(get(name));
-      } else {
-        log.trace(type.getName()+" not found in "+this+" "+System.identityHashCode(this));
+      }
+    }
+    // check if we can find it in the environment (if one is available)
+    EnvironmentImpl environment = EnvironmentImpl.getCurrent();
+    if (environment != null) {
+      Context processEngineContext = environment.getContext(CONTEXTNAME_PROCESS_ENGINE);
+      if (processEngineContext != this) {
+        Context transactionContext = environment.getContext(CONTEXTNAME_TRANSACTION);
+        if (transactionContext != this) {
+          return environment.get(type);
+        }
+        // try process engine context
+        if (processEngineContext != null) {
+          return processEngineContext.get(type);
+        }
       }
     }
     return null;

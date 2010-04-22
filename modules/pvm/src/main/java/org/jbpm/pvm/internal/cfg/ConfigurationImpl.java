@@ -43,8 +43,6 @@ import org.jbpm.pvm.internal.stream.UrlStreamInput;
 import org.jbpm.pvm.internal.wire.WireContext;
 import org.jbpm.pvm.internal.wire.WireDefinition;
 import org.jbpm.pvm.internal.wire.descriptor.ProvidedObjectDescriptor;
-import org.springframework.context.ApplicationContext;
-
 
 /**
  * @author Tom Baeyens

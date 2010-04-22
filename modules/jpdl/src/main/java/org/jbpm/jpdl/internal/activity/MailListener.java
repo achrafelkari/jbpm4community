@@ -33,13 +33,14 @@ import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.env.TaskContext;
 import org.jbpm.pvm.internal.session.DbSession;
 import org.jbpm.pvm.internal.task.TaskImpl;
+import org.jbpm.pvm.internal.wire.usercode.UserCodeReference;
 
 /**
  * @author Alejandro Guizar
  */
 public class MailListener implements EventListener {
 
-  protected transient MailProducer mailProducer;
+  private UserCodeReference mailProducerReference;
 
   private static final long serialVersionUID = 1L;
 
@@ -53,15 +54,21 @@ public class MailListener implements EventListener {
     TaskContext taskContext = new TaskContext(task);
     environment.setContext(taskContext);
     try {
+      MailProducer mailProducer = (MailProducer) mailProducerReference.getObject(execution);
       Collection<Message> messages = mailProducer.produce(execution);
       environment.get(MailSession.class).send(messages);
-    } finally {
+    }
+    finally {
       environment.removeContext(taskContext);
     }
   }
 
-  public void setMailProducer(MailProducer mailProducer) {
-    this.mailProducer = mailProducer;
+  public UserCodeReference getMailProducerReference() {
+    return mailProducerReference;
+  }
+
+  public void setMailProducerReference(UserCodeReference mailProducer) {
+    this.mailProducerReference = mailProducer;
   }
 
 }

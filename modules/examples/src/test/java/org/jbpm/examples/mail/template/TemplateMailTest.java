@@ -44,43 +44,39 @@ import org.subethamail.wiser.WiserMessage;
  */
 public class TemplateMailTest extends JbpmTestCase {
 
-  Wiser wiser = null;
-  
-  String group1;
-  
-  String group2;
+  private Wiser wiser = new Wiser();
 
   protected void setUp() throws Exception {
     super.setUp();
 
     // deploy process
     String deploymentId = repositoryService.createDeployment()
-        .addResourceFromClasspath("org/jbpm/examples/mail/template/process.jpdl.xml")
-        .deploy();
+      .addResourceFromClasspath("org/jbpm/examples/mail/template/process.jpdl.xml")
+      .deploy();
     registerDeployment(deploymentId);
 
     // create actors
     identityService.createUser("bb", "Big Brother", null, "bb@oceania");
     identityService.createUser("obrien", null, "O'Brien", "obrien@miniluv");
     identityService.createUser("charr", null, "Charrington", "charr@miniluv");
-    group1 = identityService.createGroup("thinkpol");
-    group2 = identityService.createGroup("innerparty");
-    identityService.createMembership("obrien", group2);
-    identityService.createMembership("charr", group1);
-    identityService.createMembership("obrien", group1);
-    
+    identityService.createGroup("thinkpol");
+    identityService.createGroup("innerparty");
+    identityService.createMembership("obrien", "innerparty");
+    identityService.createMembership("charr", "thinkpol");
+    identityService.createMembership("obrien", "thinkpol");
+
     // start mail server
-    wiser = new Wiser();
     wiser.setPort(2525);
     wiser.start();
   }
 
   protected void tearDown() throws Exception {
+    // stop mail server
     wiser.stop();
-    
+
     // delete actors
-    identityService.deleteGroup(group1);
-    identityService.deleteGroup(group2);
+    identityService.deleteGroup("thinkpol");
+    identityService.deleteGroup("innerparty");
     identityService.deleteUser("bb");
     identityService.deleteUser("obrien");
     identityService.deleteUser("charr");
@@ -97,7 +93,7 @@ public class TemplateMailTest extends JbpmTestCase {
     calendar.set(1983, Calendar.DECEMBER, 3);
     Date date = calendar.getTime();
     String details = "reporting bb dayorder doubleplusungood refs unpersons rewrite "
-        + "fullwise upsub antefiling";
+      + "fullwise upsub antefiling";
     // assemble variables
     Map<String, Object> variables = new HashMap<String, Object>();
     variables.put("addressee", addressee);

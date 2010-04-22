@@ -53,7 +53,7 @@
     <drools.version>5.0.1</drools.version>
     <aspectjrt.version>1.5.3</aspectjrt.version>
     <freemarker.version>2.3.15</freemarker.version>
-    <gwt.console.version>2.0.2-SNAPSHOT</gwt.console.version>
+    <gwt.console.version>2.1-SNAPSHOT</gwt.console.version>
     <errai.version>1.1-SNAPSHOT</errai.version>
     <jbpm.gpd.version>4.3</jbpm.gpd.version>
     <hibernate.version>3.3.1.GA</hibernate.version>
@@ -753,6 +753,7 @@
       <url>http://repository.jboss.com/maven2</url>
       <snapshots>
         <enabled>false</enabled>
+        <checksumPolicy>ignore</checksumPolicy>
       </snapshots>
     </repository>
     <repository>
@@ -760,6 +761,7 @@
       <url>http://snapshots.jboss.org/maven2</url>
       <snapshots>
         <enabled>true</enabled>
+        <checksumPolicy>ignore</checksumPolicy>
       </snapshots>
     </repository>
     <repository>

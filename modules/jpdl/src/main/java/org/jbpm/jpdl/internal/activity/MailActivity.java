@@ -29,23 +29,29 @@ import org.jbpm.api.model.OpenExecution;
 import org.jbpm.pvm.internal.email.spi.MailProducer;
 import org.jbpm.pvm.internal.email.spi.MailSession;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
+import org.jbpm.pvm.internal.wire.usercode.UserCodeReference;
 
 /**
  * @author Alejandro Guizar
  */
 public class MailActivity extends JpdlAutomaticActivity {
 
-  protected MailProducer mailProducer;
+  private UserCodeReference mailProducerReference;
 
   private static final long serialVersionUID = 1L;
 
   void perform(OpenExecution execution) throws Exception {
+    MailProducer mailProducer = (MailProducer) mailProducerReference.getObject(execution);
     Collection<Message> messages = mailProducer.produce(execution);
     EnvironmentImpl.getFromCurrent(MailSession.class).send(messages);
   }
 
-  public void setMailProducer(MailProducer mailProducer) {
-    this.mailProducer = mailProducer;
+  public UserCodeReference getMailProducerReference() {
+    return mailProducerReference;
+  }
+
+  public void setMailProducerReference(UserCodeReference mailProducer) {
+    this.mailProducerReference = mailProducer;
   }
 
 }

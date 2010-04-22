@@ -21,14 +21,24 @@
  */
 package org.jbpm.integration.console;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.jboss.bpm.console.client.model.ProcessDefinitionRef;
 import org.jboss.bpm.console.client.model.ProcessInstanceRef;
 import org.jboss.bpm.console.server.integration.ProcessManagement;
-import org.jbpm.api.*;
+import org.jbpm.api.Execution;
+import org.jbpm.api.ExecutionService;
+import org.jbpm.api.ProcessDefinition;
+import org.jbpm.api.ProcessDefinitionQuery;
+import org.jbpm.api.ProcessInstance;
+import org.jbpm.api.RepositoryService;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
-
-import java.io.InputStream;
-import java.util.*;
+import org.jbpm.pvm.internal.model.ProcessDefinitionImpl;
 
 /**
  * @author Heiko.Braun <heiko.braun@jboss.com>
@@ -79,13 +89,17 @@ class ProcessManagementImpl extends JBPMIntegration implements ProcessManagement
     List<ProcessInstance> processInstances = execService.createProcessInstanceQuery()
                                                         .processDefinitionId(procDefId)
                                                         .list();
+    // must fetch process definition first to be able to get information about activities
+    RepositoryService repositoryService = this.processEngine.getRepositoryService();
+    ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().processDefinitionId(procDefId).uniqueResult();
+    
 
-    List<ProcessInstanceRef> results = adoptProcessInstances(processInstances);
-   
+    List<ProcessInstanceRef> results = adoptProcessInstances(processInstances, processDefinition);
+
     return results;
   }
 
-  private List<ProcessInstanceRef> adoptProcessInstances(List<ProcessInstance> processInstances) {
+  private List<ProcessInstanceRef> adoptProcessInstances(List<ProcessInstance> processInstances, ProcessDefinition processDefinition) {
     List<ProcessInstanceRef> results = new ArrayList<ProcessInstanceRef>();
     for (Execution processInstance : processInstances) {
       if (processInstance.isEnded()) {
@@ -93,6 +107,7 @@ class ProcessManagementImpl extends JBPMIntegration implements ProcessManagement
       }
 
       if (processInstance.getIsProcessInstance()) { // parent execution
+        ((ExecutionImpl) processInstance).setProcessDefinition((ProcessDefinitionImpl) processDefinition);
         results.add(ModelAdaptor.adoptExecution((ExecutionImpl) processInstance));
       }
     }

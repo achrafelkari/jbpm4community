@@ -44,48 +44,44 @@ import org.subethamail.wiser.WiserMessage;
  */
 public class InlineMailTest extends JbpmTestCase {
 
-  Wiser wiser = null;
-  
-  String groupId1;
-  
-  String groupId2;
+  private Wiser wiser = new Wiser();
 
   protected void setUp() throws Exception {
     super.setUp();
 
     // deploy process
     String deploymentId = repositoryService.createDeployment()
-        .addResourceFromClasspath("org/jbpm/examples/mail/inline/process.jpdl.xml")
-        .deploy();
+      .addResourceFromClasspath("org/jbpm/examples/mail/inline/process.jpdl.xml")
+      .deploy();
     registerDeployment(deploymentId);
 
     // create actors
     identityService.createUser("bb", "Big Brother", null, "bb@oceania");
     identityService.createUser("obrien", null, "O'Brien", "obrien@miniluv");
     identityService.createUser("charr", null, "Charrington", "charr@miniluv");
-    groupId1 = identityService.createGroup("thinkpol");
-    groupId2 = identityService.createGroup("innerparty");
-    identityService.createMembership("obrien", groupId2);
-    identityService.createMembership("charr", groupId1);
-    identityService.createMembership("obrien", groupId1);
-    
+    identityService.createGroup("thinkpol");
+    identityService.createGroup("innerparty");
+    identityService.createMembership("obrien", "innerparty");
+    identityService.createMembership("charr", "thinkpol");
+    identityService.createMembership("obrien", "thinkpol");
+
     // start mail server
-    wiser = new Wiser();
     wiser.setPort(2525);
     wiser.start();
   }
 
   protected void tearDown() throws Exception {
+    // stop mail server
     wiser.stop();
 
     // delete actors
     identityService.deleteUser("bb");
     identityService.deleteUser("obrien");
     identityService.deleteUser("charr");
-    
-    identityService.deleteGroup(groupId1);
-    identityService.deleteGroup(groupId2);
-    
+
+    identityService.deleteGroup("thinkpol");
+    identityService.deleteGroup("innerparty");
+
     super.tearDown();
   }
 
@@ -117,13 +113,13 @@ public class InlineMailTest extends JbpmTestCase {
       // to
       Address[] expectedTo = InternetAddress.parse("winston@minitrue");
       Address[] to = message.getRecipients(RecipientType.TO);
-      assert Arrays.equals(expectedTo, to) : Arrays.asList(to);
+      assert Arrays.equals(expectedTo, to) : Arrays.toString(to);
       // cc
       Address[] expectedCc = InternetAddress.parse("bb@oceania, obrien@miniluv");
       System.out.println(Arrays.toString(expectedCc));
       Address[] cc = message.getRecipients(RecipientType.CC);
       System.out.println(Arrays.toString(cc));
-      assert Arrays.equals(expectedCc, cc) : Arrays.asList(cc);
+      assert Arrays.equals(expectedCc, cc) : Arrays.toString(cc);
       // bcc - recipients undisclosed
       assertNull(message.getRecipients(RecipientType.BCC));
       // subject

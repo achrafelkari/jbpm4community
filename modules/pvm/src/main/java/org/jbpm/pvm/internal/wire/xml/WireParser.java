@@ -153,9 +153,11 @@ public class WireParser extends Parser {
    * Default method to get an instance of the WireParser
    * @return the static instance of WireParser
    */
-  public static synchronized WireParser getInstance() {
+  public static WireParser getInstance() {
     if (instance==null) {
-      instance = new WireParser();
+      synchronized (WireParser.class) {
+        if (instance == null) instance = new WireParser();
+      }
     }
     return instance;
   }

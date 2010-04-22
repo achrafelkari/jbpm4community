@@ -2279,13 +2279,20 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
     
     <section id="mail">
       <title><literal>mail</literal></title>
+
       <para>Through the <literal>mail</literal> activity, process authors are
         able to specify the content of an email message to be sent to multiple
         recipients at once. Every email message is produced from a template.
         Templates may be specified inline or in the <literal>process-engine-context
         </literal> section of the configuration file.</para>
+
       <table><title><literal>mail</literal> attributes</title>
         <tgroup cols="5" rowsep="1" colsep="1">
+          <colspec colname="attribute" colwidth="*" />
+          <colspec colname="type" colwidth="*" />
+          <colspec colname="default" colwidth="*" />
+          <colspec colname="required" colwidth="*" />
+          <colspec colname="description" colwidth="4*" />
           <thead>
             <row>
               <entry>Attribute</entry>
@@ -2308,8 +2315,12 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
           </tbody>
         </tgroup>
       </table>
+
       <table><title><literal>mail</literal> elements</title>
         <tgroup cols="3" rowsep="1" colsep="1">
+          <colspec colname="element" colwidth="*" />
+          <colspec colname="multiplicity" colwidth="*" />
+          <colspec colname="description" colwidth="2*" />
           <thead>
             <row>
               <entry>Element</entry>
@@ -2356,17 +2367,90 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
             <row>
               <entry>attachments</entry>
               <entry>0..1</entry>
-              <entry>attachments can be specified as URLs, classpath resources or 
-                local files</entry>
+              <entry>each attachment is configured in a separate subelement</entry>
             </row>
           </tbody>
         </tgroup>
       </table>
-      
-      <para>
-      	Example usage:
-     	<programlisting>
-&lt;process name=&quot;InlineMail&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+
+      <table><title><literal>attachment</literal> attributes</title>
+      <tgroup cols="3" rowsep="1" colsep="1">
+      <colspec colname="attribute" colwidth="*" />
+      <colspec colname="type" colwidth="*" />
+      <colspec colname="default" colwidth="*" />
+      <colspec colname="required" colwidth="*" />
+      <colspec colname="description" colwidth="4*" />
+      <thead>
+      <row>
+        <entry>Attribute</entry>
+        <entry>Type</entry>
+        <entry>Default</entry>
+        <entry>Required?</entry>
+        <entry>Description</entry>
+      </row>
+      </thead>
+      <tbody>
+      <row>
+        <entry>name</entry>
+        <entry>string</entry>
+        <entry></entry>
+        <entry>no, unless <literal>expression</literal> is present</entry>
+        <entry><emphasis>File</emphasis> name associated with this attachment.
+          If absent, data sources that encapsulate files such as <literal>resource</literal>,
+          <literal>file</literal> and <literal>url</literal> provide a reasonable
+          fallback value.</entry>
+      </row>
+      <row>
+        <entry>description</entry>
+        <entry>string</entry>
+        <entry></entry>
+        <entry>no</entry>
+        <entry>Descriptive information associated with this attachment.</entry>
+      </row>
+      <row>
+        <entry>expression</entry>
+        <entry>string</entry>
+        <entry></entry>
+        <entry morerows="3">one of <literal>expression</literal>, <literal>file</literal>,
+          <literal>url</literal> or <literal>resource</literal> must be present</entry>
+        <entry>Expression that evaluates to a representation of the attachment data
+         in the form of a Java object. Useful to extract content from process variables.</entry>
+      </row>
+      <row>
+        <entry>file</entry>
+        <entry>string</entry>
+        <entry></entry>
+        <entry>Path to the attachment data in the file system. The denoted
+           file must exist.</entry>
+      </row>
+      <row>
+        <entry>url</entry>
+        <entry>string</entry>
+        <entry></entry>
+        <entry>Location of the attachment data in the worldwide web. The pointed
+          resource must exist.</entry>
+      </row>
+      <row>
+        <entry>resource</entry>
+        <entry>string</entry>
+        <entry></entry>
+        <entry>Name of the resource containing the attachment data in the class path.
+          The denoted resource must exist.</entry>
+      </row>
+      <row>
+        <entry>mime-type</entry>
+        <entry>string</entry>
+        <entry></entry>
+        <entry>no, unless <literal>expression</literal> is present</entry>
+        <entry>MIME type of the object returned by the expression.</entry>
+      </row>
+      </tbody>
+      </tgroup>
+      </table>
+
+      <para>Example usage:</para>
+
+      <programlisting>&lt;process name=&quot;InlineMail&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
   &lt;start&gt;
     &lt;transition to=&quot;send birthday reminder note&quot; /&gt;
   &lt;/start&gt;
@@ -2374,21 +2458,23 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
     &lt;to addresses=&quot;johnDoe@some-company.com&quot; /&gt;
     &lt;subject&gt;Reminder: ${person} celebrates his birthday!&lt;/subject&gt;
     &lt;text&gt;Do not forget: ${date} is the birthday of ${person} &lt;/text&gt;
+    &lt;attachments&gt;
+      &lt;attachment resource=&quot;org/example/birthday_card.png&quot;/&gt;
+      &lt;attachment name=&quot;picture.jpg&quot; expression=&quot;${picture}&quot; mime-type=&quot;image/jpeg&quot;/&gt;
+    &lt;/attachments&gt;
     &lt;transition to=&quot;end&quot; /&gt;
   &lt;/mail&gt;
   &lt;state name=&quot;end&quot;/&gt;
-&lt;/process&gt;     	
-     	</programlisting>
-      </para>
-      <para>
-      	The default configuration after installation contains a 
-      	<literal>jbpm.mail.properties</literal> for specifying the mail server 
-      	to be used by jBPM.  To use another mail server then localhost,  
-      	property <literal>mail.smtp.host</literal> can be updated in that 
-      	configuration file. 
-      </para>
+&lt;/process&gt;</programlisting>
+
+      <para>The default configuration after installation includes a 
+      	<literal>jbpm.mail.properties</literal> file specifying the SMTP host 
+      	that jBPM employs to send mail. To use a mail server other than the
+        local host, set the <literal>mail.smtp.host</literal> property in the
+        mail properties file.</para>
+
       <para>Refer to the Developers Guide for (unsupported) advanced mail 
-      configuration and usage.</para>
+        configuration and usage.</para>
     </section>
 
   </section>

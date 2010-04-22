@@ -275,9 +275,11 @@ public class JmsActivity extends JpdlAutomaticActivity {
     if (mapDescriptor != null) {
       List<Descriptor> keyDescriptors = mapDescriptor.getKeyDescriptors();
       List<Descriptor> valueDescriptors = mapDescriptor.getValueDescriptors();
+      WireContext wireContext = new WireContext();
+      wireContext.setScopeInstance(execution);
       for (int i = 0; i < keyDescriptors.size(); i++) {
-        String key = (String) WireContext.create(keyDescriptors.get(i));
-        Object value = (String) WireContext.create(valueDescriptors.get(i));
+        String key = (String) wireContext.create(keyDescriptors.get(i), false);
+        Object value = wireContext.create(valueDescriptors.get(i), false);
         result.setObject(key, value);
       }
     }
