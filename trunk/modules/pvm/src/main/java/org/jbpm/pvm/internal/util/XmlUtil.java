@@ -40,7 +40,6 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Attr;
-import org.w3c.dom.CharacterData;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -286,11 +285,8 @@ public class XmlUtil {
 
   /** the attribute value or null if the attribute is not present */
   public static String attribute(Element element, String attributeName) {
-    if (element.hasAttribute(attributeName)) {
-      return element.getAttribute(attributeName);
-    } else {
-      return null;
-    }
+    Attr attribute = element.getAttributeNode(attributeName);
+    return attribute != null ? attribute.getValue() : null;
   }
 
   /** convenience method to combine extraction of a string attribute value.
@@ -308,13 +304,14 @@ public class XmlUtil {
    * defaultValue is returned.  The attribute is not present and it is required, 
    * a problem will be added to the parse.  */
   public static String attribute(Element element, String attributeName, boolean required, Parse parse, String defaultValue) {
-    if (element.hasAttribute(attributeName)) {
-      String value = element.getAttribute(attributeName);
-      if (required && "".equals(value)) {
+    Attr attribute = element.getAttributeNode(attributeName);
+    if (attribute != null) {
+      String value = attribute.getValue();
+      if (value.length() == 0 && required) {
         parse.addProblem("attribute <"+XmlUtil.getTagLocalName(element)+" "+attributeName+"=\"\" is empty", element);
       }
       return value;
-    } 
+    }
 
     if (required) {
       parse.addProblem("attribute <"+XmlUtil.getTagLocalName(element)+" "+attributeName+"=\"...\" is required", element);

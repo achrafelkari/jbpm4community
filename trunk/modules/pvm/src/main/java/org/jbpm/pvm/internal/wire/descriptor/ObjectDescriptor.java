@@ -162,7 +162,7 @@ public class ObjectDescriptor extends AbstractDescriptor implements Descriptor {
 
     } else if (factoryObjectName!=null) {
       // referenced factory object
-      object = wireContext.get(factoryObjectName, false);
+      object = wireContext.get(factoryObjectName);
       if (object==null) {
         throw new WireException("can't invoke method '"+methodName+"' on null, resulted from fetching object '"+factoryObjectName+"' from this wiring environment");
       }

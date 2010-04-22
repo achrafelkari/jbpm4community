@@ -48,7 +48,6 @@ import org.w3c.dom.Element;
 public class ObjectBinding extends WireDescriptorBinding {
   
   public static final String TAG = "object";
-  public static final ObjectBinding INSTANCE = new ObjectBinding();
 
   public ObjectBinding() {
     super(TAG);
@@ -68,6 +67,10 @@ public class ObjectBinding extends WireDescriptorBinding {
   }
 
   public Object parse(Element element, Parse parse, Parser parser) {
+    return parseObjectDescriptor(element, parse, parser);
+  }
+
+  public static ObjectDescriptor parseObjectDescriptor(Element element, Parse parse, Parser parser) {
     ObjectDescriptor descriptor = new ObjectDescriptor();
 
     Parser wireParser = (Parser) parser;
@@ -143,7 +146,7 @@ public class ObjectBinding extends WireDescriptorBinding {
     if (bindings!=null) {
       operationTagNames = bindings.getTagNames(WireParser.CATEGORY_OPERATION);
     } else {
-      operationTagNames = Collections.EMPTY_SET;
+      operationTagNames = Collections.emptySet();
     }
 
     for (Element childElement: elements) {

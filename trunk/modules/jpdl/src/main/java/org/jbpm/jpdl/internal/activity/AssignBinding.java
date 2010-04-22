@@ -64,7 +64,7 @@ public class AssignBinding extends JpdlBinding {
       assignActivity.setFromExpression(expression);
 
     } else { // there is no expr specified
-      Set<String> descriptorTagNames = JpdlParser.wireParser.getBindings().getTagNames(WireParser.CATEGORY_DESCRIPTOR);
+      Set<String> descriptorTagNames = WireParser.getInstance().getBindings().getTagNames(WireParser.CATEGORY_DESCRIPTOR);
       Descriptor valueDescriptor = null;
       List<Element> assignContentElements = XmlUtil.elements(element);
       

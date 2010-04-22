@@ -31,7 +31,6 @@ import org.jbpm.api.Execution;
 import org.jbpm.api.JbpmException;
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
-import org.jbpm.pvm.internal.model.ScopeInstanceImpl;
 import org.jbpm.pvm.internal.wire.WireContext;
 import org.jbpm.pvm.internal.wire.WireDefinition;
 import org.jbpm.pvm.internal.wire.xml.WireParser;

@@ -36,7 +36,7 @@ public class MailBinding extends JpdlBinding {
 
   public Object parseJpdl(Element element, Parse parse, JpdlParser parser) {
     MailActivity activity = new MailActivity();
-    activity.setMailProducer(parser.parseMailProducer(element, parse, null));
+    activity.setMailProducerReference(parser.parseMailProducer(element, parse, null));
     return activity;
   }
 }

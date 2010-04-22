@@ -23,6 +23,7 @@ package org.jbpm.test.activity.mail;
 
 import java.util.List;
 
+import org.jbpm.api.ProcessInstance;
 import org.jbpm.test.JbpmTestCase;
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
@@ -31,8 +32,8 @@ import org.subethamail.wiser.WiserMessage;
  * @author Tom Baeyens
  */
 public class MailTest extends JbpmTestCase {
-  
-  Wiser wiser = null;
+
+  private Wiser wiser;
 
   protected void setUp() throws Exception {
     super.setUp();
@@ -41,30 +42,30 @@ public class MailTest extends JbpmTestCase {
     wiser.setPort(2525);
     wiser.start();
   }
-  
+
   protected void tearDown() throws Exception {
+    // stop mail server
     wiser.stop();
     super.tearDown();
   }
 
   public void testMailToPlainAddress() {
-    deployJpdlXmlString(
-        "<process name='MailTest'>" +
-        "  <start>" +
-        "    <transition to='mailtestmail' />" +
-        "  </start>" +
-        "  <mail name='mailtestmail'>" +
-        "    <to addresses='jos@rubensstraat' />" +
-        "    <subject>mail</subject>" +
-        "    <text>youhoooo</text>" +
-        "    <transition to='end' />" +
-        "  </mail>" +
-        "  <state name='end'/>" +
-        "</process>"
-    );
-    
-    executionService.startProcessInstanceByKey("MailTest");
-    
+    deployJpdlXmlString("<process name='plainaddress'>"
+      + "  <start>"
+      + "    <transition to='mailtestmail' />"
+      + "  </start>"
+      + "  <mail name='mailtestmail'>"
+      + "    <to addresses='jos@rubensstraat' />"
+      + "    <subject>mail</subject>"
+      + "    <text>youhoooo</text>"
+      + "    <transition to='end' />"
+      + "  </mail>"
+      + "  <end name='end'/>"
+      + "</process>");
+    ProcessInstance processInstance = executionService
+      .startProcessInstanceByKey("plainaddress");
+    assertProcessInstanceEnded(processInstance);
+
     List<WiserMessage> messages = wiser.getMessages();
     assertEquals(1, messages.size());
   }

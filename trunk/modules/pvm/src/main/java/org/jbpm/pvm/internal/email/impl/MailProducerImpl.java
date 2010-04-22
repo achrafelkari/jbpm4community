@@ -25,13 +25,14 @@ import java.io.File;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import javax.activation.DataHandler;
+import javax.activation.DataSource;
 import javax.activation.FileDataSource;
+import javax.activation.URLDataSource;
 import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.Message;
@@ -74,12 +75,17 @@ public class MailProducerImpl implements MailProducer, Serializable {
   }
 
   public Collection<Message> produce(Execution execution) {
-    Message email = instantiateEmail();
-    fillFrom(execution, email);
-    fillRecipients(execution, email);
-    fillSubject(execution, email);
-    fillContent(execution, email);
-    return Collections.singleton(email);
+    try {
+      Message email = instantiateEmail();
+      fillFrom(execution, email);
+      fillRecipients(execution, email);
+      fillSubject(execution, email);
+      fillContent(execution, email);
+      return Collections.singleton(email);
+    }
+    catch (MessagingException e) {
+      throw new JbpmException("failed to produce email message", e);
+    }
   }
 
   protected Message instantiateEmail() {
@@ -87,13 +93,13 @@ public class MailProducerImpl implements MailProducer, Serializable {
   }
 
   /**
-   * Fills the <code>from</code> attribute of the given email. The sender addresses are an optional
-   * element in the mail template. If absent, each mail server supplies the current user's email
-   * address.
+   * Fills the <code>from</code> attribute of the given email. The sender addresses are an
+   * optional element in the mail template. If absent, each mail server supplies the current
+   * user's email address.
    * 
    * @see {@link InternetAddress#getLocalAddress(Session)}
    */
-  protected void fillFrom(Execution execution, Message email) {
+  protected void fillFrom(Execution execution, Message email) throws MessagingException {
     AddressTemplate fromTemplate = template.getFrom();
     // "from" attribute is optional
     if (fromTemplate == null) return;
@@ -101,13 +107,8 @@ public class MailProducerImpl implements MailProducer, Serializable {
     // resolve and parse addresses
     String addresses = fromTemplate.getAddresses();
     if (addresses != null) {
-      addresses = evaluateExpression(addresses, execution);
-      try {
-        email.addFrom(InternetAddress.parse(addresses));
-      }
-      catch (MessagingException e) {
-        throw new JbpmException("failed to add " + addresses + " to senders", e);
-      }
+      addresses = evaluateExpression(addresses);
+      email.addFrom(InternetAddress.parse(addresses));
     }
 
     EnvironmentImpl environment = EnvironmentImpl.getCurrent();
@@ -119,7 +120,7 @@ public class MailProducerImpl implements MailProducer, Serializable {
     if (userList != null) {
       String[] userIds = tokenizeActors(userList, execution);
       List<User> users = identitySession.findUsersById(userIds);
-      addSenders(resolveAddresses(users, addressResolver), email);
+      email.addFrom(resolveAddresses(users, addressResolver));
     }
 
     // resolve and tokenize groups
@@ -127,25 +128,23 @@ public class MailProducerImpl implements MailProducer, Serializable {
     if (groupList != null) {
       for (String groupId : tokenizeActors(groupList, execution)) {
         Group group = identitySession.findGroupById(groupId);
-        addSenders(addressResolver.resolveAddresses(group), email);
+        email.addFrom(addressResolver.resolveAddresses(group));
       }
     }
   }
 
-  private String evaluateExpression(String expression, Execution execution) {
-    ScriptManager scriptManager = EnvironmentImpl.getFromCurrent(ScriptManager.class);
+  private String evaluateExpression(String expression) {
+    return evaluateExpression(expression, String.class);
+  }
+
+  private <T> T evaluateExpression(String expression, Class<T> type) {
+    ScriptManager scriptManager = ScriptManager.getScriptManager();
     Object value = scriptManager.evaluateExpression(expression, template.getLanguage());
-    if (!(value instanceof String)) {
-      throw new JbpmException("expected expression '"
-          + expression
-          + "' to return string, but was: "
-          + value);
-    }
-    return (String) value;
+    return type.cast(value);
   }
 
   private String[] tokenizeActors(String recipients, Execution execution) {
-    String[] actors = evaluateExpression(recipients, execution).split("[,;|\\s]+");
+    String[] actors = evaluateExpression(recipients).split("[,;|\\s]+");
     if (actors.length == 0) throw new JbpmException("recipient list is empty: " + recipients);
     return actors;
   }
@@ -160,17 +159,7 @@ public class MailProducerImpl implements MailProducer, Serializable {
     return addresses;
   }
 
-  /** add senders to message */
-  private void addSenders(Address[] addresses, Message email) {
-    try {
-      email.addFrom(addresses);
-    }
-    catch (MessagingException e) {
-      throw new JbpmException("failed to add " + Arrays.toString(addresses) + " to senders", e);
-    }
-  }
-
-  protected void fillRecipients(Execution execution, Message email) {
+  protected void fillRecipients(Execution execution, Message email) throws MessagingException {
     // to
     AddressTemplate to = template.getTo();
     if (to != null) fillRecipients(to, execution, email, RecipientType.TO);
@@ -184,21 +173,13 @@ public class MailProducerImpl implements MailProducer, Serializable {
     if (bcc != null) fillRecipients(bcc, execution, email, RecipientType.BCC);
   }
 
-  private void fillRecipients(AddressTemplate addressTemplate, Execution execution, Message email,
-      RecipientType recipientType) {
+  private void fillRecipients(AddressTemplate addressTemplate, Execution execution,
+    Message email, RecipientType recipientType) throws MessagingException {
     // resolve and parse addresses
     String addresses = addressTemplate.getAddresses();
     if (addresses != null) {
-      addresses = evaluateExpression(addresses, execution);
-      try {
-        email.addRecipients(recipientType, InternetAddress.parse(addresses));
-      }
-      catch (MessagingException e) {
-        throw new JbpmException("failed to add "
-            + addresses
-            + " to recipients of type "
-            + recipientType, e);
-      }
+      addresses = evaluateExpression(addresses);
+      email.addRecipients(recipientType, InternetAddress.parse(addresses));
     }
 
     EnvironmentImpl environment = EnvironmentImpl.getCurrent();
@@ -210,7 +191,7 @@ public class MailProducerImpl implements MailProducer, Serializable {
     if (userList != null) {
       String[] userIds = tokenizeActors(userList, execution);
       List<User> users = identitySession.findUsersById(userIds);
-      addRecipients(resolveAddresses(users, addressResolver), email, recipientType);
+      email.addRecipients(recipientType, resolveAddresses(users, addressResolver));
     }
 
     // resolve and tokenize groups
@@ -218,38 +199,20 @@ public class MailProducerImpl implements MailProducer, Serializable {
     if (groupList != null) {
       for (String groupId : tokenizeActors(groupList, execution)) {
         Group group = identitySession.findGroupById(groupId);
-        addRecipients(addressResolver.resolveAddresses(group), email, recipientType);
+        email.addRecipients(recipientType, addressResolver.resolveAddresses(group));
       }
     }
   }
 
-  /** add recipient addresses to message */
-  private void addRecipients(Address[] addresses, Message email, RecipientType recipientType) {
-    try {
-      email.addRecipients(recipientType, addresses);
-    }
-    catch (MessagingException e) {
-      throw new JbpmException("failed to add "
-          + Arrays.toString(addresses)
-          + " to recipients of type "
-          + recipientType, e);
-    }
-  }
-
-  protected void fillSubject(Execution execution, Message email) {
+  protected void fillSubject(Execution execution, Message email) throws MessagingException {
     String subject = template.getSubject();
     if (subject != null) {
-      subject = evaluateExpression(subject, execution);
-      try {
-        email.setSubject(subject);
-      }
-      catch (MessagingException e) {
-        throw new JbpmException("failed to set subject to " + subject, e);
-      }
+      subject = evaluateExpression(subject);
+      email.setSubject(subject);
     }
   }
 
-  protected void fillContent(Execution execution, Message email) {
+  protected void fillContent(Execution execution, Message email) throws MessagingException {
     String text = template.getText();
     String html = template.getHtml();
     List<AttachmentTemplate> attachmentTemplates = template.getAttachmentTemplates();
@@ -261,27 +224,17 @@ public class MailProducerImpl implements MailProducer, Serializable {
       // text
       if (text != null) {
         BodyPart textPart = new MimeBodyPart();
-        text = evaluateExpression(text, execution);
-        try {
-          textPart.setText(text);
-          multipart.addBodyPart(textPart);
-        }
-        catch (MessagingException e) {
-          throw new JbpmException("failed to add text content: " + text, e);
-        }
+        text = evaluateExpression(text);
+        textPart.setText(text);
+        multipart.addBodyPart(textPart);
       }
 
       // html
       if (html != null) {
         BodyPart htmlPart = new MimeBodyPart();
-        html = evaluateExpression(html, execution);
-        try {
-          htmlPart.setContent(html, "text/html");
-          multipart.addBodyPart(htmlPart);
-        }
-        catch (MessagingException e) {
-          throw new JbpmException("failed to add html content: " + html, e);
-        }
+        html = evaluateExpression(html);
+        htmlPart.setContent(html, "text/html");
+        multipart.addBodyPart(htmlPart);
       }
 
       // attachments
@@ -289,117 +242,96 @@ public class MailProducerImpl implements MailProducer, Serializable {
         addAttachments(execution, multipart);
       }
 
-      try {
-        email.setContent(multipart);
-      }
-      catch (MessagingException e) {
-        throw new JbpmException("failed to set multipart content: " + multipart, e);
-      }
+      email.setContent(multipart);
     }
     else if (text != null) {
       // unipart
-      text = evaluateExpression(text, execution);
-      try {
-        email.setText(text);
-      }
-      catch (MessagingException e) {
-        throw new JbpmException("failed to add text content: " + text, e);
-      }
+      text = evaluateExpression(text);
+      email.setText(text);
     }
   }
 
-  protected void addAttachments(Execution execution, Multipart multipart) {
+  protected void addAttachments(Execution execution, Multipart multipart)
+    throws MessagingException {
     for (AttachmentTemplate attachmentTemplate : template.getAttachmentTemplates()) {
       BodyPart attachmentPart = new MimeBodyPart();
 
-      // resolve and set description
+      // resolve description
       String description = attachmentTemplate.getDescription();
       if (description != null) {
-        description = evaluateExpression(description, execution);
-        try {
-          attachmentPart.setDescription(description);
-        }
-        catch (MessagingException e) {
-          throw new JbpmException("failed to set attachment description: " + description, e);
-        }
+        attachmentPart.setDescription(evaluateExpression(description));
       }
 
-      // resolve name; if absent, it will be taken from file or url
+      // obtain interface to data
+      DataHandler dataHandler = createDataHandler(attachmentTemplate);
+      attachmentPart.setDataHandler(dataHandler);
+      
+      // resolve file name
       String name = attachmentTemplate.getName();
       if (name != null) {
-        name = evaluateExpression(name, execution);
-      }
-
-      // resolve and read file
-      String file = attachmentTemplate.getFile();
-      if (file != null) {
-        File targetFile = new File(evaluateExpression(file, execution));
-        if (!targetFile.isFile()) {
-          throw new JbpmException("could not read attachment content, file not found: "
-              + targetFile);
-        }
-        // set content from target file
-        try {
-          attachmentPart.setDataHandler(new DataHandler(new FileDataSource(targetFile)));
-          // extract attachment name from file
-          if (name == null) {
-            name = targetFile.getName();
-          }
-        }
-        catch (MessagingException e) {
-          throw new JbpmException("failed to add attachment content: " + targetFile, e);
-        }
+        attachmentPart.setFileName(evaluateExpression(name));
       }
       else {
-        URL targetUrl;
-        // resolve and read external url
-        String url = attachmentTemplate.getUrl();
-        if (url != null) {
-          try {
-            url = evaluateExpression(url, execution);
-            targetUrl = new URL(url);
-          }
-          catch (MalformedURLException e) {
-            throw new JbpmException("could not read attachment content, malformed url: " + url, e);
-          }
+        // fall back on data source
+        DataSource dataSource = dataHandler.getDataSource();
+        if (dataSource instanceof URLDataSource) {
+          name = extractResourceName(((URLDataSource) dataSource).getURL());
         }
-        // resolve and read classpath resource
         else {
-          String resource = evaluateExpression(attachmentTemplate.getResource(), execution);
-          targetUrl = EnvironmentImpl.getCurrent().getClassLoader().getResource(resource);
-          if (targetUrl == null) {
-            throw new JbpmException("could not read attachment content, resource not found: "
-                + resource);
-          }
+          name = dataSource.getName();
         }
-        // set content from url
-        try {
-          attachmentPart.setDataHandler(new DataHandler(targetUrl));
-          // extract attachment name from target url
-          if (name == null) {
-            name = extractResourceName(targetUrl);
-          }
-        }
-        catch (MessagingException e) {
-          throw new JbpmException("failed to add attachment content: " + targetUrl, e);
+        if (name != null) {
+          attachmentPart.setFileName(name);
         }
       }
 
-      // set name, must be resolved at this point
-      try {
-        attachmentPart.setFileName(name);
-      }
-      catch (MessagingException e) {
-        throw new JbpmException("failed to set attachment name: " + name, e);
-      }
+      multipart.addBodyPart(attachmentPart);
+    }
+  }
 
-      try {
-        multipart.addBodyPart(attachmentPart);
+  private DataHandler createDataHandler(AttachmentTemplate attachmentTemplate) {
+    // evaluate expression
+    String expression = attachmentTemplate.getExpression();
+    if (expression != null) {
+      Object object = evaluateExpression(expression, Object.class);
+      return new DataHandler(object, attachmentTemplate.getMimeType());
+    }
+
+    // resolve local file
+    String file = attachmentTemplate.getFile();
+    if (file != null) {
+      File targetFile = new File(evaluateExpression(file));
+      if (!targetFile.isFile()) {
+        throw new JbpmException("could not read attachment content, file not found: "
+          + targetFile);
       }
-      catch (MessagingException e) {
-        throw new JbpmException("failed to add attachment part: " + attachmentPart, e);
+      // set content from file
+      return new DataHandler(new FileDataSource(targetFile));
+    }
+
+    // resolve external url
+    URL targetUrl;
+    String url = attachmentTemplate.getUrl();
+    if (url != null) {
+      url = evaluateExpression(url);
+      try {
+        targetUrl = new URL(url);
+      }
+      catch (MalformedURLException e) {
+        throw new JbpmException("could not read attachment content, malformed url: " + url, e);
       }
     }
+    // resolve classpath resource
+    else {
+      String resource = evaluateExpression(attachmentTemplate.getResource());
+      targetUrl = Thread.currentThread().getContextClassLoader().getResource(resource);
+      if (targetUrl == null) {
+        throw new JbpmException("could not read attachment content, resource not found: "
+          + resource);
+      }
+    }
+    // set content from url
+    return new DataHandler(targetUrl);
   }
 
   private static String extractResourceName(URL url) {
@@ -407,6 +339,6 @@ public class MailProducerImpl implements MailProducer, Serializable {
     if (path == null || path.length() == 0) return null;
 
     int sepIndex = path.lastIndexOf('/');
-    return sepIndex != -1 ? path.substring(sepIndex) : null;
+    return sepIndex != -1 ? path.substring(sepIndex + 1) : null;
   }
 }

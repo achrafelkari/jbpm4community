@@ -39,7 +39,7 @@ public class HistorySessionDescriptor extends AbstractDescriptor {
   CollectionDescriptor listDescriptor = new ListDescriptor();
 
   public Object construct(WireContext wireContext) {
-    List<HistorySession> historySessions = (List<HistorySession>) WireContext.create(listDescriptor);
+    List<HistorySession> historySessions = (List<HistorySession>) wireContext.create(listDescriptor, false);
     if (historySessions.size()==1) {
       return historySessions.get(0);
     } 

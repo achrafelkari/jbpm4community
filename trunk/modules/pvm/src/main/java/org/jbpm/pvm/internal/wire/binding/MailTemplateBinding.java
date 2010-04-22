@@ -21,6 +21,7 @@
  */
 package org.jbpm.pvm.internal.wire.binding;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -46,18 +47,20 @@ public class MailTemplateBinding extends WireDescriptorBinding {
 
   public Object parse(Element element, Parse parse, Parser parser) {
     // MailTemplateRegistry is added to the WireDescriptor with a ProvidedObjectDescriptor
-    // The MailTemplateRegistry descriptor is lazy initialized by this binding 
-    // mail-template will add a MailTemplate to the MailTemplateRegistry 
+    // The MailTemplateRegistry descriptor is lazy initialized by this binding
+    // mail-template will add a MailTemplate to the MailTemplateRegistry
     ProvidedObjectDescriptor templateRegistryDescriptor;
     MailTemplateRegistry templateRegistry;
 
     WireDefinition wireDefinition = parse.contextStackFind(WireDefinition.class);
-    String templateRegistryDescriptorName = (wireDefinition != null ? wireDefinition.getDescriptorName(MailTemplateRegistry.class) : null);
-    
-    if (templateRegistryDescriptorName != null) {
-      templateRegistryDescriptor = (ProvidedObjectDescriptor) wireDefinition.getDescriptor(templateRegistryDescriptorName);
+    String templateRegistryName;
+
+    if (wireDefinition != null
+      && (templateRegistryName = wireDefinition.getDescriptorName(MailTemplateRegistry.class)) != null) {
+      templateRegistryDescriptor = (ProvidedObjectDescriptor) wireDefinition.getDescriptor(templateRegistryName);
       templateRegistry = (MailTemplateRegistry) templateRegistryDescriptor.getProvidedObject();
-    } else {
+    }
+    else {
       templateRegistry = new MailTemplateRegistry();
       templateRegistryDescriptor = new ProvidedObjectDescriptor(templateRegistry, true);
     }
@@ -107,15 +110,49 @@ public class MailTemplateBinding extends WireDescriptorBinding {
         AttachmentTemplate attachmentTemplate = new AttachmentTemplate();
         mailTemplate.addAttachmentTemplate(attachmentTemplate);
 
-        attachmentTemplate.setUrl(XmlUtil.attribute(attachmentElement, "url"));
-        attachmentTemplate.setResource(XmlUtil.attribute(attachmentElement, "resource"));
-        attachmentTemplate.setFile(XmlUtil.attribute(attachmentElement, "file"));
+        attachmentTemplate.setName(XmlUtil.attribute(attachmentElement, "name"));
+        attachmentTemplate.setDescription(XmlUtil.attribute(attachmentElement, "description"));
+
+        // expression attribute
+        Attr expressionAttr = attachmentElement.getAttributeNode("expression");
+        if (expressionAttr != null) {
+          attachmentTemplate.setExpression(expressionAttr.getValue());
+          attachmentTemplate.setMimeType(XmlUtil.attribute(attachmentElement, "mime-type"));
+        }
+        else {
+          // expression element
+          Element expressionElem = XmlUtil.element(attachmentElement, "expression");
+          if (expressionElem != null) {
+            attachmentTemplate.setExpression(XmlUtil.getContentText(expressionElem));
+            attachmentTemplate.setMimeType(XmlUtil.attribute(attachmentElement, "mime-type"));
+          }
+          else {
+            // file
+            Attr file = attachmentElement.getAttributeNode("file");
+            if (file != null) {
+              attachmentTemplate.setFile(file.getValue());
+            }
+            else {
+              // url
+              Attr url = attachmentElement.getAttributeNode("url");
+              if (url != null) {
+                attachmentTemplate.setUrl(url.getValue());
+              }
+              else {
+                // resource
+                Attr resource = attachmentElement.getAttributeNode("resource");
+                if (resource != null) attachmentTemplate.setResource(resource.getValue());
+              }
+            }
+          }
+        }
       }
     }
     return mailTemplate;
   }
 
-  private static AddressTemplate parseRecipientTemplate(Element element, String tagName, Parse parse) {
+  private static AddressTemplate parseRecipientTemplate(Element element, String tagName,
+    Parse parse) {
     Element recipientElement = XmlUtil.element(element, tagName);
     if (recipientElement == null) return null;
 

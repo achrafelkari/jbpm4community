@@ -1,0 +1,389 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <title>changelog</title>
+    <link rel="stylesheet" type="text/css" href="static/style.css" />
+    <script type='text/javascript' src='static/script.js'></script>
+  </head>
+  <body>
+    <h1>jBPM-4.3-hot-patch-v1 [2010-4-19]</h1>
+    <table class="s-grid" width="100%">
+      <thead>
+        <tr>
+          <th width="3%">No.</th>
+          <th width="8%">Component</th>
+          <th width="5%">JIRA</th>
+          <th>Description</th>
+          <th width="6%">state</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="odd" onmouseover="this.className='highlight'" onmouseout="this.className='odd';">
+          <td><a href="javascript:toggle('1')">1</a></td>
+          <td>jPDL</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2712" target="_blank">JBPM-2712</a></td>
+          <td><a href="javascript:toggle('1')">add Timer to transitions in CustomActivity</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-1" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+change XSD 'custom' element to:
+<pre>
+&lt;element name="custom">
+  &lt;annotation>
+    &lt;documentation>Uses a user defined, custom implementation of
+ ActivityBehaviour&lt;/documentation>
+  &lt;/annotation>
+  &lt;complexType>
+    &lt;complexContent>
+      &lt;extension base="tns:wireObjectType">
+        &lt;sequence>
+          &lt;element ref="tns:on" minOccurs="0" maxOccurs="unbounded" />
+          &lt;element name="transition" minOccurs="0" maxOccurs="unbounded">
+            &lt;complexType>
+              &lt;complexContent>
+                &lt;extension base="tns:transitionType">
+                  &lt;sequence>
+                    &lt;element ref="tns:timer" minOccurs="0" />
+                  &lt;/sequence>
+                &lt;/extension>
+              &lt;/complexContent>
+            &lt;/complexType>
+          &lt;/element>
+        &lt;/sequence>
+        &lt;attributeGroup ref="tns:activityAttributes" />
+      &lt;/extension>
+    &lt;/complexContent>
+  &lt;/complexType>
+&lt;/element>
+</pre>
+Test case is modules/test-db/src/test/java/org/jbpm/test/timer/TimerTest.java
+          </td>
+        </tr>
+        <tr class="even" onmouseover="this.className='highlight'" onmouseout="this.className='even';">
+          <td><a href="javascript:toggle('2')">2</a></td>
+          <td>BPMN</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2738" target="_blank">JBPM-2738</a></td>
+          <td><a href="javascript:toggle('2')">Inclusive gateway</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-2" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+modules/bpmn/src/main/java/org/jbpm/bpmn/flownodes/InclusiveGatewayActivity.java
+          </td>
+        </tr>
+        <tr class="odd" onmouseover="this.className='highlight'" onmouseout="this.className='odd';">
+          <td><a href="javascript:toggle('3')">3</a></td>
+          <td>BPMN</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2756" target="_blank">JBPM-2756</a></td>
+          <td><a href="javascript:toggle('3')">add default sequence attribute on activities</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-3" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+modules/bpmn/src/main/java/org/jbpm/bpmn/flownodes/BpmnActivity.java(default_)
+          </td>
+        </tr>
+        <tr class="even" onmouseover="this.className='highlight'" onmouseout="this.className='even';">
+          <td><a href="javascript:toggle('4')">4</a></td>
+          <td>BPMN</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2740" target="_blank">JBPM-2740</a></td>
+          <td><a href="javascript:toggle('4')">Embedded subprocess</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-4" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+modules/bpmn/src/main/java/org/jbpm/bpmn/flownodes/SubProcessActivity.java
+          </td>
+        </tr>
+        <tr class="odd" onmouseover="this.className='highlight'" onmouseout="this.className='odd';">
+          <td><a href="javascript:toggle('5')">5</a></td>
+          <td>BPMN</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2727" target="_blank">JBPM-2727</a></td>
+          <td><a href="javascript:toggle('5')">timer intermediate catch event</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-5" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+modules/bpmn/src/main/java/org/jbpm/bpmn/flownodes/IntermediateCatchTimerEvent.java
+          </td>
+        </tr>
+        <tr class="even" onmouseover="this.className='highlight'" onmouseout="this.className='even';">
+          <td><a href="javascript:toggle('6')">6</a></td>
+          <td>BPMN</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2722" target="_blank">JBPM-2722</a></td>
+          <td><a href="javascript:toggle('6')">timer start event</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-6" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+modules/bpmn/src/main/java/org/jbpm/bpmn/flownodes/TimerStartEventActivity.java
+          </td>
+        </tr>
+        <tr class="odd" onmouseover="this.className='highlight'" onmouseout="this.className='odd';">
+          <td><a href="javascript:toggle('7')">7</a></td>
+          <td>BPMN</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2742" target="_blank">JBPM-2742</a></td>
+          <td><a href="javascript:toggle('7')">verify and fix the merge behaviour of exsiting gateway</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-7" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+modules/bpmn/src/main/java/org/jbpm/bpmn/flownodes/ParallelGatewayActivity.java
+          </td>
+        </tr>
+        <tr class="even" onmouseover="this.className='highlight'" onmouseout="this.className='even';">
+          <td><a href="javascript:toggle('8')">8</a></td>
+          <td>PVM</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2718" target="_blank">JBPM-2718</a></td>
+          <td><a href="javascript:toggle('8')">database version issue between 4.2 and 4.3</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-8" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+Unknown
+          </td>
+        </tr>
+        <tr class="odd" onmouseover="this.className='highlight'" onmouseout="this.className='odd';">
+          <td><a href="javascript:toggle('9')">9</a></td>
+          <td>BPMN</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2754" target="_blank">JBPM-2754</a></td>
+          <td><a href="javascript:toggle('9')">execution lost when using nested forks/parallel gateway</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-9" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+create all the child executions first, before take the transitions.<br>
+modules/bpmn/src/main/java/org/jbpm/bpmn/flownodes/BpmnActivity.java
+          </td>
+        </tr>
+        <tr class="even" onmouseover="this.className='highlight'" onmouseout="this.className='even';">
+          <td><a href="javascript:toggle('10')">10</a></td>
+          <td>PVM</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2679" target="_blank">JBPM-2679</a></td>
+          <td><a href="javascript:toggle('10')">ExecutionService deleteProcessInstance(), deleteProcessInstanceCascade() should throw a Exception when processInstance is not found.</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-10" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+modules/pvm/src/main/java/org/jbpm/pvm/internal/hibernate/DbSession.java
+          </td>
+        </tr>
+        <tr class="odd" onmouseover="this.className='highlight'" onmouseout="this.className='odd';">
+          <td><a href="javascript:toggle('11')">11</a></td>
+          <td>PVM</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2745" target="_blank">JBPM-2745</a></td>
+          <td><a href="javascript:toggle('11')">let timer duedate support EL and business calendar</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-11" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+support EL and business calendar like this &lt;timer duedate='#{targetDate} - 1 business day' />.<br>
+modules/pvm/src/main/java/org/jbpm/pvm/internal/cal/Duration.java
+          </td>
+        </tr>
+        <tr class="even" onmouseover="this.className='highlight'" onmouseout="this.className='even';">
+          <td><a href="javascript:toggle('12')">12</a></td>
+          <td>PVM</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2749" target="_blank">JBPM-2749</a></td>
+          <td><a href="javascript:toggle('12')">Problem with fork/join using swimlane</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-12" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+Unknown<br>
+<a href="https://jira.jboss.org/jira/browse/JBPM-2841">JBPM-2841 is a same bug which has not been fixed.</a>
+          </td>
+        </tr>
+        <tr class="odd" onmouseover="this.className='highlight'" onmouseout="this.className='odd';">
+          <td><a href="javascript:toggle('13')">13</a></td>
+          <td>jPDL</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2581" target="_blank">JBPM-2581</a></td>
+          <td><a href="javascript:toggle('13')">problem with nested forks</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-13" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/ForkActivity.java
+          </td>
+        </tr>
+        <tr class="even" onmouseover="this.className='highlight'" onmouseout="this.className='even';">
+          <td><a href="javascript:toggle('14')">14</a></td>
+          <td>PVM</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2752" target="_blank">JBPM-2752</a></td>
+          <td><a href="javascript:toggle('14')">SpringTransactionInterceptor unnecessarily cast PlatformTransactionManager to AbstractTrasactionManager</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-14" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+In spring DM it will cause exception<br>
+modules/pvm/src/main/java/org/jbpm/pvm/internal/tx/SpringTransactionInterceptor.java
+          </td>
+        </tr>
+        <tr class="odd" onmouseover="this.className='highlight'" onmouseout="this.className='odd';">
+          <td><a href="javascript:toggle('15')">15</a></td>
+          <td>jPDL</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2560" target="_blank">JBPM-2560</a></td>
+          <td><a href="javascript:toggle('15')">task definition does not have some properties set jPDL task element</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-15" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+add duedate and priority to taskDefinition<br>
+modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/TaskActivity.java<br>
+modules/jpdl/src/main/java/org/jbpm/jpdl/internal/xml/JpdlParser.java
+          </td>
+        </tr>
+        <tr class="even" onmouseover="this.className='highlight'" onmouseout="this.className='even';">
+          <td><a href="javascript:toggle('16')">16</a></td>
+          <td>Console</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2499" target="_blank">JBPM-2499</a></td>
+          <td><a href="javascript:toggle('16')">view ended processinstance missing</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-16" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+unknown
+          </td>
+        </tr>
+        <tr class="odd" onmouseover="this.className='highlight'" onmouseout="this.className='odd';">
+          <td><a href="javascript:toggle('17')">17</a></td>
+          <td>PVM</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2607" target="_blank">JBPM-2607</a></td>
+          <td><a href="javascript:toggle('17')">NonUniqueResultException when task completion results in the assignment of a subsequence task to the same user.</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-17" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+delete previous task before signal<br>
+modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/TaskActivity.java<br>
+modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/CompleteTaskCmd.java<br>
+modules/pvm/src/main/java/org/jbpm/pvm/internal/task/TaskImpl.java
+          </td>
+        </tr>
+        <tr class="even" onmouseover="this.className='highlight'" onmouseout="this.className='even';">
+          <td><a href="javascript:toggle('18')">18</a></td>
+          <td>jPDL</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2444" target="_blank">JBPM-2444</a></td>
+          <td><a href="javascript:toggle('18')">sub-process-key does not evaluate EL</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-18" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/SubProcessActivity.java
+          </td>
+        </tr>
+        <tr class="odd" onmouseover="this.className='highlight'" onmouseout="this.className='odd';">
+          <td><a href="javascript:toggle('19')">19</a></td>
+          <td>PVM</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2709" target="_blank">JBPM-2709</a></td>
+          <td><a href="javascript:toggle('19')">Ant installer fails on start.eclipse with osx(mac)</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-19" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+build.xml
+          </td>
+        </tr>
+        <tr class="even" onmouseover="this.className='highlight'" onmouseout="this.className='even';">
+          <td><a href="javascript:toggle('20')">20</a></td>
+          <td>Console</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2562" target="_blank">JBPM-2562</a></td>
+          <td><a href="javascript:toggle('20')">document how getWebServiceHost and getWebServicePort have to be configured</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-20" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+unknown
+          </td>
+        </tr>
+        <tr class="odd" onmouseover="this.className='highlight'" onmouseout="this.className='odd';">
+          <td><a href="javascript:toggle('21')">21</a></td>
+          <td>PVM</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2609" target="_blank">JBPM-2609</a></td>
+          <td><a href="javascript:toggle('21')">list all outgoing transitions of active activities</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-21" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+unknown
+          </td>
+        </tr>
+        <tr class="even" onmouseover="this.className='highlight'" onmouseout="this.className='even';">
+          <td><a href="javascript:toggle('22')">22</a></td>
+          <td>PVM</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2716" target="_blank">JBPM-2716</a></td>
+          <td><a href="javascript:toggle('22')">make SpringHelper.createProcessEngine() to public</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-22" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+modules/pvm/src/main/java/org/jbpm/pvm/internal/processengine/SpringHelper.java
+          </td>
+        </tr>
+        <tr class="odd" onmouseover="this.className='highlight'" onmouseout="this.className='odd';">
+          <td><a href="javascript:toggle('23')">23</a></td>
+          <td>PVM</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2708" target="_blank">JBPM-2708</a></td>
+          <td><a href="javascript:toggle('23')">TimerImpl print out signalName rather than eventName when a timer event is fired and hence the signalName is null</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-23" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+modules/pvm/src/main/java/org/jbpm/pvm/internal/job/TimerImpl.java
+          </td>
+        </tr>
+        <tr class="even" onmouseover="this.className='highlight'" onmouseout="this.className='even';">
+          <td><a href="javascript:toggle('24')">24</a></td>
+          <td>jPDL</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2771" target="_blank">JBPM-2771</a></td>
+          <td><a href="javascript:toggle('24')">prevent NPE when using continue="async" on START without a name attribute</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-24" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/StartBinding.java
+          </td>
+        </tr>
+        <tr class="odd" onmouseover="this.className='highlight'" onmouseout="this.className='odd';">
+          <td><a href="javascript:toggle('24')">23</a></td>
+          <td>jPDL</td>
+          <td><a href="https://jira.jboss.org/jira/browse/JBPM-2708" target="_blank">JBPM-2426</a></td>
+          <td><a href="javascript:toggle('23')">mail attachment</a></td>
+          <td><span class="complete">complete</span></td>
+        </tr>
+        <tr id="content-23" style="display:none;">
+          <td>&nbsp;</td>
+          <td colspan="4">
+modules/pvm/src/main/java/org/jbpm/pvm/internal/email/impl/AttachmentTemplate.java
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </body>
+</html>

@@ -46,6 +46,7 @@ import org.jbpm.api.TaskService;
 import org.jbpm.api.history.HistoryActivityInstance;
 import org.jbpm.api.history.HistoryProcessInstance;
 import org.jbpm.api.job.Job;
+import org.jbpm.api.model.Transition;
 import org.jbpm.api.task.Participation;
 import org.jbpm.api.task.Task;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
@@ -89,10 +90,14 @@ public class ModelAdaptor {
 
     Execution topLevelExecution = execution.getProcessInstance();
     TokenReference tok = execution2TokenReference(topLevelExecution);
+      
 
     Collection<ExecutionImpl> childExecutions = (Collection) topLevelExecution.getExecutions();
     if (childExecutions != null) {
       for (ExecutionImpl childExecution : childExecutions) {
+        // set process definition on child execution from topLevelExecution
+        childExecution.setProcessDefinition(((ExecutionImpl)topLevelExecution).getProcessDefinition());
+        
         TokenReference childTok = execution2TokenReference(childExecution);
         tok.getChildren().add(childTok);
       }
@@ -109,9 +114,14 @@ public class ModelAdaptor {
     TokenReference tok = new TokenReference();
     tok.setName(execution.getName());
     tok.setId(executionId);
+    
+    // mark execution as signalable if it is in wait state and it is active
+    if (((ExecutionImpl) execution).isActive() && "state".equals(((ExecutionImpl) execution).getActivity().getType())) {
+      tok.setCanBeSignaled(true);
+    }
 
 
-    // Only if the set of current activitities has one element, we can
+    // Only if the set of current activities has one element, we can
     // set the current node name (otherwise it's a parent execution)
     Set<String> currentActivities = execution.findActiveActivityNames();
     if (currentActivities.size() == 1) { 
@@ -126,21 +136,26 @@ public class ModelAdaptor {
     } else {
       tok.setCurrentNodeName(executionId);
     }
-            
-    // transitions
-    List<String> availableSignals = new ArrayList<String>();
-    /* TODO: in jBPM4, executions don't have outgoing transitions. verifiy if this is needed.
-    ExecutionImpl openTopLevelExecution = (ExecutionImpl) execution;
-    
-    List<Transition> outTransitions = openTopLevelExecution.getActivity().getOutgoingTransitions();
-    if (outTransitions != null) {
-      for (Transition t : outTransitions) {
-        String transitionName = t.getName() != null ? t.getName() : "to_" + t.getDestination().getName();
-        availableSignals.add(transitionName);
+           
+    if (((ExecutionImpl) execution).getActivity() !=null && "state".equals(((ExecutionImpl) execution).getActivity().getType())) {
+      // transitions
+      List<String> availableSignals = new ArrayList<String>();
+      // fetch outgoing transitions for state activity only, it is required to allow proper
+      // signaling to be made from console - it must send real signal name (outgoing transition)
+      // because there is not signal name check when signaling and if wrong name was given caller will not get any error
+      // and execution will remain in wait state
+      ExecutionImpl openTopLevelExecution = (ExecutionImpl) execution;
+      
+      List<Transition> outTransitions = openTopLevelExecution.getActivity().getOutgoingTransitions();
+      if (outTransitions != null) {
+        for (Transition t : outTransitions) {
+          // if name is not given use 'default transition' as name to be consistent with ProcessFacade check
+          String transitionName = t.getName() != null ? t.getName() : "default transition";
+          availableSignals.add(transitionName);
+        }
       }
+      tok.setAvailableSignals(availableSignals);
     }
-    tok.setAvailableSignals(availableSignals);
-*/
     return tok;
   }
 

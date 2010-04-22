@@ -1,0 +1,1025 @@
+Index: modules/jpdl/src/main/java/org/jbpm/jpdl/internal/xml/JpdlParser.java
+===================================================================
+--- modules/jpdl/src/main/java/org/jbpm/jpdl/internal/xml/JpdlParser.java	(revision 6269)
++++ modules/jpdl/src/main/java/org/jbpm/jpdl/internal/xml/JpdlParser.java	(revision 6270)
+@@ -43,7 +43,6 @@
+ import org.jbpm.pvm.internal.email.impl.MailProducerImpl;
+ import org.jbpm.pvm.internal.email.impl.MailTemplate;
+ import org.jbpm.pvm.internal.email.impl.MailTemplateRegistry;
+-import org.jbpm.pvm.internal.email.spi.MailProducer;
+ import org.jbpm.pvm.internal.env.EnvironmentImpl;
+ import org.jbpm.pvm.internal.model.ActivityCoordinatesImpl;
+ import org.jbpm.pvm.internal.model.ActivityImpl;
+@@ -63,10 +62,10 @@
+ import org.jbpm.pvm.internal.task.TaskDefinitionImpl;
+ import org.jbpm.pvm.internal.util.XmlUtil;
+ import org.jbpm.pvm.internal.wire.Descriptor;
+-import org.jbpm.pvm.internal.wire.WireContext;
+ import org.jbpm.pvm.internal.wire.binding.MailTemplateBinding;
+ import org.jbpm.pvm.internal.wire.binding.ObjectBinding;
+ import org.jbpm.pvm.internal.wire.descriptor.ObjectDescriptor;
++import org.jbpm.pvm.internal.wire.descriptor.ProvidedObjectDescriptor;
+ import org.jbpm.pvm.internal.wire.usercode.UserCodeReference;
+ import org.jbpm.pvm.internal.wire.xml.WireParser;
+ import org.jbpm.pvm.internal.xml.Bindings;
+@@ -97,9 +96,6 @@
+     SCHEMA_RESOURCES.add("jpdl-4.3.xsd");
+   }
+ 
+-  public static final WireParser wireParser = WireParser.getInstance();
+-  public static final ObjectBinding objectBinding = ObjectBinding.INSTANCE;
+-
+   // array elements are mutable, even when final
+   // never make a static array public
+   static final String[] DEFAULT_BINDING_RESOURCES = {
+@@ -603,7 +599,7 @@
+       
+       Element initDescriptorElement = XmlUtil.element(variableElement);
+       if (initDescriptorElement!=null) {
+-        Descriptor initValueDescriptor = (Descriptor) wireParser.parseElement(initDescriptorElement, parse);
++        Descriptor initValueDescriptor = (Descriptor) WireParser.getInstance().parseElement(initDescriptorElement, parse);
+         variableDefinition.setInitDescriptor(initValueDescriptor);
+         sources++;
+       }
+@@ -644,29 +640,31 @@
+     }
+     
+     // associate mail producer to event listener
+-    MailProducer mailProducer = parseMailProducer(element, parse, mailTemplateName);
+-    eventListener.setMailProducer(mailProducer);
++    UserCodeReference mailProducer = parseMailProducer(element, parse, mailTemplateName);
++    eventListener.setMailProducerReference(mailProducer);
+   }
+ 
+-  public MailProducer parseMailProducer(Element element, Parse parse, String defaultTemplateName) {
++  public UserCodeReference parseMailProducer(Element element, Parse parse, String defaultTemplateName) {
+     // check whether the element is a generic object descriptor
+     if (ObjectBinding.isObjectDescriptor(element)) {
+-      // TODO test custom mail producer
+-      ObjectDescriptor objectDescriptor = parseObjectDescriptor(element, parse);
+-      return (MailProducer) WireContext.create(objectDescriptor);
++      return parseUserCodeReference(element, parse);
+     }
+ 
+-    // parse the default producer
+-    MailProducerImpl mailProducer = new MailProducerImpl();
+-    mailProducer.setTemplate(parseMailTemplate(element, parse, defaultTemplateName));
+-    return mailProducer;
++    // parse the default mail producer
++    MailTemplate mailTemplate = parseMailTemplate(element, parse, defaultTemplateName);
++    ObjectDescriptor descriptor = new ObjectDescriptor(MailProducerImpl.class);
++    descriptor.addPropertyInjection("template", new ProvidedObjectDescriptor(mailTemplate));
++
++    UserCodeReference userCodeReference = new UserCodeReference();
++    userCodeReference.setDescriptor(descriptor);
++    return userCodeReference;
+   }
+ 
+   private MailTemplate parseMailTemplate(Element element, Parse parse,
+       String defaultTemplateName) {
+     if (element.hasAttribute("template")) {
+       // fetch template from configuration
+-      return findTemplate(element, parse, element.getAttribute("template"));
++      return findMailTemplate(element, parse, element.getAttribute("template"));
+     }
+     if (!XmlUtil.isTextOnly(element)) {
+       // parse inline template
+@@ -674,14 +672,14 @@
+     }
+     if (defaultTemplateName != null) {
+       // fetch default template
+-      return findTemplate(element, parse, defaultTemplateName);
++      return findMailTemplate(element, parse, defaultTemplateName);
+     }
+     parse.addProblem("mail template must be referenced in the 'template' attribute "
+         + "or specified inline", element);
+     return null;
+   }
+ 
+-  private MailTemplate findTemplate(Element element, Parse parse, String templateName) {
++  private MailTemplate findMailTemplate(Element element, Parse parse, String templateName) {
+     MailTemplateRegistry templateRegistry = EnvironmentImpl.getFromCurrent(MailTemplateRegistry.class);
+     if (templateRegistry != null) {
+       MailTemplate template = templateRegistry.getTemplate(templateName);
+@@ -711,11 +709,11 @@
+   }
+ 
+   public ObjectDescriptor parseObjectDescriptor(Element element, Parse parse) {
+-    return (ObjectDescriptor) objectBinding.parse(element, parse, wireParser);
++    return (ObjectDescriptor) ObjectBinding.parseObjectDescriptor(element, parse, WireParser.getInstance());
+   }
+ 
+   public Descriptor parseDescriptor(Element element, Parse parse) {
+-    return (Descriptor) wireParser.parseElement(element, parse);
++    return (Descriptor) WireParser.getInstance().parseElement(element, parse);
+   }
+ 
+   public Set<String> getActivityTagNames() {
+Index: modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/MailActivity.java
+===================================================================
+--- modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/MailActivity.java	(revision 6269)
++++ modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/MailActivity.java	(revision 6270)
+@@ -29,23 +29,29 @@
+ import org.jbpm.pvm.internal.email.spi.MailProducer;
+ import org.jbpm.pvm.internal.email.spi.MailSession;
+ import org.jbpm.pvm.internal.env.EnvironmentImpl;
++import org.jbpm.pvm.internal.wire.usercode.UserCodeReference;
+ 
+ /**
+  * @author Alejandro Guizar
+  */
+ public class MailActivity extends JpdlAutomaticActivity {
+ 
+-  protected MailProducer mailProducer;
++  private UserCodeReference mailProducerReference;
+ 
+   private static final long serialVersionUID = 1L;
+ 
+   void perform(OpenExecution execution) throws Exception {
++    MailProducer mailProducer = (MailProducer) mailProducerReference.getObject(execution);
+     Collection<Message> messages = mailProducer.produce(execution);
+     EnvironmentImpl.getFromCurrent(MailSession.class).send(messages);
+   }
+ 
+-  public void setMailProducer(MailProducer mailProducer) {
+-    this.mailProducer = mailProducer;
++  public UserCodeReference getMailProducerReference() {
++    return mailProducerReference;
+   }
+ 
++  public void setMailProducerReference(UserCodeReference mailProducer) {
++    this.mailProducerReference = mailProducer;
++  }
++
+ }
+Index: modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/MailBinding.java
+===================================================================
+--- modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/MailBinding.java	(revision 6269)
++++ modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/MailBinding.java	(revision 6270)
+@@ -36,7 +36,7 @@
+ 
+   public Object parseJpdl(Element element, Parse parse, JpdlParser parser) {
+     MailActivity activity = new MailActivity();
+-    activity.setMailProducer(parser.parseMailProducer(element, parse, null));
++    activity.setMailProducerReference(parser.parseMailProducer(element, parse, null));
+     return activity;
+   }
+ }
+Index: modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/AssignBinding.java
+===================================================================
+--- modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/AssignBinding.java	(revision 6269)
++++ modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/AssignBinding.java	(revision 6270)
+@@ -64,7 +64,7 @@
+       assignActivity.setFromExpression(expression);
+ 
+     } else { // there is no expr specified
+-      Set<String> descriptorTagNames = JpdlParser.wireParser.getBindings().getTagNames(WireParser.CATEGORY_DESCRIPTOR);
++      Set<String> descriptorTagNames = WireParser.getInstance().getBindings().getTagNames(WireParser.CATEGORY_DESCRIPTOR);
+       Descriptor valueDescriptor = null;
+       List<Element> assignContentElements = XmlUtil.elements(element);
+       
+Index: modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/MailListener.java
+===================================================================
+--- modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/MailListener.java	(revision 6269)
++++ modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/MailListener.java	(revision 6270)
+@@ -33,13 +33,14 @@
+ import org.jbpm.pvm.internal.env.TaskContext;
+ import org.jbpm.pvm.internal.session.DbSession;
+ import org.jbpm.pvm.internal.task.TaskImpl;
++import org.jbpm.pvm.internal.wire.usercode.UserCodeReference;
+ 
+ /**
+  * @author Alejandro Guizar
+  */
+ public class MailListener implements EventListener {
+ 
+-  protected transient MailProducer mailProducer;
++  private UserCodeReference mailProducerReference;
+ 
+   private static final long serialVersionUID = 1L;
+ 
+@@ -53,15 +54,21 @@
+     TaskContext taskContext = new TaskContext(task);
+     environment.setContext(taskContext);
+     try {
++      MailProducer mailProducer = (MailProducer) mailProducerReference.getObject(execution);
+       Collection<Message> messages = mailProducer.produce(execution);
+       environment.get(MailSession.class).send(messages);
+-    } finally {
++    }
++    finally {
+       environment.removeContext(taskContext);
+     }
+   }
+ 
+-  public void setMailProducer(MailProducer mailProducer) {
+-    this.mailProducer = mailProducer;
++  public UserCodeReference getMailProducerReference() {
++    return mailProducerReference;
+   }
+ 
++  public void setMailProducerReference(UserCodeReference mailProducer) {
++    this.mailProducerReference = mailProducer;
++  }
++
+ }
+Index: modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/JmsActivity.java
+===================================================================
+--- modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/JmsActivity.java	(revision 6269)
++++ modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/JmsActivity.java	(revision 6270)
+@@ -275,9 +275,11 @@
+     if (mapDescriptor != null) {
+       List<Descriptor> keyDescriptors = mapDescriptor.getKeyDescriptors();
+       List<Descriptor> valueDescriptors = mapDescriptor.getValueDescriptors();
++      WireContext wireContext = new WireContext();
++      wireContext.setScopeInstance(execution);
+       for (int i = 0; i < keyDescriptors.size(); i++) {
+-        String key = (String) WireContext.create(keyDescriptors.get(i));
+-        Object value = (String) WireContext.create(valueDescriptors.get(i));
++        String key = (String) wireContext.create(keyDescriptors.get(i), false);
++        Object value = wireContext.create(valueDescriptors.get(i), false);
+         result.setObject(key, value);
+       }
+     }
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/repository/RepositorySessionImpl.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/repository/RepositorySessionImpl.java	(revision 6269)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/repository/RepositorySessionImpl.java	(revision 6270)
+@@ -33,7 +33,6 @@
+ import org.jbpm.api.ProcessDefinitionQuery;
+ import org.jbpm.internal.log.Log;
+ import org.jbpm.pvm.internal.id.DbidGenerator;
+-import org.jbpm.pvm.internal.lob.Lob;
+ import org.jbpm.pvm.internal.model.ExecutionImpl;
+ import org.jbpm.pvm.internal.model.ProcessDefinitionImpl;
+ import org.jbpm.pvm.internal.query.ProcessDefinitionQueryImpl;
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/email/impl/MailProducerImpl.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/email/impl/MailProducerImpl.java	(revision 6269)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/email/impl/MailProducerImpl.java	(revision 6270)
+@@ -25,7 +25,6 @@
+ import java.io.Serializable;
+ import java.net.MalformedURLException;
+ import java.net.URL;
+-import java.util.Arrays;
+ import java.util.Collection;
+ import java.util.Collections;
+ import java.util.List;
+@@ -74,12 +73,17 @@
+   }
+ 
+   public Collection<Message> produce(Execution execution) {
+-    Message email = instantiateEmail();
+-    fillFrom(execution, email);
+-    fillRecipients(execution, email);
+-    fillSubject(execution, email);
+-    fillContent(execution, email);
+-    return Collections.singleton(email);
++    try {
++      Message email = instantiateEmail();
++      fillFrom(execution, email);
++      fillRecipients(execution, email);
++      fillSubject(execution, email);
++      fillContent(execution, email);
++      return Collections.singleton(email);
++    }
++    catch (MessagingException e) {
++      throw new JbpmException("failed to produce email message", e);
++    }
+   }
+ 
+   protected Message instantiateEmail() {
+@@ -87,13 +91,13 @@
+   }
+ 
+   /**
+-   * Fills the <code>from</code> attribute of the given email. The sender addresses are an optional
+-   * element in the mail template. If absent, each mail server supplies the current user's email
+-   * address.
++   * Fills the <code>from</code> attribute of the given email. The sender addresses are an
++   * optional element in the mail template. If absent, each mail server supplies the current
++   * user's email address.
+    * 
+    * @see {@link InternetAddress#getLocalAddress(Session)}
+    */
+-  protected void fillFrom(Execution execution, Message email) {
++  protected void fillFrom(Execution execution, Message email) throws MessagingException {
+     AddressTemplate fromTemplate = template.getFrom();
+     // "from" attribute is optional
+     if (fromTemplate == null) return;
+@@ -102,12 +106,7 @@
+     String addresses = fromTemplate.getAddresses();
+     if (addresses != null) {
+       addresses = evaluateExpression(addresses, execution);
+-      try {
+-        email.addFrom(InternetAddress.parse(addresses));
+-      }
+-      catch (MessagingException e) {
+-        throw new JbpmException("failed to add " + addresses + " to senders", e);
+-      }
++      email.addFrom(InternetAddress.parse(addresses));
+     }
+ 
+     EnvironmentImpl environment = EnvironmentImpl.getCurrent();
+@@ -119,7 +118,7 @@
+     if (userList != null) {
+       String[] userIds = tokenizeActors(userList, execution);
+       List<User> users = identitySession.findUsersById(userIds);
+-      addSenders(resolveAddresses(users, addressResolver), email);
++      email.addFrom(resolveAddresses(users, addressResolver));
+     }
+ 
+     // resolve and tokenize groups
+@@ -127,7 +126,7 @@
+     if (groupList != null) {
+       for (String groupId : tokenizeActors(groupList, execution)) {
+         Group group = identitySession.findGroupById(groupId);
+-        addSenders(addressResolver.resolveAddresses(group), email);
++        email.addFrom(addressResolver.resolveAddresses(group));
+       }
+     }
+   }
+@@ -137,9 +136,9 @@
+     Object value = scriptManager.evaluateExpression(expression, template.getLanguage());
+     if (!(value instanceof String)) {
+       throw new JbpmException("expected expression '"
+-          + expression
+-          + "' to return string, but was: "
+-          + value);
++        + expression
++        + "' to return string, but was: "
++        + value);
+     }
+     return (String) value;
+   }
+@@ -160,17 +159,7 @@
+     return addresses;
+   }
+ 
+-  /** add senders to message */
+-  private void addSenders(Address[] addresses, Message email) {
+-    try {
+-      email.addFrom(addresses);
+-    }
+-    catch (MessagingException e) {
+-      throw new JbpmException("failed to add " + Arrays.toString(addresses) + " to senders", e);
+-    }
+-  }
+-
+-  protected void fillRecipients(Execution execution, Message email) {
++  protected void fillRecipients(Execution execution, Message email) throws MessagingException {
+     // to
+     AddressTemplate to = template.getTo();
+     if (to != null) fillRecipients(to, execution, email, RecipientType.TO);
+@@ -184,21 +173,13 @@
+     if (bcc != null) fillRecipients(bcc, execution, email, RecipientType.BCC);
+   }
+ 
+-  private void fillRecipients(AddressTemplate addressTemplate, Execution execution, Message email,
+-      RecipientType recipientType) {
++  private void fillRecipients(AddressTemplate addressTemplate, Execution execution,
++    Message email, RecipientType recipientType) throws MessagingException {
+     // resolve and parse addresses
+     String addresses = addressTemplate.getAddresses();
+     if (addresses != null) {
+       addresses = evaluateExpression(addresses, execution);
+-      try {
+-        email.addRecipients(recipientType, InternetAddress.parse(addresses));
+-      }
+-      catch (MessagingException e) {
+-        throw new JbpmException("failed to add "
+-            + addresses
+-            + " to recipients of type "
+-            + recipientType, e);
+-      }
++      email.addRecipients(recipientType, InternetAddress.parse(addresses));
+     }
+ 
+     EnvironmentImpl environment = EnvironmentImpl.getCurrent();
+@@ -210,7 +191,7 @@
+     if (userList != null) {
+       String[] userIds = tokenizeActors(userList, execution);
+       List<User> users = identitySession.findUsersById(userIds);
+-      addRecipients(resolveAddresses(users, addressResolver), email, recipientType);
++      email.addRecipients(recipientType, resolveAddresses(users, addressResolver));
+     }
+ 
+     // resolve and tokenize groups
+@@ -218,38 +199,20 @@
+     if (groupList != null) {
+       for (String groupId : tokenizeActors(groupList, execution)) {
+         Group group = identitySession.findGroupById(groupId);
+-        addRecipients(addressResolver.resolveAddresses(group), email, recipientType);
++        email.addRecipients(recipientType, addressResolver.resolveAddresses(group));
+       }
+     }
+   }
+ 
+-  /** add recipient addresses to message */
+-  private void addRecipients(Address[] addresses, Message email, RecipientType recipientType) {
+-    try {
+-      email.addRecipients(recipientType, addresses);
+-    }
+-    catch (MessagingException e) {
+-      throw new JbpmException("failed to add "
+-          + Arrays.toString(addresses)
+-          + " to recipients of type "
+-          + recipientType, e);
+-    }
+-  }
+-
+-  protected void fillSubject(Execution execution, Message email) {
++  protected void fillSubject(Execution execution, Message email) throws MessagingException {
+     String subject = template.getSubject();
+     if (subject != null) {
+       subject = evaluateExpression(subject, execution);
+-      try {
+-        email.setSubject(subject);
+-      }
+-      catch (MessagingException e) {
+-        throw new JbpmException("failed to set subject to " + subject, e);
+-      }
++      email.setSubject(subject);
+     }
+   }
+ 
+-  protected void fillContent(Execution execution, Message email) {
++  protected void fillContent(Execution execution, Message email) throws MessagingException {
+     String text = template.getText();
+     String html = template.getHtml();
+     List<AttachmentTemplate> attachmentTemplates = template.getAttachmentTemplates();
+@@ -262,26 +225,16 @@
+       if (text != null) {
+         BodyPart textPart = new MimeBodyPart();
+         text = evaluateExpression(text, execution);
+-        try {
+-          textPart.setText(text);
+-          multipart.addBodyPart(textPart);
+-        }
+-        catch (MessagingException e) {
+-          throw new JbpmException("failed to add text content: " + text, e);
+-        }
++        textPart.setText(text);
++        multipart.addBodyPart(textPart);
+       }
+ 
+       // html
+       if (html != null) {
+         BodyPart htmlPart = new MimeBodyPart();
+         html = evaluateExpression(html, execution);
+-        try {
+-          htmlPart.setContent(html, "text/html");
+-          multipart.addBodyPart(htmlPart);
+-        }
+-        catch (MessagingException e) {
+-          throw new JbpmException("failed to add html content: " + html, e);
+-        }
++        htmlPart.setContent(html, "text/html");
++        multipart.addBodyPart(htmlPart);
+       }
+ 
+       // attachments
+@@ -289,26 +242,17 @@
+         addAttachments(execution, multipart);
+       }
+ 
+-      try {
+-        email.setContent(multipart);
+-      }
+-      catch (MessagingException e) {
+-        throw new JbpmException("failed to set multipart content: " + multipart, e);
+-      }
++      email.setContent(multipart);
+     }
+     else if (text != null) {
+       // unipart
+       text = evaluateExpression(text, execution);
+-      try {
+-        email.setText(text);
+-      }
+-      catch (MessagingException e) {
+-        throw new JbpmException("failed to add text content: " + text, e);
+-      }
++      email.setText(text);
+     }
+   }
+ 
+-  protected void addAttachments(Execution execution, Multipart multipart) {
++  protected void addAttachments(Execution execution, Multipart multipart)
++    throws MessagingException {
+     for (AttachmentTemplate attachmentTemplate : template.getAttachmentTemplates()) {
+       BodyPart attachmentPart = new MimeBodyPart();
+ 
+@@ -316,12 +260,7 @@
+       String description = attachmentTemplate.getDescription();
+       if (description != null) {
+         description = evaluateExpression(description, execution);
+-        try {
+-          attachmentPart.setDescription(description);
+-        }
+-        catch (MessagingException e) {
+-          throw new JbpmException("failed to set attachment description: " + description, e);
+-        }
++        attachmentPart.setDescription(description);
+       }
+ 
+       // resolve name; if absent, it will be taken from file or url
+@@ -336,19 +275,14 @@
+         File targetFile = new File(evaluateExpression(file, execution));
+         if (!targetFile.isFile()) {
+           throw new JbpmException("could not read attachment content, file not found: "
+-              + targetFile);
++            + targetFile);
+         }
+         // set content from target file
+-        try {
+-          attachmentPart.setDataHandler(new DataHandler(new FileDataSource(targetFile)));
+-          // extract attachment name from file
+-          if (name == null) {
+-            name = targetFile.getName();
+-          }
++        attachmentPart.setDataHandler(new DataHandler(new FileDataSource(targetFile)));
++        // extract attachment name from file
++        if (name == null) {
++          name = targetFile.getName();
+         }
+-        catch (MessagingException e) {
+-          throw new JbpmException("failed to add attachment content: " + targetFile, e);
+-        }
+       }
+       else {
+         URL targetUrl;
+@@ -360,7 +294,8 @@
+             targetUrl = new URL(url);
+           }
+           catch (MalformedURLException e) {
+-            throw new JbpmException("could not read attachment content, malformed url: " + url, e);
++            throw new JbpmException("could not read attachment content, malformed url: " + url,
++              e);
+           }
+         }
+         // resolve and read classpath resource
+@@ -369,36 +304,20 @@
+           targetUrl = EnvironmentImpl.getCurrent().getClassLoader().getResource(resource);
+           if (targetUrl == null) {
+             throw new JbpmException("could not read attachment content, resource not found: "
+-                + resource);
++              + resource);
+           }
+         }
+         // set content from url
+-        try {
+-          attachmentPart.setDataHandler(new DataHandler(targetUrl));
+-          // extract attachment name from target url
+-          if (name == null) {
+-            name = extractResourceName(targetUrl);
+-          }
++        attachmentPart.setDataHandler(new DataHandler(targetUrl));
++        // extract attachment name from target url
++        if (name == null) {
++          name = extractResourceName(targetUrl);
+         }
+-        catch (MessagingException e) {
+-          throw new JbpmException("failed to add attachment content: " + targetUrl, e);
+-        }
+       }
+ 
+       // set name, must be resolved at this point
+-      try {
+-        attachmentPart.setFileName(name);
+-      }
+-      catch (MessagingException e) {
+-        throw new JbpmException("failed to set attachment name: " + name, e);
+-      }
+-
+-      try {
+-        multipart.addBodyPart(attachmentPart);
+-      }
+-      catch (MessagingException e) {
+-        throw new JbpmException("failed to add attachment part: " + attachmentPart, e);
+-      }
++      attachmentPart.setFileName(name);
++      multipart.addBodyPart(attachmentPart);
+     }
+   }
+ 
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/xml/WireParser.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/xml/WireParser.java	(revision 6269)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/xml/WireParser.java	(revision 6270)
+@@ -153,9 +153,11 @@
+    * Default method to get an instance of the WireParser
+    * @return the static instance of WireParser
+    */
+-  public static synchronized WireParser getInstance() {
++  public static WireParser getInstance() {
+     if (instance==null) {
+-      instance = new WireParser();
++      synchronized (WireParser.class) {
++        if (instance == null) instance = new WireParser();
++      }
+     }
+     return instance;
+   }
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/usercode/UserCodeReference.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/usercode/UserCodeReference.java	(revision 6269)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/usercode/UserCodeReference.java	(revision 6270)
+@@ -32,7 +32,6 @@
+ import org.jbpm.pvm.internal.util.ReflectUtil;
+ import org.jbpm.pvm.internal.wire.Descriptor;
+ 
+-
+ /**
+  * @author Tom Baeyens
+  */
+@@ -71,19 +70,18 @@
+   }
+ 
+   protected ProcessDefinitionImpl getProcessDefinition(Execution execution) {
+-    ProcessDefinitionImpl processDefinition = null;
+     ExecutionImpl executionImpl = (ExecutionImpl) execution;
+     ActivityImpl activity = executionImpl.getActivity();
+-    TransitionImpl transition = executionImpl.getTransition();
+     if (activity!=null) {
+-      processDefinition = activity.getProcessDefinition();
++      return activity.getProcessDefinition();
+     }
+-    if ( (processDefinition==null)
+-         && (transition!=null)
+-       ) {
+-      processDefinition = transition.getProcessDefinition();
++
++    TransitionImpl transition = executionImpl.getTransition();
++    if (transition!=null) {
++      return transition.getProcessDefinition();
+     }
+-    return processDefinition;
++
++    return null;
+   }
+ 
+   public void setCached(boolean isCached) {
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/ObjectBinding.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/ObjectBinding.java	(revision 6269)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/ObjectBinding.java	(revision 6270)
+@@ -48,7 +48,6 @@
+ public class ObjectBinding extends WireDescriptorBinding {
+   
+   public static final String TAG = "object";
+-  public static final ObjectBinding INSTANCE = new ObjectBinding();
+ 
+   public ObjectBinding() {
+     super(TAG);
+@@ -68,6 +67,10 @@
+   }
+ 
+   public Object parse(Element element, Parse parse, Parser parser) {
++    return parseObjectDescriptor(element, parse, parser);
++  }
++
++  public static ObjectDescriptor parseObjectDescriptor(Element element, Parse parse, Parser parser) {
+     ObjectDescriptor descriptor = new ObjectDescriptor();
+ 
+     Parser wireParser = (Parser) parser;
+@@ -143,7 +146,7 @@
+     if (bindings!=null) {
+       operationTagNames = bindings.getTagNames(WireParser.CATEGORY_OPERATION);
+     } else {
+-      operationTagNames = Collections.EMPTY_SET;
++      operationTagNames = Collections.emptySet();
+     }
+ 
+     for (Element childElement: elements) {
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/WireContext.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/WireContext.java	(revision 6269)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/WireContext.java	(revision 6270)
+@@ -429,10 +429,9 @@
+     }
+     
+     // if the objectName is found in the execution or task
+-    if (scopeInstance!=null) {
+-      if (scopeInstance.hasVariable(objectName)) {
+-        return scopeInstance.getVariable(objectName);
+-      }
++    if (scopeInstance!=null && scopeInstance.hasVariable(objectName)) {
++      log.trace("delivering "+objectName+" from scope");
++      return scopeInstance.getVariable(objectName);
+     }
+     
+     // then check if we can find it in the environment (if one is available)
+@@ -704,10 +703,23 @@
+       if (name!=null) {
+         log.trace("found "+type.getName()+" in "+this);
+         return type.cast(get(name));
+-      } else {
+-        log.trace(type.getName()+" not found in "+this+" "+System.identityHashCode(this));
+       }
+     }
++    // check if we can find it in the environment (if one is available)
++    EnvironmentImpl environment = EnvironmentImpl.getCurrent();
++    if (environment != null) {
++      Context processEngineContext = environment.getContext(CONTEXTNAME_PROCESS_ENGINE);
++      if (processEngineContext != this) {
++        Context transactionContext = environment.getContext(CONTEXTNAME_TRANSACTION);
++        if (transactionContext != this) {
++          return environment.get(type);
++        }
++        // try process engine context
++        if (processEngineContext != null) {
++          return processEngineContext.get(type);
++        }
++      }
++    }
+     return null;
+   }
+   
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/ObjectDescriptor.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/ObjectDescriptor.java	(revision 6269)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/ObjectDescriptor.java	(revision 6270)
+@@ -162,7 +162,7 @@
+ 
+     } else if (factoryObjectName!=null) {
+       // referenced factory object
+-      object = wireContext.get(factoryObjectName, false);
++      object = wireContext.get(factoryObjectName);
+       if (object==null) {
+         throw new WireException("can't invoke method '"+methodName+"' on null, resulted from fetching object '"+factoryObjectName+"' from this wiring environment");
+       }
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/HistorySessionDescriptor.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/HistorySessionDescriptor.java	(revision 6269)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/HistorySessionDescriptor.java	(revision 6270)
+@@ -39,7 +39,7 @@
+   CollectionDescriptor listDescriptor = new ListDescriptor();
+ 
+   public Object construct(WireContext wireContext) {
+-    List<HistorySession> historySessions = (List<HistorySession>) WireContext.create(listDescriptor);
++    List<HistorySession> historySessions = (List<HistorySession>) wireContext.create(listDescriptor, false);
+     if (historySessions.size()==1) {
+       return historySessions.get(0);
+     } 
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/cfg/ConfigurationImpl.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/cfg/ConfigurationImpl.java	(revision 6269)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/cfg/ConfigurationImpl.java	(revision 6270)
+@@ -43,9 +43,7 @@
+ import org.jbpm.pvm.internal.wire.WireContext;
+ import org.jbpm.pvm.internal.wire.WireDefinition;
+ import org.jbpm.pvm.internal.wire.descriptor.ProvidedObjectDescriptor;
+-import org.springframework.context.ApplicationContext;
+ 
+-
+ /**
+  * @author Tom Baeyens
+  */
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/util/XmlUtil.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/util/XmlUtil.java	(revision 6269)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/util/XmlUtil.java	(revision 6270)
+@@ -40,7 +40,6 @@
+ import javax.xml.transform.stream.StreamResult;
+ 
+ import org.w3c.dom.Attr;
+-import org.w3c.dom.CharacterData;
+ import org.w3c.dom.Element;
+ import org.w3c.dom.NamedNodeMap;
+ import org.w3c.dom.Node;
+@@ -286,11 +285,8 @@
+ 
+   /** the attribute value or null if the attribute is not present */
+   public static String attribute(Element element, String attributeName) {
+-    if (element.hasAttribute(attributeName)) {
+-      return element.getAttribute(attributeName);
+-    } else {
+-      return null;
+-    }
++    Attr attribute = element.getAttributeNode(attributeName);
++    return attribute != null ? attribute.getValue() : null;
+   }
+ 
+   /** convenience method to combine extraction of a string attribute value.
+@@ -308,13 +304,14 @@
+    * defaultValue is returned.  The attribute is not present and it is required, 
+    * a problem will be added to the parse.  */
+   public static String attribute(Element element, String attributeName, boolean required, Parse parse, String defaultValue) {
+-    if (element.hasAttribute(attributeName)) {
+-      String value = element.getAttribute(attributeName);
+-      if (required && "".equals(value)) {
++    Attr attribute = element.getAttributeNode(attributeName);
++    if (attribute != null) {
++      String value = attribute.getValue();
++      if (value.length() == 0 && required) {
+         parse.addProblem("attribute <"+XmlUtil.getTagLocalName(element)+" "+attributeName+"=\"\" is empty", element);
+       }
+       return value;
+-    } 
++    }
+ 
+     if (required) {
+       parse.addProblem("attribute <"+XmlUtil.getTagLocalName(element)+" "+attributeName+"=\"...\" is required", element);
+Index: modules/test-db/src/test/java/org/jbpm/test/activity/mail/CustomMailProducerTest.java
+===================================================================
+--- modules/test-db/src/test/java/org/jbpm/test/activity/mail/CustomMailProducerTest.java	(revision 6269)
++++ modules/test-db/src/test/java/org/jbpm/test/activity/mail/CustomMailProducerTest.java	(revision 6270)
+@@ -22,19 +22,23 @@
+ package org.jbpm.test.activity.mail;
+ 
+ import java.util.Calendar;
+-import java.util.Collection;
+ import java.util.Date;
+ import java.util.HashMap;
+ import java.util.List;
+ import java.util.Map;
+ 
+ import javax.mail.Message;
++import javax.mail.MessagingException;
++import javax.mail.Message.RecipientType;
+ 
+ import org.jbpm.api.Execution;
+ import org.jbpm.api.ProcessInstance;
++import org.jbpm.api.identity.Group;
+ import org.jbpm.pvm.internal.email.impl.MailProducerImpl;
+ import org.jbpm.pvm.internal.email.impl.MailTemplateRegistry;
++import org.jbpm.pvm.internal.email.spi.AddressResolver;
+ import org.jbpm.pvm.internal.env.EnvironmentImpl;
++import org.jbpm.pvm.internal.identity.spi.IdentitySession;
+ import org.jbpm.test.JbpmTestCase;
+ import org.subethamail.wiser.Wiser;
+ import org.subethamail.wiser.WiserMessage;
+@@ -45,8 +49,6 @@
+ public class CustomMailProducerTest extends JbpmTestCase {
+ 
+   private Wiser wiser;
+-  private String group1;
+-  private String group2;
+ 
+   protected void setUp() throws Exception {
+     super.setUp();
+@@ -58,17 +60,17 @@
+     identityService.createUser("bb", "Big Brother", null, "bb@oceania");
+     identityService.createUser("obrien", null, "O'Brien", "obrien@miniluv");
+     identityService.createUser("charr", null, "Charrington", "charr@miniluv");
+-    group1 = identityService.createGroup("thinkpol");
+-    group2 = identityService.createGroup("innerparty");
+-    identityService.createMembership("obrien", group2);
+-    identityService.createMembership("charr", group1);
+-    identityService.createMembership("obrien", group1);
++    identityService.createGroup("thinkpol");
++    identityService.createGroup("innerparty");
++    identityService.createMembership("obrien", "innerparty");
++    identityService.createMembership("charr", "thinkpol");
++    identityService.createMembership("obrien", "thinkpol");
+   }
+ 
+   protected void tearDown() throws Exception {
+     // delete actors
+-    identityService.deleteGroup(group1);
+-    identityService.deleteGroup(group2);
++    identityService.deleteGroup("thinkpol");
++    identityService.deleteGroup("innerparty");
+     identityService.deleteUser("bb");
+     identityService.deleteUser("obrien");
+     identityService.deleteUser("charr");
+@@ -84,9 +86,17 @@
+       + "    <transition to='send mail' />"
+       + "  </start>"
+       + "  <mail name='send mail' class='"
+-      + CustomMailProducer.class.getName()
++      + AuditMailProducer.class.getName()
+       + "'>"
+-      + "    <field name='templateName'><string value='rectify-template'/></field>"
++      + "    <property name='template'>"
++      + "      <object method='getTemplate'>"
++      + "        <factory><ref type='"
++      + MailTemplateRegistry.class.getName()
++      + "'/></factory>"
++      + "        <arg><string value='rectify-template'/></arg>"
++      + "      </object>"
++      + "    </property>"
++      + "    <property name='auditGroup'><string value='thinkpol'/></property>"
+       + "    <transition to='end' />"
+       + "  </mail>"
+       + "  <end name='end'/>"
+@@ -118,17 +128,30 @@
+     assertEquals(5, messages.size());
+   }
+ 
+-  public static class CustomMailProducer extends MailProducerImpl {
++  public static class AuditMailProducer extends MailProducerImpl {
+ 
+-    private String templateName;
++    private String auditGroup;
+     private static final long serialVersionUID = 1L;
+ 
+-    public Collection<Message> produce(Execution execution) {
+-      MailTemplateRegistry templateRegistry = EnvironmentImpl
+-        .getFromCurrent(MailTemplateRegistry.class);
+-      setTemplate(templateRegistry.getTemplate(templateName));
+-      return super.produce(execution);
++    public String getAuditGroup() {
++      return auditGroup;
+     }
++
++    public void setAuditGroup(String auditGroup) {
++      this.auditGroup = auditGroup;
++    }
++
++    @Override
++    protected void fillRecipients(Execution execution, Message email) throws MessagingException {
++      super.fillRecipients(execution, email);
++
++      // bcc every email sent to the spy group
++      EnvironmentImpl environment = EnvironmentImpl.getCurrent();
++      IdentitySession identitySession = environment.get(IdentitySession.class);
++      AddressResolver addressResolver = environment.get(AddressResolver.class);
++
++      Group group = identitySession.findGroupById(auditGroup);
++      email.addRecipients(RecipientType.BCC, addressResolver.resolveAddresses(group));
++    }
+   }
+-
+ }
+Index: modules/test-db/src/test/resources/jbpm.mail.templates.examples.xml
+===================================================================
+--- modules/test-db/src/test/resources/jbpm.mail.templates.examples.xml	(revision 6269)
++++ modules/test-db/src/test/resources/jbpm.mail.templates.examples.xml	(revision 6270)
+@@ -7,7 +7,6 @@
+     <mail-template name="rectify-template">
+       <to addresses="${addressee}" />
+       <cc users="bb" groups="innerparty" />
+-      <bcc groups="thinkpol" />
+       <subject>rectify ${newspaper}</subject>
+       <text>${newspaper} ${date} ${details}</text>
+     </mail-template>
+Index: modules/examples/src/test/java/org/jbpm/examples/mail/template/TemplateMailTest.java
+===================================================================
+--- modules/examples/src/test/java/org/jbpm/examples/mail/template/TemplateMailTest.java	(revision 6269)
++++ modules/examples/src/test/java/org/jbpm/examples/mail/template/TemplateMailTest.java	(revision 6270)
+@@ -44,31 +44,27 @@
+  */
+ public class TemplateMailTest extends JbpmTestCase {
+ 
+-  Wiser wiser = null;
+-  
+-  String group1;
+-  
+-  String group2;
++  private Wiser wiser;
+ 
+   protected void setUp() throws Exception {
+     super.setUp();
+ 
+     // deploy process
+     String deploymentId = repositoryService.createDeployment()
+-        .addResourceFromClasspath("org/jbpm/examples/mail/template/process.jpdl.xml")
+-        .deploy();
++      .addResourceFromClasspath("org/jbpm/examples/mail/template/process.jpdl.xml")
++      .deploy();
+     registerDeployment(deploymentId);
+ 
+     // create actors
+     identityService.createUser("bb", "Big Brother", null, "bb@oceania");
+     identityService.createUser("obrien", null, "O'Brien", "obrien@miniluv");
+     identityService.createUser("charr", null, "Charrington", "charr@miniluv");
+-    group1 = identityService.createGroup("thinkpol");
+-    group2 = identityService.createGroup("innerparty");
+-    identityService.createMembership("obrien", group2);
+-    identityService.createMembership("charr", group1);
+-    identityService.createMembership("obrien", group1);
+-    
++    identityService.createGroup("thinkpol");
++    identityService.createGroup("innerparty");
++    identityService.createMembership("obrien", "innerparty");
++    identityService.createMembership("charr", "thinkpol");
++    identityService.createMembership("obrien", "thinkpol");
++
+     // start mail server
+     wiser = new Wiser();
+     wiser.setPort(2525);
+@@ -77,10 +73,10 @@
+ 
+   protected void tearDown() throws Exception {
+     wiser.stop();
+-    
++
+     // delete actors
+-    identityService.deleteGroup(group1);
+-    identityService.deleteGroup(group2);
++    identityService.deleteGroup("thinkpol");
++    identityService.deleteGroup("innerparty");
+     identityService.deleteUser("bb");
+     identityService.deleteUser("obrien");
+     identityService.deleteUser("charr");
+@@ -97,7 +93,7 @@
+     calendar.set(1983, Calendar.DECEMBER, 3);
+     Date date = calendar.getTime();
+     String details = "reporting bb dayorder doubleplusungood refs unpersons rewrite "
+-        + "fullwise upsub antefiling";
++      + "fullwise upsub antefiling";
+     // assemble variables
+     Map<String, Object> variables = new HashMap<String, Object>();
+     variables.put("addressee", addressee);

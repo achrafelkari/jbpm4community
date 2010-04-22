@@ -23,9 +23,7 @@ package org.jbpm.jpdl.internal.activity;
 
 import org.jbpm.api.model.OpenExecution;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
-import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.script.ScriptManager;
-
 
 /**
  * @author Tom Baeyens
