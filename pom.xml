@@ -12,21 +12,21 @@
 <!-- $Id: pom.xml 6237 2010-03-28 00:04:36Z alex.guizar@jboss.com $ -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <name>jBPM 4</name>
   <groupId>org.jbpm.jbpm4</groupId>
   <artifactId>jbpm</artifactId>
+  <version>4.3-hot-patch-v1</version>
   <packaging>pom</packaging>
 
-  <version>4.3-hot-patch-v1</version>
-
-  <organization>
-    <name>JBoss, a division of Red Hat</name>
-    <url>http://www.jboss.org</url>
-  </organization>
+  <!-- Parent -->
+  <parent>
+    <artifactId>jbpm-parent</artifactId>
+    <groupId>org.jbpm</groupId>
+    <version>1.0.3</version>
+  </parent>
 
   <!-- Modules -->
   <modules>
@@ -45,7 +45,6 @@
 
   <!-- Properties -->
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <apache.ant.version>1.7.0</apache.ant.version>
     <beanshell.version>2.0b5</beanshell.version>
     <groovy.version>1.5.6</groovy.version>
@@ -73,19 +72,19 @@
     <signavio.jbpmeditor.version>1.1</signavio.jbpmeditor.version>
     <spring.version>2.0.8</spring.version>
     <stax.api.version>1.0.1</stax.api.version>
-  	<wiser.version>1.2</wiser.version>
+    <wiser.version>1.2</wiser.version>
     <woodstox.version>3.2.6</woodstox.version>
     <mysql.connector.version>5.0.8</mysql.connector.version>
     <postgresql.version>8.3-603.jdbc3</postgresql.version>
     <jtds.version>1.2.2</jtds.version>
     <oracle.version>10.2.0.4</oracle.version>
     <cdi.version>1.0</cdi.version>
-	</properties>
+    <activation.version>1.1.1</activation.version>
+  </properties>
 
   <!-- DependencyManagement -->
   <dependencyManagement>
     <dependencies>
-
       <!-- Core engine components -->
       <dependency>
         <groupId>org.jbpm.jbpm4</groupId>
@@ -164,31 +163,31 @@
         <artifactId>jbpm-tomcat6</artifactId>
         <version>${project.version}</version>
       </dependency>
-	    <dependency>
-	      <groupId>org.jbpm.jbpm4</groupId>
-	      <artifactId>jbpm-console-integration</artifactId>
-	      <version>${project.version}</version>      
-	    </dependency>
-	    <dependency>
-	      <groupId>org.jbpm.jbpm4</groupId>
-	      <artifactId>jbpm-console-form-plugin</artifactId>
-	      <version>${project.version}</version>
-	    </dependency>
       <dependency>
-	      <groupId>org.jbpm.jbpm4</groupId>
-	      <artifactId>jbpm-console-graphView-plugin</artifactId>
-	      <version>${project.version}</version>
-	    </dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-console-integration</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-console-form-plugin</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-console-graphView-plugin</artifactId>
+        <version>${project.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.jbpm.jbpm4</groupId>
         <artifactId>jbpm-console-reports</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-	      <groupId>org.jbpm.jbpm4</groupId>
-	      <artifactId>jbpm-jboss4</artifactId>
-	      <version>${project.version}</version>
-	    </dependency>
+        <groupId>org.jbpm.jbpm4</groupId>
+        <artifactId>jbpm-jboss4</artifactId>
+        <version>${project.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.jbpm.jbpm4</groupId>
         <artifactId>jbpm-gpd</artifactId>
@@ -204,11 +203,11 @@
 
       <!-- External dependencies -->
       <!-- Please sort by groupid -->
-	    <dependency>
-	      <groupId>aspectj</groupId>
-	      <artifactId>aspectjrt</artifactId>
-	      <version>${aspectjrt.version}</version>
-	    </dependency>
+      <dependency>
+        <groupId>aspectj</groupId>
+        <artifactId>aspectjrt</artifactId>
+        <version>${aspectjrt.version}</version>
+      </dependency>
       <dependency>
         <groupId>cactus</groupId>
         <artifactId>cactus.core</artifactId>
@@ -240,10 +239,12 @@
         <version>${juel.version}</version>
       </dependency>
       <dependency>
-        <!-- The juel engine is the library from scripting.java.sun.com that exposes juel as a jsr233 scripting engine.
-        It's not part of the juel distribution.  For some reason i don't recall, we uploaded it as 
-        an juel-engine artifact in the group juel.  And more problematic, used the juel version (2.1.0) for it.  
-        That is not intuitive. -->
+        <!--
+          The juel engine is the library from scripting.java.sun.com that exposes juel as a
+          jsr233 scripting engine. It's not part of the juel distribution. For some reason i
+          don't recall, we uploaded it as an juel-engine artifact in the group juel. And more
+          problematic, used the juel version (2.1.0) for it. That is not intuitive.
+        -->
         <groupId>juel</groupId>
         <artifactId>juel-engine</artifactId>
         <version>${juel.engine.version}</version>
@@ -262,6 +263,16 @@
         <groupId>log4j</groupId>
         <artifactId>log4j</artifactId>
         <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.activation</groupId>
+        <artifactId>activation</artifactId>
+        <version>${activation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.enterprise</groupId>
+        <artifactId>cdi-api</artifactId>
+        <version>${cdi.version}</version>
       </dependency>
       <dependency>
         <groupId>javax.mail</groupId>
@@ -300,9 +311,9 @@
         <version>${report.engine.version}</version>
       </dependency>
       <dependency>
-       <groupId>org.freemarker</groupId>
-       <artifactId>freemarker</artifactId>
-       <version>${freemarker.version}</version>
+        <groupId>org.freemarker</groupId>
+        <artifactId>freemarker</artifactId>
+        <version>${freemarker.version}</version>
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
@@ -338,22 +349,22 @@
         <artifactId>gwt-console-server-integration</artifactId>
         <version>${gwt.console.version}</version>
       </dependency>
-        <dependency>
-            <groupId>org.jboss.bpm</groupId>
-            <artifactId>gwt-console-rpc</artifactId>
-            <version>${gwt.console.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.errai</groupId>
-            <artifactId>errai-common</artifactId>
-            <version>${errai.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.errai</groupId>
-            <artifactId>errai-bus</artifactId>
-            <version>${errai.version}</version>
-        </dependency>
+      <dependency>
+        <groupId>org.jboss.bpm</groupId>
+        <artifactId>gwt-console-rpc</artifactId>
+        <version>${gwt.console.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.errai</groupId>
+        <artifactId>errai-common</artifactId>
+        <version>${errai.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.errai</groupId>
+        <artifactId>errai-bus</artifactId>
+        <version>${errai.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.jboss.javaee</groupId>
         <artifactId>jboss-javaee</artifactId>
@@ -396,11 +407,6 @@
         <version>${wiser.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.subethamail</groupId>
-        <artifactId>subethasmtp-smtp</artifactId>
-        <version>${wiser.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.codehaus.woodstox</groupId>
         <artifactId>wstx-lgpl</artifactId>
         <version>${woodstox.version}</version>
@@ -427,33 +433,8 @@
         <artifactId>jtds</artifactId>
         <version>${jtds.version}</version>
       </dependency>
-      <dependency>
-        <groupId>javax.enterprise</groupId>
-        <artifactId>cdi-api</artifactId>
-        <version>${cdi.version}</version>
-      </dependency>
     </dependencies>
   </dependencyManagement>
-
-  <scm>
-    <connection>scm:svn:http://anonsvn.jboss.org/repos/jbpm/jbpm4</connection>
-    <developerConnection>scm:svn:https://svn.jboss.org/repos/jbpm/jbpm4</developerConnection>
-    <url>http://fisheye.jboss.com/browse/JbpmSvn/jbpm4</url>
-  </scm>
-
-  <!-- IssueManagement -->
-  <issueManagement>
-    <system>jira</system>
-    <url>http://jira.jboss.org/jira/browse/JBPM</url>
-  </issueManagement>
-
-  <!-- Licenses -->
-  <licenses>
-    <license>
-      <name>lgpl</name>
-      <url>http://repository.jboss.com/licenses/lgpl.txt</url>
-    </license>
-  </licenses>
 
   <!-- Plugins -->
   <build>
@@ -480,42 +461,6 @@
         </configuration>
       </plugin>
     </plugins>
-
-    <!-- PluginManagement -->
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>2.0.2.SP1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-assembly-plugin</artifactId>
-          <version>2.2-beta-2</version>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>build-helper-maven-plugin</artifactId>
-          <version>1.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>buildnumber-maven-plugin</artifactId>
-          <version>1.0-beta-1</version>
-        </plugin>
-        <plugin>
-          <groupId>net.sourceforge.maven-taglib</groupId>
-          <artifactId>maven-taglib-plugin</artifactId>
-          <version>2.3</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-resources-plugin</artifactId>
-          <version>2.3</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
   </build>
 
   <profiles>
@@ -529,7 +474,7 @@
     </profile>
 
     <!-- PROFILE DISTRO
-    -Pdistro 
+    -Pdistro
     -->
     <profile>
       <id>distro</id>
@@ -574,7 +519,7 @@
     </profile>
 
     <!-- PROFILE NO-DATABASE
-    The default configurations are based on hsqldb 
+    The default configurations are based on hsqldb
     -->
     <profile>
       <id>no-database</id>
@@ -616,8 +561,8 @@
       </dependencies>
     </profile>
 
-    <!-- PROFILE ORACLE    
-    -Ddatabase=oracle 
+    <!-- PROFILE ORACLE
+    -Ddatabase=oracle
     -->
     <profile>
       <id>oracle</id>
@@ -643,7 +588,7 @@
       </repositories>
     </profile>
 
-    <!-- PROFILE MYSQL 
+    <!-- PROFILE MYSQL
     -Ddatabase=mysql -->
     <profile>
       <id>mysql</id>
@@ -663,7 +608,7 @@
       </dependencies>
     </profile>
 
-    <!-- PROFILE POSTGRESQL 
+    <!-- PROFILE POSTGRESQL
     -Ddatabase=postgresql -->
     <profile>
       <id>postgresql</id>
@@ -682,7 +627,7 @@
       </dependencies>
     </profile>
 
-    <!-- PROFILE SYBASE 
+    <!-- PROFILE SYBASE
     -Ddatabase=sybase -->
     <profile>
       <id>sybase</id>
@@ -738,89 +683,5 @@
         <module>modules/test-load</module>
       </modules>
     </profile>
-
   </profiles>
-
-  <!-- Repositories -->
-  <repositories>
-    <repository>
-      <id>maven1.java.net</id>
-      <url>http://download.java.net/maven/1/</url>
-      <layout>legacy</layout>
-    </repository>
-    <repository>
-      <id>repository.jboss.org</id>
-      <url>http://repository.jboss.com/maven2</url>
-      <snapshots>
-        <enabled>false</enabled>
-        <checksumPolicy>ignore</checksumPolicy>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>snapshots.jboss.org</id>
-      <url>http://snapshots.jboss.org/maven2</url>
-      <snapshots>
-        <enabled>true</enabled>
-        <checksumPolicy>ignore</checksumPolicy>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>repository.codehaus.org</id>
-      <url>http://repository.codehaus.org</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>maven2.java.net</id>
-      <name>Java.net Repository for Maven 2</name>
-      <url>http://download.java.net/maven/2/</url>
-    </repository>
-    <repository>
-      <id>gwt-maven</id>
-      <url>http://gwt-maven.googlecode.com/svn/trunk/mavenrepo/</url>
-    </repository>
-  </repositories>
-
-  <!-- PluginRepositories -->
-  <pluginRepositories>
-    <pluginRepository>
-      <id>maven2.java.net</id>
-      <name>Java.net Repository for Maven 2</name>
-      <url>http://download.java.net/maven/2/</url>
-    </pluginRepository>
-    <pluginRepository>
-      <id>repository.jboss.com</id>
-      <url>http://repository.jboss.com/maven2</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </pluginRepository>
-    <pluginRepository>
-      <id>snapshots.jboss.org</id>
-      <url>http://snapshots.jboss.org/maven2</url>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </pluginRepository>
-    <pluginRepository>
-      <id>gwt-maven</id>
-      <url>http://gwt-maven.googlecode.com/svn/trunk/mavenrepo/</url>
-    </pluginRepository>
-  </pluginRepositories>
-
-  <!-- DistributionManagement -->
-  <distributionManagement>
-    <repository>
-      <id>repository.jboss.org</id>
-      <name>JBoss Maven Repository</name>
-      <url>file://${jboss.maven.repository}</url>
-    </repository>
-    <snapshotRepository>
-      <id>snapshots.jboss.org</id>
-      <name>JBoss Snapshot Repository</name>
-      <url>dav:https://snapshots.jboss.org/maven2</url>
-    </snapshotRepository>
-  </distributionManagement>
-
 </project>

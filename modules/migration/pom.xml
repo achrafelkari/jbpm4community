@@ -1,76 +1,74 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- ======================================================================
--->
+<!-- ====================================================================== -->
 <!--                                                                        -->
 <!--  JBoss, the OpenSource J2EE webOS                                      -->
 <!--                                                                        -->
 <!--  Distributable under LGPL license.                                     -->
 <!--  See terms of license at http://www.gnu.org.                           -->
 <!--                                                                        -->
-<!-- ======================================================================
--->
+<!-- ====================================================================== -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-	<modelVersion>4.0.0</modelVersion>
+  <name>jBPM 4 - Migration - Tool</name>
+  <groupId>org.jbpm.jbpm4</groupId>
+  <artifactId>jpdl-migration</artifactId>
+  <packaging>jar</packaging>
 
-	<name>jBPM 4 - Migration - Tool</name>
-	<groupId>org.jbpm.jbpm4</groupId>
-	<artifactId>jpdl-migration</artifactId>
-	<packaging>jar</packaging>
+  <!-- Parent -->
+  <parent>
+    <groupId>org.jbpm.jbpm4</groupId>
+    <artifactId>jbpm</artifactId>
+    <version>4.3-hot-patch-v1</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
 
-	<!-- Parent -->
-	<parent>
-		<groupId>org.jbpm.jbpm4</groupId>
-		<artifactId>jbpm</artifactId>
-		<version>4.3-hot-patch-v1</version>
-		<relativePath>../../pom.xml</relativePath>
-	</parent>
-
-	<!-- Dependencies -->
-	<dependencies>
+  <!-- Dependencies -->
+  <dependencies>
     <dependency>
       <groupId>org.jbpm.jbpm4</groupId>
       <artifactId>jbpm-jpdl</artifactId>
       <version>${project.version}</version>
-    </dependency> 
+    </dependency>
 
-		<dependency>
-			<groupId>dom4j</groupId>
-			<artifactId>dom4j</artifactId>
-			<exclusions>
-				<exclusion>
-					<artifactId>xml-apis</artifactId>
-					<groupId>xml-apis</groupId>
-				</exclusion>
-			</exclusions>
-			<version>1.6.1</version>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.14</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-			<version>1.1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.4</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+    <dependency>
+      <groupId>dom4j</groupId>
+      <artifactId>dom4j</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>xml-apis</artifactId>
+          <groupId>xml-apis</groupId>
+        </exclusion>
+      </exclusions>
+      <version>1.6.1</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.14</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.4</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
-	<!-- Profiles -->
-	<profiles>
-	
-    <!-- skip tests if this is an integration test run 
-    (only examples and test-db are part of the integration test runs) -->
+  <!-- Profiles -->
+  <profiles>
+    <!--
+      skip tests if this is an integration test run (only examples and test-db are part of the
+      integration test runs)
+    -->
     <profile>
       <id>skip.tests.during.database.testrun</id>
       <activation>
@@ -83,60 +81,48 @@
       </properties>
     </profile>
 
-		<profile>
-			<id>distro</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-jar-plugin</artifactId>
-						<configuration>
-							<finalName>jbpm-migration</finalName>
-							<archive>
-								<manifest>
-									<addClasspath>true</addClasspath>
-									<classpathPrefix>lib/</classpathPrefix>
-									<mainClass>org.jbpm.jpdl.internal.convert.JpdlConverterTool</mainClass>
-								</manifest>
-							</archive>
-						</configuration>
-					</plugin>
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<!--version>2.2-beta-3</version-->
-						<executions>
-							<execution>
-								<id>distribution-package</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<finalName>migration-distro</finalName>
-			            <ignoreDirFormatExtensions>true</ignoreDirFormatExtensions>
-			            <appendAssemblyId>false</appendAssemblyId>
-									<descriptors>
-										<descriptor>scripts/assembly-distro.xml</descriptor>
-									</descriptors>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+    <profile>
+      <id>distro</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <configuration>
+              <finalName>jbpm-migration</finalName>
+              <archive>
+                <manifest>
+                  <addClasspath>true</addClasspath>
+                  <classpathPrefix>lib/</classpathPrefix>
+                  <mainClass>org.jbpm.jpdl.internal.convert.JpdlConverterTool</mainClass>
+                </manifest>
+              </archive>
+            </configuration>
+          </plugin>
 
-	<pluginRepositories>
-		<pluginRepository>
-			<id>codehaus</id>
-			<name>codehaus</name>
-			<url>http://repository.codehaus.org
-			</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</pluginRepository>
-	</pluginRepositories>
-
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <!--version>2.2-beta-3</version-->
+            <executions>
+              <execution>
+                <id>distribution-package</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <finalName>migration-distro</finalName>
+                  <ignoreDirFormatExtensions>true</ignoreDirFormatExtensions>
+                  <appendAssemblyId>false</appendAssemblyId>
+                  <descriptors>
+                    <descriptor>scripts/assembly-distro.xml</descriptor>
+                  </descriptors>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
