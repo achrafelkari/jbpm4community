@@ -31,6 +31,7 @@ import java.util.Set;
 
 import org.jbpm.api.activity.ActivityBehaviour;
 import org.jbpm.internal.log.Log;
+import org.jbpm.pvm.internal.env.BasicEnvironment;
 import org.jbpm.pvm.internal.env.Context;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.model.ProcessElementImpl;
@@ -707,26 +708,15 @@ public class WireContext extends DefaultObservable implements Context, Closable,
     }
     // check if we can find it in the environment (if one is available)
     EnvironmentImpl environment = EnvironmentImpl.getCurrent();
-    if (environment != null) {
-      Context processEngineContext = environment.getContext(CONTEXTNAME_PROCESS_ENGINE);
-      if (processEngineContext != this) {
-        Context transactionContext = environment.getContext(CONTEXTNAME_TRANSACTION);
-        if (transactionContext != this) {
-          return environment.get(type);
-        }
-        // try process engine context
-        if (processEngineContext != null) {
-          return processEngineContext.get(type);
-        }
-      }
+    if (environment instanceof BasicEnvironment) {
+      BasicEnvironment basicEnvironment = (BasicEnvironment) environment;
+      return basicEnvironment.get(type, this);
     }
     return null;
   }
   
   protected boolean hasException(String objectName) {
-    return ( (exceptions!=null)
-             && (exceptions.containsKey(objectName))
-           );
+    return exceptions!=null && exceptions.containsKey(objectName);
   }
   
   protected void addException(Descriptor descriptor, Exception exception) {

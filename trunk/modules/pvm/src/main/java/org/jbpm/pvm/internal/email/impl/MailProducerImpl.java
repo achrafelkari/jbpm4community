@@ -144,7 +144,7 @@ public class MailProducerImpl implements MailProducer, Serializable {
   }
 
   private String[] tokenizeActors(String recipients, Execution execution) {
-    String[] actors = evaluateExpression(recipients).split("[,;|\\s]+");
+    String[] actors = evaluateExpression(recipients).split("[,;\\s]+");
     if (actors.length == 0) throw new JbpmException("recipient list is empty: " + recipients);
     return actors;
   }
