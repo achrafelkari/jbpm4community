@@ -21,13 +21,11 @@
  */
 package org.jbpm.pvm.internal.env;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.jbpm.api.JbpmException;
 import org.jbpm.internal.log.Log;
-
 
 /**
  * @author Tom Baeyens
@@ -39,18 +37,10 @@ public class BasicEnvironment extends EnvironmentImpl {
   private static final Log log = Log.getLog(BasicEnvironment.class.getName()); 
 
   protected String authenticatedUserId;
-  protected Map<String, Context> contexts;
-  protected ArrayList<String> defaultSearchOrderList;
-  protected String[] defaultSearchOrder;
+  protected Map<String, Context> contexts = new LinkedHashMap<String, Context>();
   protected Throwable exception;
 
   protected transient ClassLoader classLoader;
-
-  public BasicEnvironment() {
-    contexts = new HashMap<String, Context>();
-    defaultSearchOrderList = new ArrayList<String>();
-    defaultSearchOrder = null;
-  }
 
   // context methods ////////////////////////////////////////////////////////////
 
@@ -59,11 +49,7 @@ public class BasicEnvironment extends EnvironmentImpl {
   }
 
   public void setContext(Context context) {
-    String key = context.getName();
-    if (contexts.put(key, context)==null) {
-      defaultSearchOrderList.add(key);
-    }
-    defaultSearchOrder = null;
+    contexts.put(context.getName(), context);
   }
 
   public Context removeContext(Context context) {
@@ -71,12 +57,7 @@ public class BasicEnvironment extends EnvironmentImpl {
   }
   
   public Context removeContext(String contextName) {
-    Context removedContext = contexts.remove(contextName);
-    if (removedContext!=null) {
-      defaultSearchOrderList.remove(contextName);
-      defaultSearchOrder = null;
-    }
-    return removedContext;
+    return contexts.remove(contextName);
   }
 
   public Context getEnvironmentFactoryContext() {
@@ -117,33 +98,51 @@ public class BasicEnvironment extends EnvironmentImpl {
     if (searchOrder==null) {
       searchOrder = getDefaultSearchOrder();
     }
-    for (int i=0; i<searchOrder.length; i++){
-      Context context = contexts.get(searchOrder[i]);
-      if (context.has(name)) {
-        return context.get(name);
-      }
+    for (String contextName : searchOrder) {
+      Context context = contexts.get(contextName);
+      if (context.has(name)) return context.get(name);
     }
     return null;
   }
 
   public <T> T get(Class<T> type) {
-    return get(type, null);
+    return get(type, (String[]) null);
   }
 
   public <T> T get(Class<T> type, String[] searchOrder) {
     if (searchOrder==null) {
       searchOrder = getDefaultSearchOrder();
     }
-    for (int i=0; i<searchOrder.length; i++){
-      Context context = contexts.get(searchOrder[i]);
-      T o = context.get(type);
-      if (o!=null) {
-        return o;
-      }
+    for (String contextName : searchOrder) {
+      Context context = contexts.get(contextName);
+      T object = context.get(type);
+      if (object != null) return object;
     }
     return null;
   }
   
+  /**
+   * searches an object based on type in the default search order.
+   * if this environment contains the given context, the search skips
+   * contexts registered after it.
+   */
+  public <T> T get(Class<T> type, Context requester) {
+    String[] searchOrder = getDefaultSearchOrder();
+    int searchPosition = 0;
+    for (int i = 0; i < searchOrder.length; i++) {
+      if (contexts.get(searchOrder[i]) == requester) {
+        searchPosition = i + 1;
+        break;
+      }
+    }
+    for (int i = searchPosition; i < searchOrder.length; i++) {
+      Context context = contexts.get(searchOrder[i]);
+      T object = context.get(type);
+      if (object != null) return object;
+    }
+    return null;
+  }
+
   // close ////////////////////////////////////////////////////////////////////
 
   public void close() {
@@ -158,13 +157,14 @@ public class BasicEnvironment extends EnvironmentImpl {
   // private methods //////////////////////////////////////////////////////////
 
   protected String[] getDefaultSearchOrder() {
-    if (defaultSearchOrder==null) {
-      int size = defaultSearchOrderList.size();
-      defaultSearchOrder = (String[]) new String[size];
-      for (int i=0; i<size; i++) {
-        defaultSearchOrder[i] = defaultSearchOrderList.get(size-1-i);
-      }
+    int size = contexts.size();
+    String[] defaultSearchOrder = new String[size];
+
+    int index = size;
+    for (String contextName : contexts.keySet()) {
+      defaultSearchOrder[--index] = contextName;
     }
+
     return defaultSearchOrder;
   }
 }

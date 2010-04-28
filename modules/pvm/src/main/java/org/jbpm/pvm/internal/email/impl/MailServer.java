@@ -15,6 +15,7 @@ public class MailServer {
   private AddressFilter addressFilter;
   private Properties sessionProperties;
   private Authenticator authenticator;
+  private Session mailSession;
 
   public AddressFilter getAddressFilter() {
     return addressFilter;
@@ -41,6 +42,9 @@ public class MailServer {
   }
 
   public Session getMailSession() {
-    return Session.getDefaultInstance(sessionProperties, authenticator);
+    if (mailSession == null) {
+      mailSession = Session.getInstance(sessionProperties, authenticator);
+    }
+    return mailSession;
   }
 }

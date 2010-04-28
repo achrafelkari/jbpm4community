@@ -1,0 +1,36 @@
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/email/impl/MailProducerImpl.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/email/impl/MailProducerImpl.java	(revision 6277)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/email/impl/MailProducerImpl.java	(revision 6278)
+@@ -144,7 +144,7 @@
+   }
+ 
+   private String[] tokenizeActors(String recipients, Execution execution) {
+-    String[] actors = evaluateExpression(recipients).split("[,;|\\s]+");
++    String[] actors = evaluateExpression(recipients).split("[,;\\s]+");
+     if (actors.length == 0) throw new JbpmException("recipient list is empty: " + recipients);
+     return actors;
+   }
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/email/impl/MailServer.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/email/impl/MailServer.java	(revision 6277)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/email/impl/MailServer.java	(revision 6278)
+@@ -15,6 +15,7 @@
+   private AddressFilter addressFilter;
+   private Properties sessionProperties;
+   private Authenticator authenticator;
++  private Session mailSession;
+ 
+   public AddressFilter getAddressFilter() {
+     return addressFilter;
+@@ -41,6 +42,9 @@
+   }
+ 
+   public Session getMailSession() {
+-    return Session.getDefaultInstance(sessionProperties, authenticator);
++    if (mailSession == null) {
++      mailSession = Session.getInstance(sessionProperties, authenticator);
++    }
++    return mailSession;
+   }
+ }
