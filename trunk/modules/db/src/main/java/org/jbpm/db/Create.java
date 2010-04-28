@@ -55,9 +55,9 @@ public class Create {
         .buildProcessEngine();
     
     try {
-      processEngine.execute(new Command<Object>(){
+      processEngine.execute(new Command<Void>(){
         private static final long serialVersionUID = 1L;
-        public Object execute(Environment environment) throws Exception {
+        public Void execute(Environment environment) throws Exception {
           Session session = environment.get(Session.class);
           DbHelper.executeSqlResource("create/jbpm."+database+".create.sql", session);
           PropertyImpl.createProperties(session);
