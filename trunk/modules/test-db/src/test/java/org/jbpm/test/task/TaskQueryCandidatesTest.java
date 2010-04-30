@@ -49,6 +49,7 @@ public class TaskQueryCandidatesTest extends JbpmTestCase {
 
     developmentGroupId = identityService.createGroup("development");
     identityService.createMembership("jackblack", developmentGroupId);
+    identityService.createMembership("johndoe", developmentGroupId);
   }
 
   public void tearDown() throws Exception {
@@ -126,5 +127,52 @@ public class TaskQueryCandidatesTest extends JbpmTestCase {
     taskService.deleteTaskCascade(taskId);
     taskService.deleteTaskCascade(johnsOtherTaskId);
     taskService.deleteTaskCascade(joesOtherTaskId);
+  }
+  
+  public void testGroupCandidateDuplicate() {
+    Task task = taskService.newTask();
+    task.setName("do laundry");
+    String taskId = taskService.saveTask(task);
+    taskService.addTaskParticipatingGroup(taskId, salesGroupId, Participation.CANDIDATE);
+    taskService.addTaskParticipatingGroup(taskId, developmentGroupId, Participation.CANDIDATE);
+
+    // this tasks are a diversion to see if the query only selects the above task
+    task = taskService.newTask();
+    task.setName("dishes");
+    String johnsOtherTaskId = taskService.saveTask(task);
+    
+    // this tasks are a diversion to see if the query only selects the above task
+    task = taskService.newTask();
+    task.setName("dishes");
+    String joesOtherTaskId = taskService.saveTask(task);
+    
+
+    List<Task> groupTasks = taskService.findGroupTasks("johndoe");
+    assertEquals(1, groupTasks.size());
+    assertEquals(taskId, groupTasks.get(0).getId());
+    
+    groupTasks = taskService.findGroupTasks("joesmoe");
+    assertEquals(1, groupTasks.size());
+    assertEquals(taskId, groupTasks.get(0).getId());
+    
+    groupTasks = taskService.findGroupTasks("jackblack");
+    assertEquals(1, groupTasks.size());
+    
+    taskService.deleteTaskCascade(taskId);
+    taskService.deleteTaskCascade(johnsOtherTaskId);
+    taskService.deleteTaskCascade(joesOtherTaskId);
+  }
+  
+  public void testCountGroupCandidateDuplicate() {
+    Task task = taskService.newTask();
+    task.setName("do laundry");
+    String taskId = taskService.saveTask(task);
+    taskService.addTaskParticipatingGroup(taskId, salesGroupId, Participation.CANDIDATE);
+    taskService.addTaskParticipatingGroup(taskId, developmentGroupId, Participation.CANDIDATE);
+    
+    long count = taskService.createTaskQuery().candidate("johndoe").count();
+    assertEquals(1, count);
+    
+    taskService.deleteTaskCascade(taskId);
   }
 }
