@@ -139,9 +139,9 @@ public class TaskQueryImpl extends AbstractQuery implements TaskQuery {
     hql.append("select ");
     
     if (count) {
-      hql.append("count(task) ");
+      hql.append("count(distinct task) ");
     } else {
-      hql.append("task ");
+      hql.append("distinct task ");
     }
     
     hql.append("from ");
@@ -167,7 +167,7 @@ public class TaskQueryImpl extends AbstractQuery implements TaskQuery {
         groupIds = new ArrayList<String>();
         for (Group group: groups) {
           groupIds.add(group.getId());
-        }
+        }  
         appendWhereClause("((participant.userId = :candidateUserId) or (participant.groupId in (:candidateGroupIds)))", hql);
       }
     }
