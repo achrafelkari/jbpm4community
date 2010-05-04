@@ -49,11 +49,6 @@
     </dependency>
     <dependency>
       <groupId>org.jbpm.jbpm4</groupId>
-      <artifactId>jbpm-test-base</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jbpm.jbpm4</groupId>
       <artifactId>jbpm-console-reports</artifactId>
       <scope>test</scope>
     </dependency>

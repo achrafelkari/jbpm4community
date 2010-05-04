@@ -1,0 +1,42 @@
+Index: pom.xml
+===================================================================
+--- pom.xml	(revision 6288)
++++ pom.xml	(revision 6289)
+@@ -463,6 +463,37 @@
+     </plugins>
+   </build>
+ 
++  <!-- Repositories -->
++  <repositories>
++    <repository>
++      <id>jboss-public-repository-group</id>
++      <name>JBoss Public Maven Repository Group</name>
++      <url>https://repository.jboss.org/nexus/content/groups/public/</url>
++      <releases>
++        <enabled>true</enabled>
++        <updatePolicy>never</updatePolicy>
++      </releases>
++      <snapshots>
++        <enabled>true</enabled>
++      </snapshots>
++    </repository>
++  </repositories>
++
++  <pluginRepositories>
++    <pluginRepository>
++      <id>jboss-public-repository-group</id>
++      <name>JBoss Public Maven Repository Group</name>
++      <url>https://repository.jboss.org/nexus/content/groups/public/</url>
++      <releases>
++        <enabled>true</enabled>
++        <updatePolicy>never</updatePolicy>
++      </releases>
++      <snapshots>
++        <enabled>true</enabled>
++      </snapshots>
++    </pluginRepository>
++  </pluginRepositories>
++
+   <profiles>
+     <!-- schema for direct db integration test. see qa\hudson-jbpm4-db.* -->
+     <profile>
