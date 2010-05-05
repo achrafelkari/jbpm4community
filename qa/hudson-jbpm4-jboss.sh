@@ -2,19 +2,18 @@
 #
 # runs the jboss integration test suite
 
-MAVEN_OPTS="-Xms1024M -Xmx1024M"
-ANT_PROPERTIES="-Djboss.version=$JBOSS_VERSION -Djbpm.parent.dir=$WORKSPACE -Djboss.distro.dir=$SOURCE_REPO/jboss"
-echo ANT_PROPERTIES=${ANT_PROPERTIES}
+MAVEN_OPTS="-Xmx512M -Djboss.bind.address=$JBOSS_BINDADDR"
+ANT_OPTS="-Djboss.version=$JBOSS_VERSION -Djbpm.parent.dir=$WORKSPACE -Djboss.distro.dir=$SOURCE_REPO/jboss -Djboss.bind.address=$JBOSS_BINDADDR"
 
-echo just in case the previous run didnt complete ok, we stop jboss
-ant -f modules/distro/src/main/files/install/build.xml $ANT_PROPERTIES reinstall.jboss
-ant -f modules/distro/src/main/files/install/build.xml $ANT_PROPERTIES stop.jboss
+# just in case the previous run didnt complete ok, we stop jboss
+ant -f modules/distro/src/main/files/install/build.xml reinstall.jboss
+ant -f modules/distro/src/main/files/install/build.xml stop.jboss
 
 mvn -U -Pdistro,integration clean install
-ant -f qa/build.xml $ANT_PROPERTIES testsuite.jboss.setup
+ant -f qa/build.xml testsuite.jboss.setup
 
 cd modules/test-cactus
 mvn -Pruntest test
 cd ../..
 
-ant -f qa/build.xml $ANT_PROPERTIES testsuite.jboss.teardown
+ant -f qa/build.xml testsuite.jboss.teardown

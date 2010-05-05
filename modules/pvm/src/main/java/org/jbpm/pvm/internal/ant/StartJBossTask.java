@@ -21,56 +21,70 @@
  */
 package org.jbpm.pvm.internal.ant;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 
 public class StartJBossTask extends Task {
-  
+
   private static final String END_MESSAGE = " Started in ";
-  
-  String configuration = null;
-  String jbosshome = null;
+
+  String configuration;
+  String jbosshome;
+  String bindaddress;
 
   public void execute() throws BuildException {
+    // get some environment variableInstances
+    String fileSeparator = System.getProperty("file.separator");
+    String os = getProject().getProperty("os.name").toLowerCase();
+
+    // build the command string
+    String program;
+    if (os.indexOf("windows") != -1) {
+      program = getJBossHome() + fileSeparator + "bin" + fileSeparator + "run.bat";
+    }
+    else if (os.indexOf("linux") != -1 || os.indexOf("mac") != -1) {
+      program = getJBossHome() + fileSeparator + "bin" + fileSeparator + "run.sh";
+    }
+    else {
+      throw new BuildException("os '" + os + "' not supported in the startjboss task.");
+    }
+
+    List<String> command = new ArrayList<String>();
+    command.add(program);
+
+    if (configuration != null) {
+      command.add("-c");
+      command.add(configuration);
+    }
+
+    if (bindaddress != null) {
+      command.add("-b");
+      command.add(bindaddress);
+    }
+
+    // launch the command and wait till the END_MESSAGE appears
+    Thread launcher = new Launcher(this, command.toArray(new String[0]), END_MESSAGE, null);
+    launcher.start();
     try {
-      // get some environment variableInstances
-      String fileSeparator = System.getProperty( "file.separator" );
-      String os = getProject().getProperty( "os.name" ).toLowerCase();
-      
-      // build the command string
-      String[] command = null; 
-      if ( os.indexOf( "windows" ) != -1 ) {
-        command = new String[]{getJBossHome() + fileSeparator + "bin" + fileSeparator + "run.bat"};          
-      } else if ( os.indexOf( "linux" ) != -1 || os.indexOf( "mac" ) != -1) {
-        command = new String[]{getJBossHome() + fileSeparator + "bin" + fileSeparator + "run.sh"};
-      } else {
-        throw new BuildException( "os '" + os + "' not supported in the startjboss task." );
-      }
-      
-      if (configuration!=null) {
-        command = new String[]{command[0], "-c "+configuration};
-      }
-
-
-      // launch the command and wait till the END_MESSAGE appears
-      Thread launcher = new Launcher(this, command, END_MESSAGE, null);
-      launcher.start();
       launcher.join();
-      
-    } catch (Exception e) {
+    }
+    catch (InterruptedException e) {
       e.printStackTrace();
     }
   }
-  
+
   String getJBossHome() {
-    if (jbosshome!=null) {
+    if (jbosshome != null) {
       return jbosshome;
     }
-    String jbossHomeSysProp = getProject().getProperty( "jboss.home" );
-    if (jbossHomeSysProp!=null) {
+    String jbossHomeSysProp = getProject().getProperty("jboss.home");
+    if (jbossHomeSysProp != null) {
       return jbossHomeSysProp;
     }
-    throw new BuildException("startjboss couldn't figure out which jboss to start: attribute jbosshome not specified and property jboss.home was not set");
+    throw new BuildException("jboss home not specified");
   }
 
   public void setConfiguration(String configuration) {
@@ -78,5 +92,9 @@ public class StartJBossTask extends Task {
   }
   public void setJbosshome(String jbosshome) {
     this.jbosshome = jbosshome;
+  }
+
+  public void setBindaddress(String bindaddress) {
+    this.bindaddress = bindaddress;
   }
 }
