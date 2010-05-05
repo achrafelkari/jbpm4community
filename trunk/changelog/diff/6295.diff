@@ -1,0 +1,106 @@
+Index: modules/distro/src/main/files/install/build.xml
+===================================================================
+--- modules/distro/src/main/files/install/build.xml	(revision 6294)
++++ modules/distro/src/main/files/install/build.xml	(revision 6295)
+@@ -1,5 +1,4 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+-
+ <project name="jbpm.install">
+ 
+   <!-- DEVELOPER SPECIFIC CONFIGURATIONS -->
+@@ -287,8 +286,8 @@
+           depends="get.jboss"
+           description="Downloads jboss to ${jboss.distro.dir} if its not available and then unzips jboss">
+     <unzip src="${jboss.distro.path}" dest="${jboss.parent.dir}" />
+-    <chmod perm="a+x" file="${jboss.home}/bin/run.sh" os="Linux, Mac OS X" />
+-    <chmod perm="a+x" file="${jboss.home}/bin/shutdown.sh" os="Linux, Mac OS X" />
++    <chmod perm="a+x" file="${jboss.home}/bin/run.sh" />
++    <chmod perm="a+x" file="${jboss.home}/bin/shutdown.sh" />
+   </target>
+ 
+   <!-- ### GET JBOSS ###################################################### -->
+@@ -409,11 +408,11 @@
+   <target name="start.jboss"
+           description="starts jboss and waits till jboss is booted, then lets jboss run in the background">
+     <exec executable="${jboss.home}/bin/run.bat"
+-          osfamily="windows">
++          os="Windows 7,Windows Vista,Windows XP,Windows 2000">
+       <arg value="-b" />
+       <arg value="${jboss.bind.address}" />
+     </exec>
+-    <exec executable="${jboss.home}/bin/run.sh" osfamily="unix">
++    <exec executable="${jboss.home}/bin/run.sh" os="Linux,Mac OS X">
+       <arg value="-b" />
+       <arg value="${jboss.bind.address}" />
+     </exec>
+@@ -425,10 +424,11 @@
+   <!-- ### STOP JBOSS ################################################### -->
+   <target name="stop.jboss"
+           description="signals jboss to stop, but doesn't wait till its finished">
+-    <exec executable="${jboss.home}/bin/shutdown.bat" osfamily="windows">
++    <exec executable="${jboss.home}/bin/shutdown.bat"
++          os="Windows 7,Windows Vista,Windows XP,Windows 2000">
+       <arg value="-S" />
+     </exec>
+-    <exec executable="${jboss.home}/bin/shutdown.sh" osfamily="unix">
++    <exec executable="${jboss.home}/bin/shutdown.sh" os="Linux,Mac OS X">
+       <arg value="-S" />
+     </exec>
+   </target>
+@@ -476,7 +476,7 @@
+   </target>
+ 
+   <target name="install.tomcat.linuxandmac" if="is.linux.unix.or.mac">
+-    <chmod perm="a+x" os="Linux, Mac OS X">
++    <chmod perm="a+x">
+       <fileset dir="${tomcat.home}/bin">
+         <include name="*.sh" />
+       </fileset>
+@@ -598,7 +598,7 @@
+     <copy todir="${hsqldb.server.install.dir}">
+       <fileset dir="${hsqldb.server.source.dir}" />
+     </copy>
+-    <chmod perm="a+x" os="Linux, Mac OS X">
++    <chmod perm="a+x">
+       <fileset dir="${hsqldb.server.install.dir}">
+         <include name="*.sh" />
+       </fileset>
+@@ -607,10 +607,12 @@
+ 
+   <!-- ### START HSQLDB SERVER ################################################ -->
+   <target name="start.hsqldb.server" if="is.hsqldb">
+-    <exec executable="${hsqldb.server.install.dir}/start-hsqldb-server.bat" osfamily="windows">
++    <exec executable="${hsqldb.server.install.dir}/start-hsqldb-server.bat"
++          os="Windows 7,Windows Vista,Windows XP,Windows 2000">
+       <env key="JBOSS_BINDADDR" value="${jboss.bind.address}" />
+     </exec>
+-    <exec executable="${hsqldb.server.install.dir}/start-hsqldb-server.sh" osfamily="unix">
++    <exec executable="${hsqldb.server.install.dir}/start-hsqldb-server.sh"
++          os="Linux,Mac OS X">
+       <env key="JBOSS_BINDADDR" value="${jboss.bind.address}" />
+     </exec>
+     <waitfor maxwait="1" maxwaitunit="minute" checkevery="10" checkeveryunit="second">
+@@ -652,12 +654,12 @@
+           description="Signals Tomcat to stop, but doesn't wait till its finished">
+     <exec executable="${tomcat.home}/bin/catalina.bat"
+           dir="${tomcat.home}/bin"
+-          osfamily="windows">
++          os="Windows 7,Windows Vista,Windows XP,Windows 2000">
+       <arg value="stop" />
+     </exec>
+     <exec executable="${tomcat.home}/bin/catalina.sh"
+           dir="${tomcat.home}/bin"
+-          osfamily="unix">
++          os="Linux,Mac OS X">
+       <arg value="stop" />
+     </exec>
+   </target>
+@@ -777,7 +779,7 @@
+   <!-- ### START ECLIPSE ################################################## -->
+   <target name="start.eclipse" description="starts eclipse">
+     <!-- Windows -->
+-    <exec executable="cmd" osfamily="windows">
++    <exec executable="cmd" os="Windows 7,Windows Vista,Windows XP,Windows 2000">
+       <arg value="/C" />
+       <arg value="start" />
+       <arg value="${jbpm.home}/eclipse/eclipse.exe" />

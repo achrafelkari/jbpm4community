@@ -12,7 +12,7 @@
 <!-- $Id: pom.xml 5319 2009-07-17 10:03:46Z tom.baeyens@jboss.com $ -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <name>jBPM 4 - Test Cactus</name>
@@ -29,31 +29,38 @@
   </parent>
 
   <dependencies>
-     <dependency>
-       <groupId>org.jbpm.jbpm4</groupId>
-       <artifactId>jbpm-jpdl</artifactId>
-     </dependency>
-     <dependency>
-       <groupId>org.jbpm.jbpm4</groupId>
-       <artifactId>jbpm-bpmn</artifactId>
-     </dependency>
-     <dependency>
-       <groupId>org.jbpm.jbpm4</groupId>
-       <artifactId>jbpm-examples</artifactId>
-       <classifier>tests</classifier>
-     </dependency>
-     <dependency>
-       <groupId>org.jbpm.jbpm4</groupId>
-       <artifactId>jbpm-test-db</artifactId>
-       <classifier>tests</classifier>
-     </dependency>
-     <dependency>
-        <groupId>cactus</groupId>
-        <artifactId>cactus.core</artifactId>
-     </dependency>
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-jpdl</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-bpmn</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-examples</artifactId>
+      <classifier>tests</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-test-db</artifactId>
+      <classifier>tests</classifier>
+    </dependency>
+    <dependency>
+      <groupId>cactus</groupId>
+      <artifactId>cactus.core</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>true</filtering>
+      </testResource>
+    </testResources>
+
     <plugins>
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
@@ -75,7 +82,7 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>         
+      </plugin>
     </plugins>
   </build>
 
@@ -87,23 +94,23 @@
       </properties>
       <build>
         <plugins>
-		      <plugin>
-		        <groupId>org.apache.maven.plugins</groupId>
-		        <artifactId>maven-dependency-plugin</artifactId>
-		        <executions>
-		          <execution>
-		            <id>copy.libs</id>
-		            <phase>package</phase>
-		            <goals>
-		              <goal>copy</goal>
-		            </goals>
-		            <configuration>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy.libs</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>copy</goal>
+                </goals>
+                <configuration>
                   <outputDirectory>target/jbpm.test.webapp.libs</outputDirectory>
-		              <artifactItems>
-		                <artifactItem>
-		                  <groupId>aspectj</groupId>
-		                  <artifactId>aspectjrt</artifactId>
-		                </artifactItem>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>aspectj</groupId>
+                      <artifactId>aspectjrt</artifactId>
+                    </artifactItem>
                     <artifactItem>
                       <groupId>cactus</groupId>
                       <artifactId>cactus.core</artifactId>
@@ -127,9 +134,9 @@
                       <version>1.1</version>
                     </artifactItem>
                     <artifactItem>
-								      <groupId>org.jbpm.jbpm4</groupId>
-								      <artifactId>jbpm-examples</artifactId>
-								      <classifier>tests</classifier>
+                      <groupId>org.jbpm.jbpm4</groupId>
+                      <artifactId>jbpm-examples</artifactId>
+                      <classifier>tests</classifier>
                     </artifactItem>
                     <artifactItem>
                       <groupId>org.jbpm.jbpm4</groupId>
@@ -148,15 +155,15 @@
                       <groupId>org.subethamail</groupId>
                       <artifactId>subethasmtp-smtp</artifactId>
                     </artifactItem>
-		              </artifactItems>
-		            </configuration>
-		          </execution>
-		        </executions>
-		      </plugin>
+                  </artifactItems>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
       </build>
     </profile>
-    
+
     <profile>
       <id>enterprise</id>
       <properties>
@@ -164,23 +171,23 @@
       </properties>
       <build>
         <plugins>
-		      <plugin>
-		        <groupId>org.apache.maven.plugins</groupId>
-		        <artifactId>maven-dependency-plugin</artifactId>
-		        <executions>
-		          <execution>
-		            <id>copy.libs</id>
-		            <phase>package</phase>
-		            <goals>
-		              <goal>copy</goal>
-		            </goals>
-		            <configuration>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy.libs</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>copy</goal>
+                </goals>
+                <configuration>
                   <outputDirectory>target/jbpm.test.webapp.libs</outputDirectory>
-		              <artifactItems>
-		                <artifactItem>
-		                  <groupId>aspectj</groupId>
-		                  <artifactId>aspectjrt</artifactId>
-		                </artifactItem>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>aspectj</groupId>
+                      <artifactId>aspectjrt</artifactId>
+                    </artifactItem>
                     <artifactItem>
                       <groupId>cactus</groupId>
                       <artifactId>cactus.core</artifactId>
@@ -204,9 +211,9 @@
                       <version>1.1</version>
                     </artifactItem>
                     <artifactItem>
-								      <groupId>org.jbpm.jbpm4</groupId>
-								      <artifactId>jbpm-examples</artifactId>
-								      <classifier>tests</classifier>
+                      <groupId>org.jbpm.jbpm4</groupId>
+                      <artifactId>jbpm-examples</artifactId>
+                      <classifier>tests</classifier>
                     </artifactItem>
                     <artifactItem>
                       <groupId>org.jbpm.jbpm4</groupId>
@@ -225,15 +232,15 @@
                       <groupId>org.subethamail</groupId>
                       <artifactId>subethasmtp-smtp</artifactId>
                     </artifactItem>
-		              </artifactItems>
-		            </configuration>
-		          </execution>
-		        </executions>
-		      </plugin>
+                  </artifactItems>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
       </build>
     </profile>
-    
+
     <profile>
       <id>runtest</id>
       <dependencies>
@@ -252,55 +259,55 @@
           <artifactId>jbpm-test-db</artifactId>
           <classifier>tests</classifier>
         </dependency>
-		    <dependency>
-		      <groupId>cactus</groupId>
-		      <artifactId>cactus.core</artifactId>
-		    </dependency>
-		    <dependency>
-		      <groupId>cactus</groupId>
-		      <artifactId>cactus.integration.shared.api</artifactId>
-		    </dependency>
-		    <dependency>
-		      <groupId>cactus</groupId>
-		      <artifactId>cactus.integration.ant</artifactId>
-		    </dependency>
-		    <dependency>
-		      <groupId>aspectj</groupId>
-		      <artifactId>aspectjrt</artifactId>
-		    </dependency>
-		    <dependency>
-		      <groupId>junit</groupId>
-		      <artifactId>junit</artifactId>
-		      <scope>runtime</scope>
-		    </dependency>
+        <dependency>
+          <groupId>cactus</groupId>
+          <artifactId>cactus.core</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>cactus</groupId>
+          <artifactId>cactus.integration.shared.api</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>cactus</groupId>
+          <artifactId>cactus.integration.ant</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>aspectj</groupId>
+          <artifactId>aspectjrt</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <scope>runtime</scope>
+        </dependency>
       </dependencies>
       <build>
         <plugins>
-		      <plugin>
-		        <artifactId>maven-antrun-plugin</artifactId>
-		        <executions>
-		          <execution>
-		            <id>generate-cactus-test-suite</id>
-		            <phase>generate-test-sources</phase>
-		            <goals>
-		              <goal>run</goal>
-		            </goals>
-		            <configuration>
-		              <tasks>
-		                <property name="test_classpath" refid="maven.test.classpath"/>
-		                <echo message="${test_classpath}" />
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>generate-cactus-test-suite</id>
+                <phase>generate-test-sources</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <tasks>
+                    <property name="test_classpath" refid="maven.test.classpath" />
+                    <echo message="${test_classpath}" />
                     <delete>
                       <fileset dir=".">
                         <include name="src/test/java/org/jbpm/test/AllIntegrationTests.java*" />
                       </fileset>
                     </delete>
-		                <java classname="org.jbpm.cactustool.CactusTestGenerator">
-		                  <classpath path="${test_classpath}"/>
-		                  <arg line="src/test/java ../examples/src/test/java ../test-db/src/test/java" />
-		                </java>
-		              </tasks>
-		            </configuration>
-		          </execution>
+                    <java classname="org.jbpm.cactustool.CactusTestGenerator">
+                      <classpath path="${test_classpath}" />
+                      <arg line="src/test/java ../examples/src/test/java ../test-db/src/test/java" />
+                    </java>
+                  </tasks>
+                </configuration>
+              </execution>
               <execution>
                 <id>remove-generated-cactus-test</id>
                 <phase>package</phase>
@@ -317,16 +324,16 @@
                   </tasks>
                 </configuration>
               </execution>
-		        </executions>
-		      </plugin>         
-		      <plugin>
-		        <artifactId>maven-surefire-plugin</artifactId>
-		        <configuration>
-		          <includes>
-		            <include>org/jbpm/test/AllIntegrationTests.java</include>
-		          </includes>
-		        </configuration>
-		      </plugin>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <includes>
+                <include>org/jbpm/test/AllIntegrationTests.java</include>
+              </includes>
+            </configuration>
+          </plugin>
         </plugins>
       </build>
     </profile>
