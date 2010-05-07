@@ -1,0 +1,85 @@
+Index: modules/distro/src/main/files/install/build.xml
+===================================================================
+--- modules/distro/src/main/files/install/build.xml	(revision 6297)
++++ modules/distro/src/main/files/install/build.xml	(revision 6298)
+@@ -185,8 +185,9 @@
+           overwrite="true">
+       <filterset filtersfile="${jdbc.properties.dir}/${database}.properties" />
+     </copy>
+-    <replace file="${cfg.dest.dir}/jbpm.hibernate.cfg.xml" token="jboss.bind.address"
+-      value="${jboss.bind.address}" />
++    <replace file="${cfg.dest.dir}/jbpm.hibernate.cfg.xml"
++             token="jboss.bind.address"
++             value="${jboss.bind.address}" />
+     <copy todir="${cfg.dest.dir}" overwrite="true">
+       <fileset dir="${install.src.dir}/cfg/logging/${logging}" />
+     </copy>
+@@ -409,11 +410,12 @@
+   <target name="start.jboss"
+           description="starts jboss and waits till jboss is booted, then lets jboss run in the background">
+     <exec executable="${jboss.home}/bin/run.bat"
++          spawn="yes"
+           os="Windows 7,Windows Vista,Windows XP,Windows 2000">
+       <arg value="-b" />
+       <arg value="${jboss.bind.address}" />
+     </exec>
+-    <exec executable="${jboss.home}/bin/run.sh" os="Linux,Mac OS X">
++    <exec executable="${jboss.home}/bin/run.sh" spawn="yes" os="Linux,Mac OS X">
+       <arg value="-b" />
+       <arg value="${jboss.bind.address}" />
+     </exec>
+@@ -659,11 +661,13 @@
+           description="Signals Tomcat to stop, but doesn't wait till its finished">
+     <exec executable="${tomcat.home}/bin/catalina.bat"
+           dir="${tomcat.home}/bin"
++          spawn="yes"
+           os="Windows 7,Windows Vista,Windows XP,Windows 2000">
+       <arg value="stop" />
+     </exec>
+     <exec executable="${tomcat.home}/bin/catalina.sh"
+           dir="${tomcat.home}/bin"
++          spawn="yes"
+           os="Linux,Mac OS X">
+       <arg value="stop" />
+     </exec>
+@@ -785,10 +789,9 @@
+   <!-- ### START ECLIPSE ################################################## -->
+   <target name="start.eclipse" description="starts eclipse">
+     <!-- Windows -->
+-    <exec executable="cmd" os="Windows 7,Windows Vista,Windows XP,Windows 2000">
+-      <arg value="/C" />
+-      <arg value="start" />
+-      <arg value="${jbpm.home}/eclipse/eclipse.exe" />
++    <exec executable="${jbpm.home}/eclipse/eclipse.exe"
++          spawn="yes"
++          os="Windows 7,Windows Vista,Windows XP,Windows 2000">
+       <arg value="-data" />
+       <arg value="${jbpm.home}/workspace" />
+     </exec>
+@@ -797,21 +800,18 @@
+       <fileset dir="${jbpm.home}/eclipse">
+         <filename name="eclipse" />
+       </fileset>
+-      <fileset dir="${jbpm.home}/eclipse/Eclipse.app/Contents/MacOS/"> <!-- Path is different for OS X -->
++      <!-- Path is different for OS X -->
++      <fileset dir="${jbpm.home}/eclipse/Eclipse.app/Contents/MacOS/">
+         <filename name="eclipse" />
+       </fileset>
+     </chmod>
+-    <exec executable="/bin/bash" os="Linux">
+-      <arg value="-c" />
+-      <arg value="${jbpm.home}/eclipse/eclipse" />
++    <exec executable="${jbpm.home}/eclipse/eclipse" os="Linux">
+       <arg value="-data" />
+       <arg value="${jbpm.home}/workspace" />
+     </exec>
+-    <exec executable="/bin/bash" os="Mac OS X">
+-      <arg value="-c" />
+-      <arg value="${jbpm.home}/eclipse/Eclipse.app/Contents/MacOS/eclipse" />
++    <exec executable="${jbpm.home}/eclipse/Eclipse.app/Contents/MacOS/eclipse" os="Mac OS X">
+       <arg value="-data" />
+-      <arg value="${jbpm.home}/workspace"/>
++      <arg value="${jbpm.home}/workspace" />
+     </exec>
+   </target>
+ 

@@ -4,10 +4,10 @@
   <local-tx-datasource>
     <jndi-name>JbpmDS</jndi-name>
 
-    <connection-url>jdbc:hsqldb:hsql://localhost:1701</connection-url>    
+    <connection-url>@jdbc.url@</connection-url>    
     <driver-class>org.hsqldb.jdbcDriver</driver-class>
-    <user-name>sa</user-name>
-    <password></password>
+    <user-name>@jdbc.username@</user-name>
+    <password>@jdbc.password@</password>
 
     <!-- connection pool parameters -->
     <min-pool-size>1</min-pool-size>

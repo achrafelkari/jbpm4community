@@ -1,0 +1,94 @@
+Index: qa/hudson-jbpm4-enterprise.sh
+===================================================================
+--- qa/hudson-jbpm4-enterprise.sh	(revision 6299)
++++ qa/hudson-jbpm4-enterprise.sh	(revision 6300)
+@@ -3,7 +3,9 @@
+ # runs the jboss integration test suite
+ 
+ MAVEN_OPTS="-Xmx512M -Djboss.bind.address=$JBOSS_BINDADDR"
+-ANT_OPTS="-Djboss.version=$JBOSS_VERSION -Djbpm.parent.dir=$WORKSPACE -Djboss.distro.dir=$SOURCE_REPO/jboss -Djboss.bind.address=$JBOSS_BINDADDR"
++ANT_OPTS="-Djboss.version=$JBOSS_VERSION -Djbpm.parent.dir=$WORKSPACE \
++-Djboss.distro.dir=$SOURCE_REPO/jboss -Djboss.bind.address=$JBOSS_BINDADDR \
++-Dhsql.bind.address=$JBOSS_BINDADDR"
+ 
+ mvn -U -Pdistro,enterprise clean install
+ ant -f qa/build.xml testsuite.enterprise.setup
+Index: qa/hudson-jbpm4-jboss.sh
+===================================================================
+--- qa/hudson-jbpm4-jboss.sh	(revision 6299)
++++ qa/hudson-jbpm4-jboss.sh	(revision 6300)
+@@ -2,10 +2,10 @@
+ #
+ # runs the jboss integration test suite
+ 
+-MAVEN_OPTS=-Xmx512M -Djboss.bind.address=$JBOSS_BINDADDR
+-ANT_OPTS=-Djboss.version=$JBOSS_VERSION -Djbpm.parent.dir=$WORKSPACE\
+--Djboss.distro.dir=$SOURCE_REPO/jboss -Djboss.bind.address=$JBOSS_BINDADDR\
+--Dhsql.bind.address=$JBOSS_BINDADDR
++MAVEN_OPTS="-Xmx512M -Djboss.bind.address=$JBOSS_BINDADDR"
++ANT_OPTS="-Djboss.version=$JBOSS_VERSION -Djbpm.parent.dir=$WORKSPACE \
++-Djboss.distro.dir=$SOURCE_REPO/jboss -Djboss.bind.address=$JBOSS_BINDADDR \
++-Dhsql.bind.address=$JBOSS_BINDADDR"
+ 
+ # just in case the previous run didnt complete ok, we stop jboss
+ ant -f modules/distro/src/main/files/install/build.xml reinstall.jboss
+Index: qa/hudson-jbpm4-tomcat.sh
+===================================================================
+--- qa/hudson-jbpm4-tomcat.sh	(revision 6299)
++++ qa/hudson-jbpm4-tomcat.sh	(revision 6300)
+@@ -2,8 +2,9 @@
+ #
+ # runs the jboss integration test suite
+ 
+-MAVEN_OPTS="-Xmx512M"
+-ANT_OPTS="-Djbpm.parent.dir=$WORKSPACE -Djboss.distro.dir=$SOURCE_REPO/jboss -Dtomcat.distro.dir=tomcat.downloads" 
++MAVEN_OPTS="-Xmx512M -Dtomcat.bind.address=$TOMCAT_BINDADDR"
++ANT_OPTS="-Djbpm.parent.dir=$WORKSPACE -Djboss.distro.dir=$SOURCE_REPO/jboss \
++-Dtomcat.distro.dir=tomcat.downloads -Dtomcat.bind.address=$TOMCAT_BINDADDR"
+ 
+ mvn -U -Pdistro,integration clean install
+ ant -f qa/build.xml reinstall.jbpm
+Index: modules/test-cactus/pom.xml
+===================================================================
+--- modules/test-cactus/pom.xml	(revision 6299)
++++ modules/test-cactus/pom.xml	(revision 6300)
+@@ -129,11 +129,6 @@
+                       <version>1.1</version>
+                     </artifactItem>
+                     <artifactItem>
+-                      <groupId>commons-logging</groupId>
+-                      <artifactId>commons-logging</artifactId>
+-                      <version>1.1</version>
+-                    </artifactItem>
+-                    <artifactItem>
+                       <groupId>org.jbpm.jbpm4</groupId>
+                       <artifactId>jbpm-examples</artifactId>
+                       <classifier>tests</classifier>
+@@ -206,11 +201,6 @@
+                       <version>1.1</version>
+                     </artifactItem>
+                     <artifactItem>
+-                      <groupId>commons-logging</groupId>
+-                      <artifactId>commons-logging</artifactId>
+-                      <version>1.1</version>
+-                    </artifactItem>
+-                    <artifactItem>
+                       <groupId>org.jbpm.jbpm4</groupId>
+                       <artifactId>jbpm-examples</artifactId>
+                       <classifier>tests</classifier>
+Index: pom.xml
+===================================================================
+--- pom.xml	(revision 6299)
++++ pom.xml	(revision 6300)
+@@ -397,6 +397,11 @@
+         <version>${spring.version}</version>
+       </dependency>
+       <dependency>
++      	<groupId>org.subethamail</groupId>
++      	<artifactId>subethasmtp-smtp</artifactId>
++      	<version>${wiser.version}</version>
++      </dependency>
++      <dependency>
+         <groupId>org.subethamail</groupId>
+         <artifactId>subethasmtp-wiser</artifactId>
+         <version>${wiser.version}</version>

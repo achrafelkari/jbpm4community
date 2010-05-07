@@ -397,6 +397,11 @@
         <version>${spring.version}</version>
       </dependency>
       <dependency>
+      	<groupId>org.subethamail</groupId>
+      	<artifactId>subethasmtp-smtp</artifactId>
+      	<version>${wiser.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.subethamail</groupId>
         <artifactId>subethasmtp-wiser</artifactId>
         <version>${wiser.version}</version>

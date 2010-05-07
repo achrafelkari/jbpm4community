@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <name>jBPM 4 - Integration</name>
@@ -30,11 +31,10 @@
   <!-- Dependecy Management -->
   <dependencyManagement>
     <dependencies>
-
       <dependency>
         <groupId>org.jbpm.jbpm4</groupId>
         <artifactId>jbpm-jpdl</artifactId>
-        <version>${version}</version>
+        <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
@@ -112,7 +112,6 @@
         <artifactId>slf4j-log4j12</artifactId>
         <version>${slf4j.version}</version>
       </dependency>
-
     </dependencies>
   </dependencyManagement>
 
@@ -123,5 +122,4 @@
     <module>report</module>
     <module>tomcat</module>
   </modules>
-
 </project>

@@ -24,7 +24,6 @@ package org.jbpm.pvm.internal.script;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngine;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Collections;
 
 /**
@@ -32,156 +31,102 @@ import java.util.Collections;
  * 
  * @author Heiko.Braun <heiko.braun@jboss.com>
  */
-public class JuelScriptEngineFactory implements ScriptEngineFactory
-{
+public class JuelScriptEngineFactory implements ScriptEngineFactory {
 
-  private static List<String> names = new ArrayList(1);
-  private static List<String> extensions;
-  private static List<String> mimeTypes;
+  private static List<String> names = Collections.singletonList("juel");
+  private static List<String> extensions = names;
+  private static List<String> mimeTypes = Collections.emptyList();
 
-  public JuelScriptEngineFactory()
-  {
-    super();   
-  }
-
-  static
-  {
-    names.add("juel");
-
-    names = Collections.unmodifiableList(names);
-
-    extensions = names;
-
-    mimeTypes = new ArrayList(0);
-
-    mimeTypes = Collections.unmodifiableList(mimeTypes);
-  }
-
-  public String getEngineName()
-  {
+  public String getEngineName() {
     return "juel";
   }
 
-  public String getEngineVersion()
-  {
+  public String getEngineVersion() {
     return de.odysseus.el.ExpressionFactoryImpl.class.getPackage().getImplementationVersion();
   }
 
-  public List<String> getExtensions()
-  {
+  public List<String> getExtensions() {
     return extensions;
   }
 
-  public String getLanguageName()
-  {
+  public String getLanguageName() {
     return "JSP 2.1 EL";
   }
 
-  public String getLanguageVersion()
-  {
+  public String getLanguageVersion() {
     return "2.1";
   }
 
-  public String getMethodCallSyntax(String obj, String m, String[] args)
-  {
+  public String getMethodCallSyntax(String obj, String m, String... args) {
     throw new UnsupportedOperationException("getMethodCallSyntax");
   }
 
-  public List<String> getMimeTypes()
-  {
+  public List<String> getMimeTypes() {
     return mimeTypes;
   }
 
-  public List<String> getNames()
-  {
+  public List<String> getNames() {
     return names;
   }
 
-  public String getOutputStatement(String toDisplay)
-  {
+  public String getOutputStatement(String toDisplay) {
     StringBuilder statement = new StringBuilder();
-
     statement.append("out:print(\"");
 
-    int len = toDisplay.length();
-
-    for (int i = 0; i < len; ++i)
-    {
+    for (int i = 0, len = toDisplay.length(); i < len; ++i) {
       char ch = toDisplay.charAt(i);
-
-      switch (ch)
-      {
-        case '"':
-          statement.append("\\\"");
-
-          break;
-        case '\\':
-          statement.append("\\\\");
-
-          break;
-        default:
-          statement.append(ch);
+      switch (ch) {
+      case '"':
+        statement.append("\\\"");
+        break;
+      case '\\':
+        statement.append("\\\\");
+        break;
+      default:
+        statement.append(ch);
       }
-
     }
 
-    statement.append("\")");
-
-    return statement.toString();
+    return statement.append("\")").toString();
   }
 
-  public String getParameter(String key)
-  {
-    if (key.equals("javax.script.name"))
-    {
+  public String getParameter(String key) {
+    if (key.equals("javax.script.name")) {
       return getLanguageName();
     }
-    if (key.equals("javax.script.engine"))
-    {
+    if (key.equals("javax.script.engine")) {
       return getEngineName();
     }
-    if (key.equals("javax.script.engine_version"))
-    {
+    if (key.equals("javax.script.engine_version")) {
       return getEngineVersion();
     }
-    if (key.equals("javax.script.language"))
-    {
+    if (key.equals("javax.script.language")) {
       return getLanguageName();
     }
-    if (key.equals("javax.script.language_version"))
-    {
+    if (key.equals("javax.script.language_version")) {
       return getLanguageVersion();
     }
-    if (key.equals("THREADING"))
-    {
+    if (key.equals("THREADING")) {
       return "MULTITHREADED";
     }
 
     return null;
   }
 
-  public String getProgram(String[] statements)
-  {
+  public String getProgram(String... statements) {
     StringBuilder program = new StringBuilder();
 
-    if (statements.length != 0)
-    {
-      for (int i = 0; i < statements.length; ++i)
-      {
+    if (statements.length != 0) {
+      for (int i = 0; i < statements.length; ++i) {
         program.append("${");
-
         program.append(statements[i]);
-
         program.append("} ");
       }
-
     }
-
     return program.toString();
   }
 
-  public ScriptEngine getScriptEngine()
-  {
+  public ScriptEngine getScriptEngine() {
     return new JuelScriptEngine(this);
   }
 }

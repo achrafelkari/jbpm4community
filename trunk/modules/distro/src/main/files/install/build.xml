@@ -22,6 +22,7 @@
   <property name="install.src.dir" value="${jbpm.home}/install/src" />
   <property name="mail.cfg" value="default" />
 
+  <property name="hsql.bind.address" value="localhost" />
   <property name="jdbc.properties.dir" value="${jbpm.home}/install/jdbc" />
   <property file="${jdbc.properties.dir}/${database}.properties" />
 
@@ -185,8 +186,9 @@
           overwrite="true">
       <filterset filtersfile="${jdbc.properties.dir}/${database}.properties" />
     </copy>
-    <replace file="${cfg.dest.dir}/jbpm.hibernate.cfg.xml" token="jboss.bind.address"
-      value="${jboss.bind.address}" />
+    <replace file="${cfg.dest.dir}/jbpm.hibernate.cfg.xml"
+             token="$${hsql.bind.address}"
+             value="${hsql.bind.address}" />
     <copy todir="${cfg.dest.dir}" overwrite="true">
       <fileset dir="${install.src.dir}/cfg/logging/${logging}" />
     </copy>
@@ -319,6 +321,9 @@
         <include name="jbpm-${database}-ds.xml" />
       </fileset>
     </copy>
+    <replace file="${jboss.server.config.dir}/deploy/jbpm/jbpm-${database}-ds.xml"
+             token="$${hsql.bind.address}"
+             value="${hsql.bind.address}" />
 
     <!-- unzip console.war -->
     <mkdir dir="${jboss.server.config.dir}/deploy/jbpm/gwt-console-jbpm.war" />
@@ -409,17 +414,20 @@
   <target name="start.jboss"
           description="starts jboss and waits till jboss is booted, then lets jboss run in the background">
     <exec executable="${jboss.home}/bin/run.bat"
+          spawn="yes"
           os="Windows 7,Windows Vista,Windows XP,Windows 2000">
       <arg value="-b" />
       <arg value="${jboss.bind.address}" />
     </exec>
-    <exec executable="${jboss.home}/bin/run.sh" os="Linux,Mac OS X">
+    <exec executable="${jboss.home}/bin/run.sh" spawn="yes" os="Linux,Mac OS X">
       <arg value="-b" />
       <arg value="${jboss.bind.address}" />
     </exec>
-    <waitfor maxwait="5" maxwaitunit="minute" checkevery="30" checkeveryunit="second">
+    <waitfor maxwait="5" maxwaitunit="minute" checkevery="30" checkeveryunit="second"
+      timeoutproperty="jboss.timeout">
       <socket server="${jboss.bind.address}" port="8080" />
     </waitfor>
+    <fail if="jboss.timeout" message="jboss did not start within 5 minutes"/>
   </target>
 
   <!-- ### STOP JBOSS ################################################### -->
@@ -614,15 +622,17 @@
     <java classname="org.hsqldb.Server">
       <classpath location="${hsqldb.server.install.dir}/hsqldb.jar" />
       <arg value="-address" />
-      <arg value="${jboss.bind.address}" />
+      <arg value="${hsql.bind.address}" />
       <arg value="-port" />
       <arg value="1701" />
       <arg value="-dbname.0" />
       <arg value="jbpmDatabase" />
     </java>
-    <waitfor maxwait="1" maxwaitunit="minute" checkevery="10" checkeveryunit="second">
-      <socket server="${jboss.bind.address}" port="1701" />
+    <waitfor maxwait="1" maxwaitunit="minute" checkevery="10" checkeveryunit="second"
+      timeoutproperty="hsqldb.timeout">
+      <socket server="${hsql.bind.address}" port="1701" />
     </waitfor>
+    <fail if="hsqldb.timeout" message="hsqldb server did not start within one minute" />
   </target>
 
   <!-- ### SHUTDOWN HSQLDB SERVER ################################################ -->
@@ -659,11 +669,13 @@
           description="Signals Tomcat to stop, but doesn't wait till its finished">
     <exec executable="${tomcat.home}/bin/catalina.bat"
           dir="${tomcat.home}/bin"
+          spawn="yes"
           os="Windows 7,Windows Vista,Windows XP,Windows 2000">
       <arg value="stop" />
     </exec>
     <exec executable="${tomcat.home}/bin/catalina.sh"
           dir="${tomcat.home}/bin"
+          spawn="yes"
           os="Linux,Mac OS X">
       <arg value="stop" />
     </exec>
@@ -754,7 +766,7 @@
   <target name="hsqldb.databasemanager" description="start the hsqldb database manager">
     <java classname="org.hsqldb.util.DatabaseManager" fork="true">
       <arg value="-url" />
-      <arg value="jdbc:hsqldb:hsql://${jboss.bind.address}:1701" />
+      <arg value="jdbc:hsqldb:hsql://${hsql.bind.address}:1701" />
       <classpath>
         <fileset dir="${jbpm.home}/lib">
           <include name="hsqldb.jar" />
@@ -785,10 +797,9 @@
   <!-- ### START ECLIPSE ################################################## -->
   <target name="start.eclipse" description="starts eclipse">
     <!-- Windows -->
-    <exec executable="cmd" os="Windows 7,Windows Vista,Windows XP,Windows 2000">
-      <arg value="/C" />
-      <arg value="start" />
-      <arg value="${jbpm.home}/eclipse/eclipse.exe" />
+    <exec executable="${jbpm.home}/eclipse/eclipse.exe"
+          spawn="yes"
+          os="Windows 7,Windows Vista,Windows XP,Windows 2000">
       <arg value="-data" />
       <arg value="${jbpm.home}/workspace" />
     </exec>
@@ -797,21 +808,18 @@
       <fileset dir="${jbpm.home}/eclipse">
         <filename name="eclipse" />
       </fileset>
-      <fileset dir="${jbpm.home}/eclipse/Eclipse.app/Contents/MacOS/"> <!-- Path is different for OS X -->
+      <!-- Path is different for OS X -->
+      <fileset dir="${jbpm.home}/eclipse/Eclipse.app/Contents/MacOS/">
         <filename name="eclipse" />
       </fileset>
     </chmod>
-    <exec executable="/bin/bash" os="Linux">
-      <arg value="-c" />
-      <arg value="${jbpm.home}/eclipse/eclipse" />
+    <exec executable="${jbpm.home}/eclipse/eclipse" os="Linux">
       <arg value="-data" />
       <arg value="${jbpm.home}/workspace" />
     </exec>
-    <exec executable="/bin/bash" os="Mac OS X">
-      <arg value="-c" />
-      <arg value="${jbpm.home}/eclipse/Eclipse.app/Contents/MacOS/eclipse" />
+    <exec executable="${jbpm.home}/eclipse/Eclipse.app/Contents/MacOS/eclipse" os="Mac OS X">
       <arg value="-data" />
-      <arg value="${jbpm.home}/workspace"/>
+      <arg value="${jbpm.home}/workspace" />
     </exec>
   </target>
 

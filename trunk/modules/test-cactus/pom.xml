@@ -129,11 +129,6 @@
                       <version>1.1</version>
                     </artifactItem>
                     <artifactItem>
-                      <groupId>commons-logging</groupId>
-                      <artifactId>commons-logging</artifactId>
-                      <version>1.1</version>
-                    </artifactItem>
-                    <artifactItem>
                       <groupId>org.jbpm.jbpm4</groupId>
                       <artifactId>jbpm-examples</artifactId>
                       <classifier>tests</classifier>
@@ -199,11 +194,6 @@
                     <artifactItem>
                       <groupId>cactus</groupId>
                       <artifactId>cactus.integration.shared.api</artifactId>
-                    </artifactItem>
-                    <artifactItem>
-                      <groupId>commons-logging</groupId>
-                      <artifactId>commons-logging</artifactId>
-                      <version>1.1</version>
                     </artifactItem>
                     <artifactItem>
                       <groupId>commons-logging</groupId>
