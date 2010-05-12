@@ -34,6 +34,8 @@ import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.internet.MimeMessage;
 
+import junit.framework.Test;
+
 import org.jbpm.api.ProcessInstance;
 import org.jbpm.pvm.internal.util.IoUtil;
 import org.jbpm.test.JbpmTestCase;
@@ -45,19 +47,16 @@ import org.subethamail.wiser.WiserMessage;
  */
 public class AttachmentTest extends JbpmTestCase {
 
-  private Wiser wiser = new Wiser();
+  private static Wiser wiser = new Wiser();
 
-  protected void setUp() throws Exception {
-    super.setUp();
-    // start mail server
-    wiser.setPort(2525);
-    wiser.start();
+  @Override
+  protected void tearDown() throws Exception {
+    wiser.getMessages().clear();
+    super.tearDown();
   }
 
-  protected void tearDown() throws Exception {
-    // stop mail server
-    wiser.stop();
-    super.tearDown();
+  public static Test suite() {
+    return new MailTestSetup(AttachmentTest.class, wiser);
   }
 
   public void testVariableAttachment() throws MessagingException, IOException {

@@ -30,7 +30,9 @@ import java.io.Serializable;
 
 import org.jbpm.api.JbpmException;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
+import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.model.ScopeInstanceImpl;
+import org.jbpm.pvm.internal.repository.DeploymentObjectInputStream;
 import org.jbpm.pvm.internal.tx.DeserializedObject;
 import org.jbpm.pvm.internal.tx.Transaction;
 import org.jbpm.pvm.internal.type.Converter;
@@ -71,7 +73,11 @@ public class SerializableToBytesConverter implements Converter {
     byte[] bytes = (byte[]) o;
     try {
       ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-      ObjectInputStream ois = new ObjectInputStream(bais);
+
+      ObjectInputStream ois = null;
+     
+      ois = new DeploymentObjectInputStream(bais, scopeInstance.getExecution().getProcessDefinition().getDeploymentId());
+      
       Object object = ois.readObject();
       
       Transaction transaction = EnvironmentImpl.getFromCurrent(Transaction.class, false);
