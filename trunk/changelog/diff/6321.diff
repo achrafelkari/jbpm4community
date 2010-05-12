@@ -1,0 +1,41 @@
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/repository/RepositoryServiceImpl.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/repository/RepositoryServiceImpl.java	(revision 6320)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/repository/RepositoryServiceImpl.java	(revision 6321)
+@@ -45,22 +45,21 @@
+ import org.jbpm.pvm.internal.cmd.UpdateDeploymentResourceCmd;
+ import org.jbpm.pvm.internal.query.DeploymentQueryImpl;
+ import org.jbpm.pvm.internal.query.ProcessDefinitionQueryImpl;
++import org.jbpm.pvm.internal.svc.AbstractServiceImpl;
+ 
+ /**
+  * @author Tom Baeyens
+  */
+-public class RepositoryServiceImpl implements RepositoryService {
+-  
+-  CommandService commandService;
+-  
++public class RepositoryServiceImpl extends AbstractServiceImpl implements RepositoryService {
++
+   public NewDeployment createDeployment() {
+     return new DeploymentImpl(commandService);
+   }
+-  
++
+   public void suspendDeployment(String deploymentId) {
+     commandService.execute(new SuspendDeploymentCmd(deploymentId));
+   }
+-  
++
+   public void resumeDeployment(String deploymentId) {
+     commandService.execute(new ResumeDeploymentCmd(deploymentId));
+   }
+@@ -72,7 +71,7 @@
+   public void deleteDeploymentCascade(String deploymentId) {
+     commandService.execute(new DeleteDeploymentCmd(deploymentId, true));
+   }
+-  
++
+   public Set<String> getResourceNames(String deploymentId) {
+     return commandService.execute(new GetDeploymentResourceNamesCmd(deploymentId));
+   }
