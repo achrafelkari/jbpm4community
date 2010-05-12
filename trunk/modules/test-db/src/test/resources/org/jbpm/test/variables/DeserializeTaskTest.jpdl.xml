@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process name="DeserializeTaskTest" xmlns="http://jbpm.org/4.3/jpdl">
+
+	<start g="13,137,48,48" name="start1">
+		<transition g="-23,-17" name="to java1" to="java1"/>
+	</start>
+	<task g="256,133,92,52" name="task1" assignee="alex">
+      <transition g="-27,-17" name="to end1" to="end1"/>
+	</task>
+	<end g="416,137,48,48" name="end1"/>
+   <java class="org.jbpm.test.variables.Bean" g="116,134,92,52" method="getResult" name="java1" var="bean">
+      <transition g="-23,-17" name="to task1" to="task1"/>
+   </java>
+</process>
