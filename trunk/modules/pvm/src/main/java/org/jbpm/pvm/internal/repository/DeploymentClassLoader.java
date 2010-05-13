@@ -32,29 +32,29 @@ import java.net.URLStreamHandler;
 import org.jbpm.api.JbpmException;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.session.RepositorySession;
-import org.jbpm.pvm.internal.util.IoUtil;
-
 
 /**
  * @author Tom Baeyens
  */
 public class DeploymentClassLoader extends ClassLoader {
 
-  private String deploymentId = null;
+  private final String deploymentId;
 
-  public DeploymentClassLoader(ClassLoader parent, String deploymentId ) {
+  public DeploymentClassLoader(ClassLoader parent, String deploymentId) {
     super(parent);
     this.deploymentId = deploymentId;
   }
 
+  @Override
   public URL findResource(String name) {
     URL url = null;
     byte[] bytes = getDeployment().getBytes(name);
-    if (bytes!=null) {
-      InputStream inputStream = new ByteArrayInputStream(bytes);
+    if (bytes != null) {
       try {
-        url = new URL(null, "jbpm://"+deploymentId+"/"+name, new BytesUrlStreamHandler(inputStream));
-      } catch (MalformedURLException e) {
+        url =
+          new URL(null, "jbpm://" + deploymentId + "/" + name, new BytesUrlStreamHandler(bytes));
+      }
+      catch (MalformedURLException e) {
         throw new JbpmException("couldn't create url", e);
       }
     }
@@ -62,63 +62,74 @@ public class DeploymentClassLoader extends ClassLoader {
   }
 
   protected DeploymentImpl getDeployment() {
-    RepositorySession repositorySession = EnvironmentImpl.getFromCurrent(RepositorySession.class);
+    RepositorySession repositorySession =
+      EnvironmentImpl.getFromCurrent(RepositorySession.class);
     return repositorySession.getDeployment(deploymentId);
   }
-  
-  public static class BytesUrlStreamHandler extends URLStreamHandler {
-    InputStream inputStream;
-    public BytesUrlStreamHandler(InputStream inputStream) {
-      this.inputStream = inputStream;
+
+  private static class BytesUrlStreamHandler extends URLStreamHandler {
+
+    private final byte[] bytes;
+
+    public BytesUrlStreamHandler(byte[] bytes) {
+      this.bytes = bytes;
     }
+
+    @Override
     protected URLConnection openConnection(URL u) throws IOException {
-      return new BytesUrlConnection(inputStream, u);
+      return new BytesUrlConnection(bytes, u);
     }
   }
 
-  public static class BytesUrlConnection extends URLConnection {
-    InputStream inputStream;
-    public BytesUrlConnection(InputStream inputStream, URL url) {
+  private static class BytesUrlConnection extends URLConnection {
+
+    private final byte[] bytes;
+
+    public BytesUrlConnection(byte[] bytes, URL url) {
       super(url);
-      this.inputStream = inputStream;
+      this.bytes = bytes;
     }
+
+    @Override
     public void connect() throws IOException {
     }
+
+    @Override
     public InputStream getInputStream() throws IOException {
-      return inputStream;
+      return new ByteArrayInputStream(bytes);
     }
   }
 
-  public Class findClass(String name) throws ClassNotFoundException {
-    Class clazz = null;
+  @Override
+  public Class<?> findClass(String name) throws ClassNotFoundException {
+    // find class bytecode
+    String fileName = name.replace('.', '/') + ".class";
+    byte[] bytecode = getDeployment().getBytes(fileName);
+    if (bytecode == null) {
+      throw new ClassNotFoundException(name);
+    }
 
-    String fileName = name.replace( '.', '/' ) + ".class";
-    byte[] bytes = getDeployment().getBytes(fileName);
-    if (bytes!=null) {
-      try {
-        InputStream inputStream = new ByteArrayInputStream(bytes);
-        byte[] classBytes = IoUtil.readBytes(inputStream);
-        clazz = defineClass(name, classBytes, 0, classBytes.length);
+    // define class
+    Class<?> clazz = defineClass(name, bytecode, 0, bytecode.length);
 
-        // Add the package information
-        final int packageIndex = name.lastIndexOf('.');
-        if (packageIndex != -1) {
-          final String packageName = name.substring(0, packageIndex);
-          final Package classPackage = getPackage(packageName);
-          if (classPackage == null) {
-            definePackage(packageName, null, null, null, null, null, null, null);
-          }
+    // define package, if not defined already
+    int packageIndex = name.lastIndexOf('.');
+    if (packageIndex != -1) {
+      String packageName = name.substring(0, packageIndex);
+      Package classPackage = getPackage(packageName);
+      if (classPackage == null) {
+        Package myPackage = getClass().getPackage();
+        if (myPackage != null) {
+          definePackage(packageName, myPackage.getSpecificationTitle(),
+            myPackage.getSpecificationVersion(), myPackage.getSpecificationVendor(),
+            myPackage.getImplementationTitle(), myPackage.getImplementationVersion(),
+            myPackage.getImplementationVendor(), null);
         }
-
-      } catch (JbpmException e) {
-        clazz = null;
+        else {
+          definePackage(packageName, null, null, null, null, null, null, null);
+        }
       }
     }
-
-    if (clazz==null) {
-      throw new ClassNotFoundException("class '"+name+"' could not be found in deployment "+deploymentId);
-    }
-
     return clazz;
   }
 }

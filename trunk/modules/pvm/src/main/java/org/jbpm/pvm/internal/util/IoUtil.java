@@ -22,45 +22,46 @@
 package org.jbpm.pvm.internal.util;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import org.jbpm.api.JbpmException;
+import org.jbpm.internal.log.Log;
 
-public abstract class IoUtil {
+public class IoUtil {
 
   public static final int BUFFERSIZE = 4096;
+  private static final Log log = Log.getLog(IoUtil.class.getName());
 
-  public static byte[] readBytes(InputStream inputStream) {
-    byte[] bytes = null;
-    if (inputStream==null) {
-      throw new JbpmException("inputStream is null");
-    }
-    try {
-      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      transfer(inputStream, outputStream);
-      bytes = outputStream.toByteArray();
-      outputStream.close();
-      return bytes;
-    } catch (IOException e) {
-      throw new JbpmException("couldn't read bytes from inputStream", e);
+  private IoUtil() {
+    // prevent instantiation
+  }
+
+  public static byte[] readBytes(InputStream in) throws IOException {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    transfer(in, out);
+    return out.toByteArray();
+  }
+
+  public static void close(Closeable closeable) {
+    if (closeable != null) {
+      try {
+        closeable.close();
+      }
+      catch (IOException e) {
+        if (log.isDebugEnabled()) log.debug("failed to close stream", e);
+      }
     }
   }
-  
-  public static int transfer(InputStream in, OutputStream out) {
-    int total = 0;
+
+  public static long transfer(InputStream in, OutputStream out) throws IOException {
+    long total = 0;
     byte[] buffer = new byte[BUFFERSIZE];
-    try {
-      int bytesRead = in.read( buffer );
-      while ( bytesRead != -1 ) {
-        out.write( buffer, 0, bytesRead );
-        total += bytesRead;
-        bytesRead = in.read( buffer );
-      }
-      return total;
-    } catch (IOException e) {
-      throw new JbpmException("couldn't write bytes to output stream", e);
+    for (int count; (count = in.read(buffer)) != -1;) {
+      out.write(buffer, 0, count);
+      total += count;
     }
+    return total;
   }
 }

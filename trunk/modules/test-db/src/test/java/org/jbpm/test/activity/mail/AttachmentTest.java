@@ -77,14 +77,21 @@ public class AttachmentTest extends JbpmTestCase {
       + "  <end name='end'/>"
       + "</process>");
 
-    byte[] strip = IoUtil.readBytes(getClass().getResourceAsStream("strip.gif"));
+    InputStream resourceStream = getClass().getResourceAsStream("strip.gif");
+    try {
+      byte[] strip = IoUtil.readBytes(resourceStream);
 
-    // start process instance
-    ProcessInstance processInstance = executionService.startProcessInstanceByKey("varattachment", Collections.singletonMap("strip", strip));
-    assertProcessInstanceEnded(processInstance);
+      // start process instance
+      ProcessInstance processInstance = executionService
+        .startProcessInstanceByKey("varattachment", Collections.singletonMap("strip", strip));
+      assertProcessInstanceEnded(processInstance);
 
-    // examine produced messages
-    examineMessages(wiser.getMessages());
+      // examine produced messages
+      examineMessages(wiser.getMessages());
+    }
+    finally {
+      IoUtil.close(resourceStream);
+    }
   }
 
   public void testFileAttachment() throws MessagingException, IOException, URISyntaxException {
@@ -110,7 +117,8 @@ public class AttachmentTest extends JbpmTestCase {
       + "</process>");
 
     // start process instance
-    ProcessInstance processInstance = executionService.startProcessInstanceByKey("fileattachment");
+    ProcessInstance processInstance = executionService
+      .startProcessInstanceByKey("fileattachment");
     assertProcessInstanceEnded(processInstance);
 
     // examine produced messages
@@ -140,7 +148,8 @@ public class AttachmentTest extends JbpmTestCase {
       + "</process>");
 
     // start process instance
-    ProcessInstance processInstance = executionService.startProcessInstanceByKey("urlattachment");
+    ProcessInstance processInstance = executionService
+      .startProcessInstanceByKey("urlattachment");
     assertProcessInstanceEnded(processInstance);
 
     // examine produced messages
@@ -166,7 +175,8 @@ public class AttachmentTest extends JbpmTestCase {
       + "</process>");
 
     // start process instance
-    ProcessInstance processInstance = executionService.startProcessInstanceByKey("resattachment");
+    ProcessInstance processInstance = executionService
+      .startProcessInstanceByKey("resattachment");
     assertProcessInstanceEnded(processInstance);
 
     // examine produced messages

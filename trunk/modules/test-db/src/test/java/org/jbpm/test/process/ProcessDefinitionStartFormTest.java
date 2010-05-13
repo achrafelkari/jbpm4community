@@ -21,6 +21,7 @@
  */
 package org.jbpm.test.process;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,83 +30,80 @@ import org.jbpm.api.ProcessDefinition;
 import org.jbpm.pvm.internal.util.IoUtil;
 import org.jbpm.test.JbpmTestCase;
 
-
 /**
  * @author Tom Baeyens
  */
 public class ProcessDefinitionStartFormTest extends JbpmTestCase {
-  
-  public void testFormInUnnamedStartActivity() {
-    String deploymentDbid =
-      repositoryService.createDeployment()
-          .addResourceFromString("xmlstring.jpdl.xml",       
-            "<process name='make print'>" +
-            "  <start form='org/jbpm/test/process/ProcessDefinitionStartForm.form' />" +
-            "</process>"
-          )
-          .addResourceFromClasspath("org/jbpm/test/process/ProcessDefinitionStartForm.form")       
-          .deploy();
 
+  public void testFormInUnnamedStartActivity() throws IOException {
+    String deploymentDbid = repositoryService
+      .createDeployment()
+      .addResourceFromString("xmlstring.jpdl.xml", "<process name='make print'>"
+        + "  <start form='org/jbpm/test/process/ProcessDefinitionStartForm.form' />"
+        + "</process>")
+      .addResourceFromClasspath("org/jbpm/test/process/ProcessDefinitionStartForm.form")
+      .deploy();
     registerDeployment(deploymentDbid);
 
-    ProcessDefinition processDefinition = 
-      repositoryService
-        .createProcessDefinitionQuery()
-        .processDefinitionName("make print")
-        .uniqueResult();
-    
+    ProcessDefinition processDefinition = repositoryService
+      .createProcessDefinitionQuery()
+      .processDefinitionName("make print")
+      .uniqueResult();
     String processDefinitionId = processDefinition.getId();
-    
-    List<String> startActivityNames = repositoryService.getStartActivityNames(processDefinitionId );
+
+    List<String> startActivityNames = repositoryService
+      .getStartActivityNames(processDefinitionId);
     List<String> expectedStartActivityNames = new ArrayList<String>();
     expectedStartActivityNames.add(null);
-    
     assertEquals(expectedStartActivityNames, startActivityNames);
 
-    String startFormResourceName = repositoryService.getStartFormResourceName(processDefinitionId, null);
-    
+    String startFormResourceName = repositoryService
+      .getStartFormResourceName(processDefinitionId, null);
     assertEquals("org/jbpm/test/process/ProcessDefinitionStartForm.form", startFormResourceName);
-    
-    InputStream formInputStream = repositoryService.getResourceAsStream(processDefinition.getDeploymentId(), startFormResourceName);
-    
-    String formContents = new String(IoUtil.readBytes(formInputStream));
-    assertEquals("start task form", formContents);
+
+    InputStream formStream = repositoryService.getResourceAsStream(processDefinition
+      .getDeploymentId(), startFormResourceName);
+    try {
+      assertEquals("start task form", new String(IoUtil.readBytes(formStream)));
+    }
+    finally {
+      IoUtil.close(formStream);
+    }
   }
 
-  public void testFormInNamedStartActivity() {
-    String deploymentDbid =
-      repositoryService.createDeployment()
-          .addResourceFromString("xmlstring.jpdl.xml",       
-            "<process name='make print'>" +
-            "  <start name='start' form='org/jbpm/test/process/ProcessDefinitionStartForm.form' />" +
-            "</process>"
-          )
-          .addResourceFromClasspath("org/jbpm/test/process/ProcessDefinitionStartForm.form")       
-          .deploy();
-
+  public void testFormInNamedStartActivity() throws IOException {
+    String deploymentDbid = repositoryService
+      .createDeployment()
+      .addResourceFromString("xmlstring.jpdl.xml", "<process name='make print'>"
+        + "  <start name='start' form='org/jbpm/test/process/ProcessDefinitionStartForm.form' />"
+        + "</process>")
+      .addResourceFromClasspath("org/jbpm/test/process/ProcessDefinitionStartForm.form")
+      .deploy();
     registerDeployment(deploymentDbid);
 
-    ProcessDefinition processDefinition = 
-      repositoryService
-        .createProcessDefinitionQuery()
-        .processDefinitionName("make print")
-        .uniqueResult();
-    
+    ProcessDefinition processDefinition = repositoryService
+      .createProcessDefinitionQuery()
+      .processDefinitionName("make print")
+      .uniqueResult();
     String processDefinitionId = processDefinition.getId();
-    
-    List<String> startActivityNames = repositoryService.getStartActivityNames(processDefinitionId );
+
+    List<String> startActivityNames = repositoryService
+      .getStartActivityNames(processDefinitionId);
     List<String> expectedStartActivityNames = new ArrayList<String>();
     expectedStartActivityNames.add("start");
-    
     assertEquals(expectedStartActivityNames, startActivityNames);
 
-    String startFormResourceName = repositoryService.getStartFormResourceName(processDefinitionId, "start");
-    
+    String startFormResourceName = repositoryService
+      .getStartFormResourceName(processDefinitionId, "start");
     assertEquals("org/jbpm/test/process/ProcessDefinitionStartForm.form", startFormResourceName);
-    
-    InputStream formInputStream = repositoryService.getResourceAsStream(processDefinition.getDeploymentId(), startFormResourceName);
-    
-    String formContents = new String(IoUtil.readBytes(formInputStream));
-    assertEquals("start task form", formContents);
+
+    InputStream formStream = repositoryService.getResourceAsStream(processDefinition
+      .getDeploymentId(), startFormResourceName);
+    try {
+      assertEquals("start task form", new String(IoUtil.readBytes(formStream)));
+    }
+    finally {
+      IoUtil.close(formStream);
+    }
   }
 }

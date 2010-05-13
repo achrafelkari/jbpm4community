@@ -489,7 +489,7 @@ public class JpdlParser extends Parser {
     Element descriptionElement = XmlUtil.element(element, "description");
     if (descriptionElement!=null) {
       String descriptionText = XmlUtil.getContentText(descriptionElement);
-      Expression descriptionExpression = Expression.create(descriptionText, Expression.LANGUAGE_UEL);
+      Expression descriptionExpression = Expression.create(descriptionText, Expression.LANGUAGE_UEL_VALUE);
       assignableDefinition.setDescription(descriptionExpression);
     }
   

@@ -21,6 +21,7 @@
  */
 package org.jbpm.db;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,23 +52,31 @@ public abstract class DbHelper {
   public static void executeSqlResource(String resource, Session session) {
     InputStream stream = Upgrade.class.getClassLoader().getResourceAsStream(resource);
     if (stream == null) {
-      throw new JbpmException("resource "+resource+" does not exist");
+      throw new JbpmException("resource not found: " + resource);
     }
 
-    byte[] bytes = IoUtil.readBytes(stream);
-    String fileContents = new String(bytes);
-    List<String> commands = extractCommands(fileContents);
-    
-    log.info("--- Executing DB Commands -------------------------");
-    for (String command: commands) {
-      log.info(command);
-      try {
-        int result = session.createSQLQuery(command).executeUpdate();
-        log.info("--- Result: "+result+" --------------------------");
-      } catch (Exception e) {
-        e.printStackTrace();
-        log.info("-----------------------------------------------");
+    try {
+      byte[] bytes = IoUtil.readBytes(stream);
+      String fileContents = new String(bytes);
+      List<String> commands = extractCommands(fileContents);
+      
+      log.info("--- Executing DB Commands -------------------------");
+      for (String command: commands) {
+        log.info(command);
+        try {
+          int result = session.createSQLQuery(command).executeUpdate();
+          log.info("--- Result: "+result+" --------------------------");
+        } catch (Exception e) {
+          e.printStackTrace();
+          log.info("-----------------------------------------------");
+        }
       }
+    }
+    catch (IOException e) {
+      throw new JbpmException("could not read resource: " + resource, e);
+    }
+    finally {
+      IoUtil.close(stream);
     }
   }
 

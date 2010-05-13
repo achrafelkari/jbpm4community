@@ -30,30 +30,30 @@ import java.io.ObjectStreamClass;
  * Helper class responsible for providing classes while deserializing variables.
  * 
  * @author Maciej Swiderski swiderski.maciej@gmail.com
- *
  */
 public class DeploymentObjectInputStream extends ObjectInputStream {
 
-  private String deploymentId;
-  
-  public DeploymentObjectInputStream(InputStream stream, String deploymentId) throws IOException {
+  private final String deploymentId;
+
+  public DeploymentObjectInputStream(InputStream stream, String deploymentId)
+    throws IOException {
     super(stream);
     this.deploymentId = deploymentId;
   }
 
   @Override
-  protected Class< ? > resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-    
+  protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException,
+    ClassNotFoundException {
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
     try {
-      Class< ? > clazz = Class.forName(desc.getName(), true, Thread.currentThread().getContextClassLoader());
-      return clazz;
-    } catch (ClassNotFoundException e) {
-      //trying to get it from deployment
-      DeploymentClassLoader cl = new DeploymentClassLoader(Thread.currentThread().getContextClassLoader(), deploymentId);
-      return Class.forName(desc.getName(), true, cl);
+      return Class.forName(desc.getName(), false, contextClassLoader);
+    }
+    catch (ClassNotFoundException e) {
+      // trying to get it from deployment
+      ClassLoader deploymentClassLoader =
+        new DeploymentClassLoader(contextClassLoader, deploymentId);
+      return Class.forName(desc.getName(), false, deploymentClassLoader);
     }
   }
-  
-  
 
 }
