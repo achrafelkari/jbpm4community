@@ -24,6 +24,9 @@
  */
 package org.jbpm.test.task;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jbpm.api.ProcessDefinition;
 import org.jbpm.api.task.Task;
 import org.jbpm.test.JbpmTestCase;
@@ -33,6 +36,7 @@ import org.jbpm.test.JbpmTestCase;
  * Testcase to check if properties can be resolved through a {@link Task}.
  * 
  * @author Joram Barrez
+ * @author Ronald van Kuijk
  */
 public class TaskPropertiesTest extends JbpmTestCase {
   
@@ -50,6 +54,7 @@ public class TaskPropertiesTest extends JbpmTestCase {
     "    <transition to='work hard for the money' />" +
     "  </fork>" +
     "  <task name='select destination' assignee='" + ACTOR + "'>" +
+    " <description>Description for 'select destination' with #{timeframe}</description>" +
     "    <transition to='wait' />" +
     "  </task>" +
     "  <task name='work hard for the money' assignee='" + ACTOR2 + "_not_the_same'>" +
@@ -61,6 +66,11 @@ public class TaskPropertiesTest extends JbpmTestCase {
   public void testGetActivityName() {
     Task task = startProcessInstanceAndReturnTaskFor(ACTOR);
     assertEquals("select destination", task.getActivityName()); 
+  }
+   
+  public void testGetDescription() {
+    Task task = startProcessInstanceAndReturnTaskFor(ACTOR);
+    assertEquals("Description for 'select destination' with Springbreak", task.getDescription());
   }
   
   public void testGetProcessDefinitionThroughTask() {
@@ -75,7 +85,10 @@ public class TaskPropertiesTest extends JbpmTestCase {
   
   private Task startProcessInstanceAndReturnTaskFor(String actor) {
     deployJpdlXmlString(PROCESS);
-    executionService.startProcessInstanceByKey("VacationTrip");
+    Map<String, String> vars = new HashMap<String, String>();
+    vars.put("timeframe", "Springbreak");
+    executionService.startProcessInstanceByKey("VacationTrip", vars);
+ 
     return taskService.findPersonalTasks(actor).get(0);
   }
 

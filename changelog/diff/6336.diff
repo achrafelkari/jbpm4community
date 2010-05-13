@@ -1,0 +1,67 @@
+Index: modules/jpdl/src/main/java/org/jbpm/jpdl/internal/xml/JpdlParser.java
+===================================================================
+--- modules/jpdl/src/main/java/org/jbpm/jpdl/internal/xml/JpdlParser.java	(revision 6335)
++++ modules/jpdl/src/main/java/org/jbpm/jpdl/internal/xml/JpdlParser.java	(revision 6336)
+@@ -489,7 +489,7 @@
+     Element descriptionElement = XmlUtil.element(element, "description");
+     if (descriptionElement!=null) {
+       String descriptionText = XmlUtil.getContentText(descriptionElement);
+-      Expression descriptionExpression = Expression.create(descriptionText, Expression.LANGUAGE_UEL);
++      Expression descriptionExpression = Expression.create(descriptionText, Expression.LANGUAGE_UEL_VALUE);
+       assignableDefinition.setDescription(descriptionExpression);
+     }
+   
+Index: modules/test-db/src/test/java/org/jbpm/test/task/TaskPropertiesTest.java
+===================================================================
+--- modules/test-db/src/test/java/org/jbpm/test/task/TaskPropertiesTest.java	(revision 6335)
++++ modules/test-db/src/test/java/org/jbpm/test/task/TaskPropertiesTest.java	(revision 6336)
+@@ -24,6 +24,9 @@
+  */
+ package org.jbpm.test.task;
+ 
++import java.util.HashMap;
++import java.util.Map;
++
+ import org.jbpm.api.ProcessDefinition;
+ import org.jbpm.api.task.Task;
+ import org.jbpm.test.JbpmTestCase;
+@@ -33,6 +36,7 @@
+  * Testcase to check if properties can be resolved through a {@link Task}.
+  * 
+  * @author Joram Barrez
++ * @author Ronald van Kuijk
+  */
+ public class TaskPropertiesTest extends JbpmTestCase {
+   
+@@ -50,6 +54,7 @@
+     "    <transition to='work hard for the money' />" +
+     "  </fork>" +
+     "  <task name='select destination' assignee='" + ACTOR + "'>" +
++    " <description>Description for 'select destination' with #{timeframe}</description>" +
+     "    <transition to='wait' />" +
+     "  </task>" +
+     "  <task name='work hard for the money' assignee='" + ACTOR2 + "_not_the_same'>" +
+@@ -62,6 +67,11 @@
+     Task task = startProcessInstanceAndReturnTaskFor(ACTOR);
+     assertEquals("select destination", task.getActivityName()); 
+   }
++   
++  public void testGetDescription() {
++    Task task = startProcessInstanceAndReturnTaskFor(ACTOR);
++    assertEquals("Description for 'select destination' with Springbreak", task.getDescription());
++  }
+   
+   public void testGetProcessDefinitionThroughTask() {
+     Task task = startProcessInstanceAndReturnTaskFor(ACTOR);
+@@ -75,7 +85,10 @@
+   
+   private Task startProcessInstanceAndReturnTaskFor(String actor) {
+     deployJpdlXmlString(PROCESS);
+-    executionService.startProcessInstanceByKey("VacationTrip");
++    Map<String, String> vars = new HashMap<String, String>();
++    vars.put("timeframe", "Springbreak");
++    executionService.startProcessInstanceByKey("VacationTrip", vars);
++ 
+     return taskService.findPersonalTasks(actor).get(0);
+   }
+ 

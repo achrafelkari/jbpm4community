@@ -1,0 +1,66 @@
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/model/ExecutionImpl.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/model/ExecutionImpl.java	(revision 6334)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/model/ExecutionImpl.java	(revision 6335)
+@@ -837,6 +837,12 @@
+   public SwimlaneImpl getInitializedSwimlane(SwimlaneDefinitionImpl swimlaneDefinition) {
+     String swimlaneName = swimlaneDefinition.getName();
+     SwimlaneImpl swimlane = swimlanes.get(swimlaneName);
++
++    // lookup in parent execution
++    if ((swimlane == null) && (parent != null)) {
++      swimlane = parent.getInitializedSwimlane(swimlaneDefinition);
++    }
++
+     if (swimlane==null) {
+       swimlane = createSwimlane(swimlaneName);
+       initializeAssignments(swimlaneDefinition, swimlane);
+Index: modules/test-db/src/test/java/org/jbpm/test/activity/task/TaskSwimlaneTest.java
+===================================================================
+--- modules/test-db/src/test/java/org/jbpm/test/activity/task/TaskSwimlaneTest.java	(revision 6334)
++++ modules/test-db/src/test/java/org/jbpm/test/activity/task/TaskSwimlaneTest.java	(revision 6335)
+@@ -23,6 +23,7 @@
+ 
+ import java.util.List;
+ 
++import org.jbpm.api.ProcessInstance;
+ import org.jbpm.api.task.Task;
+ import org.jbpm.test.JbpmTestCase;
+ 
+@@ -94,4 +95,36 @@
+     assertEquals(0, executionService.createProcessInstanceQuery().count());
+     assertEquals(0, taskService.createTaskQuery().count());
+   }
++
++  public void testTaskParse() {
++    deployJpdlXmlString(
++      "<process name='Swimlane' xmlns='http://jbpm.org/4.3/jpdl'>"
++      + "<swimlane name='user'/>"
++      + "<start g='168,19,48,48' name='start1'>"
++      + "  <transition g='-61,-18' name='to FirstTask' to='FirstTask'/>"
++      + "</start>"
++      + "<task g='155,86,92,52' name='FirstTask' swimlane='user'>"
++      + "  <transition g='-64,-18' name='to timerTask' to='timerTask'/>"
++      + "</task>"
++      + "<task g='157,228,92,52' name='timerTask' swimlane='user'>"
++      + "  <transition g='-42,-18' name='to end1' to='end1'>"
++      + "    <timer duedate='30 seconds' />"
++      + "  </transition>"
++      + "</task>"
++      + "<end g='176,330,48,48' name='end1'/>"
++      + "</process>");
++
++    ProcessInstance processInstance = executionService.startProcessInstanceByKey("Swimlane");
++    Task firstTask = taskService.createTaskQuery().processInstanceId(processInstance.getId()).uniqueResult();
++
++    taskService.assignTask(firstTask.getId(), "alex");
++    firstTask = taskService.getTask(firstTask.getId());
++    assertEquals("alex", firstTask.getAssignee());
++    assertEquals("FirstTask", firstTask.getName());
++    taskService.completeTask(firstTask.getId());
++
++    Task timerTask = taskService.createTaskQuery().processInstanceId(processInstance.getId()).uniqueResult();
++    assertEquals("timerTask", timerTask.getName());
++    assertEquals("alex", timerTask.getAssignee());
++  }
+ }

@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectStreamException;
-import java.io.Serializable;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,19 +52,18 @@ import org.jbpm.pvm.internal.stream.UrlStreamInput;
 import org.jbpm.pvm.internal.util.IoUtil;
 import org.jbpm.pvm.internal.xml.ProblemList;
 
-
 /**
  * @author Tom Baeyens
  */
-public class DeploymentImpl extends ProblemList implements NewDeployment, Serializable {
-  
+public class DeploymentImpl extends ProblemList implements NewDeployment {
+
   private static final long serialVersionUID = 1L;
 
   public static final String KEY_PROCESS_LANGUAGE_ID = "langid";
   public static final String KEY_PROCESS_DEFINITION_ID = "pdid";
   public static final String KEY_PROCESS_DEFINITION_KEY = "pdkey";
   public static final String KEY_PROCESS_DEFINITION_VERSION = "pdversion";
-  
+
   protected long dbid;
   protected String name;
   protected long timestamp;
@@ -82,15 +80,16 @@ public class DeploymentImpl extends ProblemList implements NewDeployment, Serial
   public DeploymentImpl(CommandService commandService) {
     this.commandService = commandService;
   }
-  
+
+  @Override
   public String toString() {
-    return "deployment("+dbid+")";
+    return "deployment(" + dbid + ")";
   }
-  
+
   public String deploy() {
     return commandService.execute(new DeployCmd(this));
   }
-  
+
   public NewDeployment addResourceFromClasspath(String resourceName) {
     addResourceFromStreamInput(resourceName, new ResourceStreamInput(resourceName));
     return this;
@@ -100,20 +99,24 @@ public class DeploymentImpl extends ProblemList implements NewDeployment, Serial
     addResourceFromStreamInput(resourceName, new StringStreamInput(text));
     return this;
   }
-  
+
   public NewDeployment addResourcesFromZipInputStream(ZipInputStream zipInputStream) {
     try {
       ZipEntry zipEntry = zipInputStream.getNextEntry();
-      while(zipEntry!=null) {
+      while (zipEntry != null) {
         String entryName = zipEntry.getName();
         byte[] bytes = IoUtil.readBytes(zipInputStream);
-        if (bytes!=null) {
+        if (bytes != null) {
           addResourceFromStreamInput(entryName, new ByteArrayStreamInput(bytes));
         }
         zipEntry = zipInputStream.getNextEntry();
       }
-    } catch (Exception e) {
+    }
+    catch (IOException e) {
       throw new JbpmException("couldn't read zip archive", e);
+    }
+    finally {
+      IoUtil.close(zipInputStream);
     }
     return this;
   }
@@ -134,51 +137,52 @@ public class DeploymentImpl extends ProblemList implements NewDeployment, Serial
   }
 
   public NewDeployment addResourceFromStreamInput(String name, StreamInput streamInput) {
-    if (resources==null) {
+    if (resources == null) {
       resources = new HashMap<String, Lob>();
     }
-    byte[] bytes = null;
+    InputStream inputStream = streamInput.openStream();
     try {
-      InputStream inputStream = streamInput.openStream();
-      bytes = IoUtil.readBytes(inputStream);
-      inputStream.close();
-    } catch (IOException e) {
-      throw new JbpmException("couldn't read from "+streamInput, e);
+      byte[] bytes = IoUtil.readBytes(inputStream);
+
+      // Since this method is probably called outside an environment block, we
+      // need to generate the dbid of the Lob later (during the actual deployment).
+      Lob lob = new Lob(bytes, false);
+      resources.put(name, lob);
     }
-    
-    // Since this method is probably called outside an environment block, we 
-    // need to generate the dbid of the Lob later (during the actual deployment).
-    Lob lob = new Lob(bytes, false); 
-    resources.put(name, lob);
-    
+    catch (IOException e) {
+      throw new JbpmException("couldn't read from " + name, e);
+    }
+    finally {
+      IoUtil.close(inputStream);
+    }
+
     return this;
   }
 
   public Set<String> getResourceNames() {
-    if (resources==null) {
+    if (resources == null) {
       return Collections.emptySet();
     }
     return resources.keySet();
   }
-  
+
   /**
-   * This method should be called before saving the deployment. It will assign a
-   * generated dbid to the resource Lobs.
+   * This method should be called before saving the deployment. It will assign a generated dbid
+   * to the resource Lobs.
    * 
-   * Note: when using a database, this method must be called within an
-   * environment block!
+   * Note: when using a database, this method must be called within an environment block!
    */
   public void initResourceLobDbids() {
     for (Lob resource : resources.values()) {
       long resourceDbid = DbidGenerator.getDbidGenerator().getNextId();
-      resource.setDbid(resourceDbid);      
+      resource.setDbid(resourceDbid);
     }
   }
-  
+
   public byte[] getBytes(String resourceName) {
-    if (resources!=null) {
+    if (resources != null) {
       Lob lob = resources.get(resourceName);
-      if (lob!=null) {
+      if (lob != null) {
         return lob.extractBytes();
       }
     }
@@ -186,18 +190,18 @@ public class DeploymentImpl extends ProblemList implements NewDeployment, Serial
   }
 
   public void addObject(String objectName, Object object) {
-    if (objects==null) {
+    if (objects == null) {
       objects = new HashMap<String, Object>();
     }
     objects.put(objectName, object);
   }
-  
+
   // object properties ////////////////////////////////////////////////////////
-  
+
   public void setProcessDefinitionId(String processDefinitionName, String processDefinitionId) {
     setObjectProperty(processDefinitionName, KEY_PROCESS_DEFINITION_ID, processDefinitionId);
   }
-  
+
   public String getProcessDefinitionId(String processDefinitionName) {
     return (String) getObjectProperty(processDefinitionName, KEY_PROCESS_DEFINITION_ID);
   }
@@ -210,14 +214,15 @@ public class DeploymentImpl extends ProblemList implements NewDeployment, Serial
     return (String) getObjectProperty(processDefinitionName, KEY_PROCESS_DEFINITION_KEY);
   }
 
-  public void setProcessDefinitionVersion(String processDefinitionName, Long processDefinitionVersion) {
+  public void setProcessDefinitionVersion(String processDefinitionName,
+    Long processDefinitionVersion) {
     setObjectProperty(processDefinitionName, KEY_PROCESS_DEFINITION_VERSION, processDefinitionVersion);
   }
-  
+
   public Long getProcessDefinitionVersion(String processDefinitionName) {
     return (Long) getObjectProperty(processDefinitionName, KEY_PROCESS_DEFINITION_VERSION);
   }
-  
+
   public String getProcessLanguageId(String processDefinitionName) {
     return (String) getObjectProperty(processDefinitionName, KEY_PROCESS_LANGUAGE_ID);
   }
@@ -227,7 +232,7 @@ public class DeploymentImpl extends ProblemList implements NewDeployment, Serial
   }
 
   public void setObjectProperty(String objectName, String key, Object value) {
-    if (objectProperties==null) {
+    if (objectProperties == null) {
       objectProperties = new HashSet<DeploymentProperty>();
     }
     DeploymentProperty deploymentProperty = new DeploymentProperty(this, objectName, key);
@@ -239,7 +244,7 @@ public class DeploymentImpl extends ProblemList implements NewDeployment, Serial
     if (objectProperties != null) {
       for (DeploymentProperty deploymentProperty : objectProperties) {
         if (deploymentProperty.getObjectName().equals(objectName)
-            && deploymentProperty.getKey().equals(key)) {
+          && deploymentProperty.getKey().equals(key)) {
           Object value = deploymentProperty.getValue();
           objectProperties.remove(deploymentProperty);
           return value;
@@ -250,11 +255,10 @@ public class DeploymentImpl extends ProblemList implements NewDeployment, Serial
   }
 
   public Object getObjectProperty(String objectName, String key) {
-    if (objectProperties!=null) {
-      for (DeploymentProperty deploymentProperty: objectProperties) {
-        if ( (deploymentProperty.getObjectName().equals(objectName))
-             && (deploymentProperty.getKey().equals(key))
-           ) {
+    if (objectProperties != null) {
+      for (DeploymentProperty deploymentProperty : objectProperties) {
+        if (deploymentProperty.getObjectName().equals(objectName)
+          && deploymentProperty.getKey().equals(key)) {
           return deploymentProperty.getValue();
         }
       }
@@ -264,8 +268,8 @@ public class DeploymentImpl extends ProblemList implements NewDeployment, Serial
 
   public Set<String> getProcessDefinitionIds() {
     Set<String> processDefinitionIds = new HashSet<String>();
-    if (objectProperties!=null) {
-      for (DeploymentProperty deploymentProperty: objectProperties) {
+    if (objectProperties != null) {
+      for (DeploymentProperty deploymentProperty : objectProperties) {
         if (KEY_PROCESS_DEFINITION_ID.equals(deploymentProperty.getKey())) {
           String processDefinitionId = deploymentProperty.getStringValue();
           processDefinitionIds.add(processDefinitionId);
@@ -276,26 +280,26 @@ public class DeploymentImpl extends ProblemList implements NewDeployment, Serial
   }
 
   public boolean hasObjectProperties(String objectName) {
-    if (objectProperties!=null) {
-      for (DeploymentProperty deploymentProperty: objectProperties) {
-        if ( deploymentProperty.getObjectName().equals(objectName)
-             && KEY_PROCESS_DEFINITION_ID.equals(deploymentProperty.getKey())
-           ) {
+    if (objectProperties != null) {
+      for (DeploymentProperty deploymentProperty : objectProperties) {
+        if (deploymentProperty.getObjectName().equals(objectName)
+          && KEY_PROCESS_DEFINITION_ID.equals(deploymentProperty.getKey())) {
           return true;
         }
       }
     }
     return false;
   }
-  
+
   public void suspend() {
     if (isSuspended()) {
       throw new JbpmException("deployment is already suspended");
     }
-    
+
     state = Deployment.STATE_SUSPENDED;
 
-    RepositorySessionImpl repositorySession = EnvironmentImpl.getFromCurrent(RepositorySessionImpl.class);
+    RepositorySessionImpl repositorySession = EnvironmentImpl
+      .getFromCurrent(RepositorySessionImpl.class);
     repositorySession.cascadeDeploymentSuspend(this);
 
     RepositoryCache repositoryCache = EnvironmentImpl.getFromCurrent(RepositoryCache.class);
@@ -306,18 +310,19 @@ public class DeploymentImpl extends ProblemList implements NewDeployment, Serial
     if (!isSuspended()) {
       throw new JbpmException("deployment is not suspended");
     }
-    
+
     state = Deployment.STATE_ACTIVE;
-    
-    RepositorySessionImpl repositorySession = EnvironmentImpl.getFromCurrent(RepositorySessionImpl.class);
+
+    RepositorySessionImpl repositorySession = EnvironmentImpl
+      .getFromCurrent(RepositorySessionImpl.class);
     repositorySession.cascadeDeploymentResume(this);
-    
+
     RepositoryCache repositoryCache = EnvironmentImpl.getFromCurrent(RepositoryCache.class);
     repositoryCache.remove(Long.toString(dbid));
   }
-  
+
   public boolean isSuspended() {
-    return Deployment.STATE_SUSPENDED.equals(state); 
+    return Deployment.STATE_SUSPENDED.equals(state);
   }
 
   protected Object writeReplace() throws ObjectStreamException {
@@ -326,11 +331,11 @@ public class DeploymentImpl extends ProblemList implements NewDeployment, Serial
   }
 
   // customized getters and setters ///////////////////////////////////////////
-  
+
   public String getId() {
     return Long.toString(dbid);
   }
-  
+
   // getters and setters //////////////////////////////////////////////////////
 
   public long getDbid() {

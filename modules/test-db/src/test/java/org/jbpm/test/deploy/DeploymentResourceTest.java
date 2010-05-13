@@ -24,7 +24,6 @@
  */
 package org.jbpm.test.deploy;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.ZipInputStream;
@@ -33,43 +32,32 @@ import org.jbpm.api.NewDeployment;
 import org.jbpm.api.ProcessDefinition;
 import org.jbpm.test.JbpmTestCase;
 
-
 /**
- * Test case for the various ways of setting a process, image, etc as input
- * of a deployment.
+ * Test case for the various ways of setting a process, image, etc as input of a deployment.
  * 
  * @author Joram Barrez
  */
 public class DeploymentResourceTest extends JbpmTestCase {
 
-  
-  public void testZippedResourceDeployment() {
-    InputStream inputStream = null;
+  public void testZippedResourceDeployment() throws IOException {
+    InputStream inputStream = getClass().getResourceAsStream("process.zip");
+    ZipInputStream zipInputStream = new ZipInputStream(inputStream);
     try {
-      inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("org/jbpm/test/deploy/process.zip");
-      ZipInputStream zipInputStream = new ZipInputStream(inputStream);
-      
       NewDeployment newDeployment = repositoryService.createDeployment();
       newDeployment.addResourcesFromZipInputStream(zipInputStream);
       String deployId = newDeployment.deploy();
-      
-      ProcessDefinition procDef = repositoryService.createProcessDefinitionQuery()
-                                                   .deploymentId(deployId)
-                                                   .uniqueResult();
+
+      ProcessDefinition procDef = repositoryService
+        .createProcessDefinitionQuery()
+        .deploymentId(deployId)
+        .uniqueResult();
       assertNotNull(procDef);
       assertEquals("ImageTest", procDef.getName());
       repositoryService.deleteDeploymentCascade(deployId);
-      
-    } finally {
-      if (inputStream != null) {
-        try {
-          inputStream.close();
-        } catch (IOException e) {
-          fail(e.getMessage());
-        }
-      }
     }
-    
+    finally {
+      zipInputStream.close();
+    }
   }
-  
+
 }

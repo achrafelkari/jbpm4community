@@ -21,13 +21,14 @@
  */
 package org.jbpm.pvm.internal.cmd;
 
+import java.io.IOException;
 import java.io.InputStream;
 
+import org.jbpm.api.JbpmException;
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.pvm.internal.session.RepositorySession;
 import org.jbpm.pvm.internal.util.IoUtil;
-
 
 /**
  * @author Tom Baeyens
@@ -35,15 +36,24 @@ import org.jbpm.pvm.internal.util.IoUtil;
 public class UpdateDeploymentResourceCmd implements Command<Void> {
 
   private static final long serialVersionUID = 1L;
-  
+
   protected String deploymentId;
   protected String resourceName;
   protected byte[] bytes;
 
-  public UpdateDeploymentResourceCmd(String deploymentId, String resourceName, InputStream inputStream) {
+  public UpdateDeploymentResourceCmd(String deploymentId, String resourceName,
+    InputStream inputStream) {
     this.deploymentId = deploymentId;
     this.resourceName = resourceName;
-    this.bytes = IoUtil.readBytes(inputStream);
+    try {
+      bytes = IoUtil.readBytes(inputStream);
+    }
+    catch (IOException e) {
+      throw new JbpmException("could not read resource: " + resourceName, e);
+    }
+    finally {
+      IoUtil.close(inputStream);
+    }
   }
 
   public Void execute(Environment environment) throws Exception {

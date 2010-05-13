@@ -837,6 +837,12 @@ public class ExecutionImpl extends ScopeInstanceImpl
   public SwimlaneImpl getInitializedSwimlane(SwimlaneDefinitionImpl swimlaneDefinition) {
     String swimlaneName = swimlaneDefinition.getName();
     SwimlaneImpl swimlane = swimlanes.get(swimlaneName);
+
+    // lookup in parent execution
+    if ((swimlane == null) && (parent != null)) {
+      swimlane = parent.getInitializedSwimlane(swimlaneDefinition);
+    }
+
     if (swimlane==null) {
       swimlane = createSwimlane(swimlaneName);
       initializeAssignments(swimlaneDefinition, swimlane);
