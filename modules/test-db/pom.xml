@@ -27,7 +27,6 @@
 
   <!-- Dependencies -->
   <dependencies>
-
     <dependency>
       <groupId>org.jbpm.jbpm4</groupId>
       <artifactId>jbpm-api</artifactId>
@@ -97,11 +96,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <failIfNoTests>false</failIfNoTests>
-          <trimStackTrace>false</trimStackTrace>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
-          <excludes>
-
-          </excludes>
         </configuration>
       </plugin>
     </plugins>

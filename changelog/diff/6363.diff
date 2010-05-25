@@ -1,0 +1,81 @@
+Index: modules/integration/console/pom.xml
+===================================================================
+--- modules/integration/console/pom.xml	(revision 6362)
++++ modules/integration/console/pom.xml	(revision 6363)
+@@ -46,6 +46,11 @@
+       <version>${javax.jaxb.version}</version>
+       <scope>provided</scope>
+     </dependency>
++    <dependency>
++      <groupId>jboss</groupId>
++      <artifactId>jboss-j2ee</artifactId>
++      <scope>provided</scope>
++    </dependency>
+ 
+     <dependency>
+       <groupId>org.jboss.errai</groupId>
+Index: modules/test-base/pom.xml
+===================================================================
+--- modules/test-base/pom.xml	(revision 6362)
++++ modules/test-base/pom.xml	(revision 6363)
+@@ -33,19 +33,24 @@
+       <version>${project.version}</version>
+     </dependency>
+     <dependency>
++      <groupId>org.hibernate</groupId>
++      <artifactId>hibernate-core</artifactId>
++    </dependency>
++    <dependency>
+       <groupId>org.jbpm.jbpm4</groupId>
+       <artifactId>jbpm-log</artifactId>
+       <version>${project.version}</version>
+     </dependency>
+     <dependency>
++      <groupId>jboss</groupId>
++      <artifactId>jboss-j2ee</artifactId>
++      <scope>provided</scope>
++    </dependency>
++    <dependency>
+       <groupId>junit</groupId>
+       <artifactId>junit</artifactId>
+     </dependency>
+     <dependency>
+-      <groupId>org.hibernate</groupId>
+-      <artifactId>hibernate-core</artifactId>
+-    </dependency>
+-    <dependency>
+       <groupId>org.slf4j</groupId>
+       <artifactId>slf4j-api</artifactId>
+     </dependency>
+@@ -79,17 +84,5 @@
+       <artifactId>cglib-nodep</artifactId>
+       <version>2.1_3</version>
+     </dependency>
+-    <!-- dependency>
+-      <groupId>apache-oro</groupId>
+-      <artifactId>jakarta-oro</artifactId>
+-      <version>2.0.8</version>
+-    </dependency -->
+-  </dependencies>
+-  
+-  <!-- Plugins -->
+-  <build>
+-    <plugins>
+-    </plugins>
+-  </build>
+-  
++  </dependencies> 
+ </project>
+\ No newline at end of file
+Index: modules/api/pom.xml
+===================================================================
+--- modules/api/pom.xml	(revision 6362)
++++ modules/api/pom.xml	(revision 6363)
+@@ -32,6 +32,7 @@
+     <dependency>
+       <groupId>jboss</groupId>
+       <artifactId>jboss-j2ee</artifactId>
++      <scope>provided</scope>
+     </dependency>
+   </dependencies>
+   

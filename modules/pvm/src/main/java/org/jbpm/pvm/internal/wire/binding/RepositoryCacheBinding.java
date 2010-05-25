@@ -39,7 +39,6 @@ public class RepositoryCacheBinding extends WireDescriptorBinding {
 
   public Object parse(Element element, Parse parse, Parser parser) {
     ObjectDescriptor objectDescriptor = new ObjectDescriptor(RepositoryCacheImpl.class);
-    objectDescriptor.setAutoWireEnabled(true);
     return objectDescriptor;
   }
 }

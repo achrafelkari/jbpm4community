@@ -1,0 +1,374 @@
+Index: modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/SubProcessBinding.java
+===================================================================
+--- modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/SubProcessBinding.java	(revision 6373)
++++ modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/SubProcessBinding.java	(revision 6374)
+@@ -47,13 +47,13 @@
+ 
+   public Object parseJpdl(Element element, Parse parse, JpdlParser parser) {
+     SubProcessActivity subProcessActivity = new SubProcessActivity();
+-    
++
+     String subProcessKey = XmlUtil.attribute(element, "sub-process-key");
+     subProcessActivity.setSubProcessKey(subProcessKey);
+-    
++
+     String subProcessId = XmlUtil.attribute(element, "sub-process-id");
+     subProcessActivity.setSubProcessId(subProcessId);
+-    
++
+     List<SubProcessInParameterImpl> inParameters = new ArrayList<SubProcessInParameterImpl>();
+     for (Element inElement: XmlUtil.elements(element, "parameter-in")) {
+       SubProcessInParameterImpl inParameter = new SubProcessInParameterImpl();
+@@ -81,7 +81,7 @@
+       SubProcessOutParameterImpl outParameter = new SubProcessOutParameterImpl();
+       parseParameter(outElement, outParameter);
+       outParameters.add(outParameter);
+-      
++
+       if (outParameter.getVariableName()==null) {
+         parse.addProblem("no 'variable' specified for parameter-in", element);
+       }
+@@ -108,7 +108,7 @@
+     if (outcomeExpressionText!=null) {
+       Expression outcomeExpression = Expression.create(outcomeExpressionText, outcomeLanguage);
+       subProcessActivity.setOutcomeExpression(outcomeExpression);
+-      
++
+       for (Element transitionElement: XmlUtil.elements(element, "transition")) {
+         Element outcomeValueElement = XmlUtil.element(transitionElement, "outcome-value");
+         if (outcomeValueElement!=null) {
+@@ -121,6 +121,7 @@
+             Descriptor descriptor = (Descriptor) WireParser.getInstance().parseElement(valueElement, parse);
+             Object value = WireContext.create(descriptor);
+             outcomeVariableMappings.put(value, transitionName);
++            subProcessActivity.setOutcomeVariableMappings(outcomeVariableMappings);
+           } else {
+             parse.addProblem("outcome-value must contain exactly one element", outcomeValueElement);
+           }
+@@ -135,7 +136,7 @@
+   void parseParameter(Element element, SubProcessParameterImpl parameter) {
+     String name = XmlUtil.attribute(element, "subvar");
+     parameter.setSubVariableName(name);
+-    
++
+     String expressionText = XmlUtil.attribute(element, "expr");
+     String language = XmlUtil.attribute(element, "expr-lang");
+     if (expressionText!=null) {
+@@ -151,11 +152,11 @@
+ 
+   public static Map<String, String> parseSwimlaneMappings(Element element, Parse parse) {
+     Map<String, String> swimlaneMappings = new HashMap<String, String>();
+-    
++
+     for (Element inElement: XmlUtil.elements(element, "swimlane-mapping")) {
+       String swimlane = XmlUtil.attribute(inElement, "swimlane", true, parse);
+       String subSwimlane = XmlUtil.attribute(inElement, "sub-swimlane", true, parse);
+-      
++
+       swimlaneMappings.put(swimlane, subSwimlane);
+     }
+ 
+Index: modules/examples/src/test/java/org/jbpm/examples/subprocess/outcomeobject/SubProcessOutcomeObjectTest.java
+===================================================================
+--- modules/examples/src/test/java/org/jbpm/examples/subprocess/outcomeobject/SubProcessOutcomeObjectTest.java	(revision 0)
++++ modules/examples/src/test/java/org/jbpm/examples/subprocess/outcomeobject/SubProcessOutcomeObjectTest.java	(revision 6374)
+@@ -0,0 +1,126 @@
++/*
++ * JBoss, Home of Professional Open Source
++ * Copyright 2005, JBoss Inc., and individual contributors as indicated
++ * by the @authors tag. See the copyright.txt in the distribution for a
++ * full listing of individual contributors.
++ *
++ * This is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU Lesser General Public License as
++ * published by the Free Software Foundation; either version 2.1 of
++ * the License, or (at your option) any later version.
++ *
++ * This software is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this software; if not, write to the Free
++ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
++ */
++package org.jbpm.examples.subprocess.outcomeobject;
++
++import java.util.HashMap;
++import java.util.List;
++import java.util.Map;
++
++import org.apache.commons.collections.map.HashedMap;
++import org.jbpm.api.ProcessInstance;
++import org.jbpm.api.task.Task;
++import org.jbpm.test.JbpmTestCase;
++
++
++/**
++ * @author Tom Baeyens
++ */
++public class SubProcessOutcomeObjectTest extends JbpmTestCase {
++
++  String subProcessReviewDeploymentId;
++  String subProcessDocumentDeploymentId;
++
++  protected void setUp() throws Exception {
++    super.setUp();
++
++    subProcessReviewDeploymentId = repositoryService.createDeployment()
++        .addResourceFromClasspath("org/jbpm/examples/subprocess/outcomeobject/SubProcessReview.jpdl.xml")
++        .deploy();
++
++    subProcessDocumentDeploymentId = repositoryService.createDeployment()
++        .addResourceFromClasspath("org/jbpm/examples/subprocess/outcomeobject/SubProcessDocument.jpdl.xml")
++        .deploy();
++  }
++
++  protected void tearDown() throws Exception {
++    repositoryService.deleteDeploymentCascade(subProcessReviewDeploymentId);
++    repositoryService.deleteDeploymentCascade(subProcessDocumentDeploymentId);
++
++    super.tearDown();
++  }
++
++  public void testSubProcessResultOk() {
++    ProcessInstance processInstance = executionService
++        .startProcessInstanceByKey("SubProcessDocument");
++
++    assertNotNull(processInstance.findActiveExecutionIn("review"));
++
++    List<Task> taskList = taskService.findPersonalTasks("johndoe");
++    Task task = taskList.get(0);
++
++    // the result variable is set in the task
++    Map<String, Object> variables = new HashMap<String, Object>();
++    variables.put("result", 100);
++    taskService.setVariables(task.getId(), variables);
++
++    // the task in the sub process instance is completed
++    taskService.completeTask(task.getId());
++
++    // we check that the process instance has moved to the next step
++    processInstance = executionService.findProcessInstanceById(processInstance.getId());
++    assertNotNull(processInstance.findActiveExecutionIn("next step"));
++  }
++
++  public void testSubProcessResultNok() {
++    ProcessInstance processInstance = executionService
++        .startProcessInstanceByKey("SubProcessDocument");
++
++    assertNotNull(processInstance.findActiveExecutionIn("review"));
++
++    List<Task> taskList = taskService.findPersonalTasks("johndoe");
++    Task task = taskList.get(0);
++
++    // the result variable is set in the task
++    Map<String, Object> variables = new HashMap<String, Object>();
++    variables.put("result", 200);
++    taskService.setVariables(task.getId(), variables);
++
++    // the task in the sub process instance is completed
++    taskService.completeTask(task.getId());
++
++    // we check that the process instance has moved to update
++    processInstance = executionService.findProcessInstanceById(processInstance.getId());
++    assertNotNull(processInstance.findActiveExecutionIn("update"));
++  }
++
++  public void testSubProcessResultReject() {
++    ProcessInstance processInstance = executionService
++        .startProcessInstanceByKey("SubProcessDocument");
++
++    assertNotNull(processInstance.findActiveExecutionIn("review"));
++
++    List<Task> taskList = taskService.findPersonalTasks("johndoe");
++    Task task = taskList.get(0);
++
++    // the result variable is set in the task
++    Map<String, Object> variables = new HashMap<String, Object>();
++    variables.put("result", 300);
++    taskService.setVariables(task.getId(), variables);
++
++    // the task in the sub process instance is completed
++    taskService.completeTask(task.getId());
++
++    // we check that the process instance has moved to close
++    processInstance = executionService.findProcessInstanceById(processInstance.getId());
++    assertNotNull(processInstance.findActiveExecutionIn("close"));
++  }
++}
+Index: modules/examples/src/test/resources/org/jbpm/examples/subprocess/outcomeobject/SubProcessReview.jpdl.xml
+===================================================================
+--- modules/examples/src/test/resources/org/jbpm/examples/subprocess/outcomeobject/SubProcessReview.jpdl.xml	(revision 0)
++++ modules/examples/src/test/resources/org/jbpm/examples/subprocess/outcomeobject/SubProcessReview.jpdl.xml	(revision 6374)
+@@ -0,0 +1,17 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<process name="SubProcessReview" xmlns="http://jbpm.org/4.3/jpdl">
++
++  <start g="20,20,48,48">
++    <transition to="get approval"/>
++  </start>
++
++  <task name="get approval"
++        assignee="johndoe"
++        g="96,16,127,52">
++
++    <transition to="end"/>
++  </task>
++
++  <end name="end" g="254,19,88,52" />
++
++</process>
+Index: modules/examples/src/test/resources/org/jbpm/examples/subprocess/outcomeobject/SubProcessDocument.jpdl.xml
+===================================================================
+--- modules/examples/src/test/resources/org/jbpm/examples/subprocess/outcomeobject/SubProcessDocument.jpdl.xml	(revision 0)
++++ modules/examples/src/test/resources/org/jbpm/examples/subprocess/outcomeobject/SubProcessDocument.jpdl.xml	(revision 6374)
+@@ -0,0 +1,35 @@
++<?xml version="1.0" encoding="UTF-8"?>
++
++<process name="SubProcessDocument" xmlns="http://jbpm.org/4.3/jpdl">
++
++  <start g="36,109,48,48">
++    <transition to="review" />
++  </start>
++
++  <sub-process name="review"
++               sub-process-key="SubProcessReview"
++               outcome="#{result}"
++               g="118,106,99,52">
++
++    <transition name="ok" to="next step" g="167,67:6,-19">
++      <outcome-value>
++        <int value="100"/>
++      </outcome-value>
++    </transition>
++    <transition name="nok" to="update" g="-22,-18">
++      <outcome-value>
++        <int value="200"/>
++      </outcome-value>
++    </transition>
++    <transition name="reject" to="close" g="167,200:7,3">
++      <outcome-value>
++        <int value="300"/>
++      </outcome-value>
++    </transition>
++  </sub-process>
++
++  <state name="next step" g="255,41,88,52"/>
++  <state name="update" g="256,106,88,52"/>
++  <state name="close" g="258,175,88,52"/>
++
++</process>
+Index: modules/examples/src/test/resources/org/jbpm/examples/subprocess/outcomeactivity/SubProcessReview.jpdl.xml
+===================================================================
+--- modules/examples/src/test/resources/org/jbpm/examples/subprocess/outcomeactivity/SubProcessReview.jpdl.xml	(revision 6373)
++++ modules/examples/src/test/resources/org/jbpm/examples/subprocess/outcomeactivity/SubProcessReview.jpdl.xml	(revision 6374)
+@@ -1,22 +1,20 @@
+ <?xml version="1.0" encoding="UTF-8"?>
++<process name="SubProcessReview" xmlns="http://jbpm.org/4.3/jpdl">
+ 
+-<process name="SubProcessReview" xmlns="http://jbpm.org/4.3/jpdl">
+-
+-  <start g="25,101,48,48">
+-    <transition to="get approval"/>
+-  </start>
+-
++  <start g="25,101,48,48">
++    <transition to="get approval"/>
++  </start>
++
+   <task name="get approval"
+-        assignee="johndoe" 
+-        g="107,97,127,52">
+-
++        assignee="johndoe"
++        g="107,97,127,52">
++
+     <transition name="ok" to="ok" g="171,71:9,-16"/>
+     <transition name="nok" to="nok" g="-16,-16"/>
+     <transition name="reject" to="reject" g="170,179:8,3"/>
+-  </task>
+-  
++  </task>
++
+   <end name="ok" g="269,48,88,52" />
+   <end name="nok" g="270,101,88,52" />
+   <end name="reject" g="270,156,88,52"/>
+-
+ </process>
+Index: modules/examples/src/test/resources/org/jbpm/examples/subprocess/outcomevalue/SubProcessReview.jpdl.xml
+===================================================================
+--- modules/examples/src/test/resources/org/jbpm/examples/subprocess/outcomevalue/SubProcessReview.jpdl.xml	(revision 6373)
++++ modules/examples/src/test/resources/org/jbpm/examples/subprocess/outcomevalue/SubProcessReview.jpdl.xml	(revision 6374)
+@@ -1,18 +1,17 @@
+ <?xml version="1.0" encoding="UTF-8"?>
++<process name="SubProcessReview" xmlns="http://jbpm.org/4.3/jpdl">
+ 
+-<process name="SubProcessReview" xmlns="http://jbpm.org/4.3/jpdl">
+-
+-  <start g="20,20,48,48">
+-    <transition to="get approval"/>
+-  </start>
+-
++  <start g="20,20,48,48">
++    <transition to="get approval"/>
++  </start>
++
+   <task name="get approval"
+-        assignee="johndoe" 
+-        g="96,16,127,52">
+-
+-    <transition to="end"/>
+-  </task>
+-  
+-  <end name="end" g="254,19,88,52" />
+-
++        assignee="johndoe"
++        g="96,16,127,52">
++
++    <transition to="end"/>
++  </task>
++
++  <end name="end" g="254,19,88,52" />
++
+ </process>
+\ No newline at end of file
+Index: modules/examples/src/test/resources/org/jbpm/examples/subprocess/variables/SubProcessReview.jpdl.xml
+===================================================================
+--- modules/examples/src/test/resources/org/jbpm/examples/subprocess/variables/SubProcessReview.jpdl.xml	(revision 6373)
++++ modules/examples/src/test/resources/org/jbpm/examples/subprocess/variables/SubProcessReview.jpdl.xml	(revision 6374)
+@@ -1,18 +1,17 @@
+ <?xml version="1.0" encoding="UTF-8"?>
++<process name="SubProcessReview" xmlns="http://jbpm.org/4.3/jpdl">
+ 
+-<process name="SubProcessReview" xmlns="http://jbpm.org/4.3/jpdl">
+-
+-  <start g="20,20,48,48">
+-    <transition to="get approval"/>
+-  </start>
+-
++  <start g="20,20,48,48">
++    <transition to="get approval"/>
++  </start>
++
+   <task name="get approval"
+-        assignee="johndoe" 
+-        g="96,16,127,52">
+-               
+-    <transition to="end"/>
+-  </task>
+-  
+-  <end name="end" g="254,19,88,52" />
+-
++        assignee="johndoe"
++        g="96,16,127,52">
++
++    <transition to="end"/>
++  </task>
++
++  <end name="end" g="254,19,88,52" />
++
+ </process>
+\ No newline at end of file

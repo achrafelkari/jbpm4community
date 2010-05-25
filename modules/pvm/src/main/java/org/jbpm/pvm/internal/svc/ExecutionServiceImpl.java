@@ -54,11 +54,11 @@ public class ExecutionServiceImpl extends AbstractServiceImpl implements Executi
     return commandService.execute(new StartProcessInstanceCmd(processDefinitionId, null, executionKey));
   }
 
-  public ProcessInstance startProcessInstanceById(String processDefinitionId, Map<String, Object> variables){
+  public ProcessInstance startProcessInstanceById(String processDefinitionId, Map<String, ?> variables){
     return commandService.execute(new StartProcessInstanceCmd(processDefinitionId, variables, null));
   }
 
-  public ProcessInstance startProcessInstanceById(String processDefinitionId, Map<String, Object> variables, String executionKey){
+  public ProcessInstance startProcessInstanceById(String processDefinitionId, Map<String, ?> variables, String executionKey){
     return commandService.execute(new StartProcessInstanceCmd(processDefinitionId, variables, executionKey));
   }
   

@@ -46,6 +46,7 @@ import org.jbpm.pvm.internal.util.Clock;
  * @author Pascal Verdage
  * @author Alejandro Guizar
  * @author Ronald Van Kuijk
+ * @author Maciej Swiderski
  */
 public class TimerImpl extends JobImpl<Boolean> implements Timer {
 
@@ -84,6 +85,8 @@ public class TimerImpl extends JobImpl<Boolean> implements Timer {
     
     if (signalName!=null) {
       if (log.isDebugEnabled()) log.debug("feeding timer signal "+signalName+" into "+execution);
+      
+      // feed expiration signal
       execution.signal(signalName);
     }
     
@@ -139,11 +142,12 @@ public class TimerImpl extends JobImpl<Boolean> implements Timer {
     if ((getSignalName() == null) && (getEventName() == null)) {
       throw new JbpmException("timer has no signalName or eventName specified");
     }
-    if (getDueDate() == null) {
+    if (getDuedate() == null) {
       throw new JbpmException("timer scheduled at null date");
     }
   }
 
+  @Override
   public String toString() {
     StringBuilder text = new StringBuilder();
     text.append("timer[");

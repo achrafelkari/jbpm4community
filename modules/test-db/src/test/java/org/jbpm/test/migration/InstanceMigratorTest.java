@@ -240,7 +240,11 @@ public class InstanceMigratorTest extends JbpmTestCase {
     }
     return result;
   }
-    
+
+  public void testNoProcessInstanceForMigration() {
+    ProcessDefinition pd2 = deployProcessDefinition("foobar", versionWithWildcardVersionRange);
+    repositoryService.deleteDeploymentCascade(pd2.getDeploymentId());
+  }
 
   public void testNoMigration() {    
     ProcessDefinition pd1 = deployProcessDefinition("foobar", originalVersion);

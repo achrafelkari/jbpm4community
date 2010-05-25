@@ -40,8 +40,6 @@ public class BpmnProcessDefinition extends ProcessDefinitionImpl {
 
   private static final long serialVersionUID = 1L;
 
-  protected Map<String, TaskDefinitionImpl> taskDefinitions = new HashMap<String, TaskDefinitionImpl>();
-  protected List<VariableDefinitionImpl> processVariableDefinitions = new ArrayList<VariableDefinitionImpl>();
   protected Map<String, Element> messages = new HashMap<String, Element>();
   protected Map<String, Element> itemDefinitions = new HashMap<String, Element>();
   protected Map<String, Element> interfaces = new HashMap<String, Element>();
@@ -56,6 +54,7 @@ public class BpmnProcessDefinition extends ProcessDefinitionImpl {
 
   public TaskDefinitionImpl createTaskDefinition(String name) {
     TaskDefinitionImpl taskDefinition = new TaskDefinitionImpl();
+    taskDefinition.setName(name);
     taskDefinitions.put(name, taskDefinition);
     return taskDefinition;
   }
@@ -69,7 +68,7 @@ public class BpmnProcessDefinition extends ProcessDefinitionImpl {
   }
 
   public void setVariableDefinition(List<VariableDefinitionImpl> variableDefinitions) {
-    this.processVariableDefinitions = variableDefinitions;
+    this.variableDefinitions = variableDefinitions;
   }
 
   public Resource getResource(String ref) {
@@ -88,53 +87,53 @@ public class BpmnProcessDefinition extends ProcessDefinitionImpl {
     this.interfaces = interfaces;
   }
 
-  
+
   public Map<String, Element> getOperations() {
     return operations;
   }
 
-  
+
   public void setOperations(Map<String, Element> operations) {
     this.operations = operations;
   }
-  
+
   public Map<String, Element> getMessages() {
     return messages;
   }
 
-  
+
   public void setMessages(Map<String, Element> messages) {
     this.messages = messages;
   }
 
-  
+
   public Map<String, Element> getItemDefinitions() {
     return itemDefinitions;
   }
 
-  
+
   public void setItemDefinitions(Map<String, Element> itemDefinitions) {
     this.itemDefinitions = itemDefinitions;
   }
 
   public void addSequenceFlow(String transitionId, Transition transition) {
     this.sequenceFlow.put(transitionId, transition);
-    
+
     String source = transition.getSource().getName();
     if (sourceToTargetMapping.get(source) == null) {
       sourceToTargetMapping.put(source, new HashSet<String>());
     }
     sourceToTargetMapping.get(source).add(transition.getDestination().getName());
   }
-  
+
   public Map<String, Set<String>> getSourceToTargetMapping() {
     return sourceToTargetMapping;
   }
-  
+
   public boolean isReachable(String srcActivityId , String dstActivityId) {
     return isReachable(srcActivityId, dstActivityId, new HashSet<String>());
   }
-  
+
   protected boolean isReachable(String srcActivityId , String dstActivityId, Set<String> alreadyVisited) {
     if (srcActivityId.equals(dstActivityId)) {
       return true;

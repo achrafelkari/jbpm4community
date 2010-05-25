@@ -21,7 +21,6 @@
  */
 package org.jbpm.pvm.internal.model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -83,11 +82,8 @@ import org.jbpm.pvm.internal.wire.usercode.UserCodeReference;
 /**
  * @author Tom Baeyens
  */
-public class ExecutionImpl extends ScopeInstanceImpl 
-                           implements ClientProcessInstance,
-                                      ActivityExecution, 
-                                      EventListenerExecution, 
-                                      Serializable {
+public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessInstance,
+  ActivityExecution, EventListenerExecution {
 
   private static final long serialVersionUID = 1L;
 
@@ -110,7 +106,7 @@ public class ExecutionImpl extends ScopeInstanceImpl
 
   /** the parent child relation of executions is convenient for some forms of
    * concurrency. */
-  protected ExecutionImpl parent = null;
+  protected ExecutionImpl parent;
   protected ExecutionImpl processInstance;
   
   /** the super process link in case this is a sub process execution */  
@@ -174,13 +170,14 @@ public class ExecutionImpl extends ScopeInstanceImpl
   public enum Propagation {
     UNSPECIFIED, WAIT, EXPLICIT
   }
-  protected Propagation propagation = null;
+
+  protected Propagation propagation;
 
   // construction /////////////////////////////////////////////////////////////
   
   public void initializeProcessInstance(ProcessDefinitionImpl processDefinition, String key) {
     setProcessDefinition(processDefinition);
-    setActivity ( (ActivityImpl) processDefinition.getInitial() );
+    setActivity(processDefinition.getInitial());
     this.processInstance = this;
     this.state = STATE_CREATED;
     this.key = key;
@@ -202,7 +199,6 @@ public class ExecutionImpl extends ScopeInstanceImpl
   protected void composeIds() {
     this.id = IdComposer.getIdComposer().createId(processDefinition, parent, this);
   }
-
 
   // execution method : start /////////////////////////////////////////////////
 
@@ -276,11 +272,11 @@ public class ExecutionImpl extends ScopeInstanceImpl
     parent.setPropagation(getPropagation());
     
     ExecutionImpl parentsParent = parent.getParent();
-    if ( (parentsParent!=null)
-         && (STATE_INACTIVE_CONCURRENT_ROOT.equals(parentsParent.getState()))
-       ) {
+    if (parentsParent!=null
+      && STATE_INACTIVE_CONCURRENT_ROOT.equals(parentsParent.getState())) {
       parent.setState(STATE_ACTIVE_CONCURRENT);
-    } else {
+    }
+    else {
       parent.setState(STATE_ACTIVE_ROOT);
     }
     
@@ -293,14 +289,13 @@ public class ExecutionImpl extends ScopeInstanceImpl
     return parent;
   }
   
-  
+  @Override
   protected void destroyTimers(CompositeElementImpl scope) {
     TimerSession timerSession = EnvironmentImpl.getFromCurrent(TimerSession.class, false);
     if (timerSession!=null) {
       log.debug("destroying timers of "+this);
       List<Timer> timers = timerSession.findTimersByExecution(this);
       for (Timer timer: timers) {
-        
         Job job = EnvironmentImpl.getFromCurrent(JobImpl.class, false);
         if (timer!=job) {
           timerSession.cancel(timer);
@@ -309,9 +304,9 @@ public class ExecutionImpl extends ScopeInstanceImpl
     }
   }
 
-  
   // basic object methods /////////////////////////////////////////////////////
 
+  @Override
   public String toString() {
     if (getId()!=null) {
       return "execution["+id+"]";
@@ -347,7 +342,8 @@ public class ExecutionImpl extends ScopeInstanceImpl
     if (log.isDebugEnabled()) {
       if (state==STATE_ENDED) {
         log.debug(toString()+" ends");
-      } else {
+      }
+      else {
         log.debug(toString()+" ends with state "+state);
       }
     }
@@ -370,16 +366,17 @@ public class ExecutionImpl extends ScopeInstanceImpl
       if (dbSession!=null) {
         dbSession.delete(this);
       }
-      
-    } else { // this is a process instance
+    }
+    else {
+      // this is a process instance
       HistoryEvent.fire(new ProcessInstanceEnd(), this);
       fire(Event.END, getProcessDefinition());
 
       if (superProcessExecution!=null) {
         log.trace(toString()+" signals super process execution");
         superProcessExecution.signal();
-
-      } else if (dbSession!=null) {
+      }
+      else if (dbSession != null) {
         dbSession.deleteProcessInstance(id, false);
       }
     }
@@ -392,7 +389,6 @@ public class ExecutionImpl extends ScopeInstanceImpl
   public void end(OpenExecution executionToEnd, String state) {
     ((ExecutionImpl)executionToEnd).end(state);
   }
-
 
   // execution method : signal ////////////////////////////////////////////////
 
@@ -416,9 +412,11 @@ public class ExecutionImpl extends ScopeInstanceImpl
     propagation = Propagation.EXPLICIT;
     if (getActivity()!=null) {
       performAtomicOperation(new Signal(signal, parameters));
-    } else if (transition!=null) {
+    }
+    else if (transition != null) {
       performAtomicOperation(AtomicOperation.TRANSITION_START_ACTIVITY);
-    } else {
+    }
+    else {
       throw new JbpmException("execution is not in a activity or in a transition");
     }
   }
@@ -518,19 +516,19 @@ public class ExecutionImpl extends ScopeInstanceImpl
     TransitionImpl defaultTransition = findDefaultTransition();
     if (defaultTransition!=null) {
       take(defaultTransition);
-      
+    }
     // in block structured processDefinition languages we assume that 
     // there is no default transition and that there is a 
     // parent activity of the current activity
-    } else {
+    else {
       ActivityImpl parentActivity = getActivity().getParentActivity();
 
       // if there is a parent activity
       if (parentActivity!=null) {
         // propagate to the parent
         performAtomicOperation(AtomicOperation.PROPAGATE_TO_PARENT);
-        
-      }  else {
+      }
+      else {
         // When we don't know how to proceed, i don't know if it's best to 
         // throw new PvmException("don't know how to proceed");
         // or to end the execution.  Because of convenience for testing, 
@@ -554,7 +552,8 @@ public class ExecutionImpl extends ScopeInstanceImpl
     fire(eventName, (ObservableElementImpl) eventSource, null);
   }
 
-  public void fire(String eventName, ObservableElementImpl observableElement, AtomicOperation eventCompletedOperation) {
+  public void fire(String eventName, ObservableElementImpl observableElement,
+    AtomicOperation eventCompletedOperation) {
     EventImpl event = findEvent(observableElement, eventName);
     if (event!=null) {
       setEvent(event);
@@ -562,10 +561,9 @@ public class ExecutionImpl extends ScopeInstanceImpl
       setEventListenerIndex(0);
       setEventCompletedOperation(eventCompletedOperation);
       performAtomicOperation(AtomicOperation.EXECUTE_EVENT_LISTENER);
-    } else {
-      if (eventCompletedOperation!=null) {
-        performAtomicOperationSync(eventCompletedOperation);
-      }
+    }
+    else if (eventCompletedOperation != null) {
+      performAtomicOperationSync(eventCompletedOperation);
     }
   }
   
@@ -613,7 +611,8 @@ public class ExecutionImpl extends ScopeInstanceImpl
   public synchronized void performAtomicOperation(AtomicOperation operation) {
     if (operation.isAsync(this)) {
       sendContinuationMessage(operation);
-    } else {
+    }
+    else {
       performAtomicOperationSync(operation);
     }
   }
@@ -631,7 +630,6 @@ public class ExecutionImpl extends ScopeInstanceImpl
 
   public void performAtomicOperationSync(AtomicOperation operation) {
     if (atomicOperations==null) {
-      
       // initialise the fifo queue of atomic operations
       atomicOperations = new LinkedList<AtomicOperation>();
       atomicOperations.offer(operation);
@@ -640,12 +638,13 @@ public class ExecutionImpl extends ScopeInstanceImpl
       ExecutionContext executionContext = null;
       EnvironmentImpl environment = EnvironmentImpl.getCurrent();
       if (environment!=null) {
-        originalExecutionContext = (ExecutionContext) environment.getContext(Context.CONTEXTNAME_EXECUTION);
-        if ( (originalExecutionContext!=null)
-             && (originalExecutionContext.getExecution()==this)
-           ) {
+        originalExecutionContext = (ExecutionContext) environment
+          .getContext(Context.CONTEXTNAME_EXECUTION);
+        if (originalExecutionContext != null
+          && originalExecutionContext.getExecution() == this) {
           originalExecutionContext = null;
-        } else {
+        }
+        else {
           executionContext = new ExecutionContext(this);
           environment.setContext(executionContext);
         }
@@ -656,10 +655,8 @@ public class ExecutionImpl extends ScopeInstanceImpl
           AtomicOperation atomicOperation = atomicOperations.poll();
           atomicOperation.perform(this);
         }
-
-      } catch (RuntimeException e ) {
-        throw e;
-      } finally {
+      }
+      finally {
         atomicOperations = null;
         
         if (executionContext!=null) {
@@ -669,7 +666,8 @@ public class ExecutionImpl extends ScopeInstanceImpl
           environment.setContext(originalExecutionContext);
         }
       }
-    } else {
+    }
+    else {
       atomicOperations.offer(operation);
     }
   }
@@ -684,12 +682,13 @@ public class ExecutionImpl extends ScopeInstanceImpl
     ExecutionContext executionContext = null;
     EnvironmentImpl environment = EnvironmentImpl.getCurrent();
     if (environment!=null) {
-      originalExecutionContext = (ExecutionContext) environment.getContext(Context.CONTEXTNAME_EXECUTION);
-      if ( (originalExecutionContext!=null)
-           && (originalExecutionContext.getExecution()==this)
-         ) {
+      originalExecutionContext = (ExecutionContext) environment
+        .getContext(Context.CONTEXTNAME_EXECUTION);
+      if (originalExecutionContext != null
+        && originalExecutionContext.getExecution() == this) {
         originalExecutionContext = null;
-      } else {
+      }
+      else {
         executionContext = new ExecutionContext(this);
         environment.setContext(executionContext);
       }
@@ -698,10 +697,12 @@ public class ExecutionImpl extends ScopeInstanceImpl
     try {
       ScriptManager scriptManager = ScriptManager.getScriptManager();
       return scriptManager.evaluateScript(expression, language);
-    } catch(RuntimeException e) {
+    }
+    catch (RuntimeException e) {
       log.error("Error while evaluation script " + expression, e);
       throw e;
-    } finally {
+    }
+    finally {
       if (executionContext != null) {
         environment.removeContext(executionContext);
       }
@@ -711,11 +712,8 @@ public class ExecutionImpl extends ScopeInstanceImpl
     }
   }
 
-  public void handleException(ObservableElementImpl observableElement,
-                              EventImpl event,
-                              EventListenerReference eventListenerReference,
-                              Exception exception,
-                              String rethrowMessage) {
+  public void handleException(ObservableElementImpl observableElement, EventImpl event,
+    EventListenerReference eventListenerReference, Exception exception, String rethrowMessage) {
     
     List<ProcessElementImpl> processElements = new ArrayList<ProcessElementImpl>();
     if (eventListenerReference!=null) {
@@ -737,7 +735,8 @@ public class ExecutionImpl extends ScopeInstanceImpl
             try {
               exceptionHandler.handle(this, exception);
               return;
-            } catch (Exception rethrowException) {
+            }
+            catch (Exception rethrowException) {
               if (!exceptionHandler.isRethrowMasked()) {
                 exception = rethrowException;
               }
@@ -752,13 +751,13 @@ public class ExecutionImpl extends ScopeInstanceImpl
     ExceptionHandlerImpl.rethrow(exception, rethrowMessage+": "+exception.getMessage());
   }
   
-  
   // tasks ////////////////////////////////////////////////////////////////////
 
   /** tasks and swimlane assignment.
    * SwimlaneDefinitionImpl is base class for TaskDefinitionImpl.
    * Both Task and Swimlane implement Assignable. */
-  public void initializeAssignments(AssignableDefinitionImpl assignableDefinition, Assignable assignable) {
+  public void initializeAssignments(AssignableDefinitionImpl assignableDefinition,
+    Assignable assignable) {
     Expression assigneeExpression = assignableDefinition.getAssigneeExpression();
     if (assigneeExpression!=null) {
       String assignee = (String) assigneeExpression.evaluate(this);
@@ -788,19 +787,21 @@ public class ExecutionImpl extends ScopeInstanceImpl
       }
     }
     
-    UserCodeReference assignmentHandlerReference = assignableDefinition.getAssignmentHandlerReference();
+    UserCodeReference assignmentHandlerReference = assignableDefinition
+      .getAssignmentHandlerReference();
     if (assignmentHandlerReference!=null) {
-      
       // JBPM-2758 
       // TODO Find out why processdefinition is null in at this time....
       if (processDefinition == null) {
-    	  processDefinition = getProcessDefinition();
+        processDefinition = getProcessDefinition();
       }
-      AssignmentHandler assignmentHandler = (AssignmentHandler) assignmentHandlerReference.getObject(processDefinition);
+      AssignmentHandler assignmentHandler = (AssignmentHandler) assignmentHandlerReference
+        .getObject(processDefinition);
       if (assignmentHandler!=null) {
         try {
           assignmentHandler.assign(assignable, this);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           throw new JbpmException("assignment handler threw exception: " + e, e);
         }
       }
@@ -810,9 +811,7 @@ public class ExecutionImpl extends ScopeInstanceImpl
   protected String resolveAssignmentExpression(String expression, String expressionLanguage) {
     ScriptManager scriptManager = EnvironmentImpl.getFromCurrent(ScriptManager.class);
     Object result = scriptManager.evaluateExpression(expression, expressionLanguage);
-    if ( (result ==null)
-         || (result instanceof String)
-       ) {
+    if (result == null || result instanceof String) {
       return (String) result;
     }
     throw new JbpmException("result of assignment expression "+expression+" is "+result+" ("+result.getClass().getName()+") instead of String");
@@ -830,8 +829,8 @@ public class ExecutionImpl extends ScopeInstanceImpl
   }
   
   public void removeSwimlane(SwimlaneImpl swimlane) {
-      swimlanes.remove(swimlane.getName());
-      swimlane.setExecution(null);
+    swimlanes.remove(swimlane.getName());
+    swimlane.setExecution(null);
   }
 
   public SwimlaneImpl getInitializedSwimlane(SwimlaneDefinitionImpl swimlaneDefinition) {
@@ -905,7 +904,7 @@ public class ExecutionImpl extends ScopeInstanceImpl
   /** @see Execution#getExecution(String) */
   public ExecutionImpl getExecution(String name) {
     Map<String, Execution> executionsMap = getExecutionsMap();
-    return (ExecutionImpl) (executionsMap!=null ? executionsMap.get(name) : null);
+    return executionsMap != null ? (ExecutionImpl) executionsMap.get(name) : null;
   }
 
   public void removeExecution(ExecutionImpl child) {
@@ -915,14 +914,15 @@ public class ExecutionImpl extends ScopeInstanceImpl
 
         // invalidate the executionsMap cache
         executionsMap = null;
-      } else {
-        throw new JbpmException(child+" is not a child execution of "+this);
+      }
+      else {
+        throw new JbpmException(child + " is not a child execution of " + this);
       }
     }
   }
 
   public Map<String, Execution> getExecutionsMap() {
-    if ((executionsMap==null)) {
+    if (executionsMap == null) {
       // initialize executionsMap cache
       executionsMap = new HashMap<String, Execution>();
       for(ExecutionImpl execution: executions) {
@@ -938,9 +938,7 @@ public class ExecutionImpl extends ScopeInstanceImpl
   }
   
   public boolean hasExecution(String name) {
-    return ( (getExecutionsMap()!=null)
-             && executionsMap.containsKey(name)
-           );
+    return getExecutionsMap() != null && executionsMap.containsKey(name);
   }
 
   public boolean isActive(String activityName) {
@@ -952,10 +950,8 @@ public class ExecutionImpl extends ScopeInstanceImpl
   }
 
   protected Set<String> addActiveActivityNames(Set<String> activityNames) {
-    if ( ( (state.equals(STATE_ACTIVE_ROOT)) || (state.equals(STATE_ACTIVE_CONCURRENT)) )
-         && 
-         (activityName!=null)
-       ) {
+    if ((state.equals(STATE_ACTIVE_ROOT) || state.equals(STATE_ACTIVE_CONCURRENT))
+      && activityName != null) {
       activityNames.add(activityName);
     }
   
@@ -967,8 +963,7 @@ public class ExecutionImpl extends ScopeInstanceImpl
   }
 
   public ExecutionImpl findActiveExecutionIn(String activityName) {
-    if ( activityName.equals(this.activityName)
-         && isActive()) {
+    if (activityName.equals(this.activityName) && isActive()) {
       return this;
     }
 
@@ -998,7 +993,8 @@ public class ExecutionImpl extends ScopeInstanceImpl
     if (variable!=null) {
       log.debug("setting system variable '"+key+"' in '"+this+"' to value '"+value+"'");
       variable.setValue(value, this);
-    } else {
+    }
+    else {
       log.debug("creating system variable '"+key+"' in '"+this+"' to value '"+value+"'");
       createSystemVariable(key, value, null);
     }
@@ -1014,7 +1010,7 @@ public class ExecutionImpl extends ScopeInstanceImpl
   
   public boolean removeSystemVariable(String key) {
     if (systemVariables.containsKey(key)) {
-      return (systemVariables.remove(key)!=null);
+      return systemVariables.remove(key) != null;
     }
     return false;
   }
@@ -1047,6 +1043,7 @@ public class ExecutionImpl extends ScopeInstanceImpl
   // state mgmt ///////////////////////////////////////////////////////////////
 
   /** @see Execution#suspend() */
+  @Override
   public void suspend() {
     super.suspend();
     this.propagation = Propagation.EXPLICIT;
@@ -1057,6 +1054,7 @@ public class ExecutionImpl extends ScopeInstanceImpl
   }
 
   /** @see Execution#resume() */
+  @Override
   public void resume() {
     super.resume();
     DbSession hibernatePvmDbSession = EnvironmentImpl.getFromCurrent(DbSession.class, false);
@@ -1150,6 +1148,7 @@ public class ExecutionImpl extends ScopeInstanceImpl
   // equals ///////////////////////////////////////////////////////////////////
   // hack to support comparing hibernate proxies against the real objects
   // since this always falls back to ==, we don't need to overwrite the hashcode
+  @Override
   public boolean equals(Object o) {
     return EqualsUtil.equals(this, o);
   }
@@ -1159,13 +1158,11 @@ public class ExecutionImpl extends ScopeInstanceImpl
   // process definition id.                                                  //
   /////////////////////////////////////////////////////////////////////////////
   
-  
   public ProcessDefinitionImpl getProcessDefinition() {
-    if ( (processDefinition==null)
-         && (processDefinitionId!=null) 
-       ) {
-      RepositorySession repositorySession = EnvironmentImpl.getFromCurrent(RepositorySession.class);
-      processDefinition = (ProcessDefinitionImpl) repositorySession.findProcessDefinitionById(processDefinitionId);
+    if (processDefinition == null && processDefinitionId != null) {
+      RepositorySession repositorySession = EnvironmentImpl
+        .getFromCurrent(RepositorySession.class);
+      processDefinition = repositorySession.findProcessDefinitionById(processDefinitionId);
       if (processDefinition==null) {
         throw new JbpmException("couldn't find process definition "+processDefinitionId+" in the repository");
       }
@@ -1183,9 +1180,7 @@ public class ExecutionImpl extends ScopeInstanceImpl
   /////////////////////////////////////////////////////////////////////////////
   
   public ActivityImpl getActivity() {
-    if ( (activity==null)
-         && (activityName!=null)
-       ) {
+    if (activity == null && activityName != null) {
       activity = getProcessDefinition().findActivity(activityName);
     }
     return activity;
@@ -1195,7 +1190,8 @@ public class ExecutionImpl extends ScopeInstanceImpl
     this.activity = activity;
     if (activity!=null) {
       this.activityName = activity.getName();
-    } else {
+    }
+    else {
       this.activityName = null;
     }
   }
@@ -1209,9 +1205,7 @@ public class ExecutionImpl extends ScopeInstanceImpl
   public boolean hasAsyncEndEvent(List<ActivityImpl> leftActivities) {
     for (ActivityImpl leftActivity : leftActivities) {
       EventImpl endEvent = leftActivity.getEvent(Event.END);
-      if ( (endEvent!=null)
-           && (endEvent.isAsync())
-         ) {
+      if (endEvent != null && endEvent.isAsync()) {
         return true;
       }
     }
@@ -1224,6 +1218,7 @@ public class ExecutionImpl extends ScopeInstanceImpl
 
   // getters and setters for scope instance //////////////////////////////////////
   
+  @Override
   public ExecutionImpl getExecution() {
     return this;
   }
@@ -1243,7 +1238,7 @@ public class ExecutionImpl extends ScopeInstanceImpl
     return eventSource;
   }
   public Collection<ExecutionImpl> getExecutions() {
-    return (Collection) executions;
+    return executions;
   }
   public String getName() {
     return name;

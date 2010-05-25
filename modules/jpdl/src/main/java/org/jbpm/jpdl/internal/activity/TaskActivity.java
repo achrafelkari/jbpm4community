@@ -34,7 +34,6 @@ import org.jbpm.pvm.internal.history.HistoryEvent;
 import org.jbpm.pvm.internal.history.events.TaskActivityStart;
 import org.jbpm.pvm.internal.model.ActivityImpl;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
-import org.jbpm.pvm.internal.script.ScriptManager;
 import org.jbpm.pvm.internal.session.DbSession;
 import org.jbpm.pvm.internal.task.ParticipationImpl;
 import org.jbpm.pvm.internal.task.SwimlaneDefinitionImpl;
@@ -46,6 +45,8 @@ import org.jbpm.pvm.internal.task.TaskImpl;
 /**
  * @author Tom Baeyens
  * @author Alejandro Guizar
+ * @author Ronald van Kuijk
+ * @author Maciej Swiderski
  */
 public class TaskActivity extends JpdlExternalActivity {
 
@@ -59,7 +60,7 @@ public class TaskActivity extends JpdlExternalActivity {
 
   public void execute(ExecutionImpl execution) {
     DbSession dbSession = EnvironmentImpl.getFromCurrent(DbSession.class);
-    TaskImpl task = (TaskImpl) dbSession.createTask();
+    TaskImpl task = dbSession.createTask();
     task.setTaskDefinition(taskDefinition);
     task.setExecution(execution);
     task.setProcessInstance(execution.getProcessInstance());
@@ -68,7 +69,8 @@ public class TaskActivity extends JpdlExternalActivity {
     // initialize the name
     if (taskDefinition.getName()!=null) {
       task.setName(taskDefinition.getName());
-    } else {
+    }
+    else {
       task.setName(execution.getActivityName());
     }
 
@@ -96,8 +98,9 @@ public class TaskActivity extends JpdlExternalActivity {
       
       // copy the swimlane assignments to the task
       task.setAssignee(swimlane.getAssignee());
-      for (ParticipationImpl participant: swimlane.getParticipations()) {
-        task.addParticipation(participant.getUserId(), participant.getGroupId(), participant.getType());
+      for (ParticipationImpl participant : swimlane.getParticipations()) {
+        task.addParticipation(participant.getUserId(), participant.getGroupId(),
+          participant.getType());
       }
     }
 
@@ -108,11 +111,13 @@ public class TaskActivity extends JpdlExternalActivity {
     execution.waitForSignal();
   }
   
-  public void signal(ActivityExecution execution, String signalName, Map<String, ?> parameters) throws Exception {
+  public void signal(ActivityExecution execution, String signalName, Map<String, ?> parameters)
+    throws Exception {
     signal((ExecutionImpl)execution, signalName, parameters);
   }
 
-  public void signal(ExecutionImpl execution, String signalName, Map<String, ?> parameters) throws Exception {
+  public void signal(ExecutionImpl execution, String signalName, Map<String, ?> parameters)
+    throws Exception {
     ActivityImpl activity = execution.getActivity();
     
     if (parameters!=null) {
@@ -121,8 +126,8 @@ public class TaskActivity extends JpdlExternalActivity {
     
     execution.fire(signalName, activity);
 
-    DbSession taskDbSession = EnvironmentImpl .getFromCurrent(DbSession.class);
-    TaskImpl task = (TaskImpl) taskDbSession.findTaskByExecution(execution);
+    DbSession taskDbSession = EnvironmentImpl.getFromCurrent(DbSession.class);
+    TaskImpl task = taskDbSession.findTaskByExecution(execution);
     if (task!=null) {
       task.setSignalling(false);
     }
@@ -130,43 +135,49 @@ public class TaskActivity extends JpdlExternalActivity {
     Transition transition = null;
     List<Transition> outgoingTransitions = activity.getOutgoingTransitions();
     
-    if ( (outgoingTransitions!=null) && (!outgoingTransitions.isEmpty()) ) {
-      
+    if (outgoingTransitions!=null && !outgoingTransitions.isEmpty()) {
       // Lookup the outgoing transition
-      
-      boolean noOutcomeSpecified =TaskConstants.NO_TASK_OUTCOME_SPECIFIED.equals(signalName); 
+      boolean noOutcomeSpecified = TaskConstants.NO_TASK_OUTCOME_SPECIFIED.equals(signalName);
       if (noOutcomeSpecified && activity.findOutgoingTransition(signalName) == null) {
         // When no specific outcome was specified, the unnamed transition
         // is looked up (name is null). If a null outcome was specifically
         // used, then the else clause will be used (but the result is the same)
         // Note: the second part of the if clause is to avoid the siutation
         // where the user would have chosen the same name as the constant
-        transition = activity.findOutgoingTransition(null); 
-      } else {
-        transition = activity.findOutgoingTransition(signalName);        
+        transition = activity.findOutgoingTransition(null);
+      }
+      else {
+        transition = activity.findOutgoingTransition(signalName);
       }
       
       // If no transition has been found, we check if we have a special case
       // in which we can still deduce the outgoing transition
-      
-      if (transition==null) { // no unnamed transition found
-        
-        if (signalName == null) { 
+      if (transition==null) {
+        // no unnamed transition found
+        if (signalName == null) {
           // null was explicitely given as outcome
-          throw new JbpmException("No unnamed transitions were found for the task '" + getTaskDefinition().getName() + "'"); 
-          
-        } else if (noOutcomeSpecified) { // Special case: complete(id)
-           
+          throw new JbpmException("No unnamed transitions were found for the task '"
+            + getTaskDefinition().getName() + "'");
+        }
+        else if (noOutcomeSpecified) {
+          // Special case: complete(id)
           if (outgoingTransitions.size() == 1) { // If only 1 transition, take that one
             transition = outgoingTransitions.get(0);
-          } else {
-            throw new JbpmException("No unnamed transitions were found for the task '" + getTaskDefinition().getName() + "'");                                          
           }
-          
-        } else {
-          // Likely a programmatic error.
-          throw new JbpmException("No transition named '" + signalName + "' was found."); 
+          else {
+            throw new JbpmException("No unnamed transitions were found for the task '"
+              + getTaskDefinition().getName() + "'");
+          }
         }
+        else {
+          // Likely a programmatic error.
+          throw new JbpmException("No transition named '" + signalName + "' was found.");
+        }
+      }
+      
+      if (task != null && !task.isCompleted()) {
+        // task should be skipped since it is not completed yet !!!
+        task.skip(transition.getName());
       }
       
       if (transition!=null) {

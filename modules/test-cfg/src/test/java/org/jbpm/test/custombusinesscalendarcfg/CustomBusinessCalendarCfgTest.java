@@ -71,7 +71,7 @@ public class CustomBusinessCalendarCfgTest extends JbpmCustomCfgTestCase {
         .processInstanceId(processInstance.getId())
         .uniqueResult();
       
-      Date duedate = job.getDueDate();
+      Date duedate = job.getDuedate();
       
       gregorianCalendar = new GregorianCalendar();
       gregorianCalendar.setTime(duedate);

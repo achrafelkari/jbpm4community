@@ -33,7 +33,6 @@ import org.jbpm.api.activity.ExternalActivityBehaviour;
 import org.jbpm.api.job.Job;
 import org.jbpm.api.listener.EventListener;
 import org.jbpm.api.listener.EventListenerExecution;
-import org.jbpm.pvm.internal.util.Clock;
 import org.jbpm.test.JbpmTestCase;
 
 /**
@@ -445,7 +444,6 @@ public class TimerTest extends JbpmTestCase {
     }
 
     public void notify(EventListenerExecution execution) throws Exception {
-      log.debug("Timer went off, taking transition");
       nrOfTimesCalled++;
     }
   }

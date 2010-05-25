@@ -1,0 +1,50 @@
+Index: modules/userguide/src/main/docbook/en/modules/ch05-Services.xml
+===================================================================
+--- modules/userguide/src/main/docbook/en/modules/ch05-Services.xml	(revision 6372)
++++ modules/userguide/src/main/docbook/en/modules/ch05-Services.xml	(revision 6373)
+@@ -133,7 +133,7 @@
+     will be automatically be assigned.  For version 
+     assignment, the versions of all deployed process definitions with the same name will 
+     be taken into account.  The assigned <literal>version</literal> will be one higher 
+-    then the highest <literal>version</literal> number of deployed process definitions 
++    than the highest <literal>version</literal> number of deployed process definitions 
+     with the same <literal>key</literal>.  If no process definitions with a similar
+     <literal>key</literal> have been deployed, version number 1 is assigned. 
+     </para>
+@@ -371,11 +371,11 @@
+     <para>Typically tasks are associated with a form and displayed in some user 
+     interface.  The form needs to be able to read and write data related to the task.   
+     </para>
+-    <programlisting>long taskId = task.getId();
+-
++    <programlisting>// read task variables
+ Set&lt;String&gt; variableNames = taskService.getVariableNames(taskId);
+-variables = taskService.getVariables(taskId, variableNames);
++variables = taskService.getVariables(taskId, variableNames);</programlisting>
+ 
++    <programlisting>// write task variables
+ variables = new HashMap&lt;String, Object&gt;();
+ variables.put(&quot;category&quot;, &quot;small&quot;);
+ variables.put(&quot;lires&quot;, 923874893);
+@@ -409,7 +409,7 @@
+       If a task has one outgoing transition with a name then: 
+       </emphasis>
+       <itemizedlist>
+-        <listitem>gtaskService.etOutcomes() returns a collection that includes only the name of the transition</listitem>
++        <listitem>taskService.getOutcomes() returns a collection that includes only the name of the transition</listitem>
+         <listitem>taskService.completeTask(taskId) will take the single outgoing transition</listitem>
+         <listitem>taskService.completeTask(taskId, null) will will result in an exception (as there is no transition without a name)</listitem>
+         <listitem>taskService.completeTask(taskId, "anyvalue") will result in an exception</listitem>
+Index: modules/userguide/src/main/docbook/en/modules/ch06-Jpdl.xml
+===================================================================
+--- modules/userguide/src/main/docbook/en/modules/ch06-Jpdl.xml	(revision 6372)
++++ modules/userguide/src/main/docbook/en/modules/ch06-Jpdl.xml	(revision 6373)
+@@ -653,7 +653,7 @@
+ 
+   &lt;start&gt;
+     &lt;transition to=&quot;get return code&quot; /&gt;
+-  &lt;start&gt;
++  &lt;/start&gt;
+   
+   &lt;state name=&quot;get return code&quot;&gt;
+     &lt;transition name=&quot;200&quot; to=&quot;ok&quot;/&gt;

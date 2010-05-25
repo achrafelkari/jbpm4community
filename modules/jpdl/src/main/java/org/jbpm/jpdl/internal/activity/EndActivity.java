@@ -37,29 +37,29 @@ import org.jbpm.pvm.internal.model.ExecutionImpl;
 public class EndActivity extends JpdlActivity {
 
   private static final long serialVersionUID = 1L;
-  
+
   protected boolean endProcessInstance = true;
   protected String state = null;
 
   public void execute(ActivityExecution execution) {
     execute((ExecutionImpl)execution);
   }
-  
+
   public void execute(ExecutionImpl execution) {
     Activity activity = execution.getActivity();
     List<Transition> outgoingTransitions = activity.getOutgoingTransitions();
     ActivityImpl parentActivity = (ActivityImpl) activity.getParentActivity();
 
     if ( (parentActivity!=null)
-         && ("group".equals(parentActivity.getType())) 
+         && ("group".equals(parentActivity.getType()))
        ) {
-      // if the end activity itself has an outgoing transition 
+      // if the end activity itself has an outgoing transition
       // (such end activities should be drawn on the border of the group)
       if ( (outgoingTransitions!=null)
               && (outgoingTransitions.size()==1)
           ) {
          Transition outgoingTransition = outgoingTransitions.get(0);
-         // taking the transition that goes over the group boundaries will 
+         // taking the transition that goes over the group boundaries will
          // destroy the scope automatically (see atomic operation TakeTransition)
          execution.take(outgoingTransition);
 
@@ -67,15 +67,16 @@ public class EndActivity extends JpdlActivity {
         execution.setActivity(parentActivity);
         execution.signal();
       }
-        
+
     } else {
       ExecutionImpl executionToEnd = null;
       if (endProcessInstance) {
         executionToEnd = execution.getProcessInstance();
+        executionToEnd.setActivity(execution.getActivity());
       } else {
         executionToEnd = execution;
       }
-      
+
       if (state==null) {
         executionToEnd.end();
       } else {
@@ -83,7 +84,7 @@ public class EndActivity extends JpdlActivity {
       }
     }
   }
-  
+
   public void setEndProcessInstance(boolean endProcessInstance) {
     this.endProcessInstance = endProcessInstance;
   }

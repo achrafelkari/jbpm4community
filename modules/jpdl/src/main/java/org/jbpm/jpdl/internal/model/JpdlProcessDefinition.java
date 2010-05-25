@@ -35,9 +35,8 @@ import org.jbpm.pvm.internal.task.TaskDefinitionImpl;
 public class JpdlProcessDefinition extends ProcessDefinitionImpl {
 
   private static final long serialVersionUID = 1L;
-  
+
   Map<String, SwimlaneDefinitionImpl> swimlaneDefinitions = new HashMap<String, SwimlaneDefinitionImpl>();
-  Map<String, TaskDefinitionImpl> taskDefinitions = new HashMap<String, TaskDefinitionImpl>();
 
   protected ExecutionImpl newProcessInstance() {
     return new ExecutionImpl();
@@ -56,10 +55,11 @@ public class JpdlProcessDefinition extends ProcessDefinitionImpl {
 
   public TaskDefinitionImpl createTaskDefinition(String name) {
     TaskDefinitionImpl taskDefinition = new TaskDefinitionImpl();
+    taskDefinition.setName(name);
     taskDefinitions.put(name, taskDefinition);
     return taskDefinition;
   }
-  
+
   public Map<String, TaskDefinitionImpl> getTaskDefinitions() {
     return taskDefinitions;
   }

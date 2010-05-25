@@ -74,6 +74,7 @@ public abstract class JbpmTestCase extends BaseJbpmTestCase {
    * in the tearDown. This is a convenience function as each test is expected to clean up the DB. */
   protected List<String> registeredDeployments = new ArrayList<String>();
 
+  @Override
   protected void setUp() throws Exception {
     super.setUp();
     initialize();
@@ -92,6 +93,7 @@ public abstract class JbpmTestCase extends BaseJbpmTestCase {
     }
   }
   
+  @Override
   protected void tearDown() throws Exception {
     deleteRegisteredDeployments();
     String errorMsg = verifyDbClean();
@@ -99,11 +101,7 @@ public abstract class JbpmTestCase extends BaseJbpmTestCase {
     super.tearDown();
     
     if (errorMsg!=null) {
-      if (exception==null) {
-        throw new JbpmException(errorMsg);
-      } else {
-        throw new JbpmException(errorMsg, exception);
-      }
+      throw new JbpmException(errorMsg);
     }
   }
   

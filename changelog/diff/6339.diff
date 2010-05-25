@@ -1,0 +1,79 @@
+Index: modules/pvm/src/test/java/org/jbpm/pvm/internal/task/TaskImplTest.java
+===================================================================
+--- modules/pvm/src/test/java/org/jbpm/pvm/internal/task/TaskImplTest.java	(revision 0)
++++ modules/pvm/src/test/java/org/jbpm/pvm/internal/task/TaskImplTest.java	(revision 6339)
+@@ -0,0 +1,31 @@
++
++package org.jbpm.pvm.internal.task;
++
++import junit.framework.TestCase;
++import org.jbpm.api.task.Task;
++import org.jbpm.pvm.internal.task.TaskImpl;
++
++public class TaskImplTest extends TestCase {
++    public void testSuspend() {
++        TaskImpl task = new TaskImpl();
++        assertEquals(Task.STATE_OPEN, task.getState());
++
++        task.suspend();
++        assertEquals(Task.STATE_SUSPENDED, task.getState());
++        assertFalse(task.isCompleted());
++
++        task.resume();
++        assertEquals(Task.STATE_OPEN, task.getState());
++    }
++
++    public void testState() {
++        TaskImpl task = new TaskImpl();
++        assertEquals(Task.STATE_OPEN, task.getState());
++
++        task.setState(Task.STATE_COMPLETED);
++
++        assertEquals(Task.STATE_COMPLETED, task.getState());
++        assertTrue(task.isCompleted());
++    }
++
++}
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/task/TaskImpl.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/task/TaskImpl.java	(revision 6338)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/task/TaskImpl.java	(revision 6339)
+@@ -71,8 +71,6 @@
+ 
+   protected int priority = Priority.NORMAL;
+ 
+-  protected String state = Task.STATE_OPEN;
+-
+   protected String taskDefinitionName;
+   protected TaskDefinitionImpl taskDefinition;
+ 
+@@ -94,6 +92,7 @@
+   protected Long superTaskDbid;
+ 
+   public TaskImpl() {
++	this.state = Task.STATE_OPEN;
+   }
+ 
+   // parent for variable lookup /////////////////////////////////////////////// 
+@@ -395,10 +394,6 @@
+     this.execution = (ExecutionImpl) execution;
+   }
+ 
+-  public String getState() {
+-    return state;
+-  }
+-
+   public String getAssignee() {
+     return assignee;
+   }
+@@ -443,10 +438,6 @@
+     this.participations = participations;
+   }
+ 
+-  public void setState(String state) {
+-    this.state = state;
+-  }
+-
+   public String getExecutionId() {
+     return executionId;
+   }

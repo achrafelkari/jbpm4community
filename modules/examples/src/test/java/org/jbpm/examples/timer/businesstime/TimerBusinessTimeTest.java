@@ -58,7 +58,7 @@ public class TimerBusinessTimeTest extends JbpmTestCase {
       .processInstanceId(processInstance.getId())
       .uniqueResult();
 
-    long difference = job.getDueDate().getTime() - now;
+    long difference = job.getDuedate().getTime() - now;
 
     // we do not know when this test will be run.  So the exact actual duedate of the timer
     // can not be calculated easily.  But we do know for sure that each working day only 

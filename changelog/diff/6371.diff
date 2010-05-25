@@ -1,0 +1,86 @@
+Index: modules/test-pojo/pom.xml
+===================================================================
+--- modules/test-pojo/pom.xml	(revision 6370)
++++ modules/test-pojo/pom.xml	(revision 6371)
+@@ -33,6 +33,11 @@
+       <version>${project.version}</version>
+     </dependency>
+     <dependency>
++      <groupId>org.jbpm.jbpm4</groupId>
++      <artifactId>jbpm-test-base</artifactId>
++      <version>${project.version}</version>
++    </dependency>
++    <dependency>
+       <groupId>junit</groupId>
+       <artifactId>junit</artifactId>
+     </dependency>
+@@ -47,7 +52,6 @@
+       <artifactId>jbpm-pvm</artifactId>
+       <version>${project.version}</version>
+     </dependency>
+-
+   </dependencies>
+   
+   <!-- Plugins -->
+@@ -80,4 +84,4 @@
+     </profile>
+   </profiles>
+ 
+-</project>
+\ No newline at end of file
++</project>
+Index: modules/jpdl/pom.xml
+===================================================================
+--- modules/jpdl/pom.xml	(revision 6370)
++++ modules/jpdl/pom.xml	(revision 6371)
+@@ -29,19 +29,20 @@
+     <relativePath>../../pom.xml</relativePath>
+   </parent>
+ 
+-  <!-- Properties -->
+-  <properties>
+-  </properties>
+-
+   <!-- Dependencies -->
+   <dependencies>
+-
+     <!-- JBPM4 -->
+     <dependency>
+       <groupId>org.jbpm.jbpm4</groupId>
+       <artifactId>jbpm-pvm</artifactId>
+       <version>${project.version}</version>
+     </dependency>
++    <dependency>
++      <groupId>org.jbpm.jbpm4</groupId>
++      <artifactId>jbpm-test-base</artifactId>
++      <version>${project.version}</version>
++      <scope>test</scope>
++    </dependency>
+ 
+     <!-- 3rd Party -->
+     <dependency>
+Index: modules/pvm/pom.xml
+===================================================================
+--- modules/pvm/pom.xml	(revision 6370)
++++ modules/pvm/pom.xml	(revision 6371)
+@@ -41,6 +41,7 @@
+     <dependency>
+       <groupId>org.jbpm.jbpm4</groupId>
+       <artifactId>jbpm-test-base</artifactId>
++      <scope>test</scope>
+     </dependency>
+ 
+     <dependency>
+Index: modules/test-db/src/test/java/org/jbpm/test/activity/forkjoin/ForkResultsInNullEndActivityTest.java
+===================================================================
+--- modules/test-db/src/test/java/org/jbpm/test/activity/forkjoin/ForkResultsInNullEndActivityTest.java	(revision 6370)
++++ modules/test-db/src/test/java/org/jbpm/test/activity/forkjoin/ForkResultsInNullEndActivityTest.java	(revision 6371)
+@@ -19,7 +19,7 @@
+  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  */
+- package org.jbpm.test.activity.forktest;
++ package org.jbpm.test.activity.forkjoin;
+ 
+ import org.jbpm.api.ProcessInstance;
+ import org.jbpm.pvm.internal.model.ExecutionImpl;

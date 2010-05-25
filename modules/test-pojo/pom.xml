@@ -33,6 +33,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-test-base</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
@@ -47,7 +52,6 @@
       <artifactId>jbpm-pvm</artifactId>
       <version>${project.version}</version>
     </dependency>
-
   </dependencies>
   
   <!-- Plugins -->

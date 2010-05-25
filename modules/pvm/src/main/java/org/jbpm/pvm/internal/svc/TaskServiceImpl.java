@@ -88,7 +88,7 @@ public class TaskServiceImpl extends AbstractServiceImpl implements TaskService 
     commandService.execute(new CompleteTaskCmd(taskId));
   }
   
-  public void completeTask(String taskId, Map<String, Object> variables) {
+  public void completeTask(String taskId, Map<String, ?> variables) {
     completeTask(taskId, null, variables);
   }
 
@@ -96,7 +96,7 @@ public class TaskServiceImpl extends AbstractServiceImpl implements TaskService 
     commandService.execute(new CompleteTaskCmd(taskId, outcome));
   }
   
-  public void completeTask(String taskId, String outcome, Map<String, Object> variables) {
+  public void completeTask(String taskId, String outcome, Map<String, ?> variables) {
     SetTaskVariablesCmd setTaskVariablesCmd = new SetTaskVariablesCmd(taskId);
     setTaskVariablesCmd.setVariables(variables);
     CompositeCmd compositeCmd = new CompositeCmd();
@@ -194,7 +194,7 @@ public class TaskServiceImpl extends AbstractServiceImpl implements TaskService 
     return commandService.execute(new GetTaskVariablesCmd(taskDbid, variableNames));
   }
 
-  public void setVariables(String taskDbid, Map<String, Object> variables) {
+  public void setVariables(String taskDbid, Map<String, ?> variables) {
     SetTaskVariablesCmd cmd = new SetTaskVariablesCmd(taskDbid);
     cmd.setVariables(variables);
     commandService.execute(cmd);

@@ -272,6 +272,7 @@ public class Parser {
   /** creates a new Parser with bindings and entities that can be maintained statically
    * in specialized subclasses of Parser.
    * @deprecated entities should be replaced by {@link #setSchemaResources(List)} */
+  @Deprecated
   public Parser(Bindings bindings, Map<String, Entity> entities) {
     initialize();
     this.bindings = bindings;
@@ -376,6 +377,7 @@ public class Parser {
         // import the element into the destination element
         destination.appendChild(destination.getOwnerDocument().importNode(e, true));
       }
+      importedParse.checkErrors(destination.getTagName());
       
     } catch (Exception e) {
       importingParse.addProblem("couldn't import "+importedStreamInput, e);

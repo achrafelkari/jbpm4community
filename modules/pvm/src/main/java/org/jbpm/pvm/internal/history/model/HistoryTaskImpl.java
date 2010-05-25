@@ -97,6 +97,7 @@ public class HistoryTaskImpl implements Serializable, HistoryTask {
   
   public void addDetail(HistoryDetailImpl detail) {
     detail.setHistoryTask(this, nextDetailIndex);
+    this.details.add(detail);
     nextDetailIndex++;
   }
 

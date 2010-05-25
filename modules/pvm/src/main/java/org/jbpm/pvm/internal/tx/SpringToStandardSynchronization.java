@@ -21,6 +21,7 @@
  */
 package org.jbpm.pvm.internal.tx;
 
+import javax.transaction.Status;
 import javax.transaction.Synchronization;
 
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -28,17 +29,25 @@ import org.springframework.transaction.support.TransactionSynchronization;
 
 /**
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public class SpringToStandardSynchronization implements TransactionSynchronization {
-  
+
   Synchronization synchronization;
-  
+
   public SpringToStandardSynchronization(Synchronization synchronization) {
     this.synchronization = synchronization;
   }
 
   public void afterCompletion(int status) {
-    synchronization.afterCompletion(status);
+    if (status == STATUS_COMMITTED) {
+      synchronization.afterCompletion(Status.STATUS_COMMITTED);
+    } else if (status == STATUS_ROLLED_BACK) {
+      synchronization.afterCompletion(Status.STATUS_ROLLEDBACK);
+    } else {
+      throw new TransactionException("invalid transaction state: "
+        + status);
+    }
   }
 
   public void beforeCompletion() {

@@ -105,6 +105,36 @@ public class SubProcessTest extends JbpmTestCase {
     "  <end name='close'/>" +
     "</process>"; 
   
+  private static final String MAIN_PROCESS_SUB_EL_ID =
+    "<process name='mainProcess'>" +
+    "  <start>" +
+    "    <transition to='review' />" +
+    "  </start>" +
+    "  <sub-process name='review' sub-process-id='#{dynamic_subprocess}'>" +
+    "    <transition name='ok' to='next step'/>" +
+    "    <transition name='nok' to='update'/>" +
+    "    <transition name='reject' to='close'/>" +
+    "  </sub-process>" +
+    "  <state name='next step'/>" +
+    "  <state name='update'/>" +
+    "  <end name='close'/>" +
+    "</process>"; 
+  
+  private static final String MAIN_PROCESS_SUB_ID =
+    "<process name='mainProcess'>" +
+    "  <start>" +
+    "    <transition to='review' />" +
+    "  </start>" +
+    "  <sub-process name='review' sub-process-id='SubProcessReview-1'>" +
+    "    <transition name='ok' to='next step'/>" +
+    "    <transition name='nok' to='update'/>" +
+    "    <transition name='reject' to='close'/>" +
+    "  </sub-process>" +
+    "  <state name='next step'/>" +
+    "  <state name='update'/>" +
+    "  <end name='close'/>" +
+    "</process>"; 
+  
   public void testSubProcessOutcomeToState() {
     deployJpdlXmlString(SUB_PROCESS);
     deployJpdlXmlString(MAIN_PROCESS);
@@ -175,6 +205,28 @@ public class SubProcessTest extends JbpmTestCase {
     deployJpdlXmlString(MAIN_PROCESS_NO_WAIT_STATE);
     
     executionService.startProcessInstanceByKey("mainProcess");
+  }
+  
+  public void testDynamicSubProcessWithId() {
+    deployJpdlXmlString(SUB_PROCESS);
+    deployJpdlXmlString(MAIN_PROCESS_SUB_EL_ID);
+    
+    Map<String, String> vars = new HashMap<String, String>();
+    vars.put("dynamic_subprocess", "SubProcessReview-1");
+    ProcessInstance processInstance = executionService.startProcessInstanceByKey("mainProcess",vars);
+    Task task = taskService.findPersonalTasks("johndoe").get(0);
+    taskService.completeTask(task.getId(), "reject");
+    assertProcessInstanceEnded(processInstance); 
+  }
+  
+  public void testSubProcessWithId() {
+    deployJpdlXmlString(SUB_PROCESS);
+    deployJpdlXmlString(MAIN_PROCESS_SUB_ID);
+   
+    ProcessInstance processInstance = executionService.startProcessInstanceByKey("mainProcess");
+    Task task = taskService.findPersonalTasks("johndoe").get(0);
+    taskService.completeTask(task.getId(), "reject");
+    assertProcessInstanceEnded(processInstance); 
   }
   
 }

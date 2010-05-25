@@ -27,6 +27,7 @@ package org.jbpm.test.variables;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jbpm.api.JbpmException;
 import org.jbpm.api.ProcessInstance;
 import org.jbpm.api.activity.ActivityBehaviour;
 import org.jbpm.api.activity.ActivityExecution;
@@ -35,6 +36,7 @@ import org.jbpm.test.JbpmTestCase;
 
 /**
  * @author Joram Barrez
+ * @author Maciej Swiderski
  */
 public class VariableExpressionTest extends JbpmTestCase {
   
@@ -70,6 +72,76 @@ public class VariableExpressionTest extends JbpmTestCase {
     
     Integer counter = (Integer) executionService.getVariable(processInstance.getId(), "counter");
     assertEquals(new Integer(10), counter);
+  }
+  
+  public void testNullValueExpression() {
+    deployJpdlXmlString(
+            "<process name='theProcess'>" +
+            "  <start name='theStart'>" +
+            "    <transition to='decideToGoFurther' />" +
+            "  </start>" +
+            "  <custom name='incrementCounter' class='" + MyJavaActivity.class.getName() + "'>" +
+            "   <transition to='decideToGoFurther' />" +
+            "  </custom>" +
+            "  <decision name='decideToGoFurther'>" +
+            "    <transition to='waitHere'>" +
+            "      <condition expr='#{counter==null}' />" + 
+            "    </transition>" +
+            "    <transition to='incrementCounter'>" +
+            "      <condition expr='#{counter &lt; 10}' />" +
+            "    </transition>" +
+            "  </decision>" +
+            "  <state name='waitHere'>" +
+            "    <transition to='theEnd' />" +
+            "  </state>" +
+            "  <end name='theEnd' />" +
+            "</process>"
+          );
+    
+    Map<String, Object> vars = new HashMap<String, Object>();
+    vars.put("counter", null);
+    
+    ProcessInstance processInstance = executionService.startProcessInstanceByKey("theProcess", vars);
+    assertActivityActive(processInstance.getId(), "waitHere");
+    
+    Object value = executionService.getVariable(processInstance.getId(), "counter");
+    assertEquals(null, value);
+  }
+  
+  public void testMissingVariableExpression() {
+    deployJpdlXmlString(
+            "<process name='theProcess'>" +
+            "  <start name='theStart'>" +
+            "    <transition to='decideToGoFurther' />" +
+            "  </start>" +
+            "  <custom name='incrementCounter' class='" + MyJavaActivity.class.getName() + "'>" +
+            "   <transition to='decideToGoFurther' />" +
+            "  </custom>" +
+            "  <decision name='decideToGoFurther'>" +
+            "    <transition to='waitHere'>" +
+            "      <condition expr='#{counter==null}' />" + 
+            "    </transition>" +
+            "    <transition to='incrementCounter'>" +
+            "      <condition expr='#{counter &lt; 10}' />" +
+            "    </transition>" +
+            "  </decision>" +
+            "  <state name='waitHere'>" +
+            "    <transition to='theEnd' />" +
+            "  </state>" +
+            "  <end name='theEnd' />" +
+            "</process>"
+          );
+    
+    Map<String, Object> vars = new HashMap<String, Object>();
+    try {
+      ProcessInstance processInstance = executionService.startProcessInstanceByKey("theProcess", vars);
+
+      fail("Variable counter is not set, should fail");
+    } catch (JbpmException e) {
+
+      assertTrue(e.getMessage().indexOf("Cannot find property counter") != -1);
+    }
+
   }
   
   

@@ -534,7 +534,7 @@ public class ObjectWireTest extends WireTestCase {
   }
 
   public static class OverriddenFieldInjectionClass extends FieldInjectionClass {
-    String txtOne = null;
+    String txtOne;
   }
 
   public void testOverriddenFieldInjection() {
@@ -623,15 +623,41 @@ public class ObjectWireTest extends WireTestCase {
   }
 
   public static class PropertyInjectionClass {
-    String p = null;
-    String q = null;
-    String propertyP = null;
-    String propertyQ = null;
-    public void setP(String p) {
-      propertyP = p;
+    String s;
+    String propertyS;
+    boolean z;
+    boolean propertyZ;
+    char c;
+    char propertyC;
+    int i;
+    int propertyI;
+    long l;
+    long propertyL;
+    float f;
+    float propertyF;
+    double d;
+    double propertyD;
+    
+    public void setS(String s) {
+      propertyS = s;
     }
-    public void setQ(String q) {
-      propertyQ = q;
+    public void setZ(boolean z) {
+      propertyZ = z;
+    }
+    public void setC(char c) {
+      propertyC = c;
+    }
+    public void setI(int i) {
+      propertyI = i;
+    }
+    public void setL(long l) {
+      propertyL = l;
+    }
+    public void setF(float f) {
+      propertyF = f;
+    }
+    public void setD(double d) {
+      propertyD = d;
     }
   }
 
@@ -639,48 +665,99 @@ public class ObjectWireTest extends WireTestCase {
     WireContext wireContext = createWireContext(
       "<objects>" +
       "  <object name='o' class='"+PropertyInjectionClass.class.getName()+"'>" +
-      "    <property name='p'>" +
+      "    <property name='s'>" +
       "      <string value='hello' />" +
       "    </property>" +
-      "    <property name='q'>" +
-      "      <string value='world' />" +
+      "    <property name='z'>" +
+      "      <true/>" +
+      "    </property>" +
+      "    <property name='c'>" +
+      "      <char value='x'/>" +
+      "    </property>" +
+      "    <property name='i'>" +
+      "      <int value='32768'/>" +
+      "    </property>" +
+      "    <property name='l'>" +
+      "      <long value='2147483648'/>" +
+      "    </property>" +
+      "    <property name='f'>" +
+      "      <float value='3e9'/>" +
+      "    </property>" +
+      "    <property name='d'>" +
+      "      <double value='1e39'/>" +
       "    </property>" +
       "  </object>" +
       "</objects>"
     );
 
-    Object o = wireContext.get("o");
+    PropertyInjectionClass pic = (PropertyInjectionClass) wireContext.get("o");
 
-    assertNotNull(o);
-    assertEquals(PropertyInjectionClass.class, o.getClass());
-    assertNull(((PropertyInjectionClass)o).p);
-    assertNull(((PropertyInjectionClass)o).q);
-    assertEquals("hello", ((PropertyInjectionClass)o).propertyP);
-    assertEquals("world", ((PropertyInjectionClass)o).propertyQ);
+    assertNull(pic.s);
+    assertEquals("hello", pic.propertyS);
+    assertFalse(pic.z);
+    assertTrue(pic.propertyZ);
+    assertEquals('\0', pic.c);
+    assertEquals('x', pic.propertyC);
+    assertEquals(0, pic.i);
+    assertEquals(1 << 15, pic.propertyI);
+    assertEquals(0, pic.l);
+    assertEquals(1l << 31, pic.propertyL);
+    assertEquals(0, pic.f, 0);
+    assertEquals(3e9f, pic.propertyF, 0);
+    assertEquals(0, pic.d, 0);
+    assertEquals(1e39, pic.propertyD, 0);
+  }
+
+  public void testWideningPropertyInjection() {
+    WireContext wireContext = createWireContext(
+      "<objects>" +
+      "  <object name='o' class='"+PropertyInjectionClass.class.getName()+"'>" +
+      "    <property name='s'>" +
+      "      <string value='hello' />" +
+      "    </property>" +
+      "    <property name='i'>" +
+      "      <char value=' '/>" +
+      "    </property>" +
+      "    <property name='l'>" +
+      "      <int value='2147483647'/>" +
+      "    </property>" +
+      "    <property name='f'>" +
+      "      <int value='16777216'/>" +
+      "    </property>" +
+      "    <property name='d'>" +
+      "      <long value='9007199254740992'/>" +
+      "    </property>" +
+      "  </object>" +
+      "</objects>"
+    );
+
+    PropertyInjectionClass pic = (PropertyInjectionClass) wireContext.get("o");
+
+    assertEquals(0, pic.i);
+    assertEquals(' ', pic.propertyI);
+    assertEquals(0, pic.l);
+    assertEquals(Integer.MAX_VALUE, pic.propertyL);
+    assertEquals(0, pic.f, 0);
+    assertEquals(1 << 24, pic.propertyF, 0);
+    assertEquals(0, pic.d, 0);
+    assertEquals(1l << 53, pic.propertyD, 0);
   }
 
   public void testPropertyInjectionWithSetter() {
     WireContext wireContext = createWireContext(
       "<objects>" +
       "  <object name='o' class='"+PropertyInjectionClass.class.getName()+"'>" +
-      "    <property setter='setP'>" +
+      "    <property setter='setS'>" +
       "      <string value='hello' />" +
-      "    </property>" +
-      "    <property setter='setQ'>" +
-      "      <string value='world' />" +
       "    </property>" +
       "  </object>" +
       "</objects>"
     );
 
-    Object o = wireContext.get("o");
+    PropertyInjectionClass pic = (PropertyInjectionClass) wireContext.get("o");
 
-    assertNotNull(o);
-    assertEquals(PropertyInjectionClass.class, o.getClass());
-    assertNull(((PropertyInjectionClass)o).p);
-    assertNull(((PropertyInjectionClass)o).q);
-    assertEquals("hello", ((PropertyInjectionClass)o).propertyP);
-    assertEquals("world", ((PropertyInjectionClass)o).propertyQ);
+    assertNull(pic.s);
+    assertEquals("hello", pic.propertyS);
   }
 
   public void testBadPropertyDescriptor() {
@@ -727,30 +804,24 @@ public class ObjectWireTest extends WireTestCase {
     WireContext wireContext = createWireContext(
       "<objects>" +
       "  <object name='o' class='"+InheritedPropertyInjectionClass.class.getName()+"'>" +
-      "    <property name='p'>" +
+      "    <property name='s'>" +
       "      <string value='hello' />" +
-      "    </property>" +
-      "    <property name='q'>" +
-      "      <string value='world' />" +
       "    </property>" +
       "  </object>" +
       "</objects>"
     );
 
-    Object o = wireContext.get("o");
+    InheritedPropertyInjectionClass ipic = (InheritedPropertyInjectionClass) wireContext.get("o");
 
-    assertNotNull(o);
-    assertEquals(InheritedPropertyInjectionClass.class, o.getClass());
-    assertNull(((InheritedPropertyInjectionClass)o).p);
-    assertNull(((InheritedPropertyInjectionClass)o).q);
-    assertEquals("hello", ((InheritedPropertyInjectionClass)o).propertyP);
-    assertEquals("world", ((InheritedPropertyInjectionClass)o).propertyQ);
+    assertNull(ipic.s);
+    assertEquals("hello", ipic.propertyS);
   }
 
   public static class OverwrittenPropertyInjectionClass extends PropertyInjectionClass {
-    String overwrittenPropertyQ = null;
-    public void setQ(String q) {
-      overwrittenPropertyQ = q;
+    String overwrittenPropertyS;
+    @Override
+    public void setS(String s) {
+      overwrittenPropertyS = s;
     }
   }
 
@@ -758,25 +829,18 @@ public class ObjectWireTest extends WireTestCase {
     WireContext wireContext = createWireContext(
       "<objects>" +
       "  <object name='o' class='"+OverwrittenPropertyInjectionClass.class.getName()+"'>" +
-      "    <property name='p'>" +
+      "    <property name='s'>" +
       "      <string value='hello' />" +
-      "    </property>" +
-      "    <property name='q'>" +
-      "      <string value='world' />" +
       "    </property>" +
       "  </object>" +
       "</objects>"
     );
 
-    Object o = wireContext.get("o");
+    OverwrittenPropertyInjectionClass opic = (OverwrittenPropertyInjectionClass) wireContext.get("o");
 
-    assertNotNull(o);
-    assertEquals(OverwrittenPropertyInjectionClass.class, o.getClass());
-    assertNull(((OverwrittenPropertyInjectionClass)o).p);
-    assertNull(((OverwrittenPropertyInjectionClass)o).q);
-    assertEquals("hello", ((OverwrittenPropertyInjectionClass)o).propertyP);
-    assertNull(((OverwrittenPropertyInjectionClass)o).propertyQ);
-    assertEquals("world", ((OverwrittenPropertyInjectionClass)o).overwrittenPropertyQ);
+    assertNull(opic.s);
+    assertNull(opic.propertyS);
+    assertEquals("hello", opic.overwrittenPropertyS);
   }
 
   public static class InvokeClass {

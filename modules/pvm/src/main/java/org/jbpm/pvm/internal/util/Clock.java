@@ -2,7 +2,11 @@ package org.jbpm.pvm.internal.util;
 
 import java.util.Date;
 
-public abstract class Clock {
+public class Clock {
+  
+  private Clock() {
+    // prevent instantiation
+  }
   
   protected static Date explicitTime = null;
   

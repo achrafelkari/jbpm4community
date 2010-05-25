@@ -93,16 +93,30 @@ public class BasicEnvironment extends EnvironmentImpl {
   public Object get(String name) {
     return get(name, null);
   }
-  
+
   public Object get(String name, String[] searchOrder) {
-    if (searchOrder==null) {
-      searchOrder = getDefaultSearchOrder();
+    return get(name, searchOrder, true);
+  }
+
+  public Object get(String name, boolean nullIfNotFound) {
+    return get(name, null, nullIfNotFound);
+  }
+
+  public Object get(String name, String[] searchOrder, boolean nullIfNotFound) {
+    if (searchOrder == null) {
+	  searchOrder = getDefaultSearchOrder();
+	}
+	for (String contextName : searchOrder) {
+	  Context context = contexts.get(contextName);
+	  if (context.has(name)) {
+		return context.get(name);
+	  }
+	}
+    if (nullIfNotFound) {
+      return null;
+    } else {
+      throw new JbpmException("Null value found for " + name + " but null is not allowed");
     }
-    for (String contextName : searchOrder) {
-      Context context = contexts.get(contextName);
-      if (context.has(name)) return context.get(name);
-    }
-    return null;
   }
 
   public <T> T get(Class<T> type) {

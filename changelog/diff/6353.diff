@@ -1,0 +1,22 @@
+Index: modules/distro/src/main/files/install/build.xml
+===================================================================
+--- modules/distro/src/main/files/install/build.xml	(revision 6352)
++++ modules/distro/src/main/files/install/build.xml	(revision 6353)
+@@ -28,7 +28,7 @@
+ 
+   <property name="examples.file" value="${jbpm.home}/examples/target/examples.jar" />
+ 
+-  <property name="tomcat.version" value="6.0.20" />
++  <property name="tomcat.version" value="6.0.26" />
+   <property name="tomcat.parent.dir" value="${jbpm.home}" />
+   <property name="tomcat.home" value="${tomcat.parent.dir}/apache-tomcat-${tomcat.version}" />
+   <property name="tomcat.filename" value="apache-tomcat-${tomcat.version}.zip" />
+@@ -313,7 +313,7 @@
+           tofile="${jboss.server.config.dir}/deploy/jbpm/jbpm-service.sar/jbpm.hibernate.cfg.xml"
+           overwrite="true" />
+ 
+-    <!-- copy the right datasource configuration file and replace the jdbc properties with 
++    <!-- copy the right datasource configuration file and replace the jdbc properties with
+          the values in the jdbc/${database}.properties file -->
+     <copy todir="${jboss.server.config.dir}/deploy/jbpm" overwrite="true">
+       <filterset filtersfile="${jdbc.properties.dir}/${database}.properties" />

@@ -29,55 +29,44 @@ import org.jbpm.api.JbpmException;
 import org.jbpm.pvm.internal.env.EnvironmentFactory;
 import org.jbpm.test.BaseJbpmTestCase;
 
-
 /**
  * @author Tom Baeyens
  */
 public abstract class EnvironmentFactoryTestCase extends BaseJbpmTestCase {
-  
-  String configResource;
 
-  static Map<String, EnvironmentFactory> environmentFactories = new HashMap<String, EnvironmentFactory>();
-  
+  private String configResource;
+
+  private static Map<String, EnvironmentFactory> environmentFactories = new HashMap<String, EnvironmentFactory>();
+
   public EnvironmentFactoryTestCase() {
     this("jbpm.cfg.xml");
   }
-  
+
   public EnvironmentFactoryTestCase(String configResource) {
     this.configResource = configResource;
   }
 
   public EnvironmentFactory getEnvironmentFactory() {
-    if (isEnvironmentFactoryCached()) {
-      return environmentFactories.get(configResource);
+    EnvironmentFactory environmentFactory = environmentFactories.get(configResource);
+    if (environmentFactory == null) {
+      environmentFactory = createEnvironmentFactory(configResource);
     }
-    return createEnvironmentFactory();
+    return environmentFactory;
   }
 
-  boolean isEnvironmentFactoryCached() {
-    return environmentFactories.containsKey(configResource);
-  }
-
-  EnvironmentFactory createEnvironmentFactory() {
-    return createEnvironmentFactory(configResource);
-  }
-
-  static EnvironmentFactory createEnvironmentFactory(String configResource) {
+  private EnvironmentFactory createEnvironmentFactory(String configResource) {
     try {
-      log.debug("creating environment factory for ["+configResource+"]");
-      EnvironmentFactory newEnvironmentFactory = (EnvironmentFactory) new Configuration().setResource(configResource).buildProcessEngine();
+      log.debug("creating environment factory for [" + configResource + "]");
+      EnvironmentFactory newEnvironmentFactory = (EnvironmentFactory) new Configuration()
+        .setResource(configResource)
+        .buildProcessEngine();
       environmentFactories.put(configResource, newEnvironmentFactory);
       return newEnvironmentFactory;
-    } catch (Exception e) {
-      throw new JbpmException("Exception during creation of environment factory for "+configResource, e);
+    }
+    catch (Exception e) {
+      throw new JbpmException("Exception during creation of environment factory for "
+        + configResource, e);
     }
   }
 
-  static void closeEnvironmentFactory(String configResource) {
-    EnvironmentFactory environmentFactory = environmentFactories.remove(configResource);
-    if (environmentFactory!=null) {
-      log.debug("closing environment factory for ["+configResource+"]");
-      environmentFactory.close();
-    }
-  }
 }

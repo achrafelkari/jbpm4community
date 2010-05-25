@@ -40,38 +40,40 @@ public class Signal extends AtomicOperation {
 
   private static final Log log = Log.getLog(Signal.class.getName());
 
-  String signalName;
-  Map<String, ?> parameters;
+  private final String signalName;
+  private final Map<String, ?> parameters;
 
   public Signal(String signalName, Map<String, ?> parameters) {
     this.signalName = signalName;
     this.parameters = parameters;
   }
 
+  @Override
   public boolean isAsync(ExecutionImpl execution) {
     return false;
   }
 
+  @Override
   public void perform(ExecutionImpl execution) {
     ActivityImpl activity = execution.getActivity();
-    
-    if (execution.getName()!=null) {
-      log.debug(execution.toString()+" signals "+activity);
-    } else {
-      log.debug("signalling "+activity+", signalName="+signalName);
+    if (execution.getName() != null) {
+      log.debug(execution.toString() + " signals " + activity);
+    }
+    else {
+      log.debug("signalling " + activity + ", signalName=" + signalName);
     }
 
-    ExternalActivityBehaviour externalActivityBehaviour = (ExternalActivityBehaviour) activity.getActivityBehaviour();
-    
+    ExternalActivityBehaviour activityBehaviour = (ExternalActivityBehaviour) activity
+      .getActivityBehaviour();
     try {
       execution.setPropagation(Propagation.UNSPECIFIED);
-      externalActivityBehaviour.signal(execution, signalName, parameters);
-
-    } catch (RuntimeException e) {
+      activityBehaviour.signal(execution, signalName, parameters);
+    }
+    catch (RuntimeException e) {
       throw e;
-      
-    } catch (Exception e) {
-      throw new JbpmException("couldn't signal "+activity+": "+e.getMessage(), e);
+    }
+    catch (Exception e) {
+      throw new JbpmException("couldn't signal " + activity + ": " + e.getMessage(), e);
     }
 
     if (execution.getPropagation() == Propagation.UNSPECIFIED) {
@@ -79,10 +81,12 @@ public class Signal extends AtomicOperation {
     }
   }
   
+  @Override
   public String toString() {
-    return "Signal";
+    return "Signal(" + signalName + ')';
   }
 
+  @Override
   public MessageImpl<?> createAsyncMessage(ExecutionImpl execution) {
     return null;
   }

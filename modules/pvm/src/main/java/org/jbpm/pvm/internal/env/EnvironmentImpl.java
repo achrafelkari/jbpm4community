@@ -141,6 +141,10 @@ public abstract class EnvironmentImpl implements Serializable, Environment {
    * @return the object if it exists in the environment, <code>null</code> if there is no object with the given name in the specified searchOrder contexts.
    */
   public abstract Object get(String name, String[] searchOrder);
+  
+  public abstract Object get(String name,String[] searchOrder, boolean nullAllowed) throws JbpmException;
+  
+  public abstract Object get(String name, boolean nullAllowed) throws JbpmException;
 
   /** searches an object based on type.  The search doesn take superclasses of the context elements 
    * into account.
