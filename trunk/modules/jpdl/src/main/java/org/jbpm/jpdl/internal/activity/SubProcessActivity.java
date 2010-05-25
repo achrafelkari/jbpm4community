@@ -65,7 +65,9 @@ public class SubProcessActivity extends JpdlExternalActivity {
     ClientProcessDefinition processDefinition = null;
     
     if (subProcessId!=null) {
-      processDefinition = repositorySession.findProcessDefinitionById(subProcessId);
+      Expression subProcessKeyExpression = Expression.create(subProcessId, Expression.LANGUAGE_UEL_VALUE);
+      String subProcessIdEval = (String) subProcessKeyExpression.evaluate(execution);
+      processDefinition = repositorySession.findProcessDefinitionById(subProcessIdEval);
     } else {
       String subProcessKeyEval = null;
       try {

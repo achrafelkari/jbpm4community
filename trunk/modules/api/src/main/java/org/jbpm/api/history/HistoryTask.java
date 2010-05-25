@@ -22,10 +22,8 @@
 package org.jbpm.api.history;
 
 import java.util.Date;
-import java.util.List;
 
 import org.jbpm.api.task.Task;
-
 
 /** history record for a task instance.  
  * 
@@ -37,6 +35,7 @@ import org.jbpm.api.task.Task;
 public interface HistoryTask {
 
   String STATE_COMPLETED = "completed";
+  String STATE_OBSOLETE = "obsolete";
 
   /** the unique id for this task that is used as a reference in the service methods */
   String getId();
@@ -50,7 +49,7 @@ public interface HistoryTask {
   /** might be null in case the activity is still active */
   Date getEndTime();
 
-  /** duration in milleseconds */
+  /** duration in milliseconds */
   long getDuration();
 
   /** history task state */  

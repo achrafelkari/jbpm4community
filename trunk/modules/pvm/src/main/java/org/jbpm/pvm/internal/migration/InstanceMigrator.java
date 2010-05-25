@@ -100,7 +100,9 @@ public class InstanceMigrator {
         .list();
     int startIndex = calculateStartIndex(processDefinitions.size() - 1, migrationDescriptor);
     int endIndex = calculateEndIndex(processDefinitions.size() - 1, migrationDescriptor);
-    if (startIndex > endIndex) startIndex = endIndex;
+    if (startIndex > endIndex || startIndex < 0) {
+      startIndex = endIndex;
+    }
     return processDefinitions.subList(startIndex, endIndex);
   }
   

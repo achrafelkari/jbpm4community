@@ -1,0 +1,148 @@
+Index: modules/pvm/src/test/java/org/jbpm/pvm/internal/svc/RetryInterceptorTest.java
+===================================================================
+--- modules/pvm/src/test/java/org/jbpm/pvm/internal/svc/RetryInterceptorTest.java	(revision 0)
++++ modules/pvm/src/test/java/org/jbpm/pvm/internal/svc/RetryInterceptorTest.java	(revision 6355)
+@@ -0,0 +1,57 @@
++/*
++ * JBoss, Home of Professional Open Source
++ * Copyright 2005, JBoss Inc., and individual contributors as indicated
++ * by the @authors tag. See the copyright.txt in the distribution for a
++ * full listing of individual contributors.
++ *
++ * This is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU Lesser General Public License as
++ * published by the Free Software Foundation; either version 2.1 of
++ * the License, or (at your option) any later version.
++ *
++ * This software is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this software; if not, write to the Free
++ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
++ */
++package org.jbpm.pvm.internal.svc;
++
++import junit.framework.TestCase;
++
++import org.hibernate.Session;
++import org.hibernate.StaleStateException;
++
++import org.jbpm.api.Configuration;
++import org.jbpm.api.ProcessEngine;
++import org.jbpm.api.cmd.Command;
++import org.jbpm.api.cmd.Environment;
++import org.jbpm.internal.log.Log;
++import org.jbpm.pvm.internal.cmd.CommandService;
++
++import org.springframework.orm.hibernate3.HibernateOptimisticLockingFailureException;
++
++
++/**
++ * @author Huisheng Xu
++ */
++public class RetryInterceptorTest extends TestCase {
++
++  private static Log log = Log.getLog(RetryInterceptorTest.class.getName());
++
++  public void testShouldRetryStaleStateException() {
++    RetryInterceptor retryInterceptor = new RetryInterceptor();
++    assertTrue(retryInterceptor.isCausedByOptimisticLockingFailure(new StaleStateException("test")));
++  }
++
++  public void testShouldRetry() {
++    RetryInterceptor retryInterceptor = new RetryInterceptor();
++    assertTrue(retryInterceptor.isCausedByOptimisticLockingFailure(
++        new HibernateOptimisticLockingFailureException(new StaleStateException("test"))
++    ));
++  }
++}
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/svc/RetryInterceptor.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/svc/RetryInterceptor.java	(revision 6354)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/svc/RetryInterceptor.java	(revision 6355)
+@@ -27,21 +27,22 @@
+ 
+ import org.hibernate.StaleStateException;
+ 
+-/** retries the command execution in case hibernate throws optimistic locking 
++/** retries the command execution in case hibernate throws optimistic locking
+  * (StaleObjectException) exceptions.
+- * 
++ *
+  * @author Tom Baeyens
++ * @author Huisheng Xu
+  */
+ public class RetryInterceptor extends Interceptor {
+ 
+   private static final Log log = Log.getLog(RetryInterceptor.class.getName());
+-  
++
+   int retries = 3;
+   long delay = 50;
+   long delayFactor = 4;
+ 
+   public <T> T execute(Command<T> command) {
+-    
++
+     // TODO JBPM-2196 unify the retry code with the JtaTransactionInterceptor
+ 
+     int attempt = 1;
+@@ -51,24 +52,48 @@
+         log.trace("retrying...");
+       }
+       try {
+-        
++
+         return next.execute(command);
+-        
+-      } catch (StaleStateException e) {
++
++      } catch (RuntimeException ex) {
++        if (!this.isCausedByOptimisticLockingFailure(ex)) {
++          throw ex;
++        }
++
+         attempt++;
+-        log.trace("optimistic locking failed: "+e);
+-        log.trace("waiting "+sleepTime+" millis");
++        log.trace("optimistic locking failed: " + ex);
++        log.trace("waiting " + sleepTime + " millis");
++
+         try {
+           Thread.sleep(sleepTime);
+         } catch (InterruptedException e1) {
+           log.trace("retry sleeping got interrupted");
+         }
++
+         sleepTime *= delayFactor;
+       }
+     }
+-    throw new JbpmException("gave up after "+attempt+" attempts");
++
++    throw new JbpmException("gave up after " + attempt + " attempts");
+   }
+ 
++  /**
++   * fix for JBPM-2864.
++   * If this exception is caused by StaleStateException, then we should retry.
++   */
++  protected boolean isCausedByOptimisticLockingFailure(
++      Throwable throwable) {
++    while (throwable != null) {
++      if (throwable instanceof StaleStateException) {
++        return true;
++      } else {
++        throwable = throwable.getCause();
++      }
++    }
++
++    return false;
++  }
++
+   public int getRetries() {
+     return retries;
+   }

@@ -23,6 +23,9 @@ package org.jbpm.jpdl.parsing;
 
 import java.util.List;
 
+import org.jbpm.pvm.internal.client.ClientProcessDefinition;
+import org.jbpm.pvm.internal.model.ActivityImpl;
+import org.jbpm.pvm.internal.model.ProcessDefinitionImpl;
 import org.jbpm.pvm.internal.xml.Problem;
 
 
@@ -47,5 +50,21 @@ public class ActivityParsingTest extends JpdlParseTestCase {
       "</process>"
     );
     assertTextPresent("attribute <state name=\"\" is empty", problems.get(0).getMsg());
+  }
+
+  public void testDescription() {
+    ClientProcessDefinition processDefinition = parse(
+      "<process name='p'>" +
+      "  <description>process definition description</description>" +
+      "  <start name='start'>" +
+      "    <description>start description</description>" +
+      "  </start>" +
+      "</process>"
+    );
+    assertEquals("process definition description", processDefinition.getDescription());
+
+    ProcessDefinitionImpl processDefinitionImpl = (ProcessDefinitionImpl) processDefinition;
+    ActivityImpl activity = processDefinitionImpl.getInitial();
+    assertEquals("start description", activity.getDescription());
   }
 }

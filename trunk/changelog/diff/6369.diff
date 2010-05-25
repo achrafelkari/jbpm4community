@@ -1,0 +1,208 @@
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/RepositoryCacheBinding.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/RepositoryCacheBinding.java	(revision 6368)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/RepositoryCacheBinding.java	(revision 6369)
+@@ -39,7 +39,6 @@
+ 
+   public Object parse(Element element, Parse parse, Parser parser) {
+     ObjectDescriptor objectDescriptor = new ObjectDescriptor(RepositoryCacheImpl.class);
+-    objectDescriptor.setAutoWireEnabled(true);
+     return objectDescriptor;
+   }
+ }
+Index: modules/test-cfg/src/test/java/org/jbpm/test/spring/repositorycache/RepositoryCacheTest.java
+===================================================================
+--- modules/test-cfg/src/test/java/org/jbpm/test/spring/repositorycache/RepositoryCacheTest.java	(revision 0)
++++ modules/test-cfg/src/test/java/org/jbpm/test/spring/repositorycache/RepositoryCacheTest.java	(revision 6369)
+@@ -0,0 +1,42 @@
++/*
++ * JBoss, Home of Professional Open Source
++ * Copyright 2005, JBoss Inc., and individual contributors as indicated
++ * by the @authors tag. See the copyright.txt in the distribution for a
++ * full listing of individual contributors.
++ *
++ * This is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU Lesser General Public License as
++ * published by the Free Software Foundation; either version 2.1 of
++ * the License, or (at your option) any later version.
++ *
++ * This software is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this software; if not, write to the Free
++ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
++ */
++package org.jbpm.test.spring.repositorycache;
++
++import java.util.HashMap;
++import java.util.Map;
++
++import org.jbpm.api.JbpmException;
++import org.jbpm.api.ProcessInstance;
++import org.jbpm.test.AbstractTransactionalSpringJbpmTestCase;
++
++public class RepositoryCacheTest extends AbstractTransactionalSpringJbpmTestCase {
++  public void testNotNumberFormatException() {
++    Map map = processEngine.get(Map.class);
++    map.put("some.useless.info", "johndoe");
++    try {
++      executionService.startProcessInstanceByKey("testProcess");
++    } catch(JbpmException ex) {
++      assertTrue(true);
++    }
++  }
++
++}
+Index: modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/jbpm.cfg.xml
+===================================================================
+--- modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/jbpm.cfg.xml	(revision 0)
++++ modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/jbpm.cfg.xml	(revision 6369)
+@@ -0,0 +1,15 @@
++<?xml version="1.0" encoding="UTF-8"?>
++
++<jbpm-configuration>
++
++	<import resource="jbpm.default.cfg.xml" />
++	<import resource="jbpm.jpdl.cfg.xml" />
++	<import resource="jbpm.bpmn.cfg.xml" />
++	<import resource="jbpm.identity.cfg.xml" />
++	<import resource="jbpm.businesscalendar.cfg.xml" />
++	<import resource="jbpm.console.cfg.xml" />
++	
++	<!-- Spring configuration -->
++  <import resource="jbpm.tx.spring.cfg.xml" />
++
++</jbpm-configuration>
+Index: modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/jbpm.hibernate.cfg.xml
+===================================================================
+--- modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/jbpm.hibernate.cfg.xml	(revision 0)
++++ modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/jbpm.hibernate.cfg.xml	(revision 6369)
+@@ -0,0 +1,22 @@
++<?xml version="1.0" encoding="utf-8"?>
++
++<!DOCTYPE hibernate-configuration PUBLIC
++          "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
++          "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
++
++<hibernate-configuration>
++  <session-factory>
++  
++     <property name="hibernate.dialect">org.hibernate.dialect.HSQLDialect</property>
++     <property name="hibernate.format_sql">true</property>
++     
++     <property name="hibernate.hbm2ddl.auto">create-drop</property>
++ 
++     <mapping resource="jbpm.repository.hbm.xml" />
++     <mapping resource="jbpm.execution.hbm.xml" />
++     <mapping resource="jbpm.history.hbm.xml" />
++     <mapping resource="jbpm.task.hbm.xml" />
++     <mapping resource="jbpm.identity.hbm.xml" />
++     
++  </session-factory>
++</hibernate-configuration>
+Index: modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/applicationContext.xml
+===================================================================
+--- modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/applicationContext.xml	(revision 0)
++++ modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/applicationContext.xml	(revision 6369)
+@@ -0,0 +1,50 @@
++<?xml version="1.0" encoding="UTF-8"?>
++
++<beans xmlns="http://www.springframework.org/schema/beans"
++         xmlns:aop="http://www.springframework.org/schema/aop"
++         xmlns:context="http://www.springframework.org/schema/context"
++         xmlns:tx="http://www.springframework.org/schema/tx"
++       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
++         xsi:schemaLocation="
++          http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
++          http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
++          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.0.xsd
++          http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd">
++
++  <bean id="springHelper" class="org.jbpm.pvm.internal.processengine.SpringHelper">
++      <property name="jbpmCfg" value="org/jbpm/test/spring/repositorycache/jbpm.cfg.xml" />
++  </bean>
++
++  <bean id="processEngine" factory-bean="springHelper" factory-method="createProcessEngine" />
++
++    <bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
++        <property name="configLocation" value="classpath:org/jbpm/test/spring/repositorycache/jbpm.hibernate.cfg.xml" />
++        <!-- A best practice should be to keep split the config into multiple files
++            <property name="configLocations" value="hibernate.cfg.xml, hibernate.jbpm.cfg.xml" />
++         -->
++         <property name="dataSource" ref="dataSource" />
++    </bean>
++
++    <bean id="transactionManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager">
++    <property name="sessionFactory" ref="sessionFactory" />
++    <property name="dataSource" ref="dataSource" />
++  </bean>
++
++    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
++        <property name="driverClassName" value="${jdbc.driverClassName}" />
++        <property name="url" value="${jdbc.url}" />
++        <property name="username" value="${jdbc.username}" />
++        <property name="password" value="${jdbc.password}" />
++    </bean>
++
++    <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
++        <property name="locations">
++            <list>
++                <value>classpath*:org/jbpm/test/spring/repositorycache/jdbc.properties</value>
++            </list>
++        </property>
++    </bean>
++
++    <bean name="configProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean"/>
++
++</beans>
+Index: modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/log4j.properties
+===================================================================
+--- modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/log4j.properties	(revision 0)
++++ modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/log4j.properties	(revision 6369)
+@@ -0,0 +1,4 @@
++log4j.appender.stdout=org.apache.log4j.ConsoleAppender
++log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
++log4j.appender.stdout.layout.ConversionPattern=%d{ABSOLUTE} %5p %c{1}:%L - %m%n
++log4j.rootLogger=info, stdout
+Index: modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/jdbc.properties
+===================================================================
+--- modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/jdbc.properties	(revision 0)
++++ modules/test-cfg/src/test/resources/org/jbpm/test/spring/repositorycache/jdbc.properties	(revision 6369)
+@@ -0,0 +1,4 @@
++jdbc.driverClassName=org.hsqldb.jdbcDriver
++jdbc.url=jdbc:hsqldb:.
++jdbc.username=sa
++jdbc.password=
+Index: modules/test-cfg/pom.xml
+===================================================================
+--- modules/test-cfg/pom.xml	(revision 6368)
++++ modules/test-cfg/pom.xml	(revision 6369)
+@@ -49,11 +49,6 @@
+       <scope>runtime</scope>
+     </dependency>
+     <dependency>
+-      <groupId>org.jbpm.jbpm4</groupId>
+-      <artifactId>jbpm-test-base</artifactId>
+-      <scope>test</scope>
+-    </dependency>
+-    <dependency>
+       <groupId>org.springframework</groupId>
+       <artifactId>spring</artifactId>
+       <scope>test</scope>
+@@ -63,6 +58,11 @@
+         <artifactId>spring-mock</artifactId>
+         <scope>test</scope>
+       </dependency>
++    <dependency>
++      <groupId>jboss</groupId>
++      <artifactId>jboss-j2ee</artifactId>
++      <scope>test</scope>
++    </dependency>
+   </dependencies>
+-  
++
+ </project>

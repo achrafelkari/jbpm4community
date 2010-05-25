@@ -149,6 +149,7 @@ public abstract class JobImpl<T> implements Command<T>, Serializable, Job {
     return lockOwner;
   }
   /** @deprecated */
+  @Deprecated
   public Date getDueDate() {
     return getDuedate();
   }

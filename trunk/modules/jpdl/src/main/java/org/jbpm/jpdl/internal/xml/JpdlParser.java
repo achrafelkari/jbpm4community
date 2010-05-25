@@ -282,7 +282,8 @@ public class JpdlParser extends Parser {
       if ("on".equals(tagName) 
           || "timer".equals(tagName)
           || "swimlane".equals(tagName) 
-          || "migrate-instances".equals(tagName)) continue;
+          || "migrate-instances".equals(tagName)
+          || "description".equals(tagName)) continue;
 
       JpdlBinding activityBinding = (JpdlBinding) getBinding(nestedElement, CATEGORY_ACTIVITY);
       if (activityBinding == null) {
@@ -298,7 +299,7 @@ public class JpdlParser extends Parser {
         parseTransitions(nestedElement, activity, parse);
         parseVariableDefinitions(nestedElement, parse, activity);
 
-        Element descriptionElement = XmlUtil.element(documentElement, "description");
+        Element descriptionElement = XmlUtil.element(nestedElement, "description");
         if (descriptionElement!=null) {
           String description = XmlUtil.getContentText(descriptionElement);
           activity.setDescription(description);

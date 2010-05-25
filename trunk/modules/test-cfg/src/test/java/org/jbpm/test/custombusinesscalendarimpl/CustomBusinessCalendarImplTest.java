@@ -65,7 +65,7 @@ public class CustomBusinessCalendarImplTest extends JbpmCustomCfgTestCase {
       .processInstanceId(processInstance.getId())
       .uniqueResult();
     
-    Date duedate = job.getDueDate();
+    Date duedate = job.getDuedate();
     
     GregorianCalendar gregorianCalendar = new GregorianCalendar();
     gregorianCalendar.setTime(duedate);

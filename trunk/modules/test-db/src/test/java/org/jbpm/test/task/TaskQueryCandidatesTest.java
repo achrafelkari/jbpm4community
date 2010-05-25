@@ -175,4 +175,19 @@ public class TaskQueryCandidatesTest extends JbpmTestCase {
     
     taskService.deleteTaskCascade(taskId);
   }
+
+  /**
+   * JBPM-2641.
+   */
+  public void testCountUserCandidateDuplicate() {
+    Task task = taskService.newTask();
+    task.setName("do laundry");
+    String taskId = taskService.saveTask(task);
+    taskService.addTaskParticipatingUser(taskId, "boss_rigging", Participation.CANDIDATE);
+    taskService.addTaskParticipatingUser(taskId, "boss_rigging", Participation.CANDIDATE);
+
+    assertEquals(1, taskService.createTaskQuery().candidate("boss_rigging").list().size());
+
+    taskService.deleteTaskCascade(taskId);
+  }
 }

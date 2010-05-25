@@ -1,0 +1,35 @@
+Index: modules/pvm/src/test/java/org/jbpm/pvm/internal/tx/SpringToStandardSynchronizationTest.java
+===================================================================
+--- modules/pvm/src/test/java/org/jbpm/pvm/internal/tx/SpringToStandardSynchronizationTest.java	(revision 6353)
++++ modules/pvm/src/test/java/org/jbpm/pvm/internal/tx/SpringToStandardSynchronizationTest.java	(revision 6354)
+@@ -26,6 +26,11 @@
+ import javax.transaction.Synchronization;
+ import org.springframework.transaction.support.TransactionSynchronization;
+ 
++/**
++ * JBPM-2863.
++ *
++ * @author Huisheng Xu
++ */
+ public class SpringToStandardSynchronizationTest extends TestCase {
+     public void testCommited() {
+         MockSync sync = new MockSync();
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/tx/SpringToStandardSynchronization.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/tx/SpringToStandardSynchronization.java	(revision 6353)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/tx/SpringToStandardSynchronization.java	(revision 6354)
+@@ -29,11 +29,12 @@
+ 
+ /**
+  * @author Tom Baeyens
++ * @author Huisheng Xu
+  */
+ public class SpringToStandardSynchronization implements TransactionSynchronization {
+-  
++
+   Synchronization synchronization;
+-  
++
+   public SpringToStandardSynchronization(Synchronization synchronization) {
+     this.synchronization = synchronization;
+   }

@@ -44,14 +44,14 @@ public interface ExecutionService {
   /** starts a new process instance for the ProcessDefinition with the given processDefinitionDbid. 
    * @param processDefinitionId the {@link ProcessDefinition#getId() unique id} of the process definition.
    * @param variables are the initial values of the process variables that will be set before the execution starts. */
-  ProcessInstance startProcessInstanceById(String processDefinitionId, Map<String, Object> variables);
+  ProcessInstance startProcessInstanceById(String processDefinitionId, Map<String, ?> variables);
 
   /** starts a new process instance for the ProcessDefinition with the given processDefinitionDbid.
    * @param processDefinitionId the {@link ProcessDefinition#getId() unique id} of the process definition.
    * @param variables are the initial values of the process variables that will be set before the execution starts.
    * @param processInstanceKey is a user provided reference for the new process instance that must be unique over all 
    *    process versions with the same name. */
-  ProcessInstance startProcessInstanceById(String processDefinitionId, Map<String, Object> variables, String processInstanceKey);
+  ProcessInstance startProcessInstanceById(String processDefinitionId, Map<String, ?> variables, String processInstanceKey);
 
   /** starts a new process instance in the latest version of the given process definition.
    * @param processDefinitionKey is the key of the process definition for which the latest version will be taken. */

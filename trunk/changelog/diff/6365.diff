@@ -1,0 +1,377 @@
+Index: modules/test-base/src/main/java/org/jbpm/test/JbpmTestExtensions.java
+===================================================================
+--- modules/test-base/src/main/java/org/jbpm/test/JbpmTestExtensions.java	(revision 6364)
++++ modules/test-base/src/main/java/org/jbpm/test/JbpmTestExtensions.java	(revision 6365)
+@@ -1,66 +0,0 @@
+-/*
+- * JBoss, Home of Professional Open Source
+- * Copyright 2005, JBoss Inc., and individual contributors as indicated
+- * by the @authors tag. See the copyright.txt in the distribution for a
+- * full listing of individual contributors.
+- *
+- * This is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU Lesser General Public License as
+- * published by the Free Software Foundation; either version 2.1 of
+- * the License, or (at your option) any later version.
+- *
+- * This software is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+- * Lesser General Public License for more details.
+- *
+- * You should have received a copy of the GNU Lesser General Public
+- * License along with this software; if not, write to the Free
+- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+- */
+-package org.jbpm.test;
+-
+-import java.util.Date;
+-
+-import org.jbpm.api.JbpmException;
+-
+-/**
+- * @author Tom Baeyens
+- */
+-public abstract class JbpmTestExtensions {
+-
+-  private static final String PROPERTY_NAME = "org.jbpm.test.JbpmTestExtensions";
+-  private static final JbpmTestExtensions instance = instantiateJbpmTestExtentions();
+-
+-  protected static JbpmTestExtensions instantiateJbpmTestExtentions() {
+-    String implClassName = System.getProperty(PROPERTY_NAME);
+-    if (implClassName == null) {
+-      throw new JbpmException("system property not specified: " + PROPERTY_NAME);
+-    }
+-
+-    try {
+-      ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+-      Class<?> implClass = Class.forName(implClassName, false, contextClassLoader);
+-      try {
+-        return (JbpmTestExtensions) implClass.newInstance();
+-      }
+-      catch (InstantiationException e) {
+-        throw new JbpmException("failed to instantiate " + implClass, e);
+-      }
+-      catch (IllegalAccessException e) {
+-        throw new JbpmException(JbpmTestExtensions.class + " has no access to " + implClass, e);
+-      }
+-    }
+-    catch (ClassNotFoundException e) {
+-      throw new JbpmException("could not find class " + implClassName, e);
+-    }
+-  }
+-
+-  public static JbpmTestExtensions getJbpmTestExtensions() {
+-    return instance;
+-  }
+-
+-  public abstract void setExplicitTime(Date explicitTime);
+-  public abstract Date getExplicitTime();
+-}
+Index: modules/test-base/src/main/java/org/jbpm/test/BaseJbpmTestCase.java
+===================================================================
+--- modules/test-base/src/main/java/org/jbpm/test/BaseJbpmTestCase.java	(revision 6364)
++++ modules/test-base/src/main/java/org/jbpm/test/BaseJbpmTestCase.java	(revision 6365)
+@@ -21,10 +21,8 @@
+  */
+ package org.jbpm.test;
+ 
+-import junit.framework.AssertionFailedError;
+ import junit.framework.TestCase;
+ 
+-import org.jbpm.api.JbpmException;
+ import org.jbpm.internal.log.Jdk14LogFactory;
+ import org.jbpm.internal.log.Log;
+ import org.jbpm.internal.log.LogFormatter;
+@@ -55,48 +53,23 @@
+     Jdk14LogFactory.initializeJdk14Logging(); 
+   }
+ 
+-  static protected JbpmTestExtensions jbpmTestExtensions = JbpmTestExtensions.getJbpmTestExtensions();
+-  static protected Log log = Log.getLog(BaseJbpmTestCase.class.getName());
+-  
+-  Throwable exception; 
++  protected final Log log = Log.getLog(getClass().getName());
+ 
++  @Override
+   protected void setUp() throws Exception {
+     LogFormatter.resetIndentation();
+     log.debug("=== starting "+getName()+" =============================");
+   }
+ 
++  @Override
+   protected void tearDown() throws Exception {
+     log.debug("=== ending "+getName()+" =============================\n");
+-    
+-    if (jbpmTestExtensions.getExplicitTime()!=null) {
+-      jbpmTestExtensions.setExplicitTime(null);
+-      throw new JbpmException("This test forgot to unset the explicit time of the clock.  use JbpmTestExtensions.getJbpmTestExtensions().setExplicitTime(null);");
+-    }
+   }
+ 
+   public void assertTextPresent(String expected, String value) {
+-    if ( (value==null)
+-         || (value.indexOf(expected)==-1)
+-       ) {
++    if (value == null || !value.contains(expected)) {
+       fail("expected presence of '"+expected+"' but was '"+value+"'");
+     }
+   }
+-  
+-  protected void runTest() throws Throwable {
+-    try {
+-      super.runTest();
+-    } catch (AssertionFailedError e) {
+-      log.error("");
+-      log.error("ASSERTION FAILURE: "+e.getMessage(), e);
+-      log.error("");
+-      exception = e;
+-      throw e;
+-    } catch (Throwable t) {
+-      log.error("");
+-      log.error("TEST THROWS EXCEPTION: "+t.getMessage(), t);
+-      log.error("");
+-      exception = t;
+-      throw t;
+-    }
+-  }
++
+ }
+Index: modules/test-base/src/main/java/org/jbpm/test/JbpmTestCase.java
+===================================================================
+--- modules/test-base/src/main/java/org/jbpm/test/JbpmTestCase.java	(revision 6364)
++++ modules/test-base/src/main/java/org/jbpm/test/JbpmTestCase.java	(revision 6365)
+@@ -74,6 +74,7 @@
+    * in the tearDown. This is a convenience function as each test is expected to clean up the DB. */
+   protected List<String> registeredDeployments = new ArrayList<String>();
+ 
++  @Override
+   protected void setUp() throws Exception {
+     super.setUp();
+     initialize();
+@@ -92,6 +93,7 @@
+     }
+   }
+   
++  @Override
+   protected void tearDown() throws Exception {
+     deleteRegisteredDeployments();
+     String errorMsg = verifyDbClean();
+@@ -99,11 +101,7 @@
+     super.tearDown();
+     
+     if (errorMsg!=null) {
+-      if (exception==null) {
+-        throw new JbpmException(errorMsg);
+-      } else {
+-        throw new JbpmException(errorMsg, exception);
+-      }
++      throw new JbpmException(errorMsg);
+     }
+   }
+   
+Index: modules/jpdl/pom.xml
+===================================================================
+--- modules/jpdl/pom.xml	(revision 6364)
++++ modules/jpdl/pom.xml	(revision 6365)
+@@ -64,12 +64,6 @@
+           <excludes>
+             <exclude>org/jbpm/test/update/ProcessUpdateTest.java</exclude>
+           </excludes>
+-          <systemProperties>
+-            <property>
+-              <name>org.jbpm.test.JbpmTestExtensions</name>
+-              <value>org.jbpm.jpdl.test.JbpmTestExtensionsImpl</value>
+-            </property>
+-          </systemProperties>
+         </configuration>
+       </plugin>
+     </plugins>
+Index: modules/pvm/src/test/java/org/jbpm/pvm/test/JbpmTestExtensionsImpl.java
+===================================================================
+--- modules/pvm/src/test/java/org/jbpm/pvm/test/JbpmTestExtensionsImpl.java	(revision 6364)
++++ modules/pvm/src/test/java/org/jbpm/pvm/test/JbpmTestExtensionsImpl.java	(revision 6365)
+@@ -1,43 +0,0 @@
+-/*
+- * JBoss, Home of Professional Open Source
+- * Copyright 2005, JBoss Inc., and individual contributors as indicated
+- * by the @authors tag. See the copyright.txt in the distribution for a
+- * full listing of individual contributors.
+- *
+- * This is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU Lesser General Public License as
+- * published by the Free Software Foundation; either version 2.1 of
+- * the License, or (at your option) any later version.
+- *
+- * This software is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+- * Lesser General Public License for more details.
+- *
+- * You should have received a copy of the GNU Lesser General Public
+- * License along with this software; if not, write to the Free
+- * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+- */
+-package org.jbpm.pvm.test;
+-
+-import java.util.Date;
+-
+-import org.jbpm.pvm.internal.util.Clock;
+-import org.jbpm.test.JbpmTestExtensions;
+-
+-/**
+- * @author Tom Baeyens
+- */
+-public class JbpmTestExtensionsImpl extends JbpmTestExtensions {
+-
+-  @Override
+-  public Date getExplicitTime() {
+-    return Clock.getExplicitTime();
+-  }
+-
+-  @Override
+-  public void setExplicitTime(Date explicitTime) {
+-    Clock.setExplicitTime(explicitTime);
+-  }
+-}
+Index: modules/pvm/src/test/java/org/jbpm/pvm/test/EnvironmentFactoryTestCase.java
+===================================================================
+--- modules/pvm/src/test/java/org/jbpm/pvm/test/EnvironmentFactoryTestCase.java	(revision 6364)
++++ modules/pvm/src/test/java/org/jbpm/pvm/test/EnvironmentFactoryTestCase.java	(revision 6365)
+@@ -29,55 +29,44 @@
+ import org.jbpm.pvm.internal.env.EnvironmentFactory;
+ import org.jbpm.test.BaseJbpmTestCase;
+ 
+-
+ /**
+  * @author Tom Baeyens
+  */
+ public abstract class EnvironmentFactoryTestCase extends BaseJbpmTestCase {
+-  
+-  String configResource;
+ 
+-  static Map<String, EnvironmentFactory> environmentFactories = new HashMap<String, EnvironmentFactory>();
+-  
++  private String configResource;
++
++  private static Map<String, EnvironmentFactory> environmentFactories = new HashMap<String, EnvironmentFactory>();
++
+   public EnvironmentFactoryTestCase() {
+     this("jbpm.cfg.xml");
+   }
+-  
++
+   public EnvironmentFactoryTestCase(String configResource) {
+     this.configResource = configResource;
+   }
+ 
+   public EnvironmentFactory getEnvironmentFactory() {
+-    if (isEnvironmentFactoryCached()) {
+-      return environmentFactories.get(configResource);
++    EnvironmentFactory environmentFactory = environmentFactories.get(configResource);
++    if (environmentFactory == null) {
++      environmentFactory = createEnvironmentFactory(configResource);
+     }
+-    return createEnvironmentFactory();
++    return environmentFactory;
+   }
+ 
+-  boolean isEnvironmentFactoryCached() {
+-    return environmentFactories.containsKey(configResource);
+-  }
+-
+-  EnvironmentFactory createEnvironmentFactory() {
+-    return createEnvironmentFactory(configResource);
+-  }
+-
+-  static EnvironmentFactory createEnvironmentFactory(String configResource) {
++  private EnvironmentFactory createEnvironmentFactory(String configResource) {
+     try {
+-      log.debug("creating environment factory for ["+configResource+"]");
+-      EnvironmentFactory newEnvironmentFactory = (EnvironmentFactory) new Configuration().setResource(configResource).buildProcessEngine();
++      log.debug("creating environment factory for [" + configResource + "]");
++      EnvironmentFactory newEnvironmentFactory = (EnvironmentFactory) new Configuration()
++        .setResource(configResource)
++        .buildProcessEngine();
+       environmentFactories.put(configResource, newEnvironmentFactory);
+       return newEnvironmentFactory;
+-    } catch (Exception e) {
+-      throw new JbpmException("Exception during creation of environment factory for "+configResource, e);
+     }
+-  }
+-
+-  static void closeEnvironmentFactory(String configResource) {
+-    EnvironmentFactory environmentFactory = environmentFactories.remove(configResource);
+-    if (environmentFactory!=null) {
+-      log.debug("closing environment factory for ["+configResource+"]");
+-      environmentFactory.close();
++    catch (Exception e) {
++      throw new JbpmException("Exception during creation of environment factory for "
++        + configResource, e);
+     }
+   }
++
+ }
+Index: modules/pvm/pom.xml
+===================================================================
+--- modules/pvm/pom.xml	(revision 6364)
++++ modules/pvm/pom.xml	(revision 6365)
+@@ -182,12 +182,6 @@
+             <exclude>**/*TestCase.java</exclude>
+             <exclude>org/jbpm/examples/bpmn/gateway/exclusive/ExclusiveGateway*</exclude>
+           </excludes>
+-          <systemProperties>
+-            <property>
+-              <name>org.jbpm.test.JbpmTestExtensions</name>
+-              <value>org.jbpm.pvm.test.JbpmTestExtensionsImpl</value>
+-            </property>
+-          </systemProperties>
+         </configuration>
+       </plugin>
+     </plugins>
+Index: modules/test-db/src/test/java/org/jbpm/test/timer/TimerTest.java
+===================================================================
+--- modules/test-db/src/test/java/org/jbpm/test/timer/TimerTest.java	(revision 6364)
++++ modules/test-db/src/test/java/org/jbpm/test/timer/TimerTest.java	(revision 6365)
+@@ -33,7 +33,6 @@
+ import org.jbpm.api.job.Job;
+ import org.jbpm.api.listener.EventListener;
+ import org.jbpm.api.listener.EventListenerExecution;
+-import org.jbpm.pvm.internal.util.Clock;
+ import org.jbpm.test.JbpmTestCase;
+ 
+ /**
+@@ -445,7 +444,6 @@
+     }
+ 
+     public void notify(EventListenerExecution execution) throws Exception {
+-      log.debug("Timer went off, taking transition");
+       nrOfTimesCalled++;
+     }
+   }
+Index: modules/test-db/pom.xml
+===================================================================
+--- modules/test-db/pom.xml	(revision 6364)
++++ modules/test-db/pom.xml	(revision 6365)
+@@ -27,7 +27,6 @@
+ 
+   <!-- Dependencies -->
+   <dependencies>
+-
+     <dependency>
+       <groupId>org.jbpm.jbpm4</groupId>
+       <artifactId>jbpm-api</artifactId>
+@@ -97,11 +96,7 @@
+         <artifactId>maven-surefire-plugin</artifactId>
+         <configuration>
+           <failIfNoTests>false</failIfNoTests>
+-          <trimStackTrace>false</trimStackTrace>
+           <redirectTestOutputToFile>true</redirectTestOutputToFile>
+-          <excludes>
+-
+-          </excludes>
+         </configuration>
+       </plugin>
+     </plugins>

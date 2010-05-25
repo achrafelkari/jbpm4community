@@ -27,32 +27,36 @@ import java.util.Iterator;
 import javax.el.ELContext;
 import javax.el.ELResolver;
 
+import org.jbpm.api.JbpmException;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
-
 
 /**
  * @author Tom Baeyens
  */
 public class JbpmEnvironmentElResolver extends ELResolver {
-  
+
   EnvironmentImpl environment;
-  
+
   public JbpmEnvironmentElResolver(EnvironmentImpl environment) {
     this.environment = environment;
   }
 
   public Object getValue(ELContext context, Object base, Object property) {
-    // this resolver only resolves top level variable names to execution variable names.
+    // this resolver only resolves top level variable names to execution
+    // variable names.
     // only handle if this is a top level variable
-    if (base==null) {
+    if (base == null) {
       // we assume a NPE-check for property is not needed
-      // i don't think the next cast can go wrong.  can it?
+      // i don't think the next cast can go wrong. can it?
       String name = (String) property;
 
-      Object object = environment.get(name);
-      if (object!=null) {
+      try {
+        Object object = environment.get(name, false);
         context.setPropertyResolved(true);
         return object;
+      } catch (JbpmException je) {
+        // Property not found... ignore in this case and return null below...
+        // Will be interpreted as property not found
       }
     }
 

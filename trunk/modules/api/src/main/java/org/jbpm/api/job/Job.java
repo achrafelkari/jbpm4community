@@ -40,6 +40,7 @@ public interface Job {
   /** in case this is a timer, it is the time that the timer should fire, in case this 
    * is a message, it is null. 
    * @deprecated */
+  @Deprecated
   Date getDueDate();
 
   /** in case this is a timer, it is the time that the timer should fire, in case this 

@@ -21,10 +21,8 @@
  */
 package org.jbpm.test;
 
-import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
-import org.jbpm.api.JbpmException;
 import org.jbpm.internal.log.Jdk14LogFactory;
 import org.jbpm.internal.log.Log;
 import org.jbpm.internal.log.LogFormatter;
@@ -55,48 +53,23 @@ public abstract class BaseJbpmTestCase extends TestCase {
     Jdk14LogFactory.initializeJdk14Logging(); 
   }
 
-  static protected JbpmTestExtensions jbpmTestExtensions = JbpmTestExtensions.getJbpmTestExtensions();
-  static protected Log log = Log.getLog(BaseJbpmTestCase.class.getName());
-  
-  Throwable exception; 
+  protected final Log log = Log.getLog(getClass().getName());
 
+  @Override
   protected void setUp() throws Exception {
     LogFormatter.resetIndentation();
     log.debug("=== starting "+getName()+" =============================");
   }
 
+  @Override
   protected void tearDown() throws Exception {
     log.debug("=== ending "+getName()+" =============================\n");
-    
-    if (jbpmTestExtensions.getExplicitTime()!=null) {
-      jbpmTestExtensions.setExplicitTime(null);
-      throw new JbpmException("This test forgot to unset the explicit time of the clock.  use JbpmTestExtensions.getJbpmTestExtensions().setExplicitTime(null);");
-    }
   }
 
   public void assertTextPresent(String expected, String value) {
-    if ( (value==null)
-         || (value.indexOf(expected)==-1)
-       ) {
+    if (value == null || !value.contains(expected)) {
       fail("expected presence of '"+expected+"' but was '"+value+"'");
     }
   }
-  
-  protected void runTest() throws Throwable {
-    try {
-      super.runTest();
-    } catch (AssertionFailedError e) {
-      log.error("");
-      log.error("ASSERTION FAILURE: "+e.getMessage(), e);
-      log.error("");
-      exception = e;
-      throw e;
-    } catch (Throwable t) {
-      log.error("");
-      log.error("TEST THROWS EXCEPTION: "+t.getMessage(), t);
-      log.error("");
-      exception = t;
-      throw t;
-    }
-  }
+
 }

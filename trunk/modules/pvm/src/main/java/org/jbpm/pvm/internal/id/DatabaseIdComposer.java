@@ -52,7 +52,7 @@ public class DatabaseIdComposer extends IdComposer {
       executionPart = execution.getKey();
     
     } else if (execution.getName()!=null) {
-      executionPart = execution.getName();
+      executionPart = execution.getName() + '.' + Long.toString(execution.getDbid());
       
     } else {
       executionPart = Long.toString(execution.getDbid());

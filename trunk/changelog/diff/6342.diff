@@ -1,0 +1,73 @@
+Index: modules/test-cfg/src/test/java/org/jbpm/test/custombusinesscalendarcfg/CustomBusinessCalendarCfgTest.java
+===================================================================
+--- modules/test-cfg/src/test/java/org/jbpm/test/custombusinesscalendarcfg/CustomBusinessCalendarCfgTest.java	(revision 6341)
++++ modules/test-cfg/src/test/java/org/jbpm/test/custombusinesscalendarcfg/CustomBusinessCalendarCfgTest.java	(revision 6342)
+@@ -71,7 +71,7 @@
+         .processInstanceId(processInstance.getId())
+         .uniqueResult();
+       
+-      Date duedate = job.getDueDate();
++      Date duedate = job.getDuedate();
+       
+       gregorianCalendar = new GregorianCalendar();
+       gregorianCalendar.setTime(duedate);
+Index: modules/test-cfg/src/test/java/org/jbpm/test/custombusinesscalendarimpl/CustomBusinessCalendarImplTest.java
+===================================================================
+--- modules/test-cfg/src/test/java/org/jbpm/test/custombusinesscalendarimpl/CustomBusinessCalendarImplTest.java	(revision 6341)
++++ modules/test-cfg/src/test/java/org/jbpm/test/custombusinesscalendarimpl/CustomBusinessCalendarImplTest.java	(revision 6342)
+@@ -65,7 +65,7 @@
+       .processInstanceId(processInstance.getId())
+       .uniqueResult();
+     
+-    Date duedate = job.getDueDate();
++    Date duedate = job.getDuedate();
+     
+     GregorianCalendar gregorianCalendar = new GregorianCalendar();
+     gregorianCalendar.setTime(duedate);
+Index: modules/test-cfg/src/test/resources/org/jbpm/test/spring/expression/eventlistener/applicationContext.xml
+===================================================================
+--- modules/test-cfg/src/test/resources/org/jbpm/test/spring/expression/eventlistener/applicationContext.xml	(revision 6341)
++++ modules/test-cfg/src/test/resources/org/jbpm/test/spring/expression/eventlistener/applicationContext.xml	(revision 6342)
+@@ -6,10 +6,10 @@
+ 	     xmlns:tx="http://www.springframework.org/schema/tx"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ 	     xsi:schemaLocation="
+-          http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+-          http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+-          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+-          http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
++          http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
++          http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
++          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.0.xsd
++          http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd">
+ 
+ 
+   <bean id="myEventListener" class="org.jbpm.test.spring.expression.eventlistener.MyEventListener" />
+@@ -21,7 +21,7 @@
+   <bean id="processEngine" factory-bean="springHelper" factory-method="createProcessEngine" />
+ 
+ 	<bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+-		<property name="configLocation" value="classpath:org/jbpm/test/spring/transactionmanager/jbpm.hibernate.cfg.xml" />
++		<property name="configLocation" value="classpath:org/jbpm/test/spring/expression/eventlistener/jbpm.hibernate.cfg.xml" />
+ 		<!-- A best practice should be to keep split the config into multiple files
+ 			<property name="configLocations" value="hibernate.cfg.xml, hibernate.jbpm.cfg.xml" />
+ 		 -->
+Index: modules/test-cfg/src/test/resources/org/jbpm/test/spring/transactionmanager/applicationContext.xml
+===================================================================
+--- modules/test-cfg/src/test/resources/org/jbpm/test/spring/transactionmanager/applicationContext.xml	(revision 6341)
++++ modules/test-cfg/src/test/resources/org/jbpm/test/spring/transactionmanager/applicationContext.xml	(revision 6342)
+@@ -6,10 +6,10 @@
+ 	     xmlns:tx="http://www.springframework.org/schema/tx"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ 	     xsi:schemaLocation="
+-          http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+-          http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd
+-          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+-          http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
++          http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
++          http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd
++          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.0.xsd
++          http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd">
+ 
+    <bean id="springHelper" class="org.jbpm.pvm.internal.processengine.SpringHelper">
+       <property name="jbpmCfg" value="org/jbpm/test/spring/transactionmanager/jbpm.cfg.xml" />

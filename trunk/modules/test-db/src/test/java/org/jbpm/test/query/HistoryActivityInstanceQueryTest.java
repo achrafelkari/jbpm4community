@@ -341,7 +341,7 @@ public class HistoryActivityInstanceQueryTest extends JbpmTestCase {
     
     // last check execution ids to illustrate that for task with timer it is not same as process instance id
     assertEquals(ids.get(0), history.get(0).getExecutionId());
-    assertEquals(ids.get(0) + ".b", history.get(1).getExecutionId());
+	assertTrue(history.get(1).getExecutionId().startsWith(ids.get(0) + ".b."));
     assertEquals(ids.get(0), history.get(2).getExecutionId());
   }
   

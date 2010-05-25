@@ -41,7 +41,7 @@ public class StartProcessInstanceCmd extends VariablesCmd<ProcessInstance> {
   protected String processDefinitionId;
   protected String executionKey;
 
-  public StartProcessInstanceCmd(String processDefinitionId, Map<String, Object> variables, String executionKey) {
+  public StartProcessInstanceCmd(String processDefinitionId, Map<String, ?> variables, String executionKey) {
     this.processDefinitionId = processDefinitionId;
     this.variables = variables;
     this.executionKey = executionKey;

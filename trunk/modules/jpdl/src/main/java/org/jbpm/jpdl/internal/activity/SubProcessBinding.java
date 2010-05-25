@@ -47,13 +47,13 @@ public class SubProcessBinding extends JpdlBinding {
 
   public Object parseJpdl(Element element, Parse parse, JpdlParser parser) {
     SubProcessActivity subProcessActivity = new SubProcessActivity();
-    
+
     String subProcessKey = XmlUtil.attribute(element, "sub-process-key");
     subProcessActivity.setSubProcessKey(subProcessKey);
-    
+
     String subProcessId = XmlUtil.attribute(element, "sub-process-id");
     subProcessActivity.setSubProcessId(subProcessId);
-    
+
     List<SubProcessInParameterImpl> inParameters = new ArrayList<SubProcessInParameterImpl>();
     for (Element inElement: XmlUtil.elements(element, "parameter-in")) {
       SubProcessInParameterImpl inParameter = new SubProcessInParameterImpl();
@@ -81,7 +81,7 @@ public class SubProcessBinding extends JpdlBinding {
       SubProcessOutParameterImpl outParameter = new SubProcessOutParameterImpl();
       parseParameter(outElement, outParameter);
       outParameters.add(outParameter);
-      
+
       if (outParameter.getVariableName()==null) {
         parse.addProblem("no 'variable' specified for parameter-in", element);
       }
@@ -108,7 +108,7 @@ public class SubProcessBinding extends JpdlBinding {
     if (outcomeExpressionText!=null) {
       Expression outcomeExpression = Expression.create(outcomeExpressionText, outcomeLanguage);
       subProcessActivity.setOutcomeExpression(outcomeExpression);
-      
+
       for (Element transitionElement: XmlUtil.elements(element, "transition")) {
         Element outcomeValueElement = XmlUtil.element(transitionElement, "outcome-value");
         if (outcomeValueElement!=null) {
@@ -121,6 +121,7 @@ public class SubProcessBinding extends JpdlBinding {
             Descriptor descriptor = (Descriptor) WireParser.getInstance().parseElement(valueElement, parse);
             Object value = WireContext.create(descriptor);
             outcomeVariableMappings.put(value, transitionName);
+            subProcessActivity.setOutcomeVariableMappings(outcomeVariableMappings);
           } else {
             parse.addProblem("outcome-value must contain exactly one element", outcomeValueElement);
           }
@@ -135,7 +136,7 @@ public class SubProcessBinding extends JpdlBinding {
   void parseParameter(Element element, SubProcessParameterImpl parameter) {
     String name = XmlUtil.attribute(element, "subvar");
     parameter.setSubVariableName(name);
-    
+
     String expressionText = XmlUtil.attribute(element, "expr");
     String language = XmlUtil.attribute(element, "expr-lang");
     if (expressionText!=null) {
@@ -151,11 +152,11 @@ public class SubProcessBinding extends JpdlBinding {
 
   public static Map<String, String> parseSwimlaneMappings(Element element, Parse parse) {
     Map<String, String> swimlaneMappings = new HashMap<String, String>();
-    
+
     for (Element inElement: XmlUtil.elements(element, "swimlane-mapping")) {
       String swimlane = XmlUtil.attribute(inElement, "swimlane", true, parse);
       String subSwimlane = XmlUtil.attribute(inElement, "sub-swimlane", true, parse);
-      
+
       swimlaneMappings.put(swimlane, subSwimlane);
     }
 

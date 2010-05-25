@@ -21,14 +21,38 @@
  */
 package org.jbpm.pvm.internal.script;
 
-import de.odysseus.el.util.SimpleResolver;
-
-import javax.el.*;
-import javax.script.*;
 import java.io.IOException;
 import java.io.Reader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Properties;
+
+import javax.el.ArrayELResolver;
+import javax.el.BeanELResolver;
+import javax.el.CompositeELResolver;
+import javax.el.ELContext;
+import javax.el.ELException;
+import javax.el.ELResolver;
+import javax.el.ExpressionFactory;
+import javax.el.FunctionMapper;
+import javax.el.ListELResolver;
+import javax.el.MapELResolver;
+import javax.el.ResourceBundleELResolver;
+import javax.el.ValueExpression;
+import javax.el.VariableMapper;
+import javax.script.AbstractScriptEngine;
+import javax.script.Bindings;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptException;
+import javax.script.SimpleBindings;
+
+import org.jbpm.pvm.internal.env.ExecutionContext;
+
+import de.odysseus.el.util.SimpleResolver;
 
 class JuelScriptEngine extends AbstractScriptEngine
     implements Compilable
@@ -369,8 +393,16 @@ class JuelScriptEngine extends AbstractScriptEngine
 
         return exprFactory.createValueExpression(
             value, Object.class);
+      } else {
+        // to support null value for existing variables
+        Bindings b = this.ctx.getBindings(ScriptContext.ENGINE_SCOPE);
+        ExecutionContext execContext = (ExecutionContext) ((EnvironmentBindings) b).environment.getContext("execution");
+        // if variable name exist then set value expression as null 
+        // since it was not discovered by attribute scope method
+        if (execContext.getExecution().getVariables().containsKey(variable)) {
+          return exprFactory.createValueExpression(null, Object.class);
+        }
       }
-
       return null;
     }
 

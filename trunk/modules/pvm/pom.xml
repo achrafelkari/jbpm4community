@@ -41,6 +41,7 @@
     <dependency>
       <groupId>org.jbpm.jbpm4</groupId>
       <artifactId>jbpm-test-base</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <dependency>

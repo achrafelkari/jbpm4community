@@ -21,7 +21,6 @@
  */
 package org.jbpm.pvm.internal.task;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -37,6 +36,7 @@ import org.jbpm.api.task.Task;
 import org.jbpm.pvm.internal.client.ClientExecution;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.history.HistoryEvent;
+import org.jbpm.pvm.internal.history.events.TaskSkip;
 import org.jbpm.pvm.internal.history.events.TaskComplete;
 import org.jbpm.pvm.internal.history.events.TaskDelete;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
@@ -49,12 +49,13 @@ import org.jbpm.pvm.internal.util.Priority;
 /**
  * is one task instance that can be assigned to an actor (read: put in someone's task list) and that
  * can trigger the continuation of execution of the token upon completion.
+ * 
+ * @author Tom Baeyens
+ * @author Ronald van Kuijk
  */
-public class TaskImpl extends ScopeInstanceImpl implements Serializable, OpenTask, Assignable {
+public class TaskImpl extends ScopeInstanceImpl implements OpenTask, Assignable {
 
   private static final long serialVersionUID = 1L;
-
-  // private static Log log = Log.getLog(TaskImpl.class.getName());
 
   protected boolean isNew;
   protected String name;
@@ -70,8 +71,6 @@ public class TaskImpl extends ScopeInstanceImpl implements Serializable, OpenTas
   protected boolean isSignalling;
 
   protected int priority = Priority.NORMAL;
-
-  protected String state = Task.STATE_OPEN;
 
   protected String taskDefinitionName;
   protected TaskDefinitionImpl taskDefinition;
@@ -94,14 +93,17 @@ public class TaskImpl extends ScopeInstanceImpl implements Serializable, OpenTas
   protected Long superTaskDbid;
 
   public TaskImpl() {
+	this.state = Task.STATE_OPEN;
   }
 
   // parent for variable lookup /////////////////////////////////////////////// 
 
+  @Override
   public ScopeInstanceImpl getParentVariableScope() {
     return execution;
   }
   
+  @Override
   public TaskImpl getTask() {
     return this;
   }
@@ -148,7 +150,7 @@ public class TaskImpl extends ScopeInstanceImpl implements Serializable, OpenTas
       allRoles = new HashSet<ParticipationImpl>(participations);
     }
     if (swimlane != null) {
-      allRoles.addAll((Set) swimlane.getParticipations());
+      allRoles.addAll(swimlane.getParticipations());
     }
     return allRoles;
   }
@@ -195,7 +197,7 @@ public class TaskImpl extends ScopeInstanceImpl implements Serializable, OpenTas
     }
 
     if (isSignalling()) {
-      ClientExecution execution = (ClientExecution) getExecution();
+      ClientExecution execution = getExecution();
       execution.signal(outcome);
     }
     
@@ -211,13 +213,23 @@ public class TaskImpl extends ScopeInstanceImpl implements Serializable, OpenTas
     historyTaskDelete(reason);
   }
 
+  public void skip(String outcome) {
+    if (outcome == null || outcome.equals("")) {
+      outcome = TaskConstants.NO_TASK_OUTCOME_SPECIFIED;
+    }
+    
+    historyTaskSkip(outcome);
+    
+    DbSession dbSession = EnvironmentImpl.getFromCurrent(DbSession.class, false);
+    if (dbSession!=null){
+      dbSession.delete(this);
+    }
+  }
+
   // state ////////////////////////////////////////////////////////////////////
 
   public boolean isCompleted() {
-    if (Task.STATE_COMPLETED.equals(state)) {
-      return true;
-    }
-    if ((Task.STATE_OPEN.equals(state)) || (Task.STATE_SUSPENDED.equals(state))) {
+    if (Task.STATE_OPEN.equals(state) || Task.STATE_SUSPENDED.equals(state)) {
       return false;
     }
     return true;
@@ -226,15 +238,13 @@ public class TaskImpl extends ScopeInstanceImpl implements Serializable, OpenTas
   // subtasks /////////////////////////////////////////////////////////////////
 
   public Set<Task> getSubTasks() {
-    if (subTasks == null) {
-      return Collections.emptySet();
-    }
-    return (Set) subTasks;
+    return subTasks != null ? Collections.<Task> unmodifiableSet(subTasks) :
+      Collections.<Task> emptySet();
   }
 
   public TaskImpl createSubTask() {
     DbSession dbSession = EnvironmentImpl.getFromCurrent(DbSession.class);
-    TaskImpl subTask = (TaskImpl) dbSession.createTask();
+    TaskImpl subTask = dbSession.createTask();
     if (subTasks == null) {
       subTasks = new HashSet<TaskImpl>();
     }
@@ -271,10 +281,12 @@ public class TaskImpl extends ScopeInstanceImpl implements Serializable, OpenTas
   // equals ///////////////////////////////////////////////////////////////////
   // hack to support comparing hibernate proxies against the real objects
   // since this always falls back to ==, we don't need to overwrite the hashcode
+  @Override
   public boolean equals(Object o) {
     return EqualsUtil.equals(this, o);
   }
 
+  @Override
   public String toString() {
     return "Task(" + name + ")";
   }
@@ -308,6 +320,12 @@ public class TaskImpl extends ScopeInstanceImpl implements Serializable, OpenTas
   public void historyTaskComplete(String outcome) {
     if (execution != null) {
       HistoryEvent.fire(new TaskComplete(outcome), execution);
+    }
+  }
+
+  public void historyTaskSkip(String outcome) {
+    if (execution != null) {
+      HistoryEvent.fire(new TaskSkip(outcome), execution);
     }
   }
 
@@ -387,16 +405,13 @@ public class TaskImpl extends ScopeInstanceImpl implements Serializable, OpenTas
     this.duedate = duedate;
   }
 
+  @Override
   public ExecutionImpl getExecution() {
     return execution;
   }
 
   public void setExecution(Execution execution) {
     this.execution = (ExecutionImpl) execution;
-  }
-
-  public String getState() {
-    return state;
   }
 
   public String getAssignee() {
@@ -441,10 +456,6 @@ public class TaskImpl extends ScopeInstanceImpl implements Serializable, OpenTas
 
   public void setParticipations(Set<ParticipationImpl> participations) {
     this.participations = participations;
-  }
-
-  public void setState(String state) {
-    this.state = state;
   }
 
   public String getExecutionId() {

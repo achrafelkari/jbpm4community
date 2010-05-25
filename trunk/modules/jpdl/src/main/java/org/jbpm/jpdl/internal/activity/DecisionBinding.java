@@ -83,7 +83,7 @@ public class DecisionBinding extends JpdlBinding {
           
         } else {
           Element conditionHandlerElement = XmlUtil.element(conditionElement, "handler");
-          if (handlerElement!=null) {
+          if (conditionHandlerElement != null) {
             UserCodeCondition userCodeCondition = new UserCodeCondition();
             
             UserCodeReference conditionReference = parser.parseUserCodeReference(conditionHandlerElement, parse);
