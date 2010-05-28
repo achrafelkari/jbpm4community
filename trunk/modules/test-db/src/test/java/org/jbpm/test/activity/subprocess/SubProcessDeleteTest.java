@@ -41,21 +41,97 @@ public class SubProcessDeleteTest extends JbpmTestCase {
       "  <state name='next step'/>" +
       "</process>"
     );
-      
+
     deployJpdlXmlString(
       "<process name='SubProcessReview'>" +
       "  <start>" +
       "    <transition to='get approval'/>" +
       "  </start>" +
-      "  <state name='get approval'>" +
+      "  <task name='get approval' assignee='johndoe'>" +
       "    <transition to='ok'/>" +
-      "  </state>" +
+      "  </task>" +
       "  <end name='ok' />" +
-      "</process>"  
+      "</process>"
     );
-    
+
     String pid = executionService.startProcessInstanceByKey("MainProcess").getId();
-    
+
+    assertEquals(2, executionService.createProcessInstanceQuery().list().size());
+
     executionService.deleteProcessInstance(pid);
+
+    assertEquals(0, executionService.createProcessInstanceQuery().list().size());
+
+    assertEquals(0, taskService.createTaskQuery().list().size());
+  }
+
+  public void testMultipleSubProcess() {
+    deployJpdlXmlString(
+      "<process name='MainProcess'>" +
+      "  <start>" +
+      "    <transition to='review' />" +
+      "  </start>" +
+      "  <sub-process name='review' sub-process-key='SubProcessReview'>" +
+      "    <transition to='second sub process'/>" +
+      "  </sub-process>" +
+      "  <sub-process name='second sub process' sub-process-key='SubProcessReview'>" +
+      "    <transition to='next step'/>" +
+      "  </sub-process>" +
+      "  <state name='next step'/>" +
+      "</process>"
+    );
+
+    deployJpdlXmlString(
+      "<process name='SubProcessReview'>" +
+      "  <start>" +
+      "    <transition to='ok'/>" +
+      "  </start>" +
+      "  <end name='ok' />" +
+      "</process>"
+    );
+
+    String pid = executionService.startProcessInstanceByKey("MainProcess").getId();
+
+    assertEquals(1, executionService.createProcessInstanceQuery().list().size());
+
+    executionService.deleteProcessInstance(pid);
+
+    assertEquals(0, executionService.createProcessInstanceQuery().list().size());
+  }
+
+  public void testSubProcessWithFork() {
+    deployJpdlXmlString(
+      "<process name='MainProcess'>" +
+      "  <start>" +
+      "    <transition to='review' />" +
+      "  </start>" +
+      "  <sub-process name='review' sub-process-key='SubProcessReview'>" +
+      "    <transition to='next step'/>" +
+      "  </sub-process>" +
+      "  <state name='next step'/>" +
+      "</process>"
+    );
+
+    deployJpdlXmlString(
+      "<process name='SubProcessReview'>" +
+      "  <start>" +
+      "    <transition to='fork'/>" +
+      "  </start>" +
+      "  <fork name='fork'>" +
+      "    <transition to='ok'/>" +
+      "    <transition to='wait'/>" +
+      "  </fork>" +
+      "  <state name='wait'/>" +
+      "  <end name='ok' />" +
+      "</process>"
+    );
+
+    String pid = executionService.startProcessInstanceByKey("MainProcess").getId();
+
+    assertEquals(1, executionService.createProcessInstanceQuery().list().size());
+
+    executionService.deleteProcessInstance(pid);
+
+    assertEquals(0, executionService.createProcessInstanceQuery().list().size());
   }
 }

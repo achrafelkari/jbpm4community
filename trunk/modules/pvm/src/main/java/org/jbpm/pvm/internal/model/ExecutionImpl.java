@@ -373,6 +373,9 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
       fire(Event.END, getProcessDefinition());
 
       if (superProcessExecution!=null) {
+        if (dbSession!=null) {
+          dbSession.delete(this);
+        }
         log.trace(toString()+" signals super process execution");
         superProcessExecution.signal();
       }

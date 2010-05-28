@@ -276,6 +276,10 @@ public class WireParser extends Parser {
       Enumeration<URL> resourceUrls;
       try {
         resourceUrls = classLoader.getResources(wireResource);
+
+        if (!resourceUrls.hasMoreElements()) {
+          resourceUrls = WireParser.class.getClassLoader().getResources(wireResource);
+        }
       } catch (Exception e) {
         throw new JbpmException("couldn't get resource urls for "+wireResource, e);
       }
