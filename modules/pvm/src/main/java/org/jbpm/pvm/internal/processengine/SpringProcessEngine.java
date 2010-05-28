@@ -36,23 +36,23 @@ import org.springframework.orm.hibernate3.LocalSessionFactoryBean;
 
 /**
  * this environment factory will see only the singleton beans.
- * 
+ *
  * The created {@link SpringEnvironment}s will see the prototype beans and it
  * will cache them.
- * 
+ *
  * @author Andries Inze
  */
 public class SpringProcessEngine extends ProcessEngineImpl implements EnvironmentFactory, ProcessEngine {
 
   private static final Log log = Log.getLog(SpringProcessEngine.class.getName());
-  
+
   private static final long serialVersionUID = 1L;
 
   private ApplicationContext applicationContext;
 
   public static ProcessEngine create(ConfigurationImpl configuration) {
     SpringProcessEngine springProcessEngine = null;
-    
+
     ApplicationContext applicationContext = null;
     if (configuration.isInstantiatedFromSpring()) {
       applicationContext = (ApplicationContext) configuration.getApplicationContext();
@@ -66,7 +66,7 @@ public class SpringProcessEngine extends ProcessEngineImpl implements Environmen
       springProcessEngine.processEngineWireContext
           .getWireDefinition()
           .addDescriptor(new ProvidedObjectDescriptor(hibernateConfiguration, true));
-      
+
       springProcessEngine.checkDb(configuration);
 
     } else {
@@ -77,7 +77,7 @@ public class SpringProcessEngine extends ProcessEngineImpl implements Environmen
       applicationContext = new ClassPathXmlApplicationContext(springCfg);
       springProcessEngine = (SpringProcessEngine) applicationContext.getBean("processEngine");
     }
-    
+
     return springProcessEngine;
   }
 
@@ -99,18 +99,24 @@ public class SpringProcessEngine extends ProcessEngineImpl implements Environmen
   @SuppressWarnings("unchecked")
   @Override
   public <T> T get(Class<T> type) {
+    T candidateComponent = super.get(type);
+
+    if (candidateComponent != null) {
+      return candidateComponent;
+    }
+
     String[] names = applicationContext.getBeanNamesForType(type);
-    
+
     if (names.length >= 1) {
-      
+
       if (names.length > 1 && log.isWarnEnabled()) {
         log.warn("Multiple beans for type " + type + " found. Returning the first result.");
       }
-      
+
       return (T) applicationContext.getBean(names[0]);
     }
 
-    return super.get(type);
+    return null;
   }
 
   @Override

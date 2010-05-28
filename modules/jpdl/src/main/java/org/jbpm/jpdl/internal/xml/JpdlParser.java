@@ -140,6 +140,10 @@ public class JpdlParser extends Parser {
     Enumeration<URL> resourceUrls;
     try {
       resourceUrls = classLoader.getResources(resourceName);
+
+      if (!resourceUrls.hasMoreElements()) {
+        resourceUrls = JpdlParser.class.getClassLoader().getResources(resourceName);
+      }
     } catch (Exception e) {
       throw new JbpmException("couldn't get resource urls for "+resourceName, e);
     }

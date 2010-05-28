@@ -51,6 +51,11 @@ public class ResourceStreamInput extends StreamInput {
   public InputStream openStream() {
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
     InputStream stream = classLoader.getResourceAsStream(resource);
+
+    if (stream == null) {
+      stream = ResourceStreamInput.class.getClassLoader().getResourceAsStream(resource);
+    }
+
     if (stream==null) {
       throw new JbpmException("resource "+resource+" does not exist");
     }

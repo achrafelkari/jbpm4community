@@ -22,45 +22,73 @@
  package org.jbpm.test.activity.forkjoin;
 
 import org.jbpm.api.ProcessInstance;
+import org.jbpm.api.listener.EventListener;
+import org.jbpm.api.listener.EventListenerExecution;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.test.JbpmTestCase;
 
 import java.util.Set;
 
+/**
+ * JBPM-2832, JBPM-2833.
+ *
+ * @author Huisheng Xu
+ */
 public class ForkResultsInNullEndActivityTest extends JbpmTestCase {
+    public static final String XML_FORK_JOIN = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+        "<process name=\"ForkTest\" xmlns=\"http://jbpm.org/4.3/jpdl\">\n" +
+        "  <start name=\"preparing test\">\n" +
+        "    <on event='end'>" +
+        "      <event-listener class='org.jbpm.test.activity.forkjoin.ForkResultsInNullEndActivityTest$StartEventListener'/>" +
+        "    </on>" +
+        "    <transition to=\"fork\"/>\n" +
+        "  </start>\n" +
+        "  <fork name=\"fork\">\n" +
+        "    <transition to=\"state1\"/>\n" +
+        "    <transition to=\"state2\"/>\n" +
+        "    <transition to=\"cancel\"/>\n" +
+        "  </fork>\n" +
+        "  <state name=\"cancel\">\n" +
+        "    <transition to=\"cancelled\"/>\n" +
+        "  </state>\n" +
+        "  <state name=\"state1\">\n" +
+        "    <transition to=\"states completed\"/>\n" +
+        "  </state>\n" +
+        "  <state name=\"state2\">\n" +
+        "    <transition to=\"states completed\"/>\n" +
+        "  </state>\n" +
+        "  <join multiplicity=\"2\" name=\"states completed\">\n" +
+        "    <transition to=\"completed\"/>\n" +
+        "  </join>\n" +
+        "  <end name=\"cancelled\"/>\n" +
+        "  <end name=\"completed\"/>\n" +
+        "</process>";
+
+    public static final String XML_SUB_PROCESS = "" +
+        "<process name='sub_process' xmlns='http://jbpm.org/4.3/jpdl'>" +
+        "  <start>" +
+        "    <transition to='sub'/>" +
+        "  </start>" +
+        "  <sub-process name='sub' sub-process-key='ForkTest' outcome='#{result}'>" +
+        "    <transition name='to A' to='A'/>" +
+        "    <transition name='to B' to='B'/>" +
+        "    <transition name='to C' to='C'/>" +
+        "  </sub-process>" +
+        "  <state name='A'/>" +
+        "  <state name='B'/>" +
+        "  <state name='C'/>" +
+        "</process>";
+
     private String deploymentId;
 
     protected void setUp() throws Exception {
         super.setUp();
-        final String jpdl = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<process name=\"ForkTest\" xmlns=\"http://jbpm.org/4.3/jpdl\">\n" +
-                "    <start name=\"preparing test\">\n" +
-                "        <transition to=\"fork\"/>\n" +
-                "    </start>\n" +
-                "    <fork name=\"fork\">\n" +
-                "        <transition to=\"state1\"/>\n" +
-                "        <transition to=\"state2\"/>\n" +
-                "        <transition to=\"cancel\"/>\n" +
-                "    </fork>\n" +
-                "    <state name=\"cancel\">\n" +
-                "        <transition to=\"cancelled\"/>\n" +
-                "    </state>\n" +
-                "    <state name=\"state1\">\n" +
-                "        <transition to=\"states completed\"/>\n" +
-                "    </state>\n" +
-                "    <state name=\"state2\">\n" +
-                "        <transition to=\"states completed\"/>\n" +
-                "    </state>\n" +
-                "    <join multiplicity=\"2\" name=\"states completed\">\n" +
-                "        <transition to=\"completed\"/>\n" +
-                "    </join>\n" +
-                "    <end name=\"cancelled\"/>\n" +
-                "    <end name=\"completed\"/>\n" +
-                "</process>";
 
         // Deploys the process
-        deploymentId = repositoryService.createDeployment().
-                addResourceFromString("ForkTest.jpdl.xml", jpdl).deploy();
+        deploymentId = repositoryService.createDeployment()
+            .addResourceFromString("ForkTest.jpdl.xml", XML_FORK_JOIN)
+            .addResourceFromString("sub_process.jpdl.xml", XML_SUB_PROCESS)
+            .deploy();
     }
 
     protected void tearDown() throws Exception {
@@ -76,7 +104,7 @@ public class ForkResultsInNullEndActivityTest extends JbpmTestCase {
         }
     }
 
-    public void testCompleteJoin() {
+    public void t2estCompleteJoin() {
         ProcessInstance proc = executionService.startProcessInstanceByKey("ForkTest");
         verifyInitialActivities(proc);
 
@@ -97,7 +125,7 @@ public class ForkResultsInNullEndActivityTest extends JbpmTestCase {
                                                 .getEndActivityName());
     }
 
-    public void testCancelWithoutJoin() {
+    public void t2estCancelWithoutJoin() {
         ProcessInstance proc = executionService.startProcessInstanceByKey("ForkTest");
         verifyInitialActivities(proc);
 
@@ -113,6 +141,27 @@ public class ForkResultsInNullEndActivityTest extends JbpmTestCase {
         assertEquals("cancelled", historyService.createHistoryProcessInstanceQuery()
                                                 .uniqueResult()
                                                 .getEndActivityName());
+    }
+
+    public void testForkAndSubProcess() {
+        ProcessInstance mainProcess = executionService.startProcessInstanceByKey("sub_process");
+
+        ProcessInstance subProcess = executionService.createProcessInstanceQuery()
+            .orderDesc("dbid")
+            .page(0, 1)
+            .uniqueResult();
+
+        String driveTruckExecutionId = subProcess.findActiveExecutionIn("cancel").getId();
+        subProcess = executionService.signalExecutionById(driveTruckExecutionId);
+
+        mainProcess = executionService.findProcessInstanceById(mainProcess.getId());
+        assertEquals("A", mainProcess.findActiveActivityNames().iterator().next());
+    }
+
+    public static class StartEventListener implements EventListener {
+        public void notify(EventListenerExecution execution) {
+            execution.setVariable("result", "to A");
+        }
     }
 
 }
