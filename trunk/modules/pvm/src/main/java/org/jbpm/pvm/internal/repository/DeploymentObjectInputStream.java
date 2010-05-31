@@ -26,9 +26,11 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 
+import org.jbpm.pvm.internal.util.ReflectUtil;
+
 /**
  * Helper class responsible for providing classes while deserializing variables.
- * 
+ *
  * @author Maciej Swiderski swiderski.maciej@gmail.com
  */
 public class DeploymentObjectInputStream extends ObjectInputStream {
@@ -44,12 +46,12 @@ public class DeploymentObjectInputStream extends ObjectInputStream {
   @Override
   protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException,
     ClassNotFoundException {
-    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
     try {
-      return Class.forName(desc.getName(), false, contextClassLoader);
+      return ReflectUtil.classForName(desc.getName());
     }
     catch (ClassNotFoundException e) {
       // trying to get it from deployment
+      ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
       ClassLoader deploymentClassLoader =
         new DeploymentClassLoader(contextClassLoader, deploymentId);
       return Class.forName(desc.getName(), false, deploymentClassLoader);

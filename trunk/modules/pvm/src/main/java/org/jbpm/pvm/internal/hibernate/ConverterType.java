@@ -34,16 +34,17 @@ import org.hibernate.type.ImmutableType;
 import org.hibernate.usertype.ParameterizedType;
 import org.jbpm.api.JbpmException;
 import org.jbpm.pvm.internal.type.Converter;
+import org.jbpm.pvm.internal.util.ReflectUtil;
 
 /**
  * @author Tom Baeyens
  */
 public class ConverterType extends ImmutableType implements ParameterizedType {
-  
+
   private static final long serialVersionUID = 1L;
   private static Map<Class<?>, String> converterNames = null;
   private static Map<String, Converter> converters = null;
-  
+
   public Object fromStringValue(String arg0) throws HibernateException {
     return null;
   }
@@ -77,21 +78,12 @@ public class ConverterType extends ImmutableType implements ParameterizedType {
   public void setParameterValues(Properties properties) {
     converterNames = new HashMap<Class<?>, String>();
     converters = new HashMap<String, Converter>();
-    
+
     for(Object key : properties.keySet()) {
       String converterClassName = (String) key;
       try {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Class< ? > converterClass = null;
-        try {
-          converterClass = Class.forName(converterClassName, true, classLoader);
-        } catch (ClassNotFoundException e) {
-          // when running jBPM from ant, the context classloader is not set properly
-          // so the jBPM classloader is necessary as a fallback
-          classLoader = getClass().getClassLoader();
-          converterClass = Class.forName(converterClassName, true, classLoader);
-        }
-        
+        Class< ? > converterClass = ReflectUtil.classForName(converterClassName);
+
         String converterName = properties.getProperty(converterClassName);
         converterNames.put(converterClass, converterName);
         Converter converter = (Converter) converterClass.newInstance();

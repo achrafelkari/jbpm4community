@@ -29,16 +29,16 @@ import org.xml.sax.InputSource;
 
 /**
  * process engine configuration.
- *         
+ *
  * @author Tom Baeyens
  */
 public class Configuration {
 
   /** singletone instance */
   private static ProcessEngine singleton;
-  
+
   transient Configuration impl;
-  
+
   /** default constructor */
   public Configuration() {
     impl = instantiate("org.jbpm.pvm.internal.cfg.ConfigurationImpl");
@@ -51,7 +51,12 @@ public class Configuration {
   protected Configuration instantiate(String className) {
     Configuration implementation;
     try {
-      Class<?> implementationClass = Class.forName(className, true, getClassLoader()); 
+      Class<?> implementationClass = null;
+      try {
+        implementationClass = Class.forName(className, true, getClassLoader());
+      } catch(ClassNotFoundException ex) {
+        implementationClass = Class.forName(className);
+      }
       implementation = (Configuration) implementationClass.newInstance();
     } catch (Exception e) {
       throw new JbpmException("couldn't instantiate configuration of type "+className, e);
@@ -99,26 +104,26 @@ public class Configuration {
     return impl;
   }
 
-  /** after specifying the configuration resources with the other methods, a 
+  /** after specifying the configuration resources with the other methods, a
    * process engine can be created. */
   public ProcessEngine buildProcessEngine() {
     return impl.buildProcessEngine();
   }
-  
+
   /** provides the hibernate session factory programmatically.
-   * The hibernateSessionFactory parameter is of type Object to 
+   * The hibernateSessionFactory parameter is of type Object to
    * prevent a dependency of the API on hibernate directly.*/
   public Configuration setHibernateSessionFactory(Object hibernateSessionFactory){
     return impl.setHibernateSessionFactory(hibernateSessionFactory);
   }
-  
-  /** get the singleton ProcessEngine that is created from the default 
+
+  /** get the singleton ProcessEngine that is created from the default
    * configuration file 'jbpm.cfg.xml'. */
   public static ProcessEngine getProcessEngine() {
     if (singleton == null) {
       synchronized (Configuration.class) {
         if (singleton == null) {
-          singleton = new Configuration().setResource("jbpm.cfg.xml").buildProcessEngine();          
+          singleton = new Configuration().setResource("jbpm.cfg.xml").buildProcessEngine();
         }
       }
     }

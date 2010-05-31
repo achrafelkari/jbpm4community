@@ -21,7 +21,7 @@ import org.jbpm.pvm.internal.wire.WireContext;
 import org.jbpm.pvm.internal.wire.descriptor.ArgDescriptor;
 
 public class ReflectUtil {
-  
+
   private ReflectUtil() {
     // hide default constructor to prevent instantiation
   }
@@ -66,7 +66,7 @@ public class ReflectUtil {
         throw new JbpmException("couldn't find field '"+original.getName()+"."+fieldName+"'", e);
       }
     }
-    
+
     return field;
   }
 
@@ -77,10 +77,10 @@ public class ReflectUtil {
 
   private static Method getMethod(Class<?> clazz, String methodName, Class<?>[] parameterTypes, Class<?> original) {
     Method method = null;
-    
+
     try {
       method = clazz.getDeclaredMethod(methodName, parameterTypes);
-      
+
       if (log.isTraceEnabled()) log.trace("found method "+clazz.getName()+"."+methodName+"("+Arrays.toString(parameterTypes)+")");
 
     } catch (SecurityException e) {
@@ -92,7 +92,7 @@ public class ReflectUtil {
         throw new JbpmException("couldn't find method '"+original.getName()+"."+methodName+"("+getParameterTypesText(parameterTypes)+")'", e);
       }
     }
-    
+
     return method;
   }
 
@@ -118,7 +118,7 @@ public class ReflectUtil {
   public static <T> T newInstance(Constructor<T> constructor, Object[] args) {
     return newInstance(null, constructor, args);
   }
-  
+
   private static <T> T newInstance(Class<T> clazz, Constructor<T> constructor, Object[] args) {
     if ( (clazz==null)
          && (constructor==null)
@@ -142,7 +142,7 @@ public class ReflectUtil {
       throw new JbpmException("couldn't construct new '"+clazz.getName()+"' with args "+Arrays.toString(args), t);
     }
   }
-  
+
   public static Object get(Field field, Object object) {
     if (field==null) {
       throw new NullPointerException("field is null");
@@ -171,7 +171,7 @@ public class ReflectUtil {
       throw new JbpmException("couldn't set '"+field.getName()+"' to '"+value+"'", e);
     }
   }
-  
+
   public static Object invoke(Method method, Object target, Object[] args) {
     if (method==null) {
       throw new JbpmException("method is null");
@@ -203,7 +203,7 @@ public class ReflectUtil {
         if (log.isTraceEnabled()) {
           if (log.isTraceEnabled()) log.trace("found matching method "+clazz.getName()+"."+methodName);
         }
-        
+
         return candidate;
       }
     }
@@ -226,15 +226,15 @@ public class ReflectUtil {
   public static boolean isArgumentMatch(Class<?>[] parameterTypes, List<ArgDescriptor> argDescriptors, Object[] args) {
     int nbrOfArgs = args!=null ? args.length : 0;
     int nbrOfParameterTypes = parameterTypes!=null ? parameterTypes.length : 0;
-    
+
     if (nbrOfArgs!=nbrOfParameterTypes) {
       return false;
     }
-    
+
     if (nbrOfArgs==0) {
       return true;
     }
-    
+
     for (int i=0; i<parameterTypes.length; i++) {
       Class<?> parameterType = parameterTypes[i];
       String argTypeName;
@@ -364,7 +364,7 @@ public class ReflectUtil {
           if ( (argDescriptor!=null)
                && (argDescriptor.getTypeName()!=null)
              ) {
-            argType = argDescriptor.getTypeName(); 
+            argType = argDescriptor.getTypeName();
           }
         }
         if ( (argType==null)
@@ -381,7 +381,7 @@ public class ReflectUtil {
     signature+=")";
     return signature;
   }
-  
+
   public static String getUnqualifiedClassName(Class<?> clazz) {
     if (clazz==null) {
       return null;
@@ -409,15 +409,15 @@ public class ReflectUtil {
     Thread currentThread = Thread.currentThread();
     ClassLoader original = currentThread.getContextClassLoader();
 
-    RepositoryCache repositoryCache = EnvironmentImpl.getFromCurrent(RepositoryCache.class); 
+    RepositoryCache repositoryCache = EnvironmentImpl.getFromCurrent(RepositoryCache.class);
     DeploymentClassLoader deploymentClassLoader = repositoryCache.getDeploymentClassLoader(deploymentId, original);
     if (deploymentClassLoader==null) {
       deploymentClassLoader = new DeploymentClassLoader(original, deploymentId);
       repositoryCache.setDeploymentClassLoader(deploymentId, original, deploymentClassLoader);
     }
-    
+
     currentThread.setContextClassLoader(deploymentClassLoader);
-    
+
     return original;
   }
 
@@ -426,7 +426,7 @@ public class ReflectUtil {
       Thread.currentThread().setContextClassLoader(original);
     }
   }
-  
+
   public static Object instantiateUserCode(Descriptor descriptor, ProcessDefinitionImpl processDefinition, ScopeInstanceImpl scopeInstance) {
     ClassLoader classLoader = ReflectUtil.installDeploymentClassLoader(processDefinition);
     try {
@@ -434,5 +434,27 @@ public class ReflectUtil {
     } finally {
       ReflectUtil.uninstallDeploymentClassLoader(classLoader);
     }
+  }
+
+  /**
+   * Perform resolution of a class name.
+   * <p/>
+   * Same as {@link #classForName(String, Class)} except that here we delegate to
+   * {@link Class#forName(String)} if the context classloader lookup is unsuccessful.
+   *
+   * @param name The class name
+   * @return The class reference.
+   * @throws ClassNotFoundException From {@link Class#forName(String)}.
+   */
+  public static Class classForName(String name) throws ClassNotFoundException {
+    try {
+      ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+      if (contextClassLoader != null) {
+        return contextClassLoader.loadClass(name);
+      }
+    }
+    catch (Throwable ignore) {
+    }
+    return Class.forName(name);
   }
 }

@@ -1,0 +1,1026 @@
+Index: modules/api/src/main/java/org/jbpm/api/Configuration.java
+===================================================================
+--- modules/api/src/main/java/org/jbpm/api/Configuration.java	(revision 6382)
++++ modules/api/src/main/java/org/jbpm/api/Configuration.java	(working copy)
+@@ -29,16 +29,16 @@
+ 
+ /**
+  * process engine configuration.
+- *         
++ *
+  * @author Tom Baeyens
+  */
+ public class Configuration {
+ 
+   /** singletone instance */
+   private static ProcessEngine singleton;
+-  
++
+   transient Configuration impl;
+-  
++
+   /** default constructor */
+   public Configuration() {
+     impl = instantiate("org.jbpm.pvm.internal.cfg.ConfigurationImpl");
+@@ -51,7 +51,12 @@
+   protected Configuration instantiate(String className) {
+     Configuration implementation;
+     try {
+-      Class<?> implementationClass = Class.forName(className, true, getClassLoader()); 
++      Class<?> implementationClass = null;
++      try {
++        implementationClass = Class.forName(className, true, getClassLoader());
++      } catch(ClassNotFoundException ex) {
++        implementationClass = Class.forName(className);
++      }
+       implementation = (Configuration) implementationClass.newInstance();
+     } catch (Exception e) {
+       throw new JbpmException("couldn't instantiate configuration of type "+className, e);
+@@ -99,26 +104,26 @@
+     return impl;
+   }
+ 
+-  /** after specifying the configuration resources with the other methods, a 
++  /** after specifying the configuration resources with the other methods, a
+    * process engine can be created. */
+   public ProcessEngine buildProcessEngine() {
+     return impl.buildProcessEngine();
+   }
+-  
++
+   /** provides the hibernate session factory programmatically.
+-   * The hibernateSessionFactory parameter is of type Object to 
++   * The hibernateSessionFactory parameter is of type Object to
+    * prevent a dependency of the API on hibernate directly.*/
+   public Configuration setHibernateSessionFactory(Object hibernateSessionFactory){
+     return impl.setHibernateSessionFactory(hibernateSessionFactory);
+   }
+-  
+-  /** get the singleton ProcessEngine that is created from the default 
++
++  /** get the singleton ProcessEngine that is created from the default
+    * configuration file 'jbpm.cfg.xml'. */
+   public static ProcessEngine getProcessEngine() {
+     if (singleton == null) {
+       synchronized (Configuration.class) {
+         if (singleton == null) {
+-          singleton = new Configuration().setResource("jbpm.cfg.xml").buildProcessEngine();          
++          singleton = new Configuration().setResource("jbpm.cfg.xml").buildProcessEngine();
+         }
+       }
+     }
+Index: modules/bpmn/src/main/java/org/jbpm/bpmn/parser/BindingsParser.java
+===================================================================
+--- modules/bpmn/src/main/java/org/jbpm/bpmn/parser/BindingsParser.java	(revision 6382)
++++ modules/bpmn/src/main/java/org/jbpm/bpmn/parser/BindingsParser.java	(working copy)
+@@ -59,8 +59,7 @@
+ 
+     if (bindingClassName != null) {
+       try {
+-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-        Class< ? > bindingClass = Class.forName(bindingClassName, true, classLoader);
++        Class<?> bindingClass = ReflectUtil.classForName(bindingClassName);
+         return (Binding) bindingClass.newInstance();
+       } catch (Exception e) {
+         parse.addProblem("couldn't instantiate activity binding " + bindingClassName, e);
+Index: modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/JavaActivity.java
+===================================================================
+--- modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/JavaActivity.java	(revision 6382)
++++ modules/jpdl/src/main/java/org/jbpm/jpdl/internal/activity/JavaActivity.java	(working copy)
+@@ -27,6 +27,7 @@
+ 
+ import org.jbpm.api.JbpmException;
+ import org.jbpm.api.model.OpenExecution;
++import org.jbpm.pvm.internal.util.ReflectUtil;
+ import org.jbpm.pvm.internal.wire.WireContext;
+ import org.jbpm.pvm.internal.wire.WireDefinition;
+ import org.jbpm.pvm.internal.wire.descriptor.ArgDescriptor;
+@@ -49,7 +50,7 @@
+ 
+   protected String variableName;
+   protected String jndiName;
+-  
++
+   public void perform(OpenExecution execution) throws Exception {
+ 
+     Object target = null;
+@@ -60,7 +61,7 @@
+     } else {
+       throw new JbpmException("no target specified");
+     }
+-    
++
+     Class<?> clazz;
+     // method invocation on object or static method invocation in case object is null
+     if (target!=null) {
+@@ -68,18 +69,17 @@
+     } else {
+       ObjectDescriptor objectDescriptor = (ObjectDescriptor) invocationReference.getDescriptor();
+       String className = objectDescriptor.getClassName();
+-      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-      clazz = Class.forName(className, true, classLoader);  
++      clazz = ReflectUtil.classForName(className);
+     }
+-    
++
+     WireContext wireContext = new WireContext(new WireDefinition());
+     Object returnValue = ObjectDescriptor.invokeMethod(methodName, argDescriptors, wireContext, target, clazz);
+-    
++
+     if (variableName!=null) {
+       execution.setVariable(variableName, returnValue);
+     }
+   }
+-  
++
+   public void setInvocationReference(UserCodeReference invocationReference) {
+     this.invocationReference = invocationReference;
+   }
+Index: modules/jpdl/src/main/java/org/jbpm/jpdl/internal/xml/JpdlBindingsParser.java
+===================================================================
+--- modules/jpdl/src/main/java/org/jbpm/jpdl/internal/xml/JpdlBindingsParser.java	(revision 6382)
++++ modules/jpdl/src/main/java/org/jbpm/jpdl/internal/xml/JpdlBindingsParser.java	(working copy)
+@@ -22,6 +22,7 @@
+ package org.jbpm.jpdl.internal.xml;
+ 
+ import org.jbpm.internal.log.Log;
++import org.jbpm.pvm.internal.util.ReflectUtil;
+ import org.jbpm.pvm.internal.util.TagBinding;
+ import org.jbpm.pvm.internal.util.XmlUtil;
+ import org.jbpm.pvm.internal.xml.Binding;
+@@ -36,30 +37,29 @@
+ public class JpdlBindingsParser extends Parser {
+ 
+   private static final Log log = Log.getLog(JpdlBindingsParser.class.getName());
+-  
++
+   public Object parseDocumentElement(Element documentElement, Parse parse) {
+     Bindings bindings = (Bindings) parse.contextMapGet(Parse.CONTEXT_KEY_BINDINGS);
+     parse.setDocumentObject(bindings);
+-    
++
+     for (Element bindingElement : XmlUtil.elements(documentElement)) {
+       Binding binding = instantiateBinding(bindingElement, parse);
+       bindings.addBinding(binding);
+     }
+-    
++
+     return bindings;
+   }
+ 
+   protected Binding instantiateBinding(Element bindingElement, Parse parse) {
+     String bindingClassName = XmlUtil.attribute(bindingElement, "binding", true, parse);
+-    
++
+     log.trace("adding jpdl binding "+bindingClassName);
+-    
++
+     if (bindingClassName!=null) {
+       try {
+-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-        Class<?> bindingClass = Class.forName(bindingClassName, true, classLoader);
++        Class<?> bindingClass = ReflectUtil.classForName(bindingClassName);
+         TagBinding binding = (TagBinding) bindingClass.newInstance();
+-        
++
+         String tagLocalName = XmlUtil.getTagLocalName(bindingElement);
+         if ("activity".equals(tagLocalName)) {
+           binding.setCategory(JpdlParser.CATEGORY_ACTIVITY);
+@@ -68,7 +68,7 @@
+         } else {
+           parse.addProblem("unrecognized binding tag: "+tagLocalName);
+         }
+-        
++
+         return binding;
+       } catch (Exception e) {
+         parse.addProblem("couldn't instantiate activity binding "+bindingClassName, e);
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/hibernate/ConverterType.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/hibernate/ConverterType.java	(revision 6382)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/hibernate/ConverterType.java	(working copy)
+@@ -34,16 +34,17 @@
+ import org.hibernate.usertype.ParameterizedType;
+ import org.jbpm.api.JbpmException;
+ import org.jbpm.pvm.internal.type.Converter;
++import org.jbpm.pvm.internal.util.ReflectUtil;
+ 
+ /**
+  * @author Tom Baeyens
+  */
+ public class ConverterType extends ImmutableType implements ParameterizedType {
+-  
++
+   private static final long serialVersionUID = 1L;
+   private static Map<Class<?>, String> converterNames = null;
+   private static Map<String, Converter> converters = null;
+-  
++
+   public Object fromStringValue(String arg0) throws HibernateException {
+     return null;
+   }
+@@ -77,21 +78,12 @@
+   public void setParameterValues(Properties properties) {
+     converterNames = new HashMap<Class<?>, String>();
+     converters = new HashMap<String, Converter>();
+-    
++
+     for(Object key : properties.keySet()) {
+       String converterClassName = (String) key;
+       try {
+-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-        Class< ? > converterClass = null;
+-        try {
+-          converterClass = Class.forName(converterClassName, true, classLoader);
+-        } catch (ClassNotFoundException e) {
+-          // when running jBPM from ant, the context classloader is not set properly
+-          // so the jBPM classloader is necessary as a fallback
+-          classLoader = getClass().getClassLoader();
+-          converterClass = Class.forName(converterClassName, true, classLoader);
+-        }
+-        
++        Class< ? > converterClass = ReflectUtil.classForName(converterClassName);
++
+         String converterName = properties.getProperty(converterClassName);
+         converterNames.put(converterClass, converterName);
+         Converter converter = (Converter) converterClass.newInstance();
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/repository/DeploymentObjectInputStream.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/repository/DeploymentObjectInputStream.java	(revision 6382)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/repository/DeploymentObjectInputStream.java	(working copy)
+@@ -26,9 +26,11 @@
+ import java.io.ObjectInputStream;
+ import java.io.ObjectStreamClass;
+ 
++import org.jbpm.pvm.internal.util.ReflectUtil;
++
+ /**
+  * Helper class responsible for providing classes while deserializing variables.
+- * 
++ *
+  * @author Maciej Swiderski swiderski.maciej@gmail.com
+  */
+ public class DeploymentObjectInputStream extends ObjectInputStream {
+@@ -44,12 +46,12 @@
+   @Override
+   protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException,
+     ClassNotFoundException {
+-    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+     try {
+-      return Class.forName(desc.getName(), false, contextClassLoader);
++      return ReflectUtil.classForName(desc.getName());
+     }
+     catch (ClassNotFoundException e) {
+       // trying to get it from deployment
++      ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+       ClassLoader deploymentClassLoader =
+         new DeploymentClassLoader(contextClassLoader, deploymentId);
+       return Class.forName(desc.getName(), false, deploymentClassLoader);
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/script/JuelScriptEngine.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/script/JuelScriptEngine.java	(revision 6382)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/script/JuelScriptEngine.java	(working copy)
+@@ -51,6 +51,7 @@
+ import javax.script.SimpleBindings;
+ 
+ import org.jbpm.pvm.internal.env.ExecutionContext;
++import org.jbpm.pvm.internal.util.ReflectUtil;
+ 
+ import de.odysseus.el.util.SimpleResolver;
+ 
+@@ -155,7 +156,7 @@
+       }
+ 
+     };
+-    
++
+     ctx.setAttribute("elcontext", elContext, 100);
+ 
+     return elContext;
+@@ -286,7 +287,7 @@
+       {
+         try
+         {
+-          clazz = Class.forName((String)obj);
++          clazz = ReflectUtil.classForName((String) obj);
+         }
+         catch (ClassNotFoundException cnfe)
+         {
+@@ -340,7 +341,7 @@
+ 
+   private class ScriptContextFunctionMapper extends FunctionMapper
+   {
+-    private ScriptContext ctx;    
++    private ScriptContext ctx;
+ 
+     ScriptContextFunctionMapper(ScriptContext ctx)
+     {
+@@ -397,7 +398,7 @@
+         // to support null value for existing variables
+         Bindings b = this.ctx.getBindings(ScriptContext.ENGINE_SCOPE);
+         ExecutionContext execContext = (ExecutionContext) ((EnvironmentBindings) b).environment.getContext("execution");
+-        // if variable name exist then set value expression as null 
++        // if variable name exist then set value expression as null
+         // since it was not discovered by attribute scope method
+         if (execContext.getExecution().getVariables().containsKey(variable)) {
+           return exprFactory.createValueExpression(null, Object.class);
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/util/ReflectUtil.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/util/ReflectUtil.java	(revision 6382)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/util/ReflectUtil.java	(working copy)
+@@ -21,7 +21,7 @@
+ import org.jbpm.pvm.internal.wire.descriptor.ArgDescriptor;
+ 
+ public class ReflectUtil {
+-  
++
+   private ReflectUtil() {
+     // hide default constructor to prevent instantiation
+   }
+@@ -66,7 +66,7 @@
+         throw new JbpmException("couldn't find field '"+original.getName()+"."+fieldName+"'", e);
+       }
+     }
+-    
++
+     return field;
+   }
+ 
+@@ -77,10 +77,10 @@
+ 
+   private static Method getMethod(Class<?> clazz, String methodName, Class<?>[] parameterTypes, Class<?> original) {
+     Method method = null;
+-    
++
+     try {
+       method = clazz.getDeclaredMethod(methodName, parameterTypes);
+-      
++
+       if (log.isTraceEnabled()) log.trace("found method "+clazz.getName()+"."+methodName+"("+Arrays.toString(parameterTypes)+")");
+ 
+     } catch (SecurityException e) {
+@@ -92,7 +92,7 @@
+         throw new JbpmException("couldn't find method '"+original.getName()+"."+methodName+"("+getParameterTypesText(parameterTypes)+")'", e);
+       }
+     }
+-    
++
+     return method;
+   }
+ 
+@@ -118,7 +118,7 @@
+   public static <T> T newInstance(Constructor<T> constructor, Object[] args) {
+     return newInstance(null, constructor, args);
+   }
+-  
++
+   private static <T> T newInstance(Class<T> clazz, Constructor<T> constructor, Object[] args) {
+     if ( (clazz==null)
+          && (constructor==null)
+@@ -142,7 +142,7 @@
+       throw new JbpmException("couldn't construct new '"+clazz.getName()+"' with args "+Arrays.toString(args), t);
+     }
+   }
+-  
++
+   public static Object get(Field field, Object object) {
+     if (field==null) {
+       throw new NullPointerException("field is null");
+@@ -171,7 +171,7 @@
+       throw new JbpmException("couldn't set '"+field.getName()+"' to '"+value+"'", e);
+     }
+   }
+-  
++
+   public static Object invoke(Method method, Object target, Object[] args) {
+     if (method==null) {
+       throw new JbpmException("method is null");
+@@ -203,7 +203,7 @@
+         if (log.isTraceEnabled()) {
+           if (log.isTraceEnabled()) log.trace("found matching method "+clazz.getName()+"."+methodName);
+         }
+-        
++
+         return candidate;
+       }
+     }
+@@ -226,15 +226,15 @@
+   public static boolean isArgumentMatch(Class<?>[] parameterTypes, List<ArgDescriptor> argDescriptors, Object[] args) {
+     int nbrOfArgs = args!=null ? args.length : 0;
+     int nbrOfParameterTypes = parameterTypes!=null ? parameterTypes.length : 0;
+-    
++
+     if (nbrOfArgs!=nbrOfParameterTypes) {
+       return false;
+     }
+-    
++
+     if (nbrOfArgs==0) {
+       return true;
+     }
+-    
++
+     for (int i=0; i<parameterTypes.length; i++) {
+       Class<?> parameterType = parameterTypes[i];
+       String argTypeName;
+@@ -364,7 +364,7 @@
+           if ( (argDescriptor!=null)
+                && (argDescriptor.getTypeName()!=null)
+              ) {
+-            argType = argDescriptor.getTypeName(); 
++            argType = argDescriptor.getTypeName();
+           }
+         }
+         if ( (argType==null)
+@@ -381,7 +381,7 @@
+     signature+=")";
+     return signature;
+   }
+-  
++
+   public static String getUnqualifiedClassName(Class<?> clazz) {
+     if (clazz==null) {
+       return null;
+@@ -409,15 +409,15 @@
+     Thread currentThread = Thread.currentThread();
+     ClassLoader original = currentThread.getContextClassLoader();
+ 
+-    RepositoryCache repositoryCache = EnvironmentImpl.getFromCurrent(RepositoryCache.class); 
++    RepositoryCache repositoryCache = EnvironmentImpl.getFromCurrent(RepositoryCache.class);
+     DeploymentClassLoader deploymentClassLoader = repositoryCache.getDeploymentClassLoader(deploymentId, original);
+     if (deploymentClassLoader==null) {
+       deploymentClassLoader = new DeploymentClassLoader(original, deploymentId);
+       repositoryCache.setDeploymentClassLoader(deploymentId, original, deploymentClassLoader);
+     }
+-    
++
+     currentThread.setContextClassLoader(deploymentClassLoader);
+-    
++
+     return original;
+   }
+ 
+@@ -426,7 +426,7 @@
+       Thread.currentThread().setContextClassLoader(original);
+     }
+   }
+-  
++
+   public static Object instantiateUserCode(Descriptor descriptor, ProcessDefinitionImpl processDefinition, ScopeInstanceImpl scopeInstance) {
+     ClassLoader classLoader = ReflectUtil.installDeploymentClassLoader(processDefinition);
+     try {
+@@ -435,4 +435,26 @@
+       ReflectUtil.uninstallDeploymentClassLoader(classLoader);
+     }
+   }
++
++  /**
++   * Perform resolution of a class name.
++   * <p/>
++   * Same as {@link #classForName(String, Class)} except that here we delegate to
++   * {@link Class#forName(String)} if the context classloader lookup is unsuccessful.
++   *
++   * @param name The class name
++   * @return The class reference.
++   * @throws ClassNotFoundException From {@link Class#forName(String)}.
++   */
++  public static Class classForName(String name) throws ClassNotFoundException {
++    try {
++      ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
++      if (contextClassLoader != null) {
++        return contextClassLoader.loadClass(name);
++      }
++    }
++    catch (Throwable ignore) {
++    }
++    return Class.forName(name);
++  }
+ }
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/AbstractCollectionBinding.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/AbstractCollectionBinding.java	(revision 6382)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/AbstractCollectionBinding.java	(working copy)
+@@ -3,6 +3,7 @@
+ import java.util.ArrayList;
+ import java.util.List;
+ 
++import org.jbpm.pvm.internal.util.ReflectUtil;
+ import org.jbpm.pvm.internal.util.XmlUtil;
+ import org.jbpm.pvm.internal.wire.Descriptor;
+ import org.jbpm.pvm.internal.wire.descriptor.CollectionDescriptor;
+@@ -19,19 +20,19 @@
+ 
+   public Object parse(Element element, Parse parse, Parser parser) {
+     CollectionDescriptor descriptor = createDescriptor();
+-    
++
+     String className = XmlUtil.attribute(element,"class");
+-    
++
+     // verify if the given classname is specified and implements the collection interface
+     if (verify(className, getCollectionInterface(), parse, parser)) {
+       descriptor.setClassName(className);
+     }
+-    
++
+     Boolean isSynchronized = XmlUtil.attributeBoolean(element, "synchronized", false, parse);
+     if (isSynchronized!=null) {
+       descriptor.setSynchronized(isSynchronized.booleanValue());
+     }
+-    
++
+     List<Descriptor> valueDescriptors = new ArrayList<Descriptor>();
+     List<Element> elements = XmlUtil.elements(element);
+     for (Element valueElement: elements) {
+@@ -53,9 +54,8 @@
+     }
+ 
+     try {
+-      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-      Class<?> collectionClass = Class.forName(className, true, classLoader);
+-      
++      Class<?> collectionClass = ReflectUtil.classForName(className);
++
+       if (collectionInterface.isAssignableFrom(collectionClass)) {
+         return true;
+       } else {
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/ScriptManagerBinding.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/ScriptManagerBinding.java	(revision 6382)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/ScriptManagerBinding.java	(working copy)
+@@ -48,7 +48,7 @@
+ 
+   public Object parse(Element element, Parse parse, Parser parser) {
+     ObjectDescriptor descriptor = new ObjectDescriptor(ScriptManager.class);
+-    
++
+     if (element.hasAttribute("default-expression-language")) {
+       String defaultLanguage = element.getAttribute("default-expression-language");
+       descriptor.addInjection("defaultExpressionLanguage", new StringDescriptor(defaultLanguage));
+@@ -74,13 +74,12 @@
+       } else {
+         parse.addProblem("'name' is a required attribute in element <script-language />", element);
+       }
+-      
++
+       if ( (languageName!=null)
+            && (factoryClassName!=null)
+          ) {
+         try {
+-          ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-          Class<?> factoryClass = Class.forName(factoryClassName, true, classLoader);
++          Class<?> factoryClass = ReflectUtil.classForName(factoryClassName);
+           ScriptEngineFactory scriptEngineFactory = (ScriptEngineFactory) factoryClass.newInstance();
+           scriptEngineManager.registerEngineName(languageName, scriptEngineFactory);
+         } catch (Exception e) {
+@@ -88,9 +87,9 @@
+         }
+       }
+     }
+-    
++
+     descriptor.addInjection("scriptEngineManager", new ProvidedObjectDescriptor(scriptEngineManager));
+-    
++
+     return descriptor;
+   }
+ }
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/TypesBinding.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/TypesBinding.java	(revision 6382)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/binding/TypesBinding.java	(working copy)
+@@ -37,6 +37,7 @@
+ import org.jbpm.pvm.internal.type.matcher.HibernateLongIdMatcher;
+ import org.jbpm.pvm.internal.type.matcher.HibernateStringIdMatcher;
+ import org.jbpm.pvm.internal.type.matcher.SerializableMatcher;
++import org.jbpm.pvm.internal.util.ReflectUtil;
+ import org.jbpm.pvm.internal.util.XmlUtil;
+ import org.jbpm.pvm.internal.wire.Descriptor;
+ import org.jbpm.pvm.internal.wire.WireContext;
+@@ -46,13 +47,13 @@
+ import org.w3c.dom.Element;
+ 
+ /** parses a descriptor for Boolean.TRUE.
+- * 
++ *
+  * See schema docs for more details.
+  *
+  * @author Tom Baeyens
+  */
+ public class TypesBinding extends WireDescriptorBinding {
+-  
++
+   public TypesBinding() {
+     super("types");
+   }
+@@ -69,14 +70,14 @@
+         parse.addProblem("file "+fileName+" isn't a file", element);
+       }
+     }
+-    
++
+     if (element.hasAttribute("resource")) {
+       String resource = element.getAttribute("resource");
+       ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+       streamSource = new ResourceStreamInput(resource, classLoader);
+       parser.importStream(streamSource, element, parse);
+     }
+-    
++
+     if (element.hasAttribute("url")) {
+       String urlText = element.getAttribute("url");
+       try {
+@@ -87,9 +88,9 @@
+         parse.addProblem("couldn't open url "+urlText, e);
+       }
+     }
+-    
++
+     TypesDescriptor typesDescriptor = new TypesDescriptor();
+-    
++
+     List<Element> typeElements = XmlUtil.elements(element, "type");
+     for (Element typeElement: typeElements) {
+       TypeMapping typeMapping = parseTypeMapping(typeElement, parse, parser);
+@@ -102,31 +103,31 @@
+     TypeMapping typeMapping = new TypeMapping();
+     Type type = new Type();
+     typeMapping.setType(type);
+-    
++
+     // type name
+     if (element.hasAttribute("name")) {
+       type.setName(element.getAttribute("name"));
+     }
+-    
++
+     String hibernateSessionFactoryName = XmlUtil.attribute(element, "hibernate-session-factory");
+-    
++
+     // first we get the matcher
+     Matcher matcher = null;
+     if (element.hasAttribute("class")) {
+       String className = element.getAttribute("class");
+-      
++
+       // if type="serializable"
+       if ("serializable".equals(className)) {
+         matcher = new SerializableMatcher();
+-        
++
+       // if type="hibernatable"
+       } else if ("hibernatable".equals(className)) {
+         if (element.hasAttribute("id-type")) {
+           String idType = element.getAttribute("id-type");
+           if ("long".equalsIgnoreCase(idType)) {
+-            matcher = new HibernateLongIdMatcher(hibernateSessionFactoryName); 
++            matcher = new HibernateLongIdMatcher(hibernateSessionFactoryName);
+           } else if ("string".equalsIgnoreCase(idType)) {
+-            matcher = new HibernateStringIdMatcher(hibernateSessionFactoryName); 
++            matcher = new HibernateStringIdMatcher(hibernateSessionFactoryName);
+           } else {
+             parse.addProblem("id-type was not 'long' or 'string': "+idType, element);
+           }
+@@ -157,13 +158,12 @@
+ 
+     typeMapping.setMatcher(matcher);
+ 
+-    // parsing the converter 
++    // parsing the converter
+     Converter converter = null;
+     if (element.hasAttribute("converter")) {
+       String converterClassName = element.getAttribute("converter");
+       try {
+-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-        Class<?> converterClass = Class.forName(converterClassName, true, classLoader);
++        Class<?> converterClass = ReflectUtil.classForName(converterClassName);
+         converter = (Converter) converterClass.newInstance();
+       } catch (Exception e) {
+         parse.addProblem("couldn't instantiate converter "+converterClassName, element);
+@@ -178,19 +178,18 @@
+         } catch (ClassCastException e) {
+           parse.addProblem("converter is not a "+Converter.class.getName()+": "+(converter!=null ? converter.getClass().getName() : "null"), element);
+         }
+-      } 
++      }
+     }
+ 
+     type.setConverter(converter);
+-    
++
+     // parsing the variable class
+-    
++
+     Class<?> variableClass = null;
+     if (element.hasAttribute("variable-class")) {
+-      String variableClassName = element.getAttribute("variable-class"); 
++      String variableClassName = element.getAttribute("variable-class");
+       try {
+-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-        variableClass = Class.forName(variableClassName, true, classLoader);
++        variableClass = ReflectUtil.classForName(variableClassName);
+       } catch (Exception e) {
+         parse.addProblem("couldn't instantiate variable-class "+variableClassName, e);
+       }
+@@ -199,7 +198,7 @@
+     }
+ 
+     type.setVariableClass(variableClass);
+-    
++
+     return typeMapping;
+   }
+ }
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/ClassDescriptor.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/ClassDescriptor.java	(revision 6382)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/ClassDescriptor.java	(working copy)
+@@ -1,10 +1,11 @@
+ package org.jbpm.pvm.internal.wire.descriptor;
+ 
++import org.jbpm.pvm.internal.util.ReflectUtil;
+ import org.jbpm.pvm.internal.wire.WireContext;
+ import org.jbpm.pvm.internal.wire.WireException;
+ 
+ /** loads the class with the specified class name using the WireContext class loader.
+- * 
++ *
+  * @see WireContext#getClassLoader()
+  *
+  * @author Tom Baeyens
+@@ -21,8 +22,7 @@
+    */
+   public Object construct(WireContext wireContext) {
+     try {
+-      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-      return Class.forName(text, true, classLoader);
++      return ReflectUtil.classForName(text);
+     } catch (Exception e) {
+       Throwable cause = (e.getCause()!=null ? e.getCause() : e);
+       throw new WireException("couldn't load class '"+text+"': "+cause.getMessage(), cause);
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/CollectionDescriptor.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/CollectionDescriptor.java	(revision 6382)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/CollectionDescriptor.java	(working copy)
+@@ -10,6 +10,7 @@
+ import java.util.SortedSet;
+ 
+ import org.jbpm.internal.log.Log;
++import org.jbpm.pvm.internal.util.ReflectUtil;
+ import org.jbpm.pvm.internal.wire.Descriptor;
+ import org.jbpm.pvm.internal.wire.WireContext;
+ import org.jbpm.pvm.internal.wire.WireException;
+@@ -23,13 +24,13 @@
+   private static final long serialVersionUID = 1L;
+ 
+   private static Log log = Log.getLog(CollectionDescriptor.class.getName());
+-  
++
+   protected String className;
+   protected List<Descriptor> valueDescriptors;
+   protected boolean isSynchronized;
+ 
+   protected CollectionDescriptor() { }
+-  
++
+   public CollectionDescriptor(String defaultImplClassName) {
+     this.className = defaultImplClassName;
+   }
+@@ -38,10 +39,9 @@
+     Object object = null;
+     try {
+       // instantiate
+-      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-      Class<?> clazz = Class.forName(className, true, classLoader);
++      Class<?> clazz = ReflectUtil.classForName(className);
+       object = clazz.newInstance();
+-      
++
+       if (isSynchronized) {
+         if (object instanceof SortedSet) {
+           object = Collections.synchronizedSortedSet((SortedSet) object);
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/HibernateConfigurationDescriptor.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/HibernateConfigurationDescriptor.java	(revision 6382)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/HibernateConfigurationDescriptor.java	(working copy)
+@@ -57,8 +57,7 @@
+     if (className!=null) {
+       try {
+         log.trace("instantiating hibernate configuration class "+className);
+-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-        Class<?> configurationClass = Class.forName(className, true, classLoader);
++        Class<?> configurationClass = ReflectUtil.classForName(className);
+         configuration = (Configuration) ReflectUtil.newInstance(configurationClass);
+       } catch (Exception e) {
+         throw new JbpmException("couldn't instantiate hibernate configuration class "+className, e);
+@@ -95,15 +94,14 @@
+   public Class<?> getType(WireDefinition wireDefinition) {
+     if (className!=null) {
+       try {
+-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-        return Class.forName(className, true, classLoader);
++        return ReflectUtil.classForName(className);
+       } catch (Exception e) {
+         throw new WireException("couldn't create hibernate configuration '"+className+"': "+e.getMessage(), e.getCause());
+       }
+     }
+     return Configuration.class;
+   }
+-  
++
+   public void addCfgResource(String cfgResource) {
+     cfgOperations.add(new AddCfgResource(cfgResource));
+   }
+@@ -231,8 +229,7 @@
+     public void apply(Object target, WireContext wireContext) {
+       Configuration configuration = (Configuration) target;
+       try {
+-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-        Class<?> persistentClass = Class.forName(className, true, classLoader);
++        Class<?> persistentClass = ReflectUtil.classForName(className);
+         configuration.addClass(persistentClass);
+       } catch (Exception e) {
+         throw new JbpmException("couldn't add mapping for class "+className, e);
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/ObjectDescriptor.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/ObjectDescriptor.java	(revision 6382)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/ObjectDescriptor.java	(working copy)
+@@ -97,7 +97,7 @@
+   String factoryObjectName = null;
+ 
+   protected Expression expression;
+-  
++
+   /** specifies the object on which to invoke the method.
+    * Either className, objectName or a descriptor has to be specified. */
+   protected Descriptor factoryDescriptor = null;
+@@ -111,7 +111,7 @@
+ 
+   /** True if autowiring is enabled.  */
+   protected boolean isAutoWireEnabled = false;
+-  
++
+   public ObjectDescriptor() {
+   }
+ 
+@@ -138,8 +138,7 @@
+ 
+     if (className!=null) {
+       try {
+-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-        clazz = Class.forName(className, true, classLoader);
++        clazz = ReflectUtil.classForName(className);
+       } catch (Exception e) {
+         throw new JbpmClassNotFoundException("couldn't load class "+className, e);
+       }
+@@ -239,13 +238,12 @@
+   public Class<?> getType(WireDefinition wireDefinition) {
+     if (className!=null) {
+       try {
+-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-        return Class.forName(className, true, classLoader);
++        return ReflectUtil.classForName(className);
+       } catch (Exception e) {
+         throw new WireException("couldn't load class '"+className+"'", e);
+       }
+     }
+-    
++
+     Descriptor descriptor = null;
+     if (factoryDescriptor!=null) {
+       descriptor = factoryDescriptor;
+@@ -258,14 +256,14 @@
+       if (factoryClass!=null) {
+         Method method = ReflectUtil.findMethod(factoryClass, methodName, argDescriptors, null);
+         if (method!=null) {
+-          return method.getReturnType(); 
++          return method.getReturnType();
+         }
+       }
+     }
+ 
+     return null;
+   }
+-  
++
+   /**
+    * Auto wire object present in the context and the specified object's fields.
+    * @param object object on which auto-wiring is performed.
+@@ -294,20 +292,20 @@
+               autoWireValue = wireContext.get(fieldName);
+ 
+             } else {
+-              autoWireValue = wireContext.get(fieldType);  
++              autoWireValue = wireContext.get(fieldType);
+             }
+-            // if auto wire value has not been found in current context, 
++            // if auto wire value has not been found in current context,
+             // search in environment
+             if (autoWireValue == null) {
+               EnvironmentImpl currentEnvironment = EnvironmentImpl.getCurrent();
+               if (currentEnvironment != null) {
+-                autoWireValue = currentEnvironment.get(fieldName); 
++                autoWireValue = currentEnvironment.get(fieldName);
+                 if (autoWireValue == null) {
+                   autoWireValue = currentEnvironment.get(fieldType);
+                 }
+               }
+             }
+-            
++
+             if (autoWireValue!=null) {
+               try {
+                 if (log.isTraceEnabled()) log.trace("auto wiring field "+fieldName+" in "+name);
+@@ -376,7 +374,7 @@
+     }
+     operations.add(operation);
+   }
+-  
++
+   /** convenience method to add a type based field injection */
+   public void addTypedInjection(String fieldName, Class<?> type) {
+     addInjection(fieldName, new EnvDescriptor(type));
+@@ -401,7 +399,7 @@
+ 
+ 
+   // getters and setters //////////////////////////////////////////////////////
+-  
++
+   public String getClassName() {
+     return className;
+   }
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/ReferenceDescriptor.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/ReferenceDescriptor.java	(revision 6382)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/descriptor/ReferenceDescriptor.java	(working copy)
+@@ -1,6 +1,7 @@
+ package org.jbpm.pvm.internal.wire.descriptor;
+ 
+ import org.jbpm.api.JbpmException;
++import org.jbpm.pvm.internal.util.ReflectUtil;
+ import org.jbpm.pvm.internal.wire.Descriptor;
+ import org.jbpm.pvm.internal.wire.WireContext;
+ 
+@@ -37,8 +38,7 @@
+       return wireContext.get(text, isDelayedInitializationAllowed());
+     } else if (type!=null) {
+       try {
+-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-        Class<?> clazz = Class.forName(type, true, classLoader);
++        Class<?> clazz = ReflectUtil.classForName(type);
+         return wireContext.get(clazz);
+       } catch (Exception e) {
+         throw new JbpmException("couldn't load "+type, e);
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/xml/BindingParser.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/xml/BindingParser.java	(revision 6382)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/wire/xml/BindingParser.java	(working copy)
+@@ -24,6 +24,7 @@
+ import java.util.List;
+ 
+ import org.jbpm.internal.log.Log;
++import org.jbpm.pvm.internal.util.ReflectUtil;
+ import org.jbpm.pvm.internal.util.XmlUtil;
+ import org.jbpm.pvm.internal.xml.Binding;
+ import org.jbpm.pvm.internal.xml.Bindings;
+@@ -32,21 +33,20 @@
+ import org.w3c.dom.Element;
+ 
+ public class BindingParser extends Parser {
+-  
++
+   private static final Log log = Log.getLog(BindingParser.class.getName());
+ 
+   public Object parseDocumentElement(Element documentElement, Parse parse) {
+     List<Element> elements = XmlUtil.elements(documentElement, "binding");
+     for (Element bindingElement : elements) {
+       String bindingClassName = XmlUtil.attribute(bindingElement, "class");
+-      
++
+       log.trace("adding wire binding for "+bindingClassName);
+ 
+       Binding binding = null;
+       if (bindingClassName!=null) {
+         try {
+-          ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+-          Class<?> bindingClass = Class.forName(bindingClassName, true, classLoader);
++          Class<?> bindingClass = ReflectUtil.classForName(bindingClassName);
+           binding = (Binding) bindingClass.newInstance();
+         } catch (Exception e) {
+           log.trace("couldn't instantiate binding "+bindingClassName);
+@@ -54,13 +54,13 @@
+       } else {
+         parse.addProblem("class is a required attribute in a binding "+XmlUtil.toString(bindingElement), documentElement);
+       }
+-      
++
+       if (binding!=null) {
+         Bindings bindings = parse.contextStackFind(Bindings.class);
+         bindings.addBinding(binding);
+       }
+     }
+-    
++
+     return null;
+   }
+ }

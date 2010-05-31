@@ -27,6 +27,7 @@ import javax.naming.InitialContext;
 
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.model.OpenExecution;
+import org.jbpm.pvm.internal.util.ReflectUtil;
 import org.jbpm.pvm.internal.wire.WireContext;
 import org.jbpm.pvm.internal.wire.WireDefinition;
 import org.jbpm.pvm.internal.wire.descriptor.ArgDescriptor;
@@ -49,7 +50,7 @@ public class JavaActivity extends JpdlAutomaticActivity {
 
   protected String variableName;
   protected String jndiName;
-  
+
   public void perform(OpenExecution execution) throws Exception {
 
     Object target = null;
@@ -60,7 +61,7 @@ public class JavaActivity extends JpdlAutomaticActivity {
     } else {
       throw new JbpmException("no target specified");
     }
-    
+
     Class<?> clazz;
     // method invocation on object or static method invocation in case object is null
     if (target!=null) {
@@ -68,18 +69,17 @@ public class JavaActivity extends JpdlAutomaticActivity {
     } else {
       ObjectDescriptor objectDescriptor = (ObjectDescriptor) invocationReference.getDescriptor();
       String className = objectDescriptor.getClassName();
-      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-      clazz = Class.forName(className, true, classLoader);  
+      clazz = ReflectUtil.classForName(className);
     }
-    
+
     WireContext wireContext = new WireContext(new WireDefinition());
     Object returnValue = ObjectDescriptor.invokeMethod(methodName, argDescriptors, wireContext, target, clazz);
-    
+
     if (variableName!=null) {
       execution.setVariable(variableName, returnValue);
     }
   }
-  
+
   public void setInvocationReference(UserCodeReference invocationReference) {
     this.invocationReference = invocationReference;
   }

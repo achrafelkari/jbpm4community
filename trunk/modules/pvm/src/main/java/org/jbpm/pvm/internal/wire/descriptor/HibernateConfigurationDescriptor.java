@@ -57,8 +57,7 @@ public class HibernateConfigurationDescriptor extends AbstractDescriptor {
     if (className!=null) {
       try {
         log.trace("instantiating hibernate configuration class "+className);
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Class<?> configurationClass = Class.forName(className, true, classLoader);
+        Class<?> configurationClass = ReflectUtil.classForName(className);
         configuration = (Configuration) ReflectUtil.newInstance(configurationClass);
       } catch (Exception e) {
         throw new JbpmException("couldn't instantiate hibernate configuration class "+className, e);
@@ -95,15 +94,14 @@ public class HibernateConfigurationDescriptor extends AbstractDescriptor {
   public Class<?> getType(WireDefinition wireDefinition) {
     if (className!=null) {
       try {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        return Class.forName(className, true, classLoader);
+        return ReflectUtil.classForName(className);
       } catch (Exception e) {
         throw new WireException("couldn't create hibernate configuration '"+className+"': "+e.getMessage(), e.getCause());
       }
     }
     return Configuration.class;
   }
-  
+
   public void addCfgResource(String cfgResource) {
     cfgOperations.add(new AddCfgResource(cfgResource));
   }
@@ -231,8 +229,7 @@ public class HibernateConfigurationDescriptor extends AbstractDescriptor {
     public void apply(Object target, WireContext wireContext) {
       Configuration configuration = (Configuration) target;
       try {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Class<?> persistentClass = Class.forName(className, true, classLoader);
+        Class<?> persistentClass = ReflectUtil.classForName(className);
         configuration.addClass(persistentClass);
       } catch (Exception e) {
         throw new JbpmException("couldn't add mapping for class "+className, e);

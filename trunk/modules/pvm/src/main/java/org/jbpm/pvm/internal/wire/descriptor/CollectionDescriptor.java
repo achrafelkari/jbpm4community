@@ -10,6 +10,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 
 import org.jbpm.internal.log.Log;
+import org.jbpm.pvm.internal.util.ReflectUtil;
 import org.jbpm.pvm.internal.wire.Descriptor;
 import org.jbpm.pvm.internal.wire.WireContext;
 import org.jbpm.pvm.internal.wire.WireException;
@@ -23,13 +24,13 @@ public class CollectionDescriptor extends AbstractDescriptor implements Descript
   private static final long serialVersionUID = 1L;
 
   private static Log log = Log.getLog(CollectionDescriptor.class.getName());
-  
+
   protected String className;
   protected List<Descriptor> valueDescriptors;
   protected boolean isSynchronized;
 
   protected CollectionDescriptor() { }
-  
+
   public CollectionDescriptor(String defaultImplClassName) {
     this.className = defaultImplClassName;
   }
@@ -38,10 +39,9 @@ public class CollectionDescriptor extends AbstractDescriptor implements Descript
     Object object = null;
     try {
       // instantiate
-      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-      Class<?> clazz = Class.forName(className, true, classLoader);
+      Class<?> clazz = ReflectUtil.classForName(className);
       object = clazz.newInstance();
-      
+
       if (isSynchronized) {
         if (object instanceof SortedSet) {
           object = Collections.synchronizedSortedSet((SortedSet) object);

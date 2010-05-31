@@ -37,6 +37,7 @@ import org.jbpm.pvm.internal.type.matcher.ClassNameMatcher;
 import org.jbpm.pvm.internal.type.matcher.HibernateLongIdMatcher;
 import org.jbpm.pvm.internal.type.matcher.HibernateStringIdMatcher;
 import org.jbpm.pvm.internal.type.matcher.SerializableMatcher;
+import org.jbpm.pvm.internal.util.ReflectUtil;
 import org.jbpm.pvm.internal.util.XmlUtil;
 import org.jbpm.pvm.internal.wire.Descriptor;
 import org.jbpm.pvm.internal.wire.WireContext;
@@ -46,13 +47,13 @@ import org.jbpm.pvm.internal.xml.Parser;
 import org.w3c.dom.Element;
 
 /** parses a descriptor for Boolean.TRUE.
- * 
+ *
  * See schema docs for more details.
  *
  * @author Tom Baeyens
  */
 public class TypesBinding extends WireDescriptorBinding {
-  
+
   public TypesBinding() {
     super("types");
   }
@@ -69,14 +70,14 @@ public class TypesBinding extends WireDescriptorBinding {
         parse.addProblem("file "+fileName+" isn't a file", element);
       }
     }
-    
+
     if (element.hasAttribute("resource")) {
       String resource = element.getAttribute("resource");
       ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
       streamSource = new ResourceStreamInput(resource, classLoader);
       parser.importStream(streamSource, element, parse);
     }
-    
+
     if (element.hasAttribute("url")) {
       String urlText = element.getAttribute("url");
       try {
@@ -87,9 +88,9 @@ public class TypesBinding extends WireDescriptorBinding {
         parse.addProblem("couldn't open url "+urlText, e);
       }
     }
-    
+
     TypesDescriptor typesDescriptor = new TypesDescriptor();
-    
+
     List<Element> typeElements = XmlUtil.elements(element, "type");
     for (Element typeElement: typeElements) {
       TypeMapping typeMapping = parseTypeMapping(typeElement, parse, parser);
@@ -102,31 +103,31 @@ public class TypesBinding extends WireDescriptorBinding {
     TypeMapping typeMapping = new TypeMapping();
     Type type = new Type();
     typeMapping.setType(type);
-    
+
     // type name
     if (element.hasAttribute("name")) {
       type.setName(element.getAttribute("name"));
     }
-    
+
     String hibernateSessionFactoryName = XmlUtil.attribute(element, "hibernate-session-factory");
-    
+
     // first we get the matcher
     Matcher matcher = null;
     if (element.hasAttribute("class")) {
       String className = element.getAttribute("class");
-      
+
       // if type="serializable"
       if ("serializable".equals(className)) {
         matcher = new SerializableMatcher();
-        
+
       // if type="hibernatable"
       } else if ("hibernatable".equals(className)) {
         if (element.hasAttribute("id-type")) {
           String idType = element.getAttribute("id-type");
           if ("long".equalsIgnoreCase(idType)) {
-            matcher = new HibernateLongIdMatcher(hibernateSessionFactoryName); 
+            matcher = new HibernateLongIdMatcher(hibernateSessionFactoryName);
           } else if ("string".equalsIgnoreCase(idType)) {
-            matcher = new HibernateStringIdMatcher(hibernateSessionFactoryName); 
+            matcher = new HibernateStringIdMatcher(hibernateSessionFactoryName);
           } else {
             parse.addProblem("id-type was not 'long' or 'string': "+idType, element);
           }
@@ -157,13 +158,12 @@ public class TypesBinding extends WireDescriptorBinding {
 
     typeMapping.setMatcher(matcher);
 
-    // parsing the converter 
+    // parsing the converter
     Converter converter = null;
     if (element.hasAttribute("converter")) {
       String converterClassName = element.getAttribute("converter");
       try {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Class<?> converterClass = Class.forName(converterClassName, true, classLoader);
+        Class<?> converterClass = ReflectUtil.classForName(converterClassName);
         converter = (Converter) converterClass.newInstance();
       } catch (Exception e) {
         parse.addProblem("couldn't instantiate converter "+converterClassName, element);
@@ -178,19 +178,18 @@ public class TypesBinding extends WireDescriptorBinding {
         } catch (ClassCastException e) {
           parse.addProblem("converter is not a "+Converter.class.getName()+": "+(converter!=null ? converter.getClass().getName() : "null"), element);
         }
-      } 
+      }
     }
 
     type.setConverter(converter);
-    
+
     // parsing the variable class
-    
+
     Class<?> variableClass = null;
     if (element.hasAttribute("variable-class")) {
-      String variableClassName = element.getAttribute("variable-class"); 
+      String variableClassName = element.getAttribute("variable-class");
       try {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        variableClass = Class.forName(variableClassName, true, classLoader);
+        variableClass = ReflectUtil.classForName(variableClassName);
       } catch (Exception e) {
         parse.addProblem("couldn't instantiate variable-class "+variableClassName, e);
       }
@@ -199,7 +198,7 @@ public class TypesBinding extends WireDescriptorBinding {
     }
 
     type.setVariableClass(variableClass);
-    
+
     return typeMapping;
   }
 }
