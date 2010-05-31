@@ -1069,6 +1069,9 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   protected void checkActive() {
     if (!isActive()) {
       throw new JbpmException(toString()+" is not active: "+state);
+    } else if (this.subProcessInstance != null && !Execution.STATE_ENDED.equals(this.subProcessInstance.getState())) {
+      throw new JbpmException(toString() + " has running subprocess: " 
+              + this.subProcessInstance.toString() + " in state " + this.subProcessInstance.getState());
     }
   }
   

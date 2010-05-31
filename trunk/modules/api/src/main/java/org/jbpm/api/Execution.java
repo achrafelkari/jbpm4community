@@ -184,6 +184,12 @@ public interface Execution extends Serializable {
    * structure</a>.  Null will be returned in case this execution itself is the 
    * main execution path.  */
   Execution getProcessInstance();
+  
+  /**
+   * the sub path of execution in the <a href="package-summary.html#basicexecutionstructure">execution 
+   * structure</a>. Null will be returned in case there is no sub process execution. 
+   */
+  Execution getSubProcessInstance();
 
   /** the parent execution in the <a href="package-summary.html#basicexecutionstructure">execution 
    * structure</a>.  Null will be returned in case this execution itself is the 
