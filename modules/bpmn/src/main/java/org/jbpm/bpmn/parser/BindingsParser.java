@@ -59,8 +59,7 @@ public class BindingsParser extends Parser {
 
     if (bindingClassName != null) {
       try {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Class< ? > bindingClass = Class.forName(bindingClassName, true, classLoader);
+        Class<?> bindingClass = ReflectUtil.classForName(bindingClassName);
         return (Binding) bindingClass.newInstance();
       } catch (Exception e) {
         parse.addProblem("couldn't instantiate activity binding " + bindingClassName, e);

@@ -3,6 +3,7 @@ package org.jbpm.pvm.internal.wire.binding;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jbpm.pvm.internal.util.ReflectUtil;
 import org.jbpm.pvm.internal.util.XmlUtil;
 import org.jbpm.pvm.internal.wire.Descriptor;
 import org.jbpm.pvm.internal.wire.descriptor.CollectionDescriptor;
@@ -19,19 +20,19 @@ public abstract class AbstractCollectionBinding extends WireDescriptorBinding {
 
   public Object parse(Element element, Parse parse, Parser parser) {
     CollectionDescriptor descriptor = createDescriptor();
-    
+
     String className = XmlUtil.attribute(element,"class");
-    
+
     // verify if the given classname is specified and implements the collection interface
     if (verify(className, getCollectionInterface(), parse, parser)) {
       descriptor.setClassName(className);
     }
-    
+
     Boolean isSynchronized = XmlUtil.attributeBoolean(element, "synchronized", false, parse);
     if (isSynchronized!=null) {
       descriptor.setSynchronized(isSynchronized.booleanValue());
     }
-    
+
     List<Descriptor> valueDescriptors = new ArrayList<Descriptor>();
     List<Element> elements = XmlUtil.elements(element);
     for (Element valueElement: elements) {
@@ -53,9 +54,8 @@ public abstract class AbstractCollectionBinding extends WireDescriptorBinding {
     }
 
     try {
-      ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-      Class<?> collectionClass = Class.forName(className, true, classLoader);
-      
+      Class<?> collectionClass = ReflectUtil.classForName(className);
+
       if (collectionInterface.isAssignableFrom(collectionClass)) {
         return true;
       } else {

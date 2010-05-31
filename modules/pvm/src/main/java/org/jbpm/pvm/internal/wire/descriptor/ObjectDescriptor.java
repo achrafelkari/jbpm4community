@@ -97,7 +97,7 @@ public class ObjectDescriptor extends AbstractDescriptor implements Descriptor {
   String factoryObjectName = null;
 
   protected Expression expression;
-  
+
   /** specifies the object on which to invoke the method.
    * Either className, objectName or a descriptor has to be specified. */
   protected Descriptor factoryDescriptor = null;
@@ -111,7 +111,7 @@ public class ObjectDescriptor extends AbstractDescriptor implements Descriptor {
 
   /** True if autowiring is enabled.  */
   protected boolean isAutoWireEnabled = false;
-  
+
   public ObjectDescriptor() {
   }
 
@@ -138,8 +138,7 @@ public class ObjectDescriptor extends AbstractDescriptor implements Descriptor {
 
     if (className!=null) {
       try {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        clazz = Class.forName(className, true, classLoader);
+        clazz = ReflectUtil.classForName(className);
       } catch (Exception e) {
         throw new JbpmClassNotFoundException("couldn't load class "+className, e);
       }
@@ -239,13 +238,12 @@ public class ObjectDescriptor extends AbstractDescriptor implements Descriptor {
   public Class<?> getType(WireDefinition wireDefinition) {
     if (className!=null) {
       try {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        return Class.forName(className, true, classLoader);
+        return ReflectUtil.classForName(className);
       } catch (Exception e) {
         throw new WireException("couldn't load class '"+className+"'", e);
       }
     }
-    
+
     Descriptor descriptor = null;
     if (factoryDescriptor!=null) {
       descriptor = factoryDescriptor;
@@ -258,14 +256,14 @@ public class ObjectDescriptor extends AbstractDescriptor implements Descriptor {
       if (factoryClass!=null) {
         Method method = ReflectUtil.findMethod(factoryClass, methodName, argDescriptors, null);
         if (method!=null) {
-          return method.getReturnType(); 
+          return method.getReturnType();
         }
       }
     }
 
     return null;
   }
-  
+
   /**
    * Auto wire object present in the context and the specified object's fields.
    * @param object object on which auto-wiring is performed.
@@ -294,20 +292,20 @@ public class ObjectDescriptor extends AbstractDescriptor implements Descriptor {
               autoWireValue = wireContext.get(fieldName);
 
             } else {
-              autoWireValue = wireContext.get(fieldType);  
+              autoWireValue = wireContext.get(fieldType);
             }
-            // if auto wire value has not been found in current context, 
+            // if auto wire value has not been found in current context,
             // search in environment
             if (autoWireValue == null) {
               EnvironmentImpl currentEnvironment = EnvironmentImpl.getCurrent();
               if (currentEnvironment != null) {
-                autoWireValue = currentEnvironment.get(fieldName); 
+                autoWireValue = currentEnvironment.get(fieldName);
                 if (autoWireValue == null) {
                   autoWireValue = currentEnvironment.get(fieldType);
                 }
               }
             }
-            
+
             if (autoWireValue!=null) {
               try {
                 if (log.isTraceEnabled()) log.trace("auto wiring field "+fieldName+" in "+name);
@@ -376,7 +374,7 @@ public class ObjectDescriptor extends AbstractDescriptor implements Descriptor {
     }
     operations.add(operation);
   }
-  
+
   /** convenience method to add a type based field injection */
   public void addTypedInjection(String fieldName, Class<?> type) {
     addInjection(fieldName, new EnvDescriptor(type));
@@ -401,7 +399,7 @@ public class ObjectDescriptor extends AbstractDescriptor implements Descriptor {
 
 
   // getters and setters //////////////////////////////////////////////////////
-  
+
   public String getClassName() {
     return className;
   }

@@ -51,6 +51,7 @@ import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
 import org.jbpm.pvm.internal.env.ExecutionContext;
+import org.jbpm.pvm.internal.util.ReflectUtil;
 
 import de.odysseus.el.util.SimpleResolver;
 
@@ -155,7 +156,7 @@ class JuelScriptEngine extends AbstractScriptEngine
       }
 
     };
-    
+
     ctx.setAttribute("elcontext", elContext, 100);
 
     return elContext;
@@ -286,7 +287,7 @@ class JuelScriptEngine extends AbstractScriptEngine
       {
         try
         {
-          clazz = Class.forName((String)obj);
+          clazz = ReflectUtil.classForName((String) obj);
         }
         catch (ClassNotFoundException cnfe)
         {
@@ -340,7 +341,7 @@ class JuelScriptEngine extends AbstractScriptEngine
 
   private class ScriptContextFunctionMapper extends FunctionMapper
   {
-    private ScriptContext ctx;    
+    private ScriptContext ctx;
 
     ScriptContextFunctionMapper(ScriptContext ctx)
     {
@@ -397,7 +398,7 @@ class JuelScriptEngine extends AbstractScriptEngine
         // to support null value for existing variables
         Bindings b = this.ctx.getBindings(ScriptContext.ENGINE_SCOPE);
         ExecutionContext execContext = (ExecutionContext) ((EnvironmentBindings) b).environment.getContext("execution");
-        // if variable name exist then set value expression as null 
+        // if variable name exist then set value expression as null
         // since it was not discovered by attribute scope method
         if (execContext.getExecution().getVariables().containsKey(variable)) {
           return exprFactory.createValueExpression(null, Object.class);

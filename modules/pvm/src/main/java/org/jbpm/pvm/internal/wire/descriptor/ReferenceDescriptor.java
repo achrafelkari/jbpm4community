@@ -1,6 +1,7 @@
 package org.jbpm.pvm.internal.wire.descriptor;
 
 import org.jbpm.api.JbpmException;
+import org.jbpm.pvm.internal.util.ReflectUtil;
 import org.jbpm.pvm.internal.wire.Descriptor;
 import org.jbpm.pvm.internal.wire.WireContext;
 
@@ -37,8 +38,7 @@ public class ReferenceDescriptor extends AbstractDescriptor implements Descripto
       return wireContext.get(text, isDelayedInitializationAllowed());
     } else if (type!=null) {
       try {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Class<?> clazz = Class.forName(type, true, classLoader);
+        Class<?> clazz = ReflectUtil.classForName(type);
         return wireContext.get(clazz);
       } catch (Exception e) {
         throw new JbpmException("couldn't load "+type, e);

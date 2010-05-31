@@ -48,7 +48,7 @@ public class ScriptManagerBinding extends WireDescriptorBinding {
 
   public Object parse(Element element, Parse parse, Parser parser) {
     ObjectDescriptor descriptor = new ObjectDescriptor(ScriptManager.class);
-    
+
     if (element.hasAttribute("default-expression-language")) {
       String defaultLanguage = element.getAttribute("default-expression-language");
       descriptor.addInjection("defaultExpressionLanguage", new StringDescriptor(defaultLanguage));
@@ -74,13 +74,12 @@ public class ScriptManagerBinding extends WireDescriptorBinding {
       } else {
         parse.addProblem("'name' is a required attribute in element <script-language />", element);
       }
-      
+
       if ( (languageName!=null)
            && (factoryClassName!=null)
          ) {
         try {
-          ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-          Class<?> factoryClass = Class.forName(factoryClassName, true, classLoader);
+          Class<?> factoryClass = ReflectUtil.classForName(factoryClassName);
           ScriptEngineFactory scriptEngineFactory = (ScriptEngineFactory) factoryClass.newInstance();
           scriptEngineManager.registerEngineName(languageName, scriptEngineFactory);
         } catch (Exception e) {
@@ -88,9 +87,9 @@ public class ScriptManagerBinding extends WireDescriptorBinding {
         }
       }
     }
-    
+
     descriptor.addInjection("scriptEngineManager", new ProvidedObjectDescriptor(scriptEngineManager));
-    
+
     return descriptor;
   }
 }

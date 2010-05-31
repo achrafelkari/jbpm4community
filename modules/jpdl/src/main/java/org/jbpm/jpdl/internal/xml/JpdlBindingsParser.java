@@ -22,6 +22,7 @@
 package org.jbpm.jpdl.internal.xml;
 
 import org.jbpm.internal.log.Log;
+import org.jbpm.pvm.internal.util.ReflectUtil;
 import org.jbpm.pvm.internal.util.TagBinding;
 import org.jbpm.pvm.internal.util.XmlUtil;
 import org.jbpm.pvm.internal.xml.Binding;
@@ -36,30 +37,29 @@ import org.w3c.dom.Element;
 public class JpdlBindingsParser extends Parser {
 
   private static final Log log = Log.getLog(JpdlBindingsParser.class.getName());
-  
+
   public Object parseDocumentElement(Element documentElement, Parse parse) {
     Bindings bindings = (Bindings) parse.contextMapGet(Parse.CONTEXT_KEY_BINDINGS);
     parse.setDocumentObject(bindings);
-    
+
     for (Element bindingElement : XmlUtil.elements(documentElement)) {
       Binding binding = instantiateBinding(bindingElement, parse);
       bindings.addBinding(binding);
     }
-    
+
     return bindings;
   }
 
   protected Binding instantiateBinding(Element bindingElement, Parse parse) {
     String bindingClassName = XmlUtil.attribute(bindingElement, "binding", true, parse);
-    
+
     log.trace("adding jpdl binding "+bindingClassName);
-    
+
     if (bindingClassName!=null) {
       try {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Class<?> bindingClass = Class.forName(bindingClassName, true, classLoader);
+        Class<?> bindingClass = ReflectUtil.classForName(bindingClassName);
         TagBinding binding = (TagBinding) bindingClass.newInstance();
-        
+
         String tagLocalName = XmlUtil.getTagLocalName(bindingElement);
         if ("activity".equals(tagLocalName)) {
           binding.setCategory(JpdlParser.CATEGORY_ACTIVITY);
@@ -68,7 +68,7 @@ public class JpdlBindingsParser extends Parser {
         } else {
           parse.addProblem("unrecognized binding tag: "+tagLocalName);
         }
-        
+
         return binding;
       } catch (Exception e) {
         parse.addProblem("couldn't instantiate activity binding "+bindingClassName, e);

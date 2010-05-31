@@ -24,6 +24,7 @@ package org.jbpm.pvm.internal.wire.xml;
 import java.util.List;
 
 import org.jbpm.internal.log.Log;
+import org.jbpm.pvm.internal.util.ReflectUtil;
 import org.jbpm.pvm.internal.util.XmlUtil;
 import org.jbpm.pvm.internal.xml.Binding;
 import org.jbpm.pvm.internal.xml.Bindings;
@@ -32,21 +33,20 @@ import org.jbpm.pvm.internal.xml.Parser;
 import org.w3c.dom.Element;
 
 public class BindingParser extends Parser {
-  
+
   private static final Log log = Log.getLog(BindingParser.class.getName());
 
   public Object parseDocumentElement(Element documentElement, Parse parse) {
     List<Element> elements = XmlUtil.elements(documentElement, "binding");
     for (Element bindingElement : elements) {
       String bindingClassName = XmlUtil.attribute(bindingElement, "class");
-      
+
       log.trace("adding wire binding for "+bindingClassName);
 
       Binding binding = null;
       if (bindingClassName!=null) {
         try {
-          ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-          Class<?> bindingClass = Class.forName(bindingClassName, true, classLoader);
+          Class<?> bindingClass = ReflectUtil.classForName(bindingClassName);
           binding = (Binding) bindingClass.newInstance();
         } catch (Exception e) {
           log.trace("couldn't instantiate binding "+bindingClassName);
@@ -54,13 +54,13 @@ public class BindingParser extends Parser {
       } else {
         parse.addProblem("class is a required attribute in a binding "+XmlUtil.toString(bindingElement), documentElement);
       }
-      
+
       if (binding!=null) {
         Bindings bindings = parse.contextStackFind(Bindings.class);
         bindings.addBinding(binding);
       }
     }
-    
+
     return null;
   }
 }
