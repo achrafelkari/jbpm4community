@@ -23,38 +23,33 @@ package org.jbpm.test.activity.assign;
 
 import java.io.Serializable;
 
-
 /**
  * @author Tom Baeyens
  */
 public class Person implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  
+
   String name;
   Address address = new Address();
   String[] emails;
-  
-  public String hello() {
-    return "goodby";
+
+  public String sayHi(String name) {
+    return "Hi, " + name;
   }
-  
-  public String hello(String name) {
-    return "Hi, "+name;
-  }
-  
+
   public String getName() {
     return name;
   }
-  
+
   public void setName(String name) {
     this.name = name;
   }
-  
+
   public Address getAddress() {
     return address;
   }
-  
+
   public void setAddress(Address address) {
     this.address = address;
   }
@@ -65,5 +60,9 @@ public class Person implements Serializable {
 
   public void setEmails(String[] emails) {
     this.emails = emails;
+  }
+
+  public String toString() {
+    return "Person(" + name + ')';
   }
 }

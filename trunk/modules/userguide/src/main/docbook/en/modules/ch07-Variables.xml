@@ -114,4 +114,143 @@
     </para>
   </section>
   
+  <section>
+    <title>Declared variables</title>
+    <para>(Since jBPM 4.4)</para>
+    <para>
+    Variables can be declared directly in process definition (JPDL). These variables 
+    will be created at process instance startup. There can be more than one variable definition.
+    </para>
+    <para>There are several possible ways for declaring variable:</para>
+    <itemizedlist>
+    	<listitem>declare <literal>String</literal> variable initialized with static text
+    		<programlisting>
+&lt;variable name=&quot;declaredVar&quot; type=&quot;string&quot; init-expr=&quot;testing declared variable&quot;/&gt;
+    		</programlisting>
+    	</listitem>
+    	<listitem>declare <literal>custom</literal> variable initialized with EL
+    		<programlisting>
+&lt;variable name=&quot;declaredVar&quot; type=&quot;long&quot; init-expr=&quot;#{anotherVar}&quot;/&gt;
+    		</programlisting>
+    	</listitem>
+    	<listitem>declare <literal>custom</literal> variable initialized with serializable class
+    		<programlisting>
+&lt;variable name=&quot;declaredVar&quot; type=&quot;serializable&quot; &gt;
+   &lt;object class=&quot;org.jbpm.examples.variable.declared.HistoryVariable&quot; /&gt;
+&lt;/variable&gt;
+    		</programlisting>
+    	</listitem>
+    </itemizedlist>
+    <para>As shown above variable values can be assigned in two ways: using attribute <literal>init-expr</literal> or
+    by nesting init descriptor (element <literal>object</literal>) within variable tags. 
+    </para>
+    <para>
+    Note: Only one of value assignment can be used for a variable declaration.  
+    </para>
+      <table><title>Attribute for  <literal>variable</literal> element:</title>
+        <tgroup cols="5" rowsep="1" colsep="1">
+          <thead>
+            <row>
+              <entry>Attribute</entry>
+              <entry>Type</entry>
+              <entry>Default</entry>
+              <entry>Required?</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><literal>name</literal></entry>
+              <entry>text</entry>
+              <entry></entry>
+              <entry><emphasis role="bold">required</emphasis></entry>
+              <entry>name of the variable</entry>
+            </row>
+            <row>
+              <entry><literal>type</literal></entry>
+              <entry>text</entry>
+              <entry></entry>
+              <entry><emphasis role="bold">required</emphasis></entry>
+              <entry>type of the variable, must refer to types defined in jbpm.variable.types.xml</entry>
+            </row>
+            <row>
+              <entry><literal>init-expr</literal></entry>
+              <entry>text (EL expression)</entry>
+              <entry></entry>
+              <entry><emphasis role="bold">optional</emphasis></entry>
+              <entry>value for the variable, this attribute or nested element must be given</entry>
+            </row>
+            <row>
+              <entry><literal>init-expr-type</literal></entry>
+              <entry>text</entry>
+              <entry>UEL</entry>
+              <entry><emphasis role="bold">optional</emphasis></entry>
+              <entry>defines language for expression evaluation</entry>
+            </row>
+            <row>
+              <entry><literal>history</literal></entry>
+              <entry>boolean</entry>
+              <entry>false</entry>
+              <entry><emphasis role="bold">optional</emphasis></entry>
+              <entry>indicates wheater variable should be stored in history or not - default false, 
+    for more information about history see <xref linkend="variablehistory" /></entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      
+     <table><title>Nested element for <literal>variable</literal>:</title>
+        <tgroup cols="5" rowsep="1" colsep="1">
+          <thead>
+            <row>
+              <entry>Element</entry>
+              <entry>Multiplicity</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><literal>object</literal></entry>
+              <entry>1</entry>
+              <entry>Value for the variable as custom object, either this element or <literal>init-expr</literal> attribute must be specified</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+  </section>
+  
+  <section id="variablehistory">
+    <title>Variables history</title>
+    <para>(Since jBPM 4.4)</para>
+    
+    <para>Variables can be marked to be persisted as history records. This means that once process instance is ended and 
+    its runtime information is removed, history details are preserved. 
+    </para>
+    <para>History can be enabled for variable in two ways:</para>
+    <itemizedlist>
+    	<listitem>via public API <literal>ExecutionService</literal>:
+	    	<itemizedlist>
+	    		<listitem><literal>void createVariable(String executionId, String name, Object value, boolean historyEnabled);</literal></listitem>
+	    		<listitem><literal>void createVariables(String executionId, Map&lt;String, ?&gt; variables, boolean historyEnabled);</literal></listitem>
+	    	</itemizedlist>
+    	</listitem>
+    	<listitem>on variable declaration
+    	<programlisting>
+&lt;variable name=&quot;declaredVar&quot; type=&quot;string&quot; init-expr=&quot;testing declared variable&quot; history=&quot;true&quot;/&gt;
+    		</programlisting>
+    	</listitem>
+    </itemizedlist>
+    <para>Currently all variables are persisted in history as <literal>String</literal> values.
+    Variable (regardless of its type) will be converted to a string value using <literal>toString()</literal>
+    method. In case of custom objects they should override <literal>toString()</literal> method to provide string representation
+    of the variable that will be available as history record. This will provide an easy way for enabling convienient search
+    capabilities based on variable values. </para>
+    <para>Access to history variables is given via <literal>HistoryService</literal> methods:</para>
+    <itemizedlist>
+   		<listitem><literal>Object getVariable(String processInstnceId, String name);</literal></listitem>
+   		<listitem><literal>Map&lt;String, Object&gt; getVariables(String processInstnceId, Set&lt;String&gt; variableNames);</literal></listitem>
+   		<listitem><literal>Set&lt;String&gt; getVariableNames(String processInstnceId);</literal></listitem>
+   	</itemizedlist>
+  </section>
+  
 </chapter>

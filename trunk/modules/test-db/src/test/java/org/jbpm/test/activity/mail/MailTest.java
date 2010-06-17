@@ -50,7 +50,7 @@ public class MailTest extends JbpmTestCase {
   }
 
   public void testMailToPlainAddress() {
-    deployJpdlXmlString("<process name='plainaddress'>"
+    deployJpdlXmlString("<process name='plainaddress' xmlns='http://jbpm.org/4.3/jpdl'>"
       + "  <start>"
       + "    <transition to='mailtestmail' />"
       + "  </start>"

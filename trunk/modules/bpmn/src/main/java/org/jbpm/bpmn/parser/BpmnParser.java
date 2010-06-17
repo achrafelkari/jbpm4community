@@ -118,8 +118,8 @@ public class BpmnParser extends Parser {
     parse.contextStackPush(processDefinition);
     try {
 
-      String id = XmlUtil.attribute(processElement, "id", true, parse);
-      String name = XmlUtil.attribute(processElement, "name", false, parse);
+      String id = XmlUtil.attribute(processElement, "id", parse);
+      String name = XmlUtil.attribute(processElement, "name");
       
       if (id != null && !"".equals(id)) {
         processDefinition.setName(id);        
@@ -207,7 +207,7 @@ public class BpmnParser extends Parser {
     for (Element dataElement : XmlUtil.elements(element, "dataObject")) {
       VariableDefinitionImpl variableDefinition = new VariableDefinitionImpl();
 
-      String name = XmlUtil.attribute(dataElement, "id", true, parse);
+      String name = XmlUtil.attribute(dataElement, "id", parse);
       variableDefinition.setName(name);
 
       String typeRef = XmlUtil.attribute(dataElement, "itemSubjectRef");
@@ -222,9 +222,9 @@ public class BpmnParser extends Parser {
   public void parseActivities(Element element, Parse parse, CompositeElementImpl compositeElement) {
     List<Element> elements = XmlUtil.elements(element);
     for (Element nestedElement : elements) {
-      String tagName = XmlUtil.getTagLocalName(nestedElement);
-      String name = XmlUtil.attribute(nestedElement, "name", false, parse);
-      String id = XmlUtil.attribute(nestedElement, "id", true, parse);
+      String tagName = nestedElement.getLocalName();
+      String name = XmlUtil.attribute(nestedElement, "name");
+      String id = XmlUtil.attribute(nestedElement, "id", parse);
 
       TagBinding activityBinding = (TagBinding) getBinding(nestedElement, CATEGORY_ACTIVITY);
       if (activityBinding == null) {
@@ -258,10 +258,10 @@ public class BpmnParser extends Parser {
     for (Element transitionElement : transitionElements) {
       
       // Parse attributes
-      String transitionName = XmlUtil.attribute(transitionElement, "name", false, parse);
-      String transitionId = XmlUtil.attribute(transitionElement, "id", true, parse);
-      String sourceRef = XmlUtil.attribute(transitionElement, "sourceRef", true, parse);
-      String targetRef = XmlUtil.attribute(transitionElement, "targetRef", true, parse);
+      String transitionName = XmlUtil.attribute(transitionElement, "name");
+      String transitionId = XmlUtil.attribute(transitionElement, "id", parse);
+      String sourceRef = XmlUtil.attribute(transitionElement, "sourceRef", parse);
+      String targetRef = XmlUtil.attribute(transitionElement, "targetRef", parse);
 
       if (log.isDebugEnabled()) {
         log.debug(transitionId + ": " + sourceRef + " -> " + targetRef);        

@@ -23,6 +23,7 @@ package org.jbpm.jpdl.internal.activity;
 
 import org.hibernate.LockMode;
 import org.jbpm.jpdl.internal.xml.JpdlParser;
+import org.jbpm.pvm.internal.el.Expression;
 import org.jbpm.pvm.internal.xml.Parse;
 import org.w3c.dom.Element;
 
@@ -44,20 +45,16 @@ public class JoinBinding extends JpdlBinding {
     JoinActivity joinActivity = new JoinActivity();
                             
     if (element.hasAttribute(MULTIPLICITY)) {
-      String multiplicictyText = element.getAttribute(MULTIPLICITY);
-      try {
-        int multiplicity = Integer.parseInt(multiplicictyText);
-        joinActivity.setMultiplicity(multiplicity);
-      } catch (NumberFormatException e) {
-        parse.addProblem(MULTIPLICITY + " " + multiplicictyText + " is not a valid integer", element);
-      }
+      String multiplicityText = element.getAttribute(MULTIPLICITY);
+      Expression expression = Expression.create(multiplicityText, Expression.LANGUAGE_UEL_VALUE);
+      joinActivity.setMultiplicity(expression);
     }
 
     if (element.hasAttribute(LOCKMODE)) {
       String lockModeText = element.getAttribute(LOCKMODE);
       LockMode lockMode = LockMode.parse(lockModeText.toUpperCase());
       if (lockMode==null) {
-        parse.addProblem(LOCKMODE + " " + lockModeText + " is not a valid lock mode", element);
+        parse.addProblem(lockModeText + " is not a valid lock mode", element);
       } else {
         joinActivity.setLockMode(lockMode);
       }

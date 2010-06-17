@@ -65,6 +65,7 @@ public class BlobVariable extends Variable {
   public void setValue(Object value, ScopeInstanceImpl scopeInstance) {
     super.setValue(value, scopeInstance);
     cachedValue = value;
+    textValue = value.toString();
   }
 
   public Lob getLob() {

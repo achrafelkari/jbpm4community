@@ -22,17 +22,7 @@
 package org.jbpm.test.activity.task;
 
 import java.util.List;
-import org.jbpm.api.ProcessInstance;
-import org.jbpm.api.cmd.Command;
-import org.jbpm.api.cmd.Environment;
-import org.jbpm.api.task.Task;
 
-import org.jbpm.pvm.internal.history.HistoryEvent;
-import org.jbpm.pvm.internal.history.events.VariableCreate;
-import org.jbpm.pvm.internal.model.ExecutionImpl;
-import org.jbpm.pvm.internal.repository.RepositoryCache;
-import org.jbpm.pvm.internal.task.TaskImpl;
-import org.jbpm.pvm.internal.type.Variable;
 import org.jbpm.api.task.Task;
 import org.jbpm.test.JbpmTestCase;
 
@@ -91,8 +81,7 @@ public class ForkSwimlaneTest extends JbpmTestCase {
     }
 
     public void testSwimlane() {
-        ProcessInstance processInstance = executionService
-            .startProcessInstanceByKey("ForkSwimlane");
+        executionService.startProcessInstanceByKey("ForkSwimlane");
         takeAndCompleteTask("lingo");
         takeAndCompleteTask("lingo");
         completeTask("lingo");

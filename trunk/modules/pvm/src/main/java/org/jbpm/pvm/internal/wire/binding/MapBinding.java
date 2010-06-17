@@ -53,16 +53,16 @@ public class MapBinding extends WireDescriptorBinding {
       descriptor.setClassName(className);
     }
     
-    Boolean isSynchronized = XmlUtil.attributeBoolean(element, "synchronized", false, parse);
+    Boolean isSynchronized = XmlUtil.attributeBoolean(element, "synchronized", parse);
     if (isSynchronized!=null) {
-      descriptor.setSynchronized(isSynchronized.booleanValue());
+      descriptor.setSynchronized(isSynchronized);
     }
 
     List<Descriptor> keyDescriptors = new ArrayList<Descriptor>();
     List<Descriptor> valueDescriptors = new ArrayList<Descriptor>();
     List<Element> elements = XmlUtil.elements(element);
     for (Element entryElement: elements) {
-      if ("entry".equals(XmlUtil.getTagLocalName(entryElement))) {
+      if ("entry".equals(entryElement.getLocalName())) {
         // key
         Element keyElement = XmlUtil.element(entryElement, "key");
         Element keyDescriptorElement = (keyElement!=null ? XmlUtil.element(keyElement) : null);

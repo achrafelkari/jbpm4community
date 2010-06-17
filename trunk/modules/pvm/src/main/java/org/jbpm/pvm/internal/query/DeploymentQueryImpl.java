@@ -102,7 +102,7 @@ public class DeploymentQueryImpl extends AbstractQuery implements DeploymentQuer
   }
 
   public List<Deployment> list() {
-    return untypedList();
+    return (List<Deployment>) untypedList();
   }
 
   public Deployment uniqueResult() {

@@ -46,10 +46,11 @@ public abstract class AbstractQuery implements Command<Object> {
   private static final long serialVersionUID = 1L;
   
   protected CommandService commandService;
-  protected String orderByClause = null;
-  protected Page page = null;
-  protected boolean isWhereAdded = false;
-  protected boolean count = false;
+  protected String orderByClause;
+  protected Page page;
+  protected boolean isWhereAdded;
+  protected boolean count;
+  protected boolean uniqueResult;
   
   protected abstract void applyParameters(Query query);
 
@@ -63,53 +64,38 @@ public abstract class AbstractQuery implements Command<Object> {
   } 
   */
 
-  public List untypedList() {
+  public List<?> untypedList() {
     if (commandService!=null) {
-      return (List) commandService.execute(this);
+      return (List<?>) commandService.execute(this);
     }
     Session session = EnvironmentImpl.getFromCurrent(Session.class);
-    return (List) execute(session); 
+    return (List<?>) execute(session);
   }
 
   protected Object untypedUniqueResult() {
-    List list = untypedList();
-    if (list.isEmpty()) {
-      return null;
+    uniqueResult = true;
+
+    if (commandService!=null) {
+      return commandService.execute(this);
     }
-    if (list.size()>1) {
-      throw new JbpmException("result not unique: "+list.size());
-    }
-    return list.get(0);
+    Session session = EnvironmentImpl.getFromCurrent(Session.class);
+    return execute(session); 
   }
 
   public Object execute(Environment environment) throws Exception {
     Session session = environment.get(Session.class);
-    return execute(session);
-  }
-  
-  public Object execute(Session session) {
-    String hql = hql();
     try {
-      Query query = session.createQuery(hql);
-      applyParameters(query);
-      applyPage(query);
-      return query.list();
-    } catch (HibernateException e) {
-      Throwable t = e;
-      while (t!=null) {
-        if (t instanceof SQLException) {
-          SQLException sqlException = (SQLException) t;
-          SQLException nextException = sqlException.getNextException();
-          if (nextException!=null) {
-            log.error("cause of "+nextException+": ", e);
-          }
-        }
-        t = t.getCause();
-      }
-      throw e;
+      return execute(session);
     } finally {
       resetQuery(); // reset the query member fields so the query can be reused.
     }
+  }
+
+  public Object execute(Session session) {
+    Query query = session.createQuery(hql());
+    applyParameters(query);
+    applyPage(query);
+    return uniqueResult ? query.uniqueResult() : query.list();
   }
   
   /**
@@ -135,6 +121,7 @@ public abstract class AbstractQuery implements Command<Object> {
   private void resetQuery() {
     isWhereAdded = false;
     count = false;
+    uniqueResult = false;
   }
 
   protected void appendWhereClause(String whereClause, StringBuilder hql) {

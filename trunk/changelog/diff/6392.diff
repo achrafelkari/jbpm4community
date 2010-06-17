@@ -1,0 +1,103 @@
+Index: modules/integration/console/src/main/resources/ErraiService.properties
+===================================================================
+--- modules/integration/console/src/main/resources/ErraiService.properties	(revision 6391)
++++ modules/integration/console/src/main/resources/ErraiService.properties	(revision 6392)
+@@ -1,48 +0,0 @@
+-
+-#
+-# Copyright 2009 JBoss, a divison Red Hat, Inc
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-#    http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-#
+-
+-#
+-# Request dispatcher implementation (default is SimpleDispatcher)
+-#
+-#errai.dispatcher_implementation=org.jboss.errai.bus.server.SimpleDispatcher
+-errai.dispatcher_implementation=org.jboss.errai.bus.server.AsyncDispatcher
+-
+-#
+-# Worker pool size.  This is the number of threads the asynchronous worker pool should provide for processing
+-# incoming messages. This option is only valid when using the AsyncDispatcher implementation.
+-#
+-errai.async.thread_pool_size=5
+-
+-#
+-# Worker timeout (in seconds).  This defines the time that a single asychronous process may run, before the worker pool
+-# terminates it and reclaims the thread.   This option is only valid when using the AsyncDispatcher implementation.
+-#
+-errai.async.worker.timeout=20
+-
+-#
+-# Specify the Authentication/Authorization Adapter sendNowWith use
+-#
+-#errai.authentication_adapter=org.jboss.errai.persistence.server.security.HibernateAuthenticationAdapter
+-errai.authentication_adapter=org.jboss.errai.bus.server.security.auth.JAASAdapter
+-
+-##
+-## This property indicates whether or not authentication is required for all communication with the bus.  Set this
+-## to 'true' if all access to your application should be secure.
+-##
+-errai.require_authentication_for_all=false
+-
+-
+Index: modules/distro/src/main/files/install/build.xml
+===================================================================
+--- modules/distro/src/main/files/install/build.xml	(revision 6391)
++++ modules/distro/src/main/files/install/build.xml	(revision 6392)
+@@ -559,23 +559,32 @@
+       </fileset>
+     </copy>
+ 
+-    <!-- Copy jbpm-console wars into /webapps -->
+-    <copy todir="${tomcat.home}/webapps" overwrite="true">
+-      <fileset dir="${jbpm.home}/lib">
+-        <include name="gwt-console-jbpm.war" />
+-        <include name="gwt-console-server-jbpm.war" />
+-      </fileset>
+-    </copy>
++    <!-- Copy jbpm-console wars and configuration into /webapps -->
+ 
++    <mkdir dir="${tomcat.home}/webapps/jbpm-console"/>
++    <mkdir dir="${tomcat.home}/webapps/gwt-console-server"/>
++
++    <unzip src="${jbpm.home}/lib/gwt-console-jbpm.war"
++           dest="${tomcat.home}/webapps/jbpm-console"/>
++
++    <unzip src="${jbpm.home}/lib/gwt-console-server-jbpm.war"
++           dest="${tomcat.home}/webapps/gwt-console-server"/>
++
++      <move todir="${tomcat.home}/lib">
++          <fileset dir="${tomcat.home}/webapps/jbpm-console/WEB-INF/lib">
++              <include name="guice*.jar"/>
++              <include name="errai*.jar"/>
++              <include name="mvel*.jar"/>
++          </fileset>
++          <fileset dir="${tomcat.home}/webapps/jbpm-console/WEB-INF/classes">
++              <include name="ErraiService.properties"/>
++              <include name="ErraiApp.properties"/>
++          </fileset>
++      </move>
++
+     <!-- Copy Signavio war into /webapps -->
+     <antcall target="install.signavio.into.tomcat" />
+ 
+-    <!-- Rename wars (the context root is configured by WEB-INF/jboss-web.xml,
+-        which is neglected by Tomcat -->
+-    <move file="${tomcat.home}/webapps/gwt-console-jbpm.war"
+-          tofile="${tomcat.home}/webapps/jbpm-console.war" />
+-    <move file="${tomcat.home}/webapps/gwt-console-server-jbpm.war"
+-          tofile="${tomcat.home}/webapps/gwt-console-server.war" />
+ 
+     <!-- reporting -->
+     <property name="birt.dir" value="${tomcat.home}/birt" />

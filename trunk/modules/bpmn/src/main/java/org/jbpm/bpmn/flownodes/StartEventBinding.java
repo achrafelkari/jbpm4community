@@ -56,7 +56,7 @@ public class StartEventBinding extends BpmnBinding {
       parse.addProblem("multiple start events not yet supported", element);
     }
     
-    String id = XmlUtil.attribute(element, "id", true, parse);
+    String id = XmlUtil.attribute(element, "id", parse);
     Element eventDefinition = XmlUtil.element(element);
     if (eventDefinition != null && "timerEventDefinition".equals(eventDefinition.getNodeName())) {
       return createTimerStartEvent(processDefinition, eventDefinition, id, bpmnParser, parse);

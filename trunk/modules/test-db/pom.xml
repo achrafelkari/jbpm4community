@@ -9,7 +9,7 @@
 <!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6112 2010-01-21 09:17:34Z jbarrez $ -->
+<!-- $Id: pom.xml 6415 2010-06-15 08:40:55Z alex.guizar@jboss.com $ -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <name>jBPM 4 - Test DB</name>
@@ -97,6 +97,12 @@
         <configuration>
           <failIfNoTests>false</failIfNoTests>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <systemProperties>
+            <property>
+              <name>database</name>
+              <value>${database}</value>
+            </property>
+          </systemProperties>
         </configuration>
       </plugin>
     </plugins>
@@ -134,7 +140,7 @@
                       <fileset dir="${user.home}/.jbpm4/jdbc" />
                     </copy>
                     <ant antfile="../distro/src/main/files/install/build.xml" target="create.cfg">
-                      <property name="tx" value="standalone.testsuite" />
+                      <property name="tx" value="standalone.testsuite.examples" />
                       <property name="mail.cfg" value="testsuite" />
                       <property name="database" value="${database}" />
                       <property name="cfg.dest.dir" value="target/test-classes" />

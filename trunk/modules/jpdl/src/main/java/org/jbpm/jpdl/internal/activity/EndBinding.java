@@ -43,12 +43,12 @@ public class EndBinding extends JpdlBinding {
   public Object parseJpdl(Element element, Parse parse, JpdlParser parser) {
     
     boolean endProcessInstance = true;
-    String ends = XmlUtil.attribute(element, "ends", false, parse);
+    String ends = XmlUtil.attribute(element, "ends");
     if ("execution".equalsIgnoreCase(ends)) {
       endProcessInstance = false;
     }
     
-    String state = XmlUtil.attribute(element, "state", false, parse);
+    String state = XmlUtil.attribute(element, "state");
     
     EndActivity endActivity = new EndActivity();
     endActivity.setEndProcessInstance(endProcessInstance);

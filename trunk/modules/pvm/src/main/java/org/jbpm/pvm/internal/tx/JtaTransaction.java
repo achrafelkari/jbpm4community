@@ -34,11 +34,12 @@ import org.jbpm.internal.log.Log;
 
 /**
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public class JtaTransaction extends AbstractTransaction implements Transaction {
-  
+
   private static Log log = Log.getLog(JtaTransaction.class.getName());
-  
+
   public static final String JNDINAME_USERTRANSACTION_JBOSS_GLOBAL = "UserTransaction";
   public static final String JNDINAME_TRANSACTIONMANAGER_JBOSS_GLOBAL = "java:/TransactionManager";
 
@@ -68,7 +69,7 @@ public class JtaTransaction extends AbstractTransaction implements Transaction {
       throw new JbpmException("couldn't register synchronization: "+e.getMessage(), e);
     }
   }
-  
+
   public void begin() {
     try {
       lookupJeeUserTransaction().begin();
@@ -76,7 +77,7 @@ public class JtaTransaction extends AbstractTransaction implements Transaction {
       throw new JbpmException("couldn't begin transaction: "+e.getMessage(), e);
     }
   }
-  
+
   public void rollback() {
     try {
       lookupJeeUserTransaction().rollback();
@@ -84,7 +85,7 @@ public class JtaTransaction extends AbstractTransaction implements Transaction {
       throw new JbpmException("couldn't rollback: "+e.getMessage(), e);
     }
   }
-  
+
   public void commit() {
     try {
       flushDeserializedObjects();
@@ -94,7 +95,7 @@ public class JtaTransaction extends AbstractTransaction implements Transaction {
       throw new JbpmException("couldn't commit: "+e.getMessage(), e);
     }
   }
-  
+
   public javax.transaction.Transaction suspend() {
     try {
       return lookupJeeTransactionManager().suspend();
@@ -102,7 +103,7 @@ public class JtaTransaction extends AbstractTransaction implements Transaction {
       throw new JbpmException("couldn't suspend: "+e.getMessage(), e);
     }
   }
-  
+
   public void resume(javax.transaction.Transaction transaction) {
     try {
       lookupJeeTransactionManager().resume(transaction);
@@ -110,9 +111,9 @@ public class JtaTransaction extends AbstractTransaction implements Transaction {
       throw new JbpmException("couldn't resume: "+e.getMessage(), e);
     }
   }
-  
+
   // lookups //////////////////////////////////////////////////////////////////
-  
+
   public UserTransaction lookupJeeUserTransaction() {
     return (UserTransaction) lookupFromJndi(userTransactionJndiName);
   }
@@ -129,7 +130,7 @@ public class JtaTransaction extends AbstractTransaction implements Transaction {
   public TransactionManager lookupJeeTransactionManager() {
     return (TransactionManager) lookupFromJndi(transactionManagerJndiName);
   }
-  
+
   public static Object lookupFromJndi(String jndiName) {
     try {
       InitialContext initialContext = new InitialContext();
@@ -138,7 +139,7 @@ public class JtaTransaction extends AbstractTransaction implements Transaction {
       throw new JbpmException("couldn't lookup '"+jndiName+"' from jndi: "+e.getMessage()+": "+e.getMessage(), e);
     }
   }
-  
+
   public static int getUserTransactionStatus(UserTransaction userTransaction) {
     int status = -1;
     try {
@@ -148,5 +149,13 @@ public class JtaTransaction extends AbstractTransaction implements Transaction {
     }
     log.trace("jta transaction status: "+JtaStatusHelper.toString(status));
     return status;
+  }
+
+  public String getUserTransactionJndiName() {
+    return userTransactionJndiName;
+  }
+
+  public String getTransactionManagerJndiName() {
+    return transactionManagerJndiName;
   }
 }

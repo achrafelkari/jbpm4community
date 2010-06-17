@@ -73,7 +73,6 @@ public class ObjectBinding extends WireDescriptorBinding {
   public static ObjectDescriptor parseObjectDescriptor(Element element, Parse parse, Parser parser) {
     ObjectDescriptor descriptor = new ObjectDescriptor();
 
-    Parser wireParser = (Parser) parser;
     String className = XmlUtil.attribute(element, "class");
     String expr = XmlUtil.attribute(element, "expr");
     String factoryObjectName = XmlUtil.attribute(element, "factory");
@@ -91,7 +90,7 @@ public class ObjectBinding extends WireDescriptorBinding {
       Element constructorElement = XmlUtil.element(element, "constructor");
       if (constructorElement!=null) {
         List<Element> argElements = XmlUtil.elements(constructorElement, "arg");
-        List<ArgDescriptor> argDescriptors = wireParser.parseArgs(argElements, parse);
+        List<ArgDescriptor> argDescriptors = parser.parseArgs(argElements, parse);
         descriptor.setArgDescriptors(argDescriptors);
 
         if (element.hasAttribute("method")) {
@@ -123,7 +122,7 @@ public class ObjectBinding extends WireDescriptorBinding {
       descriptor.setMethodName(element.getAttribute("method"));
 
       List<Element> argElements = XmlUtil.elements(element, "arg");
-      List<ArgDescriptor> argDescriptors = wireParser.parseArgs(argElements, parse);
+      List<ArgDescriptor> argDescriptors = parser.parseArgs(argElements, parse);
       descriptor.setArgDescriptors(argDescriptors);
     } else if ( (factoryObjectName!=null)
                 || (factoryElement!=null)
@@ -161,9 +160,9 @@ public class ObjectBinding extends WireDescriptorBinding {
     descriptor.setOperations(operations);
 
     // autowiring
-    Boolean isAutoWireEnabled = XmlUtil.attributeBoolean(element, "auto-wire", false, parse);
+    Boolean isAutoWireEnabled = XmlUtil.attributeBoolean(element, "auto-wire", parse);
     if (isAutoWireEnabled!=null) {
-      descriptor.setAutoWireEnabled(isAutoWireEnabled.booleanValue());
+      descriptor.setAutoWireEnabled(isAutoWireEnabled);
     }
     return descriptor;
   }

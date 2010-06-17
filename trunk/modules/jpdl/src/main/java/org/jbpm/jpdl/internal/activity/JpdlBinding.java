@@ -21,21 +21,14 @@
  */
 package org.jbpm.jpdl.internal.activity;
 
+import org.w3c.dom.Element;
 
-import java.util.List;
-
-import org.jbpm.api.model.Event;
 import org.jbpm.jpdl.internal.xml.JpdlParser;
-import org.jbpm.jpdl.internal.xml.UnresolvedTransitions;
 import org.jbpm.pvm.internal.model.ActivityImpl;
-import org.jbpm.pvm.internal.model.TimerDefinitionImpl;
-import org.jbpm.pvm.internal.model.TransitionImpl;
 import org.jbpm.pvm.internal.util.TagBinding;
 import org.jbpm.pvm.internal.util.XmlUtil;
 import org.jbpm.pvm.internal.xml.Parse;
 import org.jbpm.pvm.internal.xml.Parser;
-import org.w3c.dom.Element;
-
 
 /**
  * @author Tom Baeyens
@@ -53,7 +46,7 @@ public abstract class JpdlBinding extends TagBinding {
   }
 
   public void parseName(Element element, ActivityImpl activity, Parse parse) {
-    String name = XmlUtil.attribute(element, "name", isNameRequired(), parse);
+    String name = XmlUtil.attribute(element, "name", isNameRequired() ? parse : null);
     
     if (name!=null) {
       // basic name validation

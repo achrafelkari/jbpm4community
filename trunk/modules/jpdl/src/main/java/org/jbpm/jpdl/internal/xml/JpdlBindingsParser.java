@@ -51,7 +51,7 @@ public class JpdlBindingsParser extends Parser {
   }
 
   protected Binding instantiateBinding(Element bindingElement, Parse parse) {
-    String bindingClassName = XmlUtil.attribute(bindingElement, "binding", true, parse);
+    String bindingClassName = XmlUtil.attribute(bindingElement, "binding", parse);
 
     log.trace("adding jpdl binding "+bindingClassName);
 
@@ -60,7 +60,7 @@ public class JpdlBindingsParser extends Parser {
         Class<?> bindingClass = ReflectUtil.classForName(bindingClassName);
         TagBinding binding = (TagBinding) bindingClass.newInstance();
 
-        String tagLocalName = XmlUtil.getTagLocalName(bindingElement);
+        String tagLocalName = bindingElement.getLocalName();
         if ("activity".equals(tagLocalName)) {
           binding.setCategory(JpdlParser.CATEGORY_ACTIVITY);
         } else if ("eventlistener".equals(tagLocalName)) {

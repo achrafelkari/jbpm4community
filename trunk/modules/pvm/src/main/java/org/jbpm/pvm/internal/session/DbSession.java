@@ -26,11 +26,9 @@ import java.util.List;
 import org.jbpm.api.Execution;
 import org.jbpm.api.history.HistoryComment;
 import org.jbpm.pvm.internal.client.ClientExecution;
-import org.jbpm.pvm.internal.client.ClientProcessDefinition;
 import org.jbpm.pvm.internal.job.JobImpl;
 import org.jbpm.pvm.internal.job.StartProcessTimer;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
-import org.jbpm.pvm.internal.model.ScopeInstanceImpl;
 import org.jbpm.pvm.internal.query.DeploymentQueryImpl;
 import org.jbpm.pvm.internal.query.HistoryActivityInstanceQueryImpl;
 import org.jbpm.pvm.internal.query.HistoryDetailQueryImpl;
@@ -39,10 +37,6 @@ import org.jbpm.pvm.internal.query.JobQueryImpl;
 import org.jbpm.pvm.internal.query.ProcessInstanceQueryImpl;
 import org.jbpm.pvm.internal.query.TaskQueryImpl;
 import org.jbpm.pvm.internal.task.TaskImpl;
-import org.jbpm.pvm.internal.tx.JtaTransaction;
-import org.jbpm.pvm.internal.tx.StandardTransaction;
-import org.jbpm.pvm.internal.type.Variable;
-
 
 /**
  * @author Tom Baeyens
@@ -55,22 +49,6 @@ public interface DbSession {
   <T> T get(Class<T> entityClass, Object primaryKey);
   void delete(Object entity);
   void flush();
-
-  /** all deployed process names. */
-  List<String> findProcessDefinitionKeys();
-
-  /** latest version of the processDefinition for the given key. */
-  ClientProcessDefinition findLatestProcessDefinitionByKey(String processDefinitionKey);
-
-  /** all versions of the processDefinition for the given key. */
-  List<ClientProcessDefinition> findProcessDefinitionsByKey(String processDefinitionKey);
-
-  /** the process definition uniquely identified by the given 
-   * processDefinition id. */
-  ClientProcessDefinition findProcessDefinitionById(String processDefinitionId);
-
-  /** delete process definition */
-  void deleteProcessDefinition(String processDefinitionId, boolean deleteProcessInstances, boolean deleteHistory);
 
   // process execution queries ////////////////////////////////////////////////
 

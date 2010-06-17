@@ -59,7 +59,7 @@ public abstract class TagBinding implements Binding {
        ) {
       return false;
     }
-    String elementTagLocalName = XmlUtil.getTagLocalName(element);
+    String elementTagLocalName = element.getLocalName();
     if (!tagName.equals(elementTagLocalName)) {
       return false;
     }

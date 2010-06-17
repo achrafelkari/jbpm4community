@@ -507,7 +507,7 @@ public class Parser {
   public Object parseElement(Element element, Parse parse, String category) {
 
     Object object = null;
-    String tagName = XmlUtil.getTagLocalName(element);
+    String tagName = element.getLocalName();
 
     Binding binding = getBinding(element, category);
 

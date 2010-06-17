@@ -21,10 +21,14 @@
  */
 package org.jbpm.pvm.internal.query;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.hibernate.Query;
+import org.hibernate.Session;
+
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.TaskQuery;
 import org.jbpm.api.identity.Group;
@@ -43,16 +47,15 @@ import org.jbpm.pvm.internal.task.TaskImpl;
 public class TaskQueryImpl extends AbstractQuery implements TaskQuery {
 
   private static final long serialVersionUID = 1L;
-  
-  private static Log log = Log.getLog(TaskQueryImpl.class.getName());
+  private static final Log log = Log.getLog(TaskQueryImpl.class.getName());
 
-  protected boolean unassigned = false;
-  protected String assignee = null;
-  protected String candidate = null;
-  protected Boolean suspended = null;
-  protected String processInstanceId = null;
-  protected String processDefinitionId = null;
-  protected String activityName = null;
+  protected boolean unassigned;
+  protected String assignee;
+  protected String candidate;
+  protected Boolean suspended;
+  protected String processInstanceId;
+  protected String processDefinitionId;
+  protected String activityName;
 
   /* groupIds transports the groupIds from the hql to the applyParameters */
   protected List<String> groupIds; 
@@ -136,25 +139,20 @@ public class TaskQueryImpl extends AbstractQuery implements TaskQuery {
 
   public String hql() {
   	StringBuilder hql = new StringBuilder();
-    hql.append("select ");
+  	hql.append("select ");
     
-    if (count) {
-      hql.append("count(distinct task) ");
-    } else {
-      hql.append("distinct task ");
-    }
-    
-    hql.append("from ");
-    hql.append(TaskImpl.class.getName());
-    hql.append(" as task ");
-
     // participations
     if (candidate!=null) {
-      hql.append(", ");
+      if (count) {
+        hql.append("count(distinct task.id) ");
+      } else {
+        hql.append("distinct task.id ");
+      }
+      
+      hql.append("from ");
       hql.append(ParticipationImpl.class.getName());
-      hql.append(" as participant ");
+      hql.append(" as participant join participant.task as task ");
 
-      appendWhereClause("participant.task = task ", hql);
       appendWhereClause("participant.type = 'candidate' ", hql);
 
       IdentitySession identitySession = EnvironmentImpl.getFromCurrent(IdentitySession.class);
@@ -162,14 +160,25 @@ public class TaskQueryImpl extends AbstractQuery implements TaskQuery {
       if (groups.isEmpty()) {
         groupIds = null;
         appendWhereClause("participant.userId = :candidateUserId ", hql);
-        
-      } else {
+      }
+      else {
         groupIds = new ArrayList<String>();
         for (Group group: groups) {
           groupIds.add(group.getId());
         }  
-        appendWhereClause("((participant.userId = :candidateUserId) or (participant.groupId in (:candidateGroupIds)))", hql);
+        appendWhereClause("(participant.userId = :candidateUserId or participant.groupId in (:candidateGroupIds))", hql);
       }
+    }
+    else {
+      if (count) {
+        hql.append("count(task) ");
+      } else {
+        hql.append("task ");
+      }
+      
+      hql.append("from ");
+      hql.append(TaskImpl.class.getName());
+      hql.append(" as task ");
     }
     
     if (suspended!=null) {
@@ -198,20 +207,44 @@ public class TaskQueryImpl extends AbstractQuery implements TaskQuery {
       appendWhereClause("task.assignee is null ", hql);
     }
 
-    appendOrderByClause(hql);
+    if (candidate == null && !count)
+      appendOrderByClause(hql);
 
     String hqlQuery = hql.toString();
-    
     log.debug(hqlQuery);
-    
     return hqlQuery;
   }
   
+  @Override
+  public Object execute(Session session) {
+    Object result = super.execute(session);
+    if (candidate == null || count) return result;
+
+    if (uniqueResult) {
+      if (result == null) return null;
+      return session.get(TaskImpl.class, (Serializable) result);
+    }
+    else {
+      List<?> list = (List<?>) result;
+      if (list.isEmpty()) return Collections.EMPTY_LIST;
+
+      StringBuilder hql = new StringBuilder();
+      hql.append("from ").append(TaskImpl.class.getName()).append(" as task ");
+      isWhereAdded = false;
+      appendWhereClause("task.id in (:identifiers) ", hql);
+      appendOrderByClause(hql);
+
+      return session.createQuery(hql.toString())
+        .setParameterList("identifiers", list)
+        .list();
+    }
+  }
+
   public List<Task> list() {
     return (List<Task>) commandService.execute(this);
   }
   
   public Task uniqueResult() {
-    return (Task)untypedUniqueResult();
+    return (Task) untypedUniqueResult();
   }
 }

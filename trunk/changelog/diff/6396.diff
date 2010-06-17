@@ -1,0 +1,827 @@
+Index: modules/jpdl/src/main/java/org/jbpm/jpdl/internal/xml/JpdlParser.java
+===================================================================
+--- modules/jpdl/src/main/java/org/jbpm/jpdl/internal/xml/JpdlParser.java	(revision 6395)
++++ modules/jpdl/src/main/java/org/jbpm/jpdl/internal/xml/JpdlParser.java	(revision 6396)
+@@ -592,6 +592,11 @@
+       String type = XmlUtil.attribute(variableElement, "type", true, parse);
+       variableDefinition.setTypeName(type);
+       
++      Boolean isHistoryEnabled = XmlUtil.attributeBoolean(variableElement, "history", false, parse);
++      if (isHistoryEnabled != null) {
++        variableDefinition.setHistoryEnabled(isHistoryEnabled);
++      }
++      
+       int sources = 0;
+       
+       String initExpr = XmlUtil.attribute(variableElement, "init-expr");
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/type/Variable.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/type/Variable.java	(revision 6395)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/type/Variable.java	(revision 6396)
+@@ -41,12 +41,12 @@
+   private static final long serialVersionUID = 1L;
+   
+   protected long dbid = -1;
+-  protected int dbversion = 0;
++  protected int dbversion;
+   
+-  protected String key = null;
+-  protected Converter converter = null;
+-  protected String textValue = null;
+-  protected boolean isHistoryEnabled = false;
++  protected String key;
++  protected Converter converter;
++  protected String textValue;
++  protected boolean isHistoryEnabled;
+   
+   protected ExecutionImpl execution;
+   protected TaskImpl task;
+@@ -92,7 +92,7 @@
+     
+     HistorySession historySession = EnvironmentImpl.getFromCurrent(HistorySession.class, false);
+     if ( isHistoryEnabled 
+-         && (historySession!=null)
++         && (historySession!=null) && (this.getDbid() != -1)
+        ) {
+       HistoryEvent.fire(new VariableUpdate(this));
+     }
+@@ -121,7 +121,7 @@
+   }
+   
+   public ExecutionImpl getProcessInstance() {
+-    return (execution!=null ? execution.getProcessInstance() : null);
++    return execution!=null ? execution.getProcessInstance() : null;
+   }
+ 
+   // getters and setters //////////////////////////////////////////////////////
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/type/variable/BlobVariable.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/type/variable/BlobVariable.java	(revision 6395)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/type/variable/BlobVariable.java	(revision 6396)
+@@ -65,6 +65,8 @@
+   public void setValue(Object value, ScopeInstanceImpl scopeInstance) {
+     super.setValue(value, scopeInstance);
+     cachedValue = value;
++    this.textValue = value.toString();
++    
+   }
+ 
+   public Lob getLob() {
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/svc/HistoryServiceImpl.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/svc/HistoryServiceImpl.java	(revision 6395)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/svc/HistoryServiceImpl.java	(revision 6396)
+@@ -21,12 +21,12 @@
+  */
+ package org.jbpm.pvm.internal.svc;
+ 
+-import java.util.List;
++import java.util.HashSet;
+ import java.util.Map;
++import java.util.Set;
+ 
+ import org.jbpm.api.HistoryService;
+ import org.jbpm.api.history.HistoryActivityInstanceQuery;
+-import org.jbpm.api.history.HistoryComment;
+ import org.jbpm.api.history.HistoryDetailQuery;
+ import org.jbpm.api.history.HistoryProcessInstanceQuery;
+ import org.jbpm.api.history.HistoryTaskQuery;
+@@ -34,7 +34,8 @@
+ import org.jbpm.pvm.internal.cmd.CreateHistoryDetailQueryCmd;
+ import org.jbpm.pvm.internal.cmd.CreateHistoryProcessInstanceQueryCmd;
+ import org.jbpm.pvm.internal.cmd.CreateHistoryTaskQueryCmd;
+-import org.jbpm.pvm.internal.cmd.GetTaskCommentsCmd;
++import org.jbpm.pvm.internal.cmd.GetHistoryVariableNamesCmd;
++import org.jbpm.pvm.internal.cmd.GetHistoryVariablesCmd;
+ import org.jbpm.pvm.internal.query.AvgDurationPerActivityQueryCmd;
+ import org.jbpm.pvm.internal.query.ChoiceDistributionQueryCmd;
+ import org.jbpm.pvm.internal.query.HistoryActivityInstanceQueryImpl;
+@@ -45,6 +46,7 @@
+ 
+ /**
+  * @author Tom Baeyens
++ * @author Maciej Swiderski
+  */
+ public class HistoryServiceImpl extends AbstractServiceImpl implements HistoryService {
+   
+@@ -79,4 +81,21 @@
+     query.setCommandService(commandService);
+     return query;
+   }
++  
++  public Set<String> getVariableNames(String processInstanceId) {
++    return commandService.execute(new GetHistoryVariableNamesCmd(processInstanceId));
++  }
++  
++  public Object getVariable(String processInstanceId, String variableName) {
++    Set<String> variableNames = new HashSet<String>();
++    variableNames.add(variableName);
++    Map<String, Object> variables = commandService.execute(new GetHistoryVariablesCmd(processInstanceId, variableNames));
++    return variables.get(variableName);
++  }
++  
++  public Map<String, Object> getVariables(String processInstanceId, Set<String> variableNames) {
++
++    return commandService.execute(new GetHistoryVariablesCmd(processInstanceId, variableNames));
++    
++  }
+ }
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/svc/ExecutionServiceImpl.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/svc/ExecutionServiceImpl.java	(revision 6395)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/svc/ExecutionServiceImpl.java	(revision 6396)
+@@ -29,6 +29,7 @@
+ import org.jbpm.api.ExecutionService;
+ import org.jbpm.api.ProcessInstance;
+ import org.jbpm.api.ProcessInstanceQuery;
++import org.jbpm.pvm.internal.cmd.CreateExecutionVariablesCmd;
+ import org.jbpm.pvm.internal.cmd.CreateProcessInstanceQueryCmd;
+ import org.jbpm.pvm.internal.cmd.DeleteProcessInstance;
+ import org.jbpm.pvm.internal.cmd.EndProcessInstance;
+@@ -150,4 +151,18 @@
+     cmd.setVariables(variables);
+     commandService.execute(cmd);
+   }
++  
++  public void setVariable(String executionId, String name, Object value, boolean historyEnabled) {
++    SetExecutionVariablesCmd cmd = new SetExecutionVariablesCmd(executionId);
++    cmd.addVariable(name, value);
++    cmd.setHistoryEnabled(historyEnabled);
++    commandService.execute(cmd);
++  }
++
++  public void setVariables(String executionId, Map<String, ?> variables, boolean historyEnabled) {
++    SetExecutionVariablesCmd cmd = new SetExecutionVariablesCmd(executionId);
++    cmd.setVariables(variables);
++    cmd.setHistoryEnabled(historyEnabled);
++    commandService.execute(cmd);
++  }
+ }
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/model/ScopeInstanceImpl.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/model/ScopeInstanceImpl.java	(revision 6395)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/model/ScopeInstanceImpl.java	(revision 6396)
+@@ -99,7 +99,7 @@
+   }
+ 
+   protected Variable createVariableObject(String key, Object value, String typeName, boolean isHistoryEnabled) {
+-    log.debug("create variable '"+key+"' in '"+this+"' with value '"+value+"'");
++    log.debug("create variable '"+key+"' in '"+this+"' with value '"+value+"' history enabled " + isHistoryEnabled);
+     
+     Type type = null;
+     
+@@ -142,9 +142,9 @@
+     variable.setExecution(getExecution());
+     variable.setTask(getTask());
+     variable.setHistoryEnabled(isHistoryEnabled);
+-    
+     variable.setValue(value, this);
+     
++    
+     long dbid = DbidGenerator.getDbidGenerator().getNextId();
+     variable.setDbid(dbid);
+ 
+@@ -155,8 +155,12 @@
+ 
+     return variable;
+   }
++  
++  public void setVariable(String key, Object value) {
++    setVariable(key, value, false);
++  }
+ 
+-  public void setVariable(String key, Object value) {
++  public void setVariable(String key, Object value, boolean historyEnabled) {
+     if (key==null) {
+       throw new JbpmException("variableName is null");
+     }
+@@ -177,17 +181,20 @@
+       variable.setValue(value, this);
+ 
+     } else if (getParentVariableScope()==null) {
+-      createVariable(key, value, null, false);
++      createVariable(key, value, null, historyEnabled);
+ 
+     } else {
+-      getParentVariableScope().setVariable(key,value);
++      getParentVariableScope().setVariable(key,value, historyEnabled);
+     }
+   }
++  public void setVariables(Map<String, ?> variables) {
++    setVariables(variables, false);
++  }
+   
+-  public void setVariables(Map<String, ?> variables) {
++  public void setVariables(Map<String, ?> variables, boolean historyEnabled) {
+     if (variables!=null) {
+       for (Map.Entry<String, ?> entry : variables.entrySet()) {
+-        setVariable(entry.getKey(), entry.getValue());
++        setVariable(entry.getKey(), entry.getValue(), historyEnabled);
+       }
+     }
+   }
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/GetHistoryVariableNamesCmd.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/GetHistoryVariableNamesCmd.java	(revision 0)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/GetHistoryVariableNamesCmd.java	(revision 6396)
+@@ -0,0 +1,66 @@
++/*
++ * JBoss, Home of Professional Open Source
++ * Copyright 2005, JBoss Inc., and individual contributors as indicated
++ * by the @authors tag. See the copyright.txt in the distribution for a
++ * full listing of individual contributors.
++ *
++ * This is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU Lesser General Public License as
++ * published by the Free Software Foundation; either version 2.1 of
++ * the License, or (at your option) any later version.
++ *
++ * This software is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this software; if not, write to the Free
++ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
++ */
++package org.jbpm.pvm.internal.cmd;
++
++import java.util.HashSet;
++import java.util.Set;
++
++import org.hibernate.Query;
++import org.hibernate.Session;
++import org.jbpm.api.cmd.Command;
++import org.jbpm.api.cmd.Environment;
++import org.jbpm.pvm.internal.history.model.HistoryVariableImpl;
++
++/**
++ * Command responsible for retrieving variable names stored as history records for given process instance id
++ * 
++ * 
++ * @author Maciej Swiderski
++ *
++ */
++public class GetHistoryVariableNamesCmd implements Command<Set<String>> {
++  
++  /**
++   * 
++   */
++  private static final long serialVersionUID = 1L;
++  
++  private String processInstanceId;
++  
++  public GetHistoryVariableNamesCmd(String processInstanceId) {
++    this.processInstanceId = processInstanceId;
++  }
++
++  @SuppressWarnings("unchecked")
++  public Set<String> execute(Environment environment) throws Exception {
++    Session dbsession = environment.get(Session.class);
++    
++    String hql = "select hv.variableName from " + HistoryVariableImpl.class.getName() + " hv where hv.processInstanceId = '" + processInstanceId + "'";
++    
++    Query query = dbsession.createQuery(hql);
++    
++    Set<String> historyVariables = new HashSet<String>(query.list());
++    
++    return historyVariables;
++  }
++
++}
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/CreateExecutionVariablesCmd.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/CreateExecutionVariablesCmd.java	(revision 0)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/CreateExecutionVariablesCmd.java	(revision 6396)
+@@ -0,0 +1,52 @@
++/*
++ * JBoss, Home of Professional Open Source
++ * Copyright 2005, JBoss Inc., and individual contributors as indicated
++ * by the @authors tag. See the copyright.txt in the distribution for a
++ * full listing of individual contributors.
++ *
++ * This is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU Lesser General Public License as
++ * published by the Free Software Foundation; either version 2.1 of
++ * the License, or (at your option) any later version.
++ *
++ * This software is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this software; if not, write to the Free
++ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
++ */
++package org.jbpm.pvm.internal.cmd;
++
++import java.util.Map.Entry;
++
++import org.jbpm.api.cmd.Environment;
++import org.jbpm.pvm.internal.model.ExecutionImpl;
++
++/**
++ * @author Alejandro Guizar
++ */
++public class CreateExecutionVariablesCmd extends VariablesCmd<Void> {
++
++  protected String executionId;
++  protected boolean historyEnabled;
++
++  private static final long serialVersionUID = 1L;
++
++  public CreateExecutionVariablesCmd(String executionId, boolean historyEnabled) {
++    this.executionId = executionId;
++    this.historyEnabled = historyEnabled;
++  }
++
++  public Void execute(Environment environment) throws Exception {
++    ExecutionImpl execution = (ExecutionImpl) getExecution(environment, executionId);
++    for (Entry<String, ?> entry : variables.entrySet()) {
++      execution.createVariable(entry.getKey(), entry.getValue(), null, historyEnabled);
++    }
++    return null;
++  }
++
++}
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/GetHistoryVariablesCmd.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/GetHistoryVariablesCmd.java	(revision 0)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/GetHistoryVariablesCmd.java	(revision 6396)
+@@ -0,0 +1,75 @@
++/*
++ * JBoss, Home of Professional Open Source
++ * Copyright 2005, JBoss Inc., and individual contributors as indicated
++ * by the @authors tag. See the copyright.txt in the distribution for a
++ * full listing of individual contributors.
++ *
++ * This is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU Lesser General Public License as
++ * published by the Free Software Foundation; either version 2.1 of
++ * the License, or (at your option) any later version.
++ *
++ * This software is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
++ * Lesser General Public License for more details.
++ *
++ * You should have received a copy of the GNU Lesser General Public
++ * License along with this software; if not, write to the Free
++ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
++ */
++package org.jbpm.pvm.internal.cmd;
++
++import java.util.HashMap;
++import java.util.Iterator;
++import java.util.Map;
++import java.util.Set;
++
++import org.jbpm.api.cmd.Environment;
++import org.jbpm.api.history.HistoryProcessInstance;
++import org.jbpm.pvm.internal.history.model.HistoryProcessInstanceImpl;
++import org.jbpm.pvm.internal.history.model.HistoryVariableImpl;
++import org.jbpm.pvm.internal.query.HistoryProcessInstanceQueryImpl;
++
++/**
++ * 
++ * @author Maciej Swiderski
++ *
++ */
++public class GetHistoryVariablesCmd extends AbstractCommand<Map<String, Object>> {
++  
++  private static final long serialVersionUID = 1L;
++  
++  protected String processInstanceId;
++  protected Set<String> variableNames;
++  
++  
++  public GetHistoryVariablesCmd(String processInstanceId, Set<String> variableNames) {
++    super();
++    this.processInstanceId = processInstanceId;
++    this.variableNames = variableNames;
++  }
++
++
++  public Map<String, Object> execute(Environment environment) throws Exception {
++    HistoryProcessInstanceQueryImpl queryImpl = new HistoryProcessInstanceQueryImpl();
++    
++    HistoryProcessInstance historyProcessInstance = queryImpl.processInstanceId(processInstanceId).uniqueResult();
++    
++    Iterator<HistoryVariableImpl> variables = ((HistoryProcessInstanceImpl) historyProcessInstance).getHistoryVariables().iterator();
++    
++    Map<String, Object> variableMap = new HashMap<String, Object>();
++    
++    while (variables.hasNext()) {
++      HistoryVariableImpl historyVariableImpl = (HistoryVariableImpl) variables.next();
++      
++      if (variableNames.contains(historyVariableImpl.getVariableName())) {
++        variableMap.put(historyVariableImpl.getVariableName(), historyVariableImpl.getValue());
++      }
++    }
++    
++    return variableMap;
++  }
++  
++}
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/VariablesCmd.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/VariablesCmd.java	(revision 6395)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/VariablesCmd.java	(revision 6396)
+@@ -38,7 +38,9 @@
+ 
+   protected Map<String, ?> variables;
+   private Map<String, Object> internalMap;
++  protected boolean historyEnabled;
+ 
++
+   public void addVariable(String key, Object variable) {
+     if (internalMap == null) {
+       if (variables != null) {
+@@ -57,6 +59,14 @@
+     this.variables = variables;
+   }
+ 
++  public boolean isHistoryEnabled() {
++    return historyEnabled;
++  }
++  
++  public void setHistoryEnabled(boolean historyEnabled) {
++    this.historyEnabled = historyEnabled;
++  }
++
+   protected ClientExecution getExecution(Environment environment, String executionId) {
+     DbSession dbSession = environment.get(DbSession.class);
+     ClientExecution execution = dbSession.findExecutionById(executionId);
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/SetExecutionVariablesCmd.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/SetExecutionVariablesCmd.java	(revision 6395)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/cmd/SetExecutionVariablesCmd.java	(revision 6396)
+@@ -24,10 +24,12 @@
+ import org.jbpm.api.JbpmException;
+ import org.jbpm.api.cmd.Environment;
+ import org.jbpm.pvm.internal.client.ClientExecution;
++import org.jbpm.pvm.internal.model.ExecutionImpl;
+ 
+ 
+ /**
+  * @author Tom Baeyens
++ * @author Maciej Swiderski
+  */
+ public class SetExecutionVariablesCmd extends VariablesCmd<Void> {
+   
+@@ -44,7 +46,11 @@
+ 
+   public Void execute(Environment environment) throws Exception {
+     ClientExecution execution = getExecution(environment, executionId);
+-    execution.setVariables(variables);
++    if (isHistoryEnabled()) {
++      ((ExecutionImpl) execution).setVariables(variables, historyEnabled);
++    } else {
++      execution.setVariables(variables);
++    }
+     
+     return null;
+   }
+Index: modules/pvm/src/main/java/org/jbpm/pvm/internal/history/model/HistoryProcessInstanceImpl.java
+===================================================================
+--- modules/pvm/src/main/java/org/jbpm/pvm/internal/history/model/HistoryProcessInstanceImpl.java	(revision 6395)
++++ modules/pvm/src/main/java/org/jbpm/pvm/internal/history/model/HistoryProcessInstanceImpl.java	(revision 6396)
+@@ -126,4 +126,7 @@
+   public void setEndActivityName(String endActivityName) {
+     this.endActivityName = endActivityName;
+   }
++  public Set<HistoryVariableImpl> getHistoryVariables() {
++    return historyVariables;
++  }
+ }
+Index: modules/test-db/src/test/java/org/jbpm/test/variables/HistoryVariable.java
+===================================================================
+--- modules/test-db/src/test/java/org/jbpm/test/variables/HistoryVariable.java	(revision 0)
++++ modules/test-db/src/test/java/org/jbpm/test/variables/HistoryVariable.java	(revision 6396)
+@@ -0,0 +1,33 @@
++package org.jbpm.test.variables;
++
++import java.io.Serializable;
++
++
++public class HistoryVariable implements Serializable {
++  /**
++   * 
++   */
++  private static final long serialVersionUID = 1L;
++  
++  private String name;
++  
++  
++  public String getName() {
++    return name;
++  }
++
++  
++  public void setName(String name) {
++    this.name = name;
++  }
++
++  public HistoryVariable() {
++    this.name = "Poul";
++  }
++
++
++  @Override
++  public String toString() {
++   return "my name is Poul";
++  }
++}
+Index: modules/test-db/src/test/java/org/jbpm/test/variables/HistoryVariableTest.java
+===================================================================
+--- modules/test-db/src/test/java/org/jbpm/test/variables/HistoryVariableTest.java	(revision 0)
++++ modules/test-db/src/test/java/org/jbpm/test/variables/HistoryVariableTest.java	(revision 6396)
+@@ -0,0 +1,232 @@
++package org.jbpm.test.variables;
++
++import java.util.HashMap;
++import java.util.Map;
++import java.util.Set;
++
++import org.jbpm.test.JbpmTestCase;
++
++
++public class HistoryVariableTest extends JbpmTestCase {
++
++  public void testDeclaredVariableWithHistory() {
++    deployJpdlXmlString(
++      "<process name='var'>" +
++      " <variable name='test' type='string' init-expr='test value' history='true'/>"+
++      "  <start name='a'>" +
++      "    <transition to='b' />" +
++      "  </start>" +
++      "  <state name='b'/>" +
++      "</process>"
++    );
++    
++    executionService.startProcessInstanceByKey("var", "one");
++    
++    Set<String> variableNames = executionService.getVariableNames("var.one");
++    String testVariableValue = (String) executionService.getVariable("var.one", "test");
++    assertNotNull(variableNames);
++    assertEquals(1, variableNames.size());
++    assertEquals("test", variableNames.iterator().next());
++    assertEquals("test value", testVariableValue);
++    
++    Set<String> historyVariables = historyService.getVariableNames("var.one");
++    assertEquals(1, historyVariables.size());
++    assertEquals("test", historyVariables.iterator().next());
++    
++    
++    String value = (String) historyService.getVariable("var.one", "test");
++    assertEquals("test value", value);
++
++  }
++  
++  public void testSetVariableViaAPIwithHistory() {
++    deployJpdlXmlString(
++            "<process name='var'>" +
++            "  <start name='a'>" + 
++            "    <transition to='b' />" +
++            "  </start>" +
++            "  <state name='b'/>" +
++            "</process>");
++
++    executionService.startProcessInstanceByKey("var", "one");
++
++    executionService.setVariable("var.one", "test2", "test3", true);
++
++    Set<String> variableNames = executionService.getVariableNames("var.one");
++    String testVariableValue = (String) executionService.getVariable("var.one", "test2");
++    assertNotNull(variableNames);
++    assertEquals(1, variableNames.size());
++    assertEquals("test2", variableNames.iterator().next());
++    assertEquals("test3", testVariableValue);
++
++    Set<String> historyVariables = historyService.getVariableNames("var.one");
++    assertEquals(1, historyVariables.size());
++    assertEquals("test2", historyVariables.iterator().next());
++
++    String value = (String) historyService.getVariable("var.one", "test2");
++    assertEquals("test3", value);
++  }
++  
++  public void testSetVariablesViaAPIwithHistory() {
++    deployJpdlXmlString(
++            "<process name='var'>" +
++            "  <start name='a'>" + 
++            "    <transition to='b' />" +
++            "  </start>" +
++            "  <state name='b'/>" +
++            "</process>");
++
++    executionService.startProcessInstanceByKey("var", "one");
++    
++    Map<String, String> simpleVariables = new HashMap<String, String>();
++    simpleVariables.put("simple-var", "hello history");
++    simpleVariables.put("test-var", "good day");
++    simpleVariables.put("my-var", "cheers");
++
++    executionService.setVariables("var.one", simpleVariables, true);
++
++    Set<String> variableNames = executionService.getVariableNames("var.one");
++    
++    assertNotNull(variableNames);
++    assertEquals(3, variableNames.size());
++    
++    String testVariableValue = (String) executionService.getVariable("var.one", "test-var");
++    assertEquals("good day", testVariableValue);
++
++    Set<String> historyVariables = historyService.getVariableNames("var.one");
++    assertEquals(3, historyVariables.size());
++
++    String value = (String) historyService.getVariable("var.one", "simple-var");
++    assertEquals("hello history", value);
++  }
++  
++  public void testDeclaredVariablesWithHistory() {
++    deployJpdlXmlString(
++      "<process name='var'>" +
++      " <variable name='test' type='string' init-expr='test value' history='true'/>"+
++      " <variable name='real' type='string' init-expr='real value' history='true'/>"+
++      "  <start name='a'>" +
++      "    <transition to='b' />" +
++      "  </start>" +
++      "  <state name='b'/>" +
++      "</process>"
++    );
++    
++    executionService.startProcessInstanceByKey("var", "one");
++    
++    Set<String> variableNames = executionService.getVariableNames("var.one");
++    
++    assertNotNull(variableNames);
++    assertEquals(2, variableNames.size());
++    
++    String testVariableValue = (String) executionService.getVariable("var.one", "test");
++    assertEquals("test value", testVariableValue);
++    
++    Set<String> historyVariables = historyService.getVariableNames("var.one");
++    assertEquals(2, historyVariables.size());
++    
++    
++    String value = (String) historyService.getVariable("var.one", "real");
++    assertEquals("real value", value);
++
++  }
++  
++  public void testDeclaredVariablesMixed() {
++    deployJpdlXmlString(
++      "<process name='var'>" +
++      " <variable name='test' type='string' init-expr='test value' history='true'/>"+
++      " <variable name='real' type='string' init-expr='real value' history='false'/>"+
++      "  <start name='a'>" +
++      "    <transition to='b' />" +
++      "  </start>" +
++      "  <state name='b'/>" +
++      "</process>"
++    );
++    
++    executionService.startProcessInstanceByKey("var", "one");
++    
++    Set<String> variableNames = executionService.getVariableNames("var.one");
++    
++    assertNotNull(variableNames);
++    assertEquals(2, variableNames.size());
++    
++    String testVariableValue = (String) executionService.getVariable("var.one", "test");
++    assertEquals("test value", testVariableValue);
++    
++    Set<String> historyVariables = historyService.getVariableNames("var.one");
++    assertEquals(1, historyVariables.size());
++    
++    
++    String value = (String) historyService.getVariable("var.one", "test");
++    assertEquals("test value", value);
++    
++    assertNull(historyService.getVariable("var.one", "real"));
++
++  }
++  
++  public void testDeclaredELVariableWithHistory() {
++    deployJpdlXmlString(
++      "<process name='var'>" +
++      " <variable name='test' type='integer' init-expr='#{testV}' history='true'/>"+
++      "  <start name='a'>" +
++      "    <transition to='b' />" +
++      "  </start>" +
++      "  <state name='b'/>" +
++      "</process>"
++    );
++    HashMap<String, Integer> vars = new HashMap<String, Integer>();
++    vars.put("testV", 35);
++    executionService.startProcessInstanceByKey("var", vars, "one");
++    
++    Set<String> variableNames = executionService.getVariableNames("var.one");
++    Integer testVariableValue = (Integer) executionService.getVariable("var.one", "test");
++    assertNotNull(variableNames);
++    assertEquals(2, variableNames.size());
++    assertEquals("test", variableNames.iterator().next());
++    assertTrue(35 == testVariableValue);
++    
++    Set<String> historyVariables = historyService.getVariableNames("var.one");
++    assertEquals(1, historyVariables.size());
++    assertEquals("test", historyVariables.iterator().next());
++    
++    
++    String value = (String) historyService.getVariable("var.one", "test");
++    assertEquals("35", value);
++
++  }
++  
++  public void testDeclaredSerializableVariableWithHistory() {
++    deployJpdlXmlString(
++      "<process name='var'>" +
++      " <variable name='test' type='serializable' history='true'>" +
++      "  <object class='org.jbpm.test.variables.HistoryVariable' />" +
++      " </variable>"+
++      "  <start name='a'>" +
++      "    <transition to='b' />" +
++      "  </start>" +
++      "  <state name='b'/>" +
++      "</process>"
++    );
++    
++    executionService.startProcessInstanceByKey("var", "one");
++    
++    Set<String> variableNames = executionService.getVariableNames("var.one");
++    HistoryVariable testVariableValue = (HistoryVariable) executionService.getVariable("var.one", "test");
++    assertNotNull(variableNames);
++    assertEquals(1, variableNames.size());
++    assertEquals("test", variableNames.iterator().next());
++    assertNotNull(testVariableValue);
++    assertEquals("Poul", testVariableValue.getName());
++    
++    Set<String> historyVariables = historyService.getVariableNames("var.one");
++    assertEquals(1, historyVariables.size());
++    assertEquals("test", historyVariables.iterator().next());
++    
++    
++    String value = (String) historyService.getVariable("var.one", "test");
++    assertEquals("my name is Poul", value);
++
++  }
++}
++
++
+Index: modules/api/src/main/java/org/jbpm/api/HistoryService.java
+===================================================================
+--- modules/api/src/main/java/org/jbpm/api/HistoryService.java	(revision 6395)
++++ modules/api/src/main/java/org/jbpm/api/HistoryService.java	(revision 6396)
+@@ -22,6 +22,7 @@
+ package org.jbpm.api;
+ 
+ import java.util.Map;
++import java.util.Set;
+ 
+ import org.jbpm.api.history.HistoryActivityInstanceQuery;
+ import org.jbpm.api.history.HistoryDetailQuery;
+@@ -33,6 +34,7 @@
+  * process instances.
+  * 
+  * @author Tom Baeyens
++ * @author Maciej Swiderski
+  */
+ public interface HistoryService {
+ 
+@@ -53,4 +55,13 @@
+   
+   /** returns for each transitionName, the number of times that transition was taken */
+   Map<String, Integer> choiceDistribution(String processDefinitionId, String activityName);
++  
++  /** retrieves a variable */
++  Set<String> getVariableNames(String processInstanceId);
++  
++  /** retrieves a map of variables */
++  Object getVariable(String processInstanceId, String variableName);
++  
++  /** all the variables visible in the given history execution scope */
++  Map<String, Object> getVariables(String processInstanceId, Set<String> variableNames);
+ }
+Index: modules/api/src/main/java/org/jbpm/api/ExecutionService.java
+===================================================================
+--- modules/api/src/main/java/org/jbpm/api/ExecutionService.java	(revision 6395)
++++ modules/api/src/main/java/org/jbpm/api/ExecutionService.java	(revision 6396)
+@@ -109,6 +109,12 @@
+ 
+   /** creates or overwrites the variable values on the referenced execution */
+   void setVariables(String executionId, Map<String, ?> variables);
++  
++  /** creates or overwrites a variable value on the referenced execution and marks the variable to be stored in history*/
++  void setVariable(String executionId, String name, Object value, boolean historyEnabled);
++  
++  /** creates or overwrites the variable values on the referenced execution and marks the variables to be stored in history*/
++  void setVariables(String executionId, Map<String, ?> variables, boolean historyEnabled);
+ 
+   /** retrieves a variable */
+   Object getVariable(String executionId, String variableName);

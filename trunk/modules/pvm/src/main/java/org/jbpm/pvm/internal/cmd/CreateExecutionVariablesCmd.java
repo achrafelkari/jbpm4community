@@ -21,29 +21,32 @@
  */
 package org.jbpm.pvm.internal.cmd;
 
-import java.util.List;
+import java.util.Map.Entry;
 
 import org.jbpm.api.cmd.Environment;
-import org.jbpm.pvm.internal.client.ClientProcessDefinition;
-import org.jbpm.pvm.internal.session.DbSession;
-
+import org.jbpm.pvm.internal.model.ExecutionImpl;
 
 /**
- * @author Tom Baeyens
+ * @author Alejandro Guizar
  */
-public class FindProcessDefinitionsByKeyCmd extends AbstractCommand<List<ClientProcessDefinition>> {
+public class CreateExecutionVariablesCmd extends VariablesCmd<Void> {
+
+  protected String executionId;
+  protected boolean historyEnabled;
 
   private static final long serialVersionUID = 1L;
 
-  protected String processDefinitionKey;
-  
-  public FindProcessDefinitionsByKeyCmd(String processDefinitionKey) {
-    this.processDefinitionKey = processDefinitionKey;
+  public CreateExecutionVariablesCmd(String executionId, boolean historyEnabled) {
+    this.executionId = executionId;
+    this.historyEnabled = historyEnabled;
   }
 
-  public List<ClientProcessDefinition> execute(Environment environment) throws Exception {
-    return environment
-        .get(DbSession.class)
-        .findProcessDefinitionsByKey(processDefinitionKey);
+  public Void execute(Environment environment) throws Exception {
+    ExecutionImpl execution = (ExecutionImpl) getExecution(environment, executionId);
+    for (Entry<String, ?> entry : variables.entrySet()) {
+      execution.createVariable(entry.getKey(), entry.getValue(), null, historyEnabled);
+    }
+    return null;
   }
+
 }

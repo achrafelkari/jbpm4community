@@ -29,12 +29,10 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.dom4j.DocumentFactory;
 import org.jbpm.api.ProcessInstance;
 import org.jbpm.api.TaskQuery;
 import org.jbpm.api.task.Task;
 import org.jbpm.bpmn.parser.BpmnParser;
-import org.jbpm.pvm.internal.util.XmlUtil;
 import org.jbpm.pvm.internal.xml.Problem;
 import org.jbpm.test.JbpmTestCase;
 import org.w3c.dom.Document;
@@ -93,6 +91,45 @@ public class ExclusiveGatewayTest extends JbpmTestCase {
         
         taskService.completeTask( allTasks.get(0).getId());
 
+        // process instance should be ended
+        pi = executionService.findProcessInstanceById(pid);
+        assertNull(pi);
+        
+    }
+    finally {
+        repositoryService.deleteDeploymentCascade(deploymentId);
+    }
+  }
+  
+  public void testTwoTransitionsEvaluatedToTrueExecuteDecisionCondition() {
+
+    String deploymentId = repositoryService.createDeployment().addResourceFromClasspath("org/jbpm/bpmn/exclusiveGatewayTwoTransitions.bpmn.xml").deploy();
+
+    try {
+        ProcessInstance pi = executionService.startProcessInstanceByKey("exclusiveGatewayTwoTransitions");
+        String pid = pi.getId();
+        
+        TaskQuery taskQuery = taskService.createTaskQuery();
+        List<Task> allTasks = taskQuery.list();
+
+        assertEquals(1, allTasks.size());
+        assertEquals("testTask1", allTasks.get(0).getActivityName());
+        taskService.completeTask( allTasks.get(0).getId());
+
+        allTasks = taskQuery.list();
+        assertEquals(1, allTasks.size());
+        assertEquals("testTask2", allTasks.get(0).getActivityName());
+        
+        HashMap<String, Integer> vars = new HashMap<String, Integer>();
+        vars.put("variable", 3);
+        
+        taskService.completeTask( allTasks.get(0).getId(),vars);
+        
+        allTasks = taskQuery.list();
+        assertEquals(1, allTasks.size());
+        
+        taskService.completeTask( allTasks.get(0).getId());
+        
         // process instance should be ended
         pi = executionService.findProcessInstanceById(pid);
         assertNull(pi);

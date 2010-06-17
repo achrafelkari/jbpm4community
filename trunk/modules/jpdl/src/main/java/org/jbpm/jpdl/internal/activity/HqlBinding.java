@@ -51,17 +51,18 @@ public class HqlBinding extends JpdlBinding {
   public Object parseJpdl(Element element, Parse parse, JpdlParser parser) {
     HqlActivity hqlActivity = createHqlActivity();
     
-    Element queryElement = XmlUtil.element(element, "query", true, parse);
+    Element queryElement = XmlUtil.element(element, "query", parse);
     if (queryElement!=null) {
       String query = XmlUtil.getContentText(queryElement);
       hqlActivity.setQuery(query);
     }
     
-    if (XmlUtil.attributeBoolean(element, "unique", false, parse, Boolean.FALSE)) {
-      hqlActivity.setResultUnique(true);
+    Boolean resultUnique = XmlUtil.attributeBoolean(element, "unique", parse);
+    if (resultUnique!=null) {
+      hqlActivity.setResultUnique(resultUnique);
     }
     
-    String variableName = XmlUtil.attribute(element, "var", true, parse);
+    String variableName = XmlUtil.attribute(element, "var", parse);
     hqlActivity.setResultVariableName(variableName);
     
     Element parametersElement = XmlUtil.element(element, "parameters");

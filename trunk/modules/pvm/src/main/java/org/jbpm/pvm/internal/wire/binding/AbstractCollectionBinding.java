@@ -28,9 +28,9 @@ public abstract class AbstractCollectionBinding extends WireDescriptorBinding {
       descriptor.setClassName(className);
     }
 
-    Boolean isSynchronized = XmlUtil.attributeBoolean(element, "synchronized", false, parse);
+    Boolean isSynchronized = XmlUtil.attributeBoolean(element, "synchronized", parse);
     if (isSynchronized!=null) {
-      descriptor.setSynchronized(isSynchronized.booleanValue());
+      descriptor.setSynchronized(isSynchronized);
     }
 
     List<Descriptor> valueDescriptors = new ArrayList<Descriptor>();

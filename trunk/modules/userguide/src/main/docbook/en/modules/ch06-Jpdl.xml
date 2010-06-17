@@ -495,9 +495,43 @@ ProcessInstance processInstance =
 
     <section id="concurrency">
       <title><literal>concurrency</literal></title>
-      <para>With the <literal>fork</literal> and <literal>join</literal> activities, 
-      concurrent paths of executions can be modeled.
-      </para>
+      <para>With the <literal>fork</literal>, <literal>foreach</literal> and 
+      <literal>join</literal> activities, concurrent paths of executions can be modeled.
+      The next two tables describe the <literal>foreach</literal>  and <literal>join</literal>
+      attributes; <literal>fork</literal> has no specific attributes.</para>
+      <table><title><literal>foreach</literal> attributes:</title>
+        <tgroup cols="5" rowsep="1" colsep="1">
+          <thead>
+            <row>
+              <entry>Attribute</entry>
+              <entry>Type</entry>
+              <entry>Default</entry>
+              <entry>Required?</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><literal>in</literal></entry>
+              <entry>expression or text</entry>
+              <entry></entry>
+              <entry>required</entry>
+              <entry>The collection to be iterated. Each item in the collection spawns a new
+              concurrent execution leaving over the default transition. <literal>in</literal>
+              supports collections of any kind, arrays and comma separated strings.</entry>
+            </row>
+            <row>
+              <entry><literal>var</literal></entry>
+              <entry>text</entry>
+              <entry></entry>
+              <entry>required</entry>
+              <entry>The variable where the current item of the collection is stored.
+              This variable is set in the concurrent execution and is visible only to that
+              execution.</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
       <table><title><literal>join</literal> attributes:</title>
         <tgroup cols="5" rowsep="1" colsep="1">
           <thead>
@@ -512,7 +546,7 @@ ProcessInstance processInstance =
           <tbody>
             <row>
               <entry><literal>multiplicity</literal></entry>
-              <entry>integer</entry>
+              <entry>integer or expression</entry>
               <entry>nbr of incoming transitions</entry>
               <entry>optional</entry>
               <entry>The number of executions that should arrive in this join 
@@ -533,13 +567,16 @@ ProcessInstance processInstance =
           </tbody>
         </tgroup>
       </table>
-      <para>For example:</para>
-      <figure id="process.concurrency">
-        <title>The concurrency example process</title>
-        <mediaobject><imageobject><imagedata align="center" fileref="images/process.concurrency.png"/></imageobject></mediaobject>
-      </figure>
-      
-      <programlisting>&lt;process name=&quot;ConcurrencyGraphBased&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+
+      <section>
+        <title>Parallel split with <literal>fork</literal></title>
+        <para>The <literal>fork</literal> activity allows a single path of execution to be
+        split into two or more branches which can execute activities concurrently.</para>
+        <figure id="process.concurrency">
+          <title>Parallel split example process</title>
+          <mediaobject><imageobject><imagedata align="center" fileref="images/process.concurrency.png"/></imageobject></mediaobject>
+        </figure>
+        <programlisting>&lt;process name=&quot;ConcurrencyGraphBased&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
 
    &lt;start&gt;
       &lt;transition to=&quot;fork&quot;/&gt;
@@ -578,6 +615,50 @@ ProcessInstance processInstance =
    &lt;end name=&quot;end&quot; /&gt;
 
 &lt;/process&gt;</programlisting>
+      </section>
+
+      <section>
+        <title>Iterative split with <literal>foreach</literal></title>
+        <para>At a given point in a process, several paths of execution can be initiated
+        in a single branch of the same process instance. In the example, there is a need
+        to collect time sheet reports (called data) from different departments. With 
+        <literal>foreach</literal> this can be quite easily achieved. The same task
+        is to be performed by different groups. Process variable <literal>departments</literal>
+        provides the group names, whereas the variable <literal>quota</literal> indicates
+        how many tasks must be completed before execution will leave the <literal>join</literal>
+        activity.</para>
+        <programlisting><![CDATA[<process name="ForEach" xmlns="http://jbpm.org/4.4/jpdl">
+
+   <start g="28,61,48,48" name="start1">
+      <transition to="foreach1"/>
+   </start>
+
+   <foreach var="department" in="#{departments}" g="111,60,48,48" name="foreach1">
+      <transition to="Collect data"/>
+   </foreach>
+
+   <task candidate-groups="#{department}" g="201,58,92,52" name="Collect data">
+      <transition to="join1"/>
+   </task>
+
+   <join g="343,59,48,48" multiplicity="#{quorum}" name="join1">
+      <transition to="end1"/>
+   </join>
+
+   <end g="433,60,48,48" name="end1"/>
+
+</process>]]></programlisting>
+        <important><para>When using foreach, the corresponding join must have the
+        multiplicity attribute set. In general, join continues execution based on its
+        incoming transitions. When using foreach, join has a single incoming transition.
+        If multiplicity is not specified, the first execution that reaches the join
+        activity will trigger continuation.</para></important>
+        <para>Here is how to initialize the iterative process variables.</para>
+        <programlisting><![CDATA[Map<String, Object> variables = new HashMap<String, Object>();
+variables.put("departments", new String[] { "sales-dept", "hr-dept", "finance-dept" });
+variables.put("quorum", 3);
+ProcessInstance processInstance = executionService.startProcessInstanceByKey("ForEach", variables);]]></programlisting>
+      </section>
     </section>
 
     <!-- ### END ########################################################### -->
@@ -902,8 +983,8 @@ ProcessInstance processInstance = executionService
         <para>After starting, a task will be created.  The task will not show up in anyone's
         personal task list.  Following task lists will be empty.
         </para>
-        <programlisting>taskService.getAssignedTasks(&quot;johndoe&quot;);
-taskService.getAssignedTasks(&quot;joesmoe&quot;);</programlisting>
+        <programlisting>taskService.getPersonalTasks(&quot;johndoe&quot;);
+taskService.getPersonalTasks(&quot;joesmoe&quot;);</programlisting>
         <para>But the task will show up in the group task list of all members of the <literal>sales-dept</literal>
         group.   
         </para>
@@ -2165,11 +2246,102 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
       </para>
     </section>
 
+    <!-- ### ASSIGN ######################################################## -->
+
+    <section id="assign">
+      <title><literal>assign</literal></title>
+      <para>The <literal>assign</literal> activity retrieves a value and assigns it
+      to a target location.</para>
+      <table><title><literal>assign</literal> attributes:</title>
+        <tgroup cols="5" rowsep="1" colsep="1">
+          <thead>
+            <row>
+              <entry>Attribute</entry>
+              <entry>Type</entry>
+              <entry>Default</entry>
+              <entry>Required?</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><literal>from-var</literal></entry>
+              <entry>string</entry>
+              <entry></entry>
+              <entry morerows="1">one of <literal>from-var</literal>, <literal>from-expr</literal>, <literal>from</literal> is required</entry>
+              <entry>variable that provides the source value</entry>
+            </row>
+            <row>
+              <entry><literal>from-expr</literal></entry>
+              <entry>expression</entry>
+              <entry></entry>
+              <entry>expression that resolves the source value</entry>
+            </row>
+            <row>
+              <entry><literal>lang</literal></entry>
+              <entry>string</entry>
+              <entry>default <emphasis role="bold">expression</emphasis> language defined in <xref linkend="scripting"/></entry>
+              <entry>optional</entry>
+              <entry>language in which <literal>from-expr</literal> is written</entry>
+            </row>
+            <row>
+              <entry><literal>to-var</literal></entry>
+              <entry>string</entry>
+              <entry></entry>
+              <entry morerows="1">one of <literal>to-var</literal>, <literal>to-expr</literal> is required</entry>
+              <entry>variable that provides the target location</entry>
+            </row>
+            <row>
+              <entry><literal>to-expr</literal></entry>
+              <entry>expression</entry>
+              <entry></entry>
+              <entry>expression that resolves the target location</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <table><title><literal>assign</literal> elements:</title>
+        <tgroup cols="3" rowsep="1" colsep="1">
+          <thead>
+            <row>
+              <entry>Element</entry>
+              <entry>Multiplicity</entry>
+              <entry>Description</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><literal>from</literal></entry>
+              <entry>0..1</entry>
+              <entry>descriptor that constructs the source value</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+      <para>Every form of <literal>from</literal> can be combined with any form
+      of <literal>to</literal>. The listing below simply assigns a variable to
+      another.</para>
+      <programlisting><![CDATA[<assign name='resolve' from-expr='#{person.name}' to-var='result'>
+  <transition to='wait' />
+</assign>]]></programlisting>
+      <para>The next example shows an expression value being assigned to a
+      variable.</para>
+      <programlisting><![CDATA[<assign name='resolve' from-var='person' to-var='result'>
+  <transition to='wait' />
+</assign>]]></programlisting>
+      <para>Our last example presents a value constructed by a descriptor being
+      assigned to the expression location.</para>
+      <programlisting><![CDATA[<assign name='resolve' to-expr='#{person.address.street}'>
+  <from><string value='gasthuisstraat' /></from>
+  <transition to='wait' />
+</assign>]]></programlisting>
+    </section>
+
     <!-- ### HQL ########################################################### -->
 
     <section id="hql">
       <title><literal>hql</literal></title>
-      <para>With the<literal>hql</literal> activity, a HQL query can be performed 
+      <para>With the <literal>hql</literal> activity, a HQL query can be performed 
       on the database and the result is stored in a process variable. 
       </para>
       <table><title><literal>hql</literal> attributes:</title>

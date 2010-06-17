@@ -183,7 +183,6 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     this.key = key;
 
     save();
-    composeIds();
     
     HistoryEvent.fire(new ProcessInstanceCreate(), this);
   }
@@ -191,7 +190,10 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   protected void save() {
     this.dbid = DbidGenerator.getDbidGenerator().getNextId();
     DbSession dbSession = EnvironmentImpl.getFromCurrent(DbSession.class, false);
-    if (dbSession!=null) {
+
+    composeIds();
+
+    if (dbSession != null) {
       dbSession.save(this);
     }
   }
@@ -881,13 +883,14 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     childExecution.processInstance = this.processInstance;
     childExecution.name = name;
     
+    // composeIds uses the parent so the childExecution has to be added before the ids are composed
+	childExecution.setParent(this);
     childExecution.save();
+
     // make sure that child execution are saved before added to a persistent collection
     // cause of the 'assigned' id strategy, adding the childExecution to the persistent collection 
     // before the dbid is assigned will result in identifier of an instance of ExecutionImpl altered from 0 to x
     addExecution(childExecution);
-    // composeIds uses the parent so the childExecution has to be added before the ids are composed
-    childExecution.composeIds();
 
     log.debug("created "+childExecution);
 

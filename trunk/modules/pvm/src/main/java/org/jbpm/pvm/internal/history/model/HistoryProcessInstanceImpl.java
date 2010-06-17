@@ -126,4 +126,7 @@ public class HistoryProcessInstanceImpl implements HistoryProcessInstance, Seria
   public void setEndActivityName(String endActivityName) {
     this.endActivityName = endActivityName;
   }
+  public Set<HistoryVariableImpl> getHistoryVariables() {
+    return historyVariables;
+  }
 }

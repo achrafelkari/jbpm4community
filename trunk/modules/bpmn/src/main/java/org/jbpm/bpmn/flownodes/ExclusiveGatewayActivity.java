@@ -53,8 +53,8 @@ public class ExclusiveGatewayActivity extends DatabasedGatewayActivity {
     List<Transition> transitions = findOutgoingSequenceFlow(execution, CONDITIONS_CHECKED);
     int numTransitions = transitions.size();
 
-    if (numTransitions > 2) {
-      transitions = transitions.subList(0, 0);
+    if (numTransitions > 1) {
+      transitions = transitions.subList(0, 1);
       if (log.isInfoEnabled()) {
 	      log.info("More than one outgoing sequenceFlow conditions evaluated to true for " 
 	    		  + execution.getActivity() + ", taking the first one ("

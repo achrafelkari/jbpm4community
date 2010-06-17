@@ -19,28 +19,29 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jbpm.examples.goup.multipleentries;
+package org.jbpm.examples.group.timer;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
+import org.jbpm.api.Execution;
 import org.jbpm.api.ProcessInstance;
+import org.jbpm.api.job.Job;
+import org.jbpm.api.job.Timer;
 import org.jbpm.test.JbpmTestCase;
 
 
 /**
  * @author Tom Baeyens
  */
-public class MultipleEntriesTest extends JbpmTestCase {
+public class GroupTimerTest extends JbpmTestCase {
 
-  
   String deploymentId;
   
   protected void setUp() throws Exception {
     super.setUp();
     
     deploymentId = repositoryService.createDeployment()
-        .addResourceFromClasspath("org/jbpm/examples/group/multipleentries/process.jpdl.xml")
+        .addResourceFromClasspath("org/jbpm/examples/group/timer/process.jpdl.xml")
         .deploy();
   }
 
@@ -50,23 +51,24 @@ public class MultipleEntriesTest extends JbpmTestCase {
     super.tearDown();
   }
 
-  public void testPlentyOfTime() {
-    Map<String, Object> variables = new HashMap<String, Object>();
-    variables.put("time", "plenty");
+  public void testGroupTimerFires() {
+    ProcessInstance processInstance = executionService.startProcessInstanceByKey("GroupTimer");
+    Execution approveExecution = processInstance.findActiveExecutionIn("approve");
+    assertNotNull(approveExecution);
     
-    ProcessInstance pi = executionService
-        .startProcessInstanceByKey("GroupMultipleEntries", variables);
+    List<Job> jobs = managementService
+      .createJobQuery()
+      .processInstanceId(processInstance.getId())
+      .list();
     
-    assertNotNull(pi.findActiveExecutionIn("distribute document"));
+    assertEquals(1, jobs.size());
+    
+    Timer timer = (Timer) jobs.get(0);
+    
+    managementService.executeJob(timer.getId());
+    
+    processInstance = executionService.findProcessInstanceById(processInstance.getId());
+    assertNotNull(processInstance.findActiveExecutionIn("escalate") );
   }
-
-  public void testTimeIsRunningOut() {
-    Map<String, Object> variables = new HashMap<String, Object>();
-    variables.put("time", "running out");
-    
-    ProcessInstance pi = executionService
-        .startProcessInstanceByKey("GroupMultipleEntries", variables);
-    
-    assertNotNull(pi.findActiveExecutionIn("make planning"));
-  }
+  
 }

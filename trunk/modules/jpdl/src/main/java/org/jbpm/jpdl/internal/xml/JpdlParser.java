@@ -25,6 +25,7 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
@@ -84,26 +85,23 @@ public class JpdlParser extends Parser {
   public static final String NAMESPACE_JPDL_40 = "http://jbpm.org/4.0/jpdl";
   public static final String NAMESPACE_JPDL_42 = "http://jbpm.org/4.2/jpdl";
   public static final String NAMESPACE_JPDL_43 = "http://jbpm.org/4.3/jpdl";
+  public static final String NAMESPACE_JPDL_44 = "http://jbpm.org/jpdl/4.4";
 
-  public static final String CURRENT_VERSION_JBPM = "4.3";
-  public static final String CURRENT_VERSION_NAMESPACE = "http://jbpm.org/"+CURRENT_VERSION_JBPM+"/jpdl";
+  public static final String CURRENT_VERSION_JBPM = "4.4";
+  public static final String CURRENT_VERSION_NAMESPACE = "http://jbpm.org/jpdl/"+CURRENT_VERSION_JBPM;
   public static final String CURRENT_VERSION_PROCESS_LANGUAGE_ID = "jpdl-"+CURRENT_VERSION_JBPM;
   
-  public static final List<String> SCHEMA_RESOURCES = new ArrayList<String>();
-  static {
-    SCHEMA_RESOURCES.add("jpdl-4.0.xsd");
-    SCHEMA_RESOURCES.add("jpdl-4.2.xsd");
-    SCHEMA_RESOURCES.add("jpdl-4.3.xsd");
-  }
+  private static final List<String> SCHEMA_RESOURCES = Arrays.asList("jpdl-4.0.xsd",
+    "jpdl-4.2.xsd", "jpdl-4.3.xsd", "jpdl-4.4.xsd");
 
   // array elements are mutable, even when final
   // never make a static array public
-  static final String[] DEFAULT_BINDING_RESOURCES = {
+  private static final String[] DEFAULT_BINDING_RESOURCES = {
     "jbpm.jpdl.bindings.xml",
     "jbpm.user.bindings.xml"
   }; 
 
-  static JpdlBindingsParser jpdlBindingsParser = new JpdlBindingsParser();
+  private static JpdlBindingsParser jpdlBindingsParser = new JpdlBindingsParser();
 
   public static final String CATEGORY_ACTIVITY = "activity";
   public static final String CATEGORY_EVENT_LISTENER = "eventlistener";
@@ -160,7 +158,7 @@ public class JpdlParser extends Parser {
     parse.contextStackPush(processDefinition);
     try {
       // process attribues
-      String name = XmlUtil.attribute(documentElement, "name", true, parse);
+      String name = XmlUtil.attribute(documentElement, "name", parse);
       processDefinition.setName(name);
 
       // make the process language version available for bindings
@@ -210,12 +208,12 @@ public class JpdlParser extends Parser {
       String packageName = XmlUtil.attribute(documentElement, "package");
       processDefinition.setPackageName(packageName);
 
-      Integer version = XmlUtil.attributeInteger(documentElement, "version", false, parse);
+      Integer version = XmlUtil.attributeInteger(documentElement, "version", parse);
       if (version!=null) {
         processDefinition.setVersion(version);
       }
 
-      String key = XmlUtil.attribute(documentElement, "key", false, parse);
+      String key = XmlUtil.attribute(documentElement, "key");
       if (key!=null) {
         processDefinition.setKey(key);
       }
@@ -232,7 +230,7 @@ public class JpdlParser extends Parser {
       // swimlanes
       List<Element> swimlaneElements = XmlUtil.elements(documentElement, "swimlane");
       for (Element swimlaneElement: swimlaneElements) {
-        String swimlaneName = XmlUtil.attribute(swimlaneElement, "name", true, parse);
+        String swimlaneName = XmlUtil.attribute(swimlaneElement, "name", parse);
         if (swimlaneName!=null) {
           SwimlaneDefinitionImpl swimlaneDefinition = 
               processDefinition.createSwimlaneDefinition(swimlaneName);
@@ -282,7 +280,7 @@ public class JpdlParser extends Parser {
   public void parseActivities(Element documentElement, Parse parse, CompositeElementImpl compositeElement) {
     List<Element> elements = XmlUtil.elements(documentElement);
     for (Element nestedElement : elements) {
-      String tagName = XmlUtil.getTagLocalName(nestedElement);
+      String tagName = nestedElement.getLocalName();
       if ("on".equals(tagName) 
           || "timer".equals(tagName)
           || "swimlane".equals(tagName) 
@@ -391,7 +389,7 @@ public class JpdlParser extends Parser {
     // event listeners
     List<Element> onElements = XmlUtil.elements(element, "on");
     for (Element onElement: onElements) {
-      String eventName = XmlUtil.attribute(onElement, "event", true, parse);
+      String eventName = XmlUtil.attribute(onElement, "event", parse);
       parseOnEvent(onElement, parse, scopeElement, eventName);
 
       Element timerElement = XmlUtil.element(onElement, "timer");
@@ -431,8 +429,9 @@ public class JpdlParser extends Parser {
             eventListenerReference = event.createEventListenerReference(eventListenerDescriptor);
           }
           
-          if (XmlUtil.attributeBoolean(eventListenerElement, "propagation", false, parse, false)) {
-            eventListenerReference.setPropagationEnabled(true);
+          Boolean propagationEnabled = XmlUtil.attributeBoolean(eventListenerElement, "propagation", parse);
+          if (propagationEnabled!=null) {
+            eventListenerReference.setPropagationEnabled(propagationEnabled);
           }
           
           continuationText = XmlUtil.attribute(eventListenerElement, "continue");
@@ -455,7 +454,7 @@ public class JpdlParser extends Parser {
           }
 
         } else {
-          String tagName = XmlUtil.getTagLocalName(eventListenerElement);
+          String tagName = eventListenerElement.getLocalName();
           if ( ! ( (observableElement instanceof TransitionImpl)
                    && ( "condition".equals(tagName)
                         || "timer".equals(tagName)
@@ -473,7 +472,7 @@ public class JpdlParser extends Parser {
     List<Element> transitionElements = XmlUtil.elements(element, "transition");
     UnresolvedTransitions unresolvedTransitions = parse.contextStackFind(UnresolvedTransitions.class);
     for (Element transitionElement: transitionElements) {
-      String transitionName = XmlUtil.attribute(transitionElement, "name", false, parse);
+      String transitionName = XmlUtil.attribute(transitionElement, "name");
 
       Element timerElement = XmlUtil.element(transitionElement, "timer");
       if (timerElement!=null) {
@@ -538,7 +537,7 @@ public class JpdlParser extends Parser {
     String duedate = XmlUtil.attribute(element, "duedate");
     taskDefinition.setDueDateDescription(duedate);
 
-    Integer priority = XmlUtil.attributeInteger(element, "priority", false, parse);
+    Integer priority = XmlUtil.attributeInteger(element, "priority", parse);
     if (priority != null) {
       taskDefinition.setPriority(priority);
     }
@@ -586,11 +585,16 @@ public class JpdlParser extends Parser {
     for (Element variableElement: XmlUtil.elements(element, "variable")) {
       VariableDefinitionImpl variableDefinition = scopeElement.createVariableDefinition();
 
-      String name = XmlUtil.attribute(variableElement, "name", true, parse);
+      String name = XmlUtil.attribute(variableElement, "name", parse);
       variableDefinition.setName(name);
       
-      String type = XmlUtil.attribute(variableElement, "type", true, parse);
+      String type = XmlUtil.attribute(variableElement, "type", parse);
       variableDefinition.setTypeName(type);
+      
+      Boolean isHistoryEnabled = XmlUtil.attributeBoolean(variableElement, "history", parse);
+      if (isHistoryEnabled != null) {
+        variableDefinition.setHistoryEnabled(isHistoryEnabled);
+      }
       
       int sources = 0;
       
@@ -705,7 +709,7 @@ public class JpdlParser extends Parser {
       userCodeReference.setCached(false);
     }
 
-    Boolean isCached = XmlUtil.attributeBoolean(element, "cache", false, parse, null);
+    Boolean isCached = XmlUtil.attributeBoolean(element, "cache", parse);
     if (isCached!=null) {
       userCodeReference.setCached(isCached.booleanValue());
     }
@@ -714,7 +718,7 @@ public class JpdlParser extends Parser {
   }
 
   public ObjectDescriptor parseObjectDescriptor(Element element, Parse parse) {
-    return (ObjectDescriptor) ObjectBinding.parseObjectDescriptor(element, parse, WireParser.getInstance());
+    return ObjectBinding.parseObjectDescriptor(element, parse, WireParser.getInstance());
   }
 
   public Descriptor parseDescriptor(Element element, Parse parse) {

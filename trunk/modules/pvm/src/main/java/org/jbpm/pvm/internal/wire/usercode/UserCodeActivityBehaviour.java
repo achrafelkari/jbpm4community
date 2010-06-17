@@ -26,6 +26,7 @@ import java.util.Map;
 import org.jbpm.api.activity.ActivityBehaviour;
 import org.jbpm.api.activity.ActivityExecution;
 import org.jbpm.api.activity.ExternalActivityBehaviour;
+import org.jbpm.pvm.internal.model.ExecutionImpl;
 
 /**
  * @author Tom Baeyens
@@ -39,6 +40,7 @@ public class UserCodeActivityBehaviour implements ExternalActivityBehaviour {
   public void execute(ActivityExecution execution) throws Exception {
     ActivityBehaviour activityBehaviour = (ActivityBehaviour) customActivityReference.getObject(execution);
     activityBehaviour.execute(execution);
+    ((ExecutionImpl)execution).historyAutomatic();
   }
 
   public void signal(ActivityExecution execution, String signalName, Map<String, ? > parameters) throws Exception {

@@ -104,11 +104,17 @@ public interface ExecutionService {
    * queries that include finished process instances. */
   ProcessInstanceQuery createProcessInstanceQuery();
 
-  /** creates or overwrites a variable value on the referenced execution */
+  /** creates or overwrites a variable value in the referenced execution */
   void setVariable(String executionId, String name, Object value);
 
-  /** creates or overwrites the variable values on the referenced execution */
+  /** creates or overwrites variable values in the referenced execution */
   void setVariables(String executionId, Map<String, ?> variables);
+  
+  /** creates a variable value in the referenced execution. optionally enables variable history tracking. */
+  void createVariable(String executionId, String name, Object value, boolean historyEnabled);
+  
+  /** creates variable values in the referenced execution. optionally enables variable history tracking. */
+  void createVariables(String executionId, Map<String, ?> variables, boolean historyEnabled);
 
   /** retrieves a variable */
   Object getVariable(String executionId, String variableName);

@@ -86,11 +86,11 @@ public class TaskQueryTest extends JbpmTestCase {
 
   public void testOrderByName() {
     testOrderBy(TaskQuery.PROPERTY_NAME, 
-            new String[] {"change dyper", "do laundry", "find venture capital", "start new business"});
+            "change dyper", "do laundry", "find venture capital", "start new business");
   }
   
   public void testOrderByAssignee() {
-    testOrderBy(TaskQuery.PROPERTY_ASSIGNEE, new String[] {"Alex", "Joram", "Koen", "Tom"});
+    testOrderBy(TaskQuery.PROPERTY_ASSIGNEE, "Alex", "Joram", "Koen", "Tom");
   }
   
   public void testOrderByCreateTime() {
@@ -106,7 +106,7 @@ public class TaskQueryTest extends JbpmTestCase {
   }
   
   public void testOrderByProgress() {
-    testOrderBy(TaskQuery.PROPERTY_PROGRESS, new Integer[] {2, 15, 75, 99});
+    testOrderBy(TaskQuery.PROPERTY_PROGRESS, 2, 15, 75, 99);
   }
   
   public void testCount() {
@@ -175,7 +175,7 @@ public class TaskQueryTest extends JbpmTestCase {
     return result;
   }
   
-  private void testOrderBy(String property, Object[] expectedValues) {
+  private void testOrderBy(String property, Object... expectedValues) {
     List<Task> tasks = createTestTasks();
     
     List<Task> taskListAsc = taskService.createTaskQuery().orderAsc(property).list();

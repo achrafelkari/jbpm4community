@@ -38,7 +38,7 @@ public class JbpmFunctionMapper extends FunctionMapper {
   }
 
   public Method resolveFunction(String prefix, String localName) {
-    for (Method method: functionClass.getDeclaredMethods()) {
+    for (Method method: functionClass.getMethods()) {
       if (method.getName().equals(localName)) {
         return method;
       }

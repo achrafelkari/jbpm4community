@@ -47,6 +47,7 @@ public class TaskDueDateTest extends JbpmTestCase {
 
     Calendar tomorrow = Calendar.getInstance();
     tomorrow.add(Calendar.DATE, 1);
+    tomorrow.set(Calendar.MILLISECOND, 0); // mysql does not capture subsecond times
     Map<String, ? > variables = Collections.singletonMap("tomorrow", tomorrow);
     String processInstanceId = executionService.startProcessInstanceByKey("BaseDate", variables)
         .getId();
@@ -69,6 +70,7 @@ public class TaskDueDateTest extends JbpmTestCase {
 
     Calendar tomorrow = Calendar.getInstance();
     tomorrow.add(Calendar.DATE, 1);
+    tomorrow.set(Calendar.MILLISECOND, 0); // mysql does not capture subsecond times
     Map<String, ? > variables = Collections.singletonMap("tomorrow", tomorrow);
     String processInstanceId = executionService.startProcessInstanceByKey(
         "BaseDatePlusDuration", variables).getId();
@@ -92,6 +94,7 @@ public class TaskDueDateTest extends JbpmTestCase {
 
     Calendar tomorrow = Calendar.getInstance();
     tomorrow.add(Calendar.DATE, 1);
+    tomorrow.set(Calendar.MILLISECOND, 0); // mysql does not capture subsecond times
     Map<String, ? > variables = Collections.singletonMap("tomorrow", tomorrow);
     String processInstanceId = executionService.startProcessInstanceByKey(
         "BaseDateMinusDuration", variables).getId();
