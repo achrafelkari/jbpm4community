@@ -24,10 +24,9 @@ package org.jbpm.jpdl.internal.activity;
 import org.jbpm.api.model.OpenExecution;
 import org.jbpm.pvm.internal.el.Expression;
 import org.jbpm.pvm.internal.el.UelValueExpression;
-import org.jbpm.pvm.internal.model.ScopeInstanceImpl;
+import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.wire.Descriptor;
 import org.jbpm.pvm.internal.wire.WireContext;
-
 
 /**
  * @author Tom Baeyens
@@ -37,38 +36,46 @@ public class AssignActivity extends JpdlAutomaticActivity {
   private static final long serialVersionUID = 1L;
 
   protected Expression fromExpression;
-  protected Descriptor fromValueDescriptor;
+  protected String fromVariable;
+  protected Descriptor fromDescriptor;
 
-  protected String toVariableName;
   protected UelValueExpression toExpression;
+  protected String toVariable;
 
   void perform(OpenExecution execution) throws Exception {
     Object value = null;
-    
-    if (fromExpression!=null) {
+
+    if (fromExpression != null) {
       value = fromExpression.evaluate(execution);
-      
-    } else if (fromValueDescriptor!=null) {
-      value = WireContext.create(fromValueDescriptor, (ScopeInstanceImpl) execution);
     }
-    
-    if (toVariableName!=null) {
-      execution.setVariable(toVariableName, value);
-    } else {
+    else if (fromVariable != null) {
+      value = execution.getVariable(fromVariable);
+    }
+    else if (fromDescriptor != null) {
+      value = WireContext.create(fromDescriptor, (ExecutionImpl) execution);
+    }
+
+    if (toExpression != null) {
       toExpression.setValue(execution, value);
+    }
+    else {
+      execution.setVariable(toVariable, value);
     }
   }
 
-  public void setToVariableName(String variableName) {
-    this.toVariableName = variableName;
+  public void setFromDescriptor(Descriptor descriptor) {
+    fromDescriptor = descriptor;
   }
-  public void setFromValueDescriptor(Descriptor valueDescriptor) {
-    this.fromValueDescriptor = valueDescriptor;
+  public void setFromExpression(Expression expression) {
+    fromExpression = expression;
   }
-  public void setFromExpression(Expression fromExpression) {
-    this.fromExpression = fromExpression;
+  public void setFromVariable(String variableName) {
+    fromVariable = variableName;
   }
-  public void setToExpression(UelValueExpression toExpression) {
-    this.toExpression = toExpression;
+  public void setToExpression(UelValueExpression expression) {
+    toExpression = expression;
+  }
+  public void setToVariable(String variableName) {
+    toVariable = variableName;
   }
 }

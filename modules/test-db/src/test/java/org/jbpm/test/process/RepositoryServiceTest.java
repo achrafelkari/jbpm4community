@@ -30,7 +30,6 @@ import org.jbpm.api.ProcessDefinitionQuery;
 import org.jbpm.api.ProcessInstance;
 import org.jbpm.test.JbpmTestCase;
 
-
 /**
  * @author Tom Baeyens
  */
@@ -373,5 +372,39 @@ public class RepositoryServiceTest extends JbpmTestCase {
     Execution execution = executionService.startProcessInstanceByKey("minimal");
     
     assertTrue(execution.isEnded());
+  }
+
+  /**
+   * Non-latin letters are replaced away from process definition key.
+   * @see <a href="https://jira.jboss.org/browse/JBPM-2746">JBPM-2746</a>
+   */
+  public void testNonLatinProcessName() {
+    // temporarily exclude oracle due to qa database 
+    String database = System.getProperty("database");
+    if (database != null && database.startsWith("oracle"))
+      return;
+
+    // "Lev Trotskij"
+    deployJpdlXmlString("<process name='\u041B\u0435\u0412 \u0422\u0440\u043E\u0446\u043A\u0438\u0439'>" +
+      "  <start/>" +
+      "</process>");
+
+    ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
+      .processDefinitionKey("\u041B\u0435\u0412_\u0422\u0440\u043E\u0446\u043A\u0438\u0439")
+      .uniqueResult();
+
+    assertEquals("\u041B\u0435\u0412 \u0422\u0440\u043E\u0446\u043A\u0438\u0439", processDefinition.getName());
+  }
+
+  public void testNumberProcessName() {
+    deployJpdlXmlString("<process name='jbpm 2746'>" +
+      "  <start/>" +
+      "</process>");
+
+    ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
+      .processDefinitionKey("jbpm_2746")
+      .uniqueResult();
+
+    assertEquals("jbpm 2746", processDefinition.getName());    
   }
 }

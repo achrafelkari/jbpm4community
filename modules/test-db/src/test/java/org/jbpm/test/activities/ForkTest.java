@@ -24,10 +24,8 @@
  */
 package org.jbpm.test.activities;
 
-import org.jbpm.api.history.HistoryProcessInstance;
 import org.jbpm.api.task.Task;
 import org.jbpm.test.JbpmTestCase;
-
 
 /**
  * @author Joram Barrez

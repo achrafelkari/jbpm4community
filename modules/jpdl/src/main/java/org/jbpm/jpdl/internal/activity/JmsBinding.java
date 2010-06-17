@@ -51,13 +51,13 @@ public class JmsBinding extends JpdlBinding {
 
     // attributes /////////////////////////////////////////////////////////////
 
-    String connectionFactoryName = XmlUtil.attribute(element, "connection-factory", true, parse);
+    String connectionFactoryName = XmlUtil.attribute(element, "connection-factory", parse);
     jmsActivity.setConnectionFactoryName(connectionFactoryName);
 
-    String destinationName = XmlUtil.attribute(element, "destination", true, parse);
+    String destinationName = XmlUtil.attribute(element, "destination", parse);
     jmsActivity.setDestinationName(destinationName);
 
-    Boolean transacted = XmlUtil.attributeBoolean(element, "transacted", false, parse, null);
+    Boolean transacted = XmlUtil.attributeBoolean(element, "transacted", parse);
     if (transacted!=null) {
       jmsActivity.setTransacted(transacted);
     }
@@ -77,7 +77,7 @@ public class JmsBinding extends JpdlBinding {
 
     // elements ///////////////////////////////////////////////////////////////
 
-    Element textElement = XmlUtil.element(element, "text", false, parse);
+    Element textElement = XmlUtil.element(element, "text");
     if (textElement != null) {
       String expressionText = XmlUtil.getContentText(textElement);
       jmsActivity.setType("text");
@@ -85,7 +85,7 @@ public class JmsBinding extends JpdlBinding {
       jmsActivity.setTextExpression(expression);
     }
 
-    Element objectElement = XmlUtil.element(element, "object", false, parse);
+    Element objectElement = XmlUtil.element(element, "object");
     if (objectElement != null) {
       jmsActivity.setType("object");
       String expressionText = XmlUtil.attribute(objectElement, "expr");
@@ -93,7 +93,7 @@ public class JmsBinding extends JpdlBinding {
       jmsActivity.setObjectExpression(expression);
     }
 
-    Element mapElement = XmlUtil.element(element, "map", false, parse);
+    Element mapElement = XmlUtil.element(element, "map");
     if (mapElement != null) {
       jmsActivity.setType("map");
       Descriptor descriptor = parser.parseDescriptor(mapElement, parse);

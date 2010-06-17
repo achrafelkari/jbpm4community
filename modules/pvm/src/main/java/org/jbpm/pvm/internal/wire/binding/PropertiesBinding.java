@@ -59,9 +59,9 @@ public class PropertiesBinding extends WireDescriptorBinding {
       descriptor.setUrl(element.getAttribute("url"));
     }
     
-    Boolean isXml = XmlUtil.attributeBoolean(element, "is-xml", false, parse);
+    Boolean isXml = XmlUtil.attributeBoolean(element, "is-xml", parse);
     if (isXml!=null) {
-      descriptor.setXml(isXml.booleanValue());
+      descriptor.setXml(isXml);
     }
 
     List<Descriptor> keyDescriptors = new ArrayList<Descriptor>();
@@ -69,7 +69,7 @@ public class PropertiesBinding extends WireDescriptorBinding {
 
     List<Element> elements = XmlUtil.elements(element);
     for (Element propertyElement: elements) {
-      if ("property".equals(XmlUtil.getTagLocalName(propertyElement))) {
+      if ("property".equals(propertyElement.getLocalName())) {
         // key
         String name = XmlUtil.attribute(propertyElement, "name");
         // value

@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <schema xmlns="http://www.w3.org/2001/XMLSchema"
-        targetNamespace="http://jbpm.org/4.4/jpdl"
-        xmlns:tns="http://jbpm.org/4.4/jpdl"
+        targetNamespace="http://jbpm.org/jpdl/4.4"
+        xmlns:tns="http://jbpm.org/jpdl/4.4"
         elementFormDefault="qualified"
         attributeFormDefault="unqualified">
         
   <annotation>
     <documentation>Schema for jPDL 4 process descriptions; 
-    element process is the top level element.
+    the top level element is process.
     </documentation>
   </annotation>
 
   <!-- ### PROCESS DEFINITION ############################################# -->
 
   <element name="process">
-    <annotation><documentation>A jPDL process definition description; This 
-    is the top level element in a jPDL process file.</documentation></annotation>
+    <annotation><documentation>jPDL process definition.
+    This is the top level element in a jPDL process file.</documentation></annotation>
     <complexType>
       <sequence minOccurs="0" maxOccurs="unbounded">
         <element name="description" minOccurs="0" type="string" />
@@ -29,24 +29,25 @@
       <attribute name="name" use="required" type="string">
         <annotation>
           <documentation>
-            The process name. Multiple processes can be deployed with the same name, as long as they have a different
-            version.
+            The process name. Multiple processes can be deployed with the same name,
+            as long as they have a different version.
           </documentation>
         </annotation>
       </attribute>
       <attribute name="key" type="string">
         <annotation>
           <documentation>
-            The key can be used to provide a short acronym that will replace the name as the basis for the generated
-            process definition id
+            The key can be used to provide a short acronym that replaces the name as
+            the basis for the generated process definition id.
           </documentation>
         </annotation>
       </attribute>
       <attribute name="version" type="int">
         <annotation>
           <documentation>
-            Indicates the sequence number of this version for all processes with the same name. By specifying a version
-            automatic deployment can figure out if this process is already deployed or not.
+            Indicates the version number of this process definition among its homonyms.
+            By specifying a version, automatic deployment can tell whether this process
+            is already deployed.
           </documentation>
         </annotation>
       </attribute>
@@ -218,6 +219,23 @@
         </complexType>
       </element>
 
+      <!-- ~~~ FOREACH ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <element name="foreach">
+        <annotation><documentation>Spawns concurrent paths of execution
+          over each element of a collection.
+        </documentation></annotation>
+        <complexType>
+          <sequence>
+            <element name="description" minOccurs="0" type="string" />
+            <element ref="tns:on" minOccurs="0" maxOccurs="unbounded"/>
+            <element ref="tns:transition" minOccurs="0" maxOccurs="unbounded" />
+          </sequence>
+          <attributeGroup ref="tns:activityAttributes" />
+          <attribute name="var" type="string" use="required"/>
+          <attribute name="in" type="string" use="required"/>
+        </complexType>
+      </element>
+
       <!-- ~~~ FORK ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <element name="fork">
         <annotation><documentation>Spawns multiple concurrent paths of 
@@ -245,7 +263,7 @@
             <element ref="tns:transition" minOccurs="0" maxOccurs="unbounded" />
           </sequence>
           <attributeGroup ref="tns:activityAttributes" />
-          <attribute name="multiplicity" type="int" />
+          <attribute name="multiplicity" type="string" />
           <attribute name="lockmode" default="upgrade">
             <simpleType>
               <restriction base="string">
@@ -365,6 +383,23 @@
         </complexType>
       </element>
 
+      <!-- ~~~ ASSIGN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <element name="assign">
+        <annotation><documentation>Assigns a source value to a target location
+        </documentation></annotation>
+        <complexType>
+          <complexContent>
+            <extension base="tns:assignType">
+              <sequence>
+                <element ref="tns:on" minOccurs="0" maxOccurs="unbounded"/>
+                <element ref="tns:transition" minOccurs="0" maxOccurs="unbounded" />
+              </sequence>
+              <attributeGroup ref="tns:activityAttributes" />
+            </extension>
+          </complexContent>
+        </complexType>
+      </element>
+
       <!-- ~~~ CUSTOM ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <element name="custom">
         <annotation><documentation>Uses a user defined, custom implementation of 
@@ -375,24 +410,23 @@
             <extension base="tns:wireObjectType">
               <sequence>
                 <element ref="tns:on" minOccurs="0" maxOccurs="unbounded"/>
-                <element ref="tns:transition" minOccurs="0" maxOccurs="unbounded" >
+                <element name="transition" minOccurs="0" maxOccurs="unbounded">
                   <complexType>
-		                <complexContent>
-		                  <extension base="tns:transitionType">
-		                    <sequence>
-		                      <element ref="tns:timer" minOccurs="0" />
-		                    </sequence>
-		                  </extension>
-		                </complexContent>
-		              </complexType>
+                    <complexContent>
+                      <extension base="tns:transitionType">
+                        <sequence>
+                          <element ref="tns:timer" minOccurs="0" />
+                        </sequence>
+                      </extension>
+                    </complexContent>
+                  </complexType>
                 </element>
               </sequence>
               <attributeGroup ref="tns:activityAttributes" />
             </extension>
           </complexContent>
         </complexType>
-      </element>   
-      
+      </element>
 
       <!-- ~~~ TASK ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <element name="task">
@@ -927,6 +961,10 @@
       should be automatically wired based on matching the property names and types with the 
       object names and types</documentation></annotation>
     </attribute>
+    <attribute name="cache" type="tns:booleanValueType">
+      <annotation><documentation>Indicates if the user code should be cached
+      </documentation></annotation>
+    </attribute>
   </complexType>
 
   <complexType name="argType">
@@ -934,6 +972,7 @@
     Each 'arg' element should have exactly one child element 
     that represents the value of the argument.
     </documentation></annotation>
+    <group ref="tns:wireObjectGroup" />
     <attribute name="type" type="string">
       <annotation><documentation>The java class name representing 
       the type of the method.  This is optional and can be used to 
@@ -1032,6 +1071,45 @@
     <attribute name="var" type="string">
       <annotation><documentation>Name of the variable in which the result 
       of the script evaluation will be stored</documentation></annotation>
+    </attribute>
+  </complexType>
+
+  <complexType name="assignType">
+    <sequence>
+      <element name="description" minOccurs="0" maxOccurs="unbounded" type="string" />
+      <element name="from" minOccurs="0">
+        <annotation>
+          <documentation>Descriptor that constructs the source value</documentation>
+        </annotation>
+        <complexType>
+          <group ref="tns:wireObjectGroup" />
+        </complexType>
+      </element>
+    </sequence>
+    <attribute name="from-expr" type="string">
+      <annotation>
+        <documentation>Expression that resolves the source value</documentation>
+      </annotation>
+    </attribute>
+    <attribute name="lang" type="string">
+      <annotation>
+        <documentation>Language in which from-expr is written</documentation>
+      </annotation>
+    </attribute>
+    <attribute name="from-var" type="string">
+      <annotation>
+        <documentation>Variable that provides the source value</documentation>
+      </annotation>
+    </attribute>
+    <attribute name="to-expr" type="string">
+      <annotation>
+        <documentation>Expression that resolves the target location</documentation>
+      </annotation>
+    </attribute>
+    <attribute name="to-var" type="string">
+      <annotation>
+        <documentation>Variable that provides the target location</documentation>
+      </annotation>
     </attribute>
   </complexType>
   
@@ -1260,6 +1338,15 @@
           </complexContent>
         </complexType>
       </element>
+      <element name="assign">
+        <complexType>
+          <complexContent>
+            <extension base="tns:assignType">
+              <attribute name="propagation" type="tns:booleanValueType" />
+            </extension>
+          </complexContent>
+        </complexType>
+      </element>
       <element name="script">
         <complexType>
           <complexContent>
@@ -1282,36 +1369,39 @@
   </group>
   
   <complexType name="mailType">
-    <sequence>
-      <element name="description" minOccurs="0" maxOccurs="unbounded" type="string" />
-      <element name="from" type="tns:mailRecipientType" minOccurs="0" />
-      <element name="to" type="tns:mailRecipientType" minOccurs="0" />
-      <element name="cc" type="tns:mailRecipientType" minOccurs="0" />
-      <element name="bcc" type="tns:mailRecipientType" minOccurs="0" />
-      <element name="subject" type="string" minOccurs="0" />
-      <element name="text" type="string" minOccurs="0" />
-      <element name="html" type="string" minOccurs="0" />
-      <element name="attachments" minOccurs="0" >
-        <complexType>
-          <sequence>
-            <element name="attachment" maxOccurs="unbounded">
-              <complexType>
-						    <attribute name="url" type="string">
-						      <annotation><documentation>URL reference to the attachment</documentation></annotation>
-						    </attribute>
-                <attribute name="resource" type="string">
-                  <annotation><documentation>Name of the attachment resource on the classpath</documentation></annotation>
-                </attribute>
-                <attribute name="file" type="string">
-                  <annotation><documentation>File reference to the attachment</documentation></annotation>
-                </attribute>
-              </complexType>
-            </element>
-          </sequence>
-        </complexType>
-      </element>
-    </sequence>
-    <attribute name="template" type="tns:templateType" />
+    <complexContent>
+      <extension base="tns:wireObjectType">
+        <sequence>
+          <element name="from" type="tns:mailRecipientType" minOccurs="0" />
+          <element name="to" type="tns:mailRecipientType" minOccurs="0" />
+          <element name="cc" type="tns:mailRecipientType" minOccurs="0" />
+          <element name="bcc" type="tns:mailRecipientType" minOccurs="0" />
+          <element name="subject" type="string" minOccurs="0" />
+          <element name="text" type="string" minOccurs="0" />
+          <element name="html" type="string" minOccurs="0" />
+          <element name="attachments" minOccurs="0" >
+            <complexType>
+              <sequence>
+                <element name="attachment" maxOccurs="unbounded">
+                  <complexType>
+                    <attribute name="url" type="string">
+                      <annotation><documentation>URL reference to the attachment</documentation></annotation>
+                    </attribute>
+                    <attribute name="resource" type="string">
+                      <annotation><documentation>Name of the attachment resource on the classpath</documentation></annotation>
+                    </attribute>
+                    <attribute name="file" type="string">
+                      <annotation><documentation>File reference to the attachment</documentation></annotation>
+                    </attribute>
+                  </complexType>
+                </element>
+              </sequence>
+            </complexType>
+          </element>
+        </sequence>
+        <attribute name="template" type="tns:templateType" />
+      </extension>
+    </complexContent>
   </complexType>
   
   <complexType name="jmsType">

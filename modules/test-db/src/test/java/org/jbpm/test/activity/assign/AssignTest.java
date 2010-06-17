@@ -21,113 +21,112 @@
  */
 package org.jbpm.test.activity.assign;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 
 import org.jbpm.api.ProcessInstance;
 import org.jbpm.test.JbpmTestCase;
-
 
 /**
  * @author Tom Baeyens
  */
 public class AssignTest extends JbpmTestCase {
 
-  public void testValueExpressionToVar() {
-    deployJpdlXmlString(
-      "<process name='AssignTest'>" +
-      "  <start>" +
-      "    <transition to='resolve' />" +
-      "  </start>" +
-      "  <assign name='resolve' expr='#{person.name}' to-var='result'>" +
-      "    <transition to='wait' />" +
-      "  </assign>" +
-      "  <state name='wait' />" +
-      "</process>"
-    );
-    
+  public void testFromExprToVar() {
+    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/jpdl/4.4'>"
+      + "  <start>"
+      + "    <transition to='resolve' />"
+      + "  </start>"
+      + "  <assign name='resolve' from-expr='#{person.name}' to-var='result'>"
+      + "    <transition to='wait' />"
+      + "  </assign>"
+      + "  <state name='wait' />"
+      + "</process>");
+
     Person person = new Person();
     person.setName("johndoe");
+    Map<String, ?> variables = Collections.singletonMap("person", person);
 
-    Map<String, Object> variables = new HashMap<String, Object>();
-    variables.put("person", person);
     ProcessInstance processInstance = executionService.startProcessInstanceByKey("AssignTest", variables);
-    executionService.signalExecutionById(processInstance.getId());
-    
     assertEquals("johndoe", executionService.getVariable(processInstance.getId(), "result"));
   }
 
-  public void testMethodExpressionToVar() {
-    deployJpdlXmlString(
-      "<process name='AssignTest'>" +
-      "  <start>" +
-      "    <transition to='resolve' />" +
-      "  </start>" +
-      "  <assign name='resolve' expr='#{person.hello()}' to-var='result'>" +
-      "    <transition to='wait' />" +
-      "  </assign>" +
-      "  <state name='wait' />" +
-      "</process>"
-    );
-    
+  public void testFromMethodExprToVar() {
+    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/jpdl/4.4'>"
+      + "  <start>"
+      + "    <transition to='resolve' />"
+      + "  </start>"
+      + "  <assign name='resolve' from-expr='#{person.toString()}' to-var='result'>"
+      + "    <transition to='wait' />"
+      + "  </assign>"
+      + "  <state name='wait' />"
+      + "</process>");
+
     Person person = new Person();
     person.setName("johndoe");
+    Map<String, ?> variables = Collections.singletonMap("person", person);
 
-    Map<String, Object> variables = new HashMap<String, Object>();
-    variables.put("person", person);
     ProcessInstance processInstance = executionService.startProcessInstanceByKey("AssignTest", variables);
-    executionService.signalExecutionById(processInstance.getId());
-    
-    assertEquals("goodby", executionService.getVariable(processInstance.getId(), "result"));
+    assertEquals("Person(johndoe)", executionService.getVariable(processInstance.getId(), "result"));
   }
 
-  public void testMethodWithParameterExpressionToVar() {
-    deployJpdlXmlString(
-      "<process name='AssignTest'>" +
-      "  <start>" +
-      "    <transition to='resolve' />" +
-      "  </start>" +
-      "  <assign name='resolve' expr=\"#{person.hello('Joe')}\" to-var='result'>" +
-      "    <transition to='wait' />" +
-      "  </assign>" +
-      "  <state name='wait' />" +
-      "</process>"
-    );
-    
+  public void testFromMethodParamExprToVar() {
+    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/jpdl/4.4'>"
+      + "  <start>"
+      + "    <transition to='resolve' />"
+      + "  </start>"
+      + "  <assign name='resolve' from-expr=\"#{person.sayHi('Joe')}\" to-var='result'>"
+      + "    <transition to='wait' />"
+      + "  </assign>"
+      + "  <state name='wait' />"
+      + "</process>");
+
     Person person = new Person();
     person.setName("johndoe");
+    Map<String, ?> variables = Collections.singletonMap("person", person);
 
-    Map<String, Object> variables = new HashMap<String, Object>();
-    variables.put("person", person);
     ProcessInstance processInstance = executionService.startProcessInstanceByKey("AssignTest", variables);
-    executionService.signalExecutionById(processInstance.getId());
-    
     assertEquals("Hi, Joe", executionService.getVariable(processInstance.getId(), "result"));
   }
 
-  public void testWireObjectToExpression() {
-    deployJpdlXmlString(
-      "<process name='AssignTest'>" +
-      "  <start>" +
-      "    <transition to='resolve' />" +
-      "  </start>" +
-      "  <assign name='resolve' to-expr='#{person.address.street}'>" +
-      "    <string value='gasthuisstraat' />" +
-      "    <transition to='wait' />" +
-      "  </assign>" +
-      "  <state name='wait' />" +
-      "</process>"
-    );
-    
+  public void testFromDescToExpr() {
+    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/jpdl/4.4'>"
+      + "  <start>"
+      + "    <transition to='resolve' />"
+      + "  </start>"
+      + "  <assign name='resolve' to-expr='#{person.address.street}'>"
+      + "    <from><string value='gasthuisstraat' /></from>"
+      + "    <transition to='wait' />"
+      + "  </assign>"
+      + "  <state name='wait' />"
+      + "</process>");
+
     Person person = new Person();
     person.setName("johndoe");
+    Map<String, ?> variables = Collections.singletonMap("person", person);
 
-    Map<String, Object> variables = new HashMap<String, Object>();
-    variables.put("person", person);
     ProcessInstance processInstance = executionService.startProcessInstanceByKey("AssignTest", variables);
-    executionService.signalExecutionById(processInstance.getId());
-    
     person = (Person) executionService.getVariable(processInstance.getId(), "person");
     assertEquals("gasthuisstraat", person.getAddress().getStreet());
+  }
+
+  public void testFromVarToVar() {
+    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/jpdl/4.4'>"
+      + "  <start>"
+      + "    <transition to='resolve' />"
+      + "  </start>"
+      + "  <assign name='resolve' from-var='person' to-var='result'>"
+      + "    <transition to='wait' />"
+      + "  </assign>"
+      + "  <state name='wait' />"
+      + "</process>");
+
+    Person person = new Person();
+    person.setName("johndoe");
+    Map<String, ?> variables = Collections.singletonMap("person", person);
+
+    ProcessInstance processInstance = executionService.startProcessInstanceByKey("AssignTest", variables);
+    person = (Person) executionService.getVariable(processInstance.getId(), "result");
+    assertEquals("johndoe", person.getName());
   }
 }

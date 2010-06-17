@@ -25,7 +25,6 @@ import org.jbpm.api.JbpmException;
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.pvm.internal.client.ClientExecution;
 
-
 /**
  * @author Tom Baeyens
  */
@@ -45,7 +44,6 @@ public class SetExecutionVariablesCmd extends VariablesCmd<Void> {
   public Void execute(Environment environment) throws Exception {
     ClientExecution execution = getExecution(environment, executionId);
     execution.setVariables(variables);
-    
     return null;
   }
 

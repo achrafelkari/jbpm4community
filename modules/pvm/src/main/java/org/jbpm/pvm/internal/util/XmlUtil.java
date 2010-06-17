@@ -28,9 +28,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import org.jbpm.api.JbpmException;
-import org.jbpm.pvm.internal.xml.Parse;
-
 import javax.xml.namespace.QName;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -43,11 +40,12 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+
+import org.jbpm.api.JbpmException;
+import org.jbpm.pvm.internal.xml.Parse;
 
 /**
  * convenience methods to make reading org.w3c.dom models easier.
- *
  * @author Tom Baeyens
  */
 public class XmlUtil {
@@ -57,52 +55,32 @@ public class XmlUtil {
   }
 
   public static List<Element> elements(Element element, String tagName) {
-    if (element==null) {
+    if (element == null || !element.hasChildNodes()) {
       return Collections.emptyList();
     }
-    NodeList activityList = element.getChildNodes();
-    if ( (activityList == null)
-         || (activityList.getLength()==0)
-       ) {
-      return Collections.emptyList();
-    }
+
     List<Element> elements = new ArrayList<Element>();
-    for (int i = 0; i < activityList.getLength(); i++) {
-      Node child = activityList.item(i);
-      if (Element.class.isAssignableFrom(child.getClass())) {
+    for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+      if (child.getNodeType() == Node.ELEMENT_NODE) {
         Element childElement = (Element) child;
-        String childTagName = getTagLocalName(childElement);
-        if (childTagName.equals(tagName)) {
-          if (elements == null) {
-            elements = new ArrayList<Element>();
-          }
-          elements.add(childElement);
-        }
+        String childTagName = childElement.getLocalName();
+
+        if (tagName.equals(childTagName)) elements.add(childElement);
       }
     }
     return elements;
   }
 
   public static List<Element> elements(Element element, Set<String> allowedTagNames) {
-    if (element==null) {
+    if (element == null || !element.hasChildNodes()) {
       return Collections.emptyList();
     }
-    NodeList activityList = element.getChildNodes();
-    if ( (activityList == null)
-         || (activityList.getLength()==0)
-       ) {
-      return Collections.emptyList();
-    }
+
     List<Element> elements = new ArrayList<Element>();
-    for (int i = 0; i < activityList.getLength(); i++) {
-      Node child = activityList.item(i);
-      if (Element.class.isAssignableFrom(child.getClass())) {
+    for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+      if (child.getNodeType() == Node.ELEMENT_NODE) {
         Element childElement = (Element) child;
-        String childTagName = getTagLocalName(childElement);
-        if (allowedTagNames.contains(childTagName)) {
-          if (elements == null) {
-            elements = new ArrayList<Element>();
-          }
+        if (allowedTagNames.contains(child.getLocalName())) {
           elements.add(childElement);
         }
       }
@@ -111,95 +89,68 @@ public class XmlUtil {
   }
 
   public static Element element(Element element, String tagName) {
-    return element(element, tagName, false, null);
+    return element(element, tagName, null);
   }
 
-  public static Element element(Element element, String tagName, boolean required, Parse parse) {
-    if (element==null) {
-      return null;
-    }
-    NodeList activityList = element.getChildNodes();
-    for (int i = 0; (i < activityList.getLength()); i++) {
-      Node child = activityList.item(i);
-      if ((Element.class.isAssignableFrom(child.getClass())) && (getTagLocalName((Element) child)).equals(tagName)) {
-        return (Element) child;
+  public static Element element(Element element, String tagName, Parse parse) {
+    if (element != null && element.hasChildNodes()) {
+      for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+        if (child.getNodeType() == Node.ELEMENT_NODE && tagName.equals(child.getLocalName())) {
+          return (Element) child;
+        }
       }
     }
-    
-    if (required && (parse!=null)) {
-      parse.addProblem("nested element <"+XmlUtil.getTagLocalName(element)+"><"+tagName+" ... />... is required", element);
+
+    if (parse != null) {
+      parse.addProblem("missing element " + tagName, element);
     }
     return null;
   }
 
-
   public static List<Element> elements(Element element) {
-    if (element==null) {
+    if (element == null || !element.hasChildNodes()) {
       return Collections.emptyList();
     }
-    NodeList activityList = element.getChildNodes();
-    if ( (activityList == null)
-         || (activityList.getLength()==0)
-       ) {
-      return Collections.emptyList();
-    }
+
     List<Element> elements = new ArrayList<Element>();
-    if ((activityList != null) && (activityList.getLength() > 0)) {
-      elements = new ArrayList<Element>();
-      for (int i = 0; i < activityList.getLength(); i++) {
-        Node activity = activityList.item(i);
-        if (activity instanceof Element) {
-          elements.add((Element) activity);
-        }
+    for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+      if (child.getNodeType() == Node.ELEMENT_NODE) {
+        elements.add((Element) child);
       }
     }
     return elements;
   }
 
-  public static List<Element> elements(Element element, String ns, String localName) {
-    if (element==null) {
+  public static List<Element> elements(Element element, String namespace, String localName) {
+    if (element == null || !element.hasChildNodes()) {
       return Collections.emptyList();
     }
-    NodeList activityList = element.getChildNodes();
-    if ( (activityList == null)
-         || (activityList.getLength()==0)
-       ) {
-      return Collections.emptyList();
-    }
-    List<Element> matchingElements = new ArrayList<Element>();
-    NodeList nl = element.getChildNodes();
-    for (int i=0;i<nl.getLength();i++) {
-      Node n = nl.item(i);
-      if (n instanceof Element && n.getLocalName() != null && n.getLocalName().equals(localName) && n.getNamespaceURI() != null && n.getNamespaceURI().equals(ns)) {
-        matchingElements.add((Element)n);
+
+    List<Element> elements = new ArrayList<Element>();
+    for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+      String childNamespace = element.getNamespaceURI();
+      if (child.getNodeType() == Node.ELEMENT_NODE
+        && (namespace != null ? namespace.equals(childNamespace) : childNamespace == null)
+        && localName.equals(element.getLocalName())) {
+        elements.add((Element) child);
       }
     }
-    return matchingElements;
+    return elements;
   }
 
   public static List<Element> elementsQName(Element element, Set<QName> allowedTagNames) {
-    if (element==null) {
+    if (element == null || !element.hasChildNodes()) {
       return Collections.emptyList();
     }
-    NodeList activityList = element.getChildNodes();
-    if ( (activityList == null)
-         || (activityList.getLength()==0)
-       ) {
-      return Collections.emptyList();
-    }
+
     List<Element> elements = new ArrayList<Element>();
-    if (activityList != null) {
-      for (int i = 0; i < activityList.getLength(); i++) {
-        Node child = activityList.item(i);
-        if (Element.class.isAssignableFrom(child.getClass())) {
-          Element childElement = (Element) child;
-          QName childElementQName = new QName(childElement.getNamespaceURI(), childElement.getLocalName());
-          if (allowedTagNames.contains(childElementQName)) {
-            if (elements == null) {
-              elements = new ArrayList<Element>();
-            }
-            elements.add(childElement);
-          }
+    for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+      if (child.getNodeType() == Node.ELEMENT_NODE) {
+        Element childElement = (Element) child;
+        QName childQName = new QName(childElement.getNamespaceURI(),
+          childElement.getLocalName());
+        if (allowedTagNames.contains(childQName)) {
+          elements.add(childElement);
         }
       }
     }
@@ -207,12 +158,14 @@ public class XmlUtil {
   }
 
   public static Element element(Element element) {
-    Element onlyChild = null;
-    List<Element> elements = elements(element);
-    if (!elements.isEmpty()) {
-      onlyChild = elements.get(0);
+    if (element != null && element.hasChildNodes()) {
+      for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+        if (child.getNodeType() == Node.ELEMENT_NODE) {
+          return (Element) child;
+        }
+      }
     }
-    return onlyChild;
+    return null;
   }
 
   public static String toString(Node node) {
@@ -226,7 +179,7 @@ public class XmlUtil {
       StringWriter stringWriter = new StringWriter();
       transformer.transform(new DOMSource(node), new StreamResult(stringWriter));
       return stringWriter.toString();
-    } 
+    }
     catch (TransformerException e) {
       throw new JbpmException("could not transform dom node to string", e);
     }
@@ -238,8 +191,7 @@ public class XmlUtil {
 
   public static boolean isTextOnly(Element element) {
     for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
-      if (child.getNodeType() == Node.ELEMENT_NODE)
-        return false;
+      if (child.getNodeType() == Node.ELEMENT_NODE) return false;
     }
     return true;
   }
@@ -259,130 +211,118 @@ public class XmlUtil {
   }
 
   public static List<Node> contents(Element element) {
-    NodeList activityList = element.getChildNodes();
-    if ((activityList == null) || (activityList.getLength() == 0)) {
+    if (element == null || !element.hasChildNodes()) {
       return Collections.emptyList();
     }
 
     List<Node> contents = new ArrayList<Node>();
-    for (int i = 0; i < activityList.getLength(); i++) {
-      contents.add((Node) activityList.item(i));
+    for (Node child = element.getFirstChild(); child != null; child = child.getNextSibling()) {
+      contents.add(child);
     }
-
     return contents;
   }
 
-  public static String getTagLocalName(Element element) {
-    if (element == null) {
-      return null;
-    }
-    String localName = element.getLocalName();
-    if (localName != null) {
-      return localName;
-    }
-    return element.getTagName();
-  }
-
-  /** the attribute value or null if the attribute is not present */
+  /**
+   * retrieves an attribute value by name.
+   * @return the attribute value or <code>null</code> if there is no such attribute
+   */
   public static String attribute(Element element, String attributeName) {
     Attr attribute = element.getAttributeNode(attributeName);
     return attribute != null ? attribute.getValue() : null;
   }
 
-  /** convenience method to combine extraction of a string attribute value.
-   * 
-   * If the attribute exists, it is returned.  If the attribute is not present, null 
-   * is returned.  The attribute is not present and it is required, 
-   * a problem will be added to the parse.  */
-  public static String attribute(Element element, String attributeName, boolean required, Parse parse) {
-    return attribute(element, attributeName, required, parse, null);
+  /**
+   * retrieves an attribute value by name.
+   * @return the attribute value or <code>defaultValue</code> if there is no such attribute
+   */
+  public static String attribute(Element element, String attributeName, String defaultValue) {
+    return attribute(element, attributeName, null, defaultValue);
   }
 
-  /** convenience method to combine extraction of a string attribute value.
-   * 
-   * If the attribute exists, it is returned.  If the attribute is not present, the 
-   * defaultValue is returned.  The attribute is not present and it is required, 
-   * a problem will be added to the parse.  */
-  public static String attribute(Element element, String attributeName, boolean required, Parse parse, String defaultValue) {
+  /**
+   * retrieves an attribute value by name. if the attribute is not present, a problem will be
+   * added to the parse.
+   * @return the attribute value or <code>null</code> if there is no such attribute
+   */
+  public static String attribute(Element element, String attributeName, Parse parse) {
+    return attribute(element, attributeName, parse, null);
+  }
+
+  /**
+   * retrieves an attribute value by name. if the attribute is not present, a problem will be
+   * added to the parse.
+   * @return the attribute value or <code>defaultValue</code> if there is no such attribute
+   */
+  public static String attribute(Element element, String attributeName, Parse parse,
+    String defaultValue) {
     Attr attribute = element.getAttributeNode(attributeName);
     if (attribute != null) {
       String value = attribute.getValue();
-      if (value.length() == 0 && required) {
-        parse.addProblem("attribute <"+XmlUtil.getTagLocalName(element)+" "+attributeName+"=\"\" is empty", element);
+      if (value.length() == 0) {
+        parse.addProblem("attribute <"+element.getLocalName()+" "+attributeName+"=\"\" is empty", element);
       }
       return value;
     }
 
-    if (required) {
-      parse.addProblem("attribute <"+XmlUtil.getTagLocalName(element)+" "+attributeName+"=\"...\" is required", element);
+    if (parse != null) {
+      parse.addProblem("attribute <"+element.getLocalName()+" "+attributeName+"=\"...\" is required", element);
     }
-    
     return defaultValue;
   }
-  
-  
-  /** parse an attribute as an integer. */
-  public static Integer attributeInteger(Element element, String attributeName, boolean required, Parse parse) {
-    String valueText = attribute(element, attributeName, required, parse);
 
-    if (valueText!=null) {
+  /** retrieves an attribute value by name. */
+  public static Integer attributeInteger(Element element, String attributeName, Parse parse) {
+    Attr attribute = element.getAttributeNode(attributeName);
+    if (attribute != null) {
+      String attributeValue = attribute.getValue();
       try {
-        return Integer.parseInt(valueText);
-      } catch (NumberFormatException e) {
-        parse.addProblem(errorMessageAttribute(element, attributeName, valueText, "value not parsable as integer"), element);
+        return Integer.parseInt(attributeValue);
+      }
+      catch (NumberFormatException e) {
+        parse.addProblem(errorMessageAttribute(element, attributeName, attributeValue, e.getMessage()), element);
       }
     }
-
     return null;
   }
 
   /** parse an attribute as an boolean. */
-  public static Boolean attributeBoolean(Element element, String attributeName, boolean required, Parse parse) {
-    return attributeBoolean(element, attributeName, required, parse, null);
-  }
-  
-  /** parse an attribute as an boolean. */
-  public static Boolean attributeBoolean(Element element, String attributeName, boolean required, Parse parse, Boolean defaultValue) {
-    String valueText = attribute(element, attributeName, required, parse);
-    if (valueText!=null) {
-      Boolean value = parseBooleanValue(valueText);
-      if (value==null) {
-        parse.addProblem(errorMessageAttribute(element, attributeName, valueText, "value not in {true, enabled, on, false, disabled, off}"), element);
-      }
-      return value; 
+  public static Boolean attributeBoolean(Element element, String attributeName, Parse parse) {
+    Attr attribute = element.getAttributeNode(attributeName);
+    if (attribute != null) {
+      String attributeValue = attribute.getValue();
+      Boolean value = parseBooleanValue(attributeValue);
+      if (value != null) return value;
+
+      String message = errorMessageAttribute(element, attributeName, attributeValue,
+        "value not in {true, enabled, on, false, disabled, off}");
+      parse.addProblem(message, element);
     }
-    return defaultValue;
+    return null;
   }
 
   public static Boolean parseBooleanValue(String valueText) {
-    if (valueText!=null) {
+    if (valueText != null) {
       // if we have to check for value true
-      if ( ("true".equals(valueText))
-          || ("enabled".equals(valueText))
-          || ("on".equals(valueText))
-        ) {
-       return Boolean.TRUE;
-
-      } else if ( ("false".equals(valueText))
-           || ("disabled".equals(valueText))
-           || ("off".equals(valueText))
-        ) {
+      if ("true".equals(valueText) || "enabled".equals(valueText) || "on".equals(valueText)) {
+        return Boolean.TRUE;
+      }
+      if ("false".equals(valueText) || "disabled".equals(valueText) || "off".equals(valueText)) {
         return Boolean.FALSE;
       }
     }
-    
     return null;
   }
-  
-  public static String errorMessageAttribute(Element element, String attributeName, String attributeValue, String message) {
-    return "attribute <"+XmlUtil.getTagLocalName(element)+" "+attributeName+"=\""+attributeValue+"\" "+message;
+
+  public static String errorMessageAttribute(Element element, String attributeName,
+    String attributeValue, String message) {
+    return "attribute <" + element.getLocalName() + " " + attributeName + "=\""
+      + attributeValue + "\" " + message;
   }
 
   public static List<String> parseList(Element element, String singularTagName) {
     // a null value for text represents a wildcard
     String text = XmlUtil.attribute(element, singularTagName + "s");
-    // so next we'll convert a '*' into the text null value, which indicates a
-    // wildcard
+    // convert '*' into the text null value, which indicates a wildcard
     if ("*".equals(text)) {
       text = null;
     }
@@ -396,9 +336,7 @@ public class XmlUtil {
 
   /**
    * parses comma or space separated list. A null return value means a wildcard.
-   *
-   * @return List of tokens or null if the commaSeparatedListText is null, '*',
-   *         or empty
+   * @return List of tokens or null if the commaSeparatedListText is null, '*', or empty
    */
   public static List<String> parseCommaSeparatedList(String commaSeparatedListText) {
     List<String> entries = null;
@@ -434,7 +372,8 @@ public class XmlUtil {
       int colonIndex = text.indexOf(':');
       if (colonIndex == -1) {
         namespaceValue = new NamespaceValue(null, text);
-      } else {
+      }
+      else {
         String prefix = text.substring(0, colonIndex);
         String localPart = null;
         if (text.length() > colonIndex + 1) {
@@ -451,16 +390,19 @@ public class XmlUtil {
 
     NamespaceValue namespaceValue = attributeNamespaceValue(element, attributeName);
     String text = attribute(element, attributeName);
-    if (namespaceValue!=null) {
-      if (namespaceValue.prefix==null) {
+    if (namespaceValue != null) {
+      if (namespaceValue.prefix == null) {
         qname = new QName(text);
-      } else {
+      }
+      else {
         String uri = element.lookupNamespaceURI(namespaceValue.prefix);
-        if (uri==null) {
-          throw new JbpmException("unknown prefix in qname "+text);
-        } else if (namespaceValue.localPart==null) {
-          throw new JbpmException("no local part in qname "+text);
-        } else {
+        if (uri == null) {
+          throw new JbpmException("unknown prefix in qname " + text);
+        }
+        else if (namespaceValue.localPart == null) {
+          throw new JbpmException("no local part in qname " + text);
+        }
+        else {
           qname = new QName(uri, namespaceValue.localPart, namespaceValue.prefix);
         }
       }

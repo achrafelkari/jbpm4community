@@ -48,9 +48,9 @@ public class UserTaskBinding extends AbstractTaskBinding {
     
     addActivityResources(taskDefinition, taskActivity, element, parse);
 
-    Element rendering = XmlUtil.element(element, "rendering", false, parse);
+    Element rendering = XmlUtil.element(element, "rendering");
     if (rendering != null) {
-      Element jBPMForm = XmlUtil.element(rendering, "form", false, parse);
+      Element jBPMForm = XmlUtil.element(rendering, "form");
       taskDefinition.setFormResourceName(jBPMForm != null ? jBPMForm.getTextContent().trim() : null);
     }
 

@@ -136,17 +136,16 @@ public class TaskQueryCandidatesTest extends JbpmTestCase {
     taskService.addTaskParticipatingGroup(taskId, salesGroupId, Participation.CANDIDATE);
     taskService.addTaskParticipatingGroup(taskId, developmentGroupId, Participation.CANDIDATE);
 
-    // this tasks are a diversion to see if the query only selects the above task
-    task = taskService.newTask();
-    task.setName("dishes");
-    String johnsOtherTaskId = taskService.saveTask(task);
+//    // this tasks are a diversion to see if the query only selects the above task
+//    task = taskService.newTask();
+//    task.setName("dishes");
+//    String johnsOtherTaskId = taskService.saveTask(task);
+//    
+//    // this tasks are a diversion to see if the query only selects the above task
+//    task = taskService.newTask();
+//    task.setName("dishes");
+//    String joesOtherTaskId = taskService.saveTask(task);
     
-    // this tasks are a diversion to see if the query only selects the above task
-    task = taskService.newTask();
-    task.setName("dishes");
-    String joesOtherTaskId = taskService.saveTask(task);
-    
-
     List<Task> groupTasks = taskService.findGroupTasks("johndoe");
     assertEquals(1, groupTasks.size());
     assertEquals(taskId, groupTasks.get(0).getId());
@@ -159,8 +158,8 @@ public class TaskQueryCandidatesTest extends JbpmTestCase {
     assertEquals(1, groupTasks.size());
     
     taskService.deleteTaskCascade(taskId);
-    taskService.deleteTaskCascade(johnsOtherTaskId);
-    taskService.deleteTaskCascade(joesOtherTaskId);
+//    taskService.deleteTaskCascade(johnsOtherTaskId);
+//    taskService.deleteTaskCascade(joesOtherTaskId);
   }
   
   public void testCountGroupCandidateDuplicate() {
@@ -186,7 +185,7 @@ public class TaskQueryCandidatesTest extends JbpmTestCase {
     taskService.addTaskParticipatingUser(taskId, "boss_rigging", Participation.CANDIDATE);
     taskService.addTaskParticipatingUser(taskId, "boss_rigging", Participation.CANDIDATE);
 
-    assertEquals(1, taskService.createTaskQuery().candidate("boss_rigging").list().size());
+    assertEquals(1, taskService.createTaskQuery().candidate("boss_rigging").count());
 
     taskService.deleteTaskCascade(taskId);
   }

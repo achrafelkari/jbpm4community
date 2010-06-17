@@ -29,15 +29,14 @@ import org.hibernate.LockMode;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.metadata.ClassMetadata;
+
 import org.jbpm.api.Execution;
 import org.jbpm.api.JbpmException;
-import org.jbpm.api.ProcessDefinition;
 import org.jbpm.api.history.HistoryComment;
 import org.jbpm.api.history.HistoryProcessInstance;
 import org.jbpm.api.task.Task;
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.client.ClientExecution;
-import org.jbpm.pvm.internal.client.ClientProcessDefinition;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.history.model.HistoryCommentImpl;
 import org.jbpm.pvm.internal.history.model.HistoryProcessInstanceImpl;
@@ -109,62 +108,6 @@ public class DbSessionImpl implements DbSession {
     this.session = session;
   }
 
-  public List<String> findProcessDefinitionKeys() {
-    return session.getNamedQuery("findProcessDefinitionKeys").list();
-  }
-
-  public ClientProcessDefinition findLatestProcessDefinitionByKey(String processDefinitionKey) {
-    Query query = session.getNamedQuery("findProcessDefinitionsByKey");
-    query.setString("key", processDefinitionKey);
-    query.setMaxResults(1);
-    ClientProcessDefinition processDefinition = (ClientProcessDefinition) query.uniqueResult();
-    return processDefinition;
-  }
-
-  public List<ClientProcessDefinition> findProcessDefinitionsByKey(String processDefinitionKey) {
-    Query query = session.getNamedQuery("findProcessDefinitionsByKey");
-    query.setString("key", processDefinitionKey);
-    return query.list();
-  }
-
-  public ClientProcessDefinition findProcessDefinitionById(String processDefinitionId) {
-    Query query = session.getNamedQuery("findProcessDefinitionById");
-    query.setString("id", processDefinitionId);
-    query.setMaxResults(1);
-    ClientProcessDefinition processDefinition = (ClientProcessDefinition) query.uniqueResult();
-    return processDefinition;
-  }
-
-  public void deleteProcessDefinition(String processDefinitionId, boolean deleteProcessInstances, boolean deleteHistory) {
-    List<String> processInstanceIds = findProcessInstanceIds(processDefinitionId);
-    
-    if ( deleteHistory
-         // and if hibernate knows about the history class
-         && (isHistoryEnabled())
-       ) {
-      List<HistoryProcessInstance> historyProcessInstances = createHistoryProcessInstanceQuery()
-        .processDefinitionId(processDefinitionId)
-        .list();
-      
-      for (HistoryProcessInstance historyProcessInstance : historyProcessInstances) {
-        session.delete(historyProcessInstance);
-      }
-    }
-    
-    if (deleteProcessInstances) {
-      for (String processInstanceId : processInstanceIds) {
-        deleteProcessInstance(processInstanceId, deleteHistory);
-      }
-    } else {
-      if (processInstanceIds.size()>0) {
-        throw new JbpmException("still "+processInstanceIds.size()+" process instances for process definition "+processDefinitionId);
-      }
-    }
-    
-    ProcessDefinition processDefinition = findProcessDefinitionById(processDefinitionId);
-    session.delete(processDefinition);
-  }
-  
   public void deleteProcessDefinitionHistory(String processDefinitionId) {
     List<HistoryProcessInstanceImpl> historyProcessInstances = 
           session.createQuery(

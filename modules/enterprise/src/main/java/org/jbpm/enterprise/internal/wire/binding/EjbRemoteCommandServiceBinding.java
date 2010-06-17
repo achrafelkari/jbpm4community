@@ -41,10 +41,10 @@ public class EjbRemoteCommandServiceBinding extends WireDescriptorBinding {
   }
 
   public Object parse(Element element, Parse parse, Parser parser) {
-    String initialContextFactory = XmlUtil.attribute(element, "initial-context-factory", true, parse); 
-    String providerUrl = XmlUtil.attribute(element, "provider-url", true, parse); 
-    String urlPkgPrefixes = XmlUtil.attribute(element, "url-pkg-prefixes", true, parse);
-    String jndiName = XmlUtil.attribute(element, "jndi-name", false, parse, "jbpm/CommandExecutor");
+    String initialContextFactory = XmlUtil.attribute(element, "initial-context-factory", parse); 
+    String providerUrl = XmlUtil.attribute(element, "provider-url", parse); 
+    String urlPkgPrefixes = XmlUtil.attribute(element, "url-pkg-prefixes", parse);
+    String jndiName = XmlUtil.attribute(element, "jndi-name", "jbpm/CommandExecutor");
     
     EjbRemoteCommandService ejbRemoteCommandService = new EjbRemoteCommandService(initialContextFactory, providerUrl, urlPkgPrefixes, jndiName);
     Descriptor descriptor = new ProvidedObjectDescriptor(ejbRemoteCommandService, true);

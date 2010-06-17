@@ -21,14 +21,18 @@
  */
 package org.jbpm.integration.console;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipInputStream;
 
 import org.jboss.bpm.console.client.model.DeploymentRef;
 import org.jboss.bpm.console.client.model.JobRef;
 import org.jboss.bpm.console.server.plugin.ProcessEnginePlugin;
 import org.jbpm.api.Deployment;
 import org.jbpm.api.ManagementService;
+import org.jbpm.api.NewDeployment;
 import org.jbpm.api.ProcessDefinition;
 import org.jbpm.api.ProcessDefinitionQuery;
 import org.jbpm.api.RepositoryService;
@@ -118,5 +122,30 @@ public class ProcessEnginePluginImpl extends JBPMIntegration implements ProcessE
   public void executeJob(String jobId) {
     ManagementService mgmtService = this.processEngine.getManagementService();
     mgmtService.executeJob(jobId);
+  }
+  
+  public String deployFile(File processFile) {
+    RepositoryService repositoryService = this.processEngine.getRepositoryService();
+    NewDeployment deployment = repositoryService.createDeployment();
+    deployment.setName(processFile.getName());
+    deployment.setTimestamp(System.currentTimeMillis());
+    
+    if (processFile.getName().endsWith(".xml")) {
+      
+      deployment.addResourceFromFile(processFile);
+      
+    } else if (processFile.getName().endsWith("ar")) {
+      
+      try {
+        FileInputStream fileInputStream = new FileInputStream(processFile);
+        ZipInputStream zipInputStream = new ZipInputStream(fileInputStream);
+        deployment.addResourcesFromZipInputStream(zipInputStream);
+      } catch (Exception e) {
+        throw new RuntimeException("couldn't read business archive "+processFile, e);
+      }
+
+    } 
+    
+    return deployment.deploy();
   }
 }

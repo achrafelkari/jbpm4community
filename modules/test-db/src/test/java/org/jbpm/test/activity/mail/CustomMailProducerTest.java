@@ -80,7 +80,7 @@ public class CustomMailProducerTest extends JbpmTestCase {
 
   public void testCustomMailProducer() {
     // deploy process
-    deployJpdlXmlString("<process name='custommail'>"
+    deployJpdlXmlString("<process name='custommail' xmlns='http://jbpm.org/jpdl/4.4'>"
       + "  <start>"
       + "    <transition to='send mail' />"
       + "  </start>"

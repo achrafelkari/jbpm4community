@@ -19,7 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jbpm.examples.goup.concurrency;
+package org.jbpm.examples.group.simple;
 
 import org.jbpm.api.ProcessInstance;
 import org.jbpm.test.JbpmTestCase;
@@ -28,7 +28,10 @@ import org.jbpm.test.JbpmTestCase;
 /**
  * @author Tom Baeyens
  */
-public class GroupConcurrencyTest extends JbpmTestCase {
+/**
+ * @author Tom Baeyens
+ */
+public class GroupSimpleTest extends JbpmTestCase {
 
   String deploymentId;
   
@@ -36,7 +39,7 @@ public class GroupConcurrencyTest extends JbpmTestCase {
     super.setUp();
     
     deploymentId = repositoryService.createDeployment()
-        .addResourceFromClasspath("org/jbpm/examples/group/concurrency/process.jpdl.xml")
+        .addResourceFromClasspath("org/jbpm/examples/group/simple/process.jpdl.xml")
         .deploy();
   }
 
@@ -47,27 +50,23 @@ public class GroupConcurrencyTest extends JbpmTestCase {
   }
 
   public void testOneFeedbackLoop() {
-    ProcessInstance pi = executionService
-        .startProcessInstanceByKey("GroupConcurrency");
+    ProcessInstance processInstance = executionService.startProcessInstanceByKey("GroupSimple");
+    String pid = processInstance.getId();
+    assertTrue(processInstance.isActive("distribute document"));
     
-    String documentExecutionId = pi
-        .findActiveExecutionIn("distribute document").getId();
+    processInstance = executionService.signalExecutionById(pid);
+    assertTrue(processInstance.isActive("collect feedback"));
     
-    String planningExecutionId = pi
-        .findActiveExecutionIn("make planning").getId();
+    processInstance = executionService.signalExecutionById(pid, "rejected");
+    assertTrue(processInstance.isActive("update document"));
     
-    pi = executionService.signalExecutionById(documentExecutionId);
-    assertNotNull(pi.findActiveExecutionIn("collect feedback"));
-    assertNotNull(pi.findActiveExecutionIn("make planning"));
+    processInstance = executionService.signalExecutionById(pid);
+    assertTrue(processInstance.isActive("distribute document"));
     
-    pi = executionService.signalExecutionById(planningExecutionId);
-    assertNotNull(pi.findActiveExecutionIn("collect feedback"));
-    assertNotNull(pi.findActiveExecutionIn("estimate budget"));
+    processInstance = executionService.signalExecutionById(pid);
+    assertTrue(processInstance.isActive("collect feedback"));
     
-    pi = executionService.signalExecutionById(planningExecutionId);
-    assertNotNull(pi.findActiveExecutionIn("collect feedback"));
-    
-    pi = executionService.signalExecutionById(documentExecutionId);
-    assertNotNull(pi.findActiveExecutionIn("public project announcement"));
+    processInstance = executionService.signalExecutionById(pid, "approved");
+    assertTrue(processInstance.isActive("publish document"));
   }
 }

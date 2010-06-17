@@ -46,12 +46,12 @@ public class HibernateSessionBinding extends WireDescriptorBinding {
       descriptor.setFactoryName(element.getAttribute("factory"));
     }
     
-    Boolean tx = XmlUtil.attributeBoolean(element, "tx", false, parse);
+    Boolean tx = XmlUtil.attributeBoolean(element, "tx", parse);
     if (tx!=null) {
       descriptor.setTx(tx);
     }
 
-    Boolean useCurrent = XmlUtil.attributeBoolean(element, "current", false, parse);
+    Boolean useCurrent = XmlUtil.attributeBoolean(element, "current", parse);
     // if usage of current session is specified
     if (useCurrent!=null) {
       // set it accordingly
@@ -60,7 +60,7 @@ public class HibernateSessionBinding extends WireDescriptorBinding {
       descriptor.setClose( !useCurrent );
     }
     
-    Boolean close = XmlUtil.attributeBoolean(element, "close", false, parse);
+    Boolean close = XmlUtil.attributeBoolean(element, "close", parse);
     if (close!=null) {
       descriptor.setClose(close);
     }

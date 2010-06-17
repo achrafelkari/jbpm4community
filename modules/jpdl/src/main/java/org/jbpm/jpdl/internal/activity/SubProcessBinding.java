@@ -154,8 +154,8 @@ public class SubProcessBinding extends JpdlBinding {
     Map<String, String> swimlaneMappings = new HashMap<String, String>();
 
     for (Element inElement: XmlUtil.elements(element, "swimlane-mapping")) {
-      String swimlane = XmlUtil.attribute(inElement, "swimlane", true, parse);
-      String subSwimlane = XmlUtil.attribute(inElement, "sub-swimlane", true, parse);
+      String swimlane = XmlUtil.attribute(inElement, "swimlane", parse);
+      String subSwimlane = XmlUtil.attribute(inElement, "sub-swimlane", parse);
 
       swimlaneMappings.put(swimlane, subSwimlane);
     }

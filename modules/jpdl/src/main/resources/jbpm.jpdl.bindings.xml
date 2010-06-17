@@ -6,6 +6,7 @@
   <activity binding="org.jbpm.jpdl.internal.activity.EndBinding" />
   <activity binding="org.jbpm.jpdl.internal.activity.EndCancelBinding" />
   <activity binding="org.jbpm.jpdl.internal.activity.EndErrorBinding" />
+  <activity binding="org.jbpm.jpdl.internal.activity.ForEachBinding" />
   <activity binding="org.jbpm.jpdl.internal.activity.ForkBinding" />
   <activity binding="org.jbpm.jpdl.internal.activity.JoinBinding" />
   <activity binding="org.jbpm.jpdl.internal.activity.HqlBinding" />

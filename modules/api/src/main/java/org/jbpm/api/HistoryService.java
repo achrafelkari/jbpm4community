@@ -22,6 +22,7 @@
 package org.jbpm.api;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.jbpm.api.history.HistoryActivityInstanceQuery;
 import org.jbpm.api.history.HistoryDetailQuery;
@@ -33,6 +34,7 @@ import org.jbpm.api.history.HistoryTaskQuery;
  * process instances.
  * 
  * @author Tom Baeyens
+ * @author Maciej Swiderski
  */
 public interface HistoryService {
 
@@ -53,4 +55,13 @@ public interface HistoryService {
   
   /** returns for each transitionName, the number of times that transition was taken */
   Map<String, Integer> choiceDistribution(String processDefinitionId, String activityName);
+  
+  /** retrieves a variable */
+  Set<String> getVariableNames(String processInstanceId);
+  
+  /** retrieves a map of variables */
+  Object getVariable(String processInstanceId, String variableName);
+  
+  /** all the variables visible in the given history execution scope */
+  Map<String, Object> getVariables(String processInstanceId, Set<String> variableNames);
 }

@@ -59,7 +59,7 @@ public class MessageSessionBinding extends WireDescriptorBinding {
         JndiDescriptor jndiDescriptor = new JndiDescriptor(jmsSessionJndiName);
         objectDescriptor.addInjection("jmsSession", jndiDescriptor);
       } else {
-        parse.addProblem("attribute <"+XmlUtil.getTagLocalName(element)+" session-jndi=\"...\" is required when target=\"jms\"", element);
+        parse.addProblem("attribute <"+element.getLocalName()+" session-jndi=\"...\" is required when target=\"jms\"", element);
       }
       
       if (element.hasAttribute("destination-jndi")) {
@@ -67,7 +67,7 @@ public class MessageSessionBinding extends WireDescriptorBinding {
         JndiDescriptor jndiDescriptor = new JndiDescriptor(jmsDestinationJndiName);
         objectDescriptor.addInjection("jmsDestination", jndiDescriptor);
       } else {
-        parse.addProblem("attribute <"+XmlUtil.getTagLocalName(element)+" destination-jndi=\"...\" is required when target=\"jms\"", element);
+        parse.addProblem("attribute <"+element.getLocalName()+" destination-jndi=\"...\" is required when target=\"jms\"", element);
       }
 
     } else {

@@ -29,6 +29,7 @@ import org.jbpm.api.Execution;
 import org.jbpm.api.ExecutionService;
 import org.jbpm.api.ProcessInstance;
 import org.jbpm.api.ProcessInstanceQuery;
+import org.jbpm.pvm.internal.cmd.CreateExecutionVariablesCmd;
 import org.jbpm.pvm.internal.cmd.CreateProcessInstanceQueryCmd;
 import org.jbpm.pvm.internal.cmd.DeleteProcessInstance;
 import org.jbpm.pvm.internal.cmd.EndProcessInstance;
@@ -147,6 +148,18 @@ public class ExecutionServiceImpl extends AbstractServiceImpl implements Executi
 
   public void setVariables(String executionId, Map<String, ?> variables) {
     SetExecutionVariablesCmd cmd = new SetExecutionVariablesCmd(executionId);
+    cmd.setVariables(variables);
+    commandService.execute(cmd);
+  }
+  
+  public void createVariable(String executionId, String name, Object value, boolean historyEnabled) {
+    CreateExecutionVariablesCmd cmd = new CreateExecutionVariablesCmd(executionId, historyEnabled);
+    cmd.addVariable(name, value);
+    commandService.execute(cmd);
+  }
+
+  public void createVariables(String executionId, Map<String, ?> variables, boolean historyEnabled) {
+    CreateExecutionVariablesCmd cmd = new CreateExecutionVariablesCmd(executionId, historyEnabled);
     cmd.setVariables(variables);
     commandService.execute(cmd);
   }

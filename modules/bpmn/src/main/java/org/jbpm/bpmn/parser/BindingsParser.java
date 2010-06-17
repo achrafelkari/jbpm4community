@@ -53,7 +53,7 @@ public class BindingsParser extends Parser {
   }
 
   protected Binding instantiateBinding(Element bindingElement, Parse parse) {
-    String bindingClassName = XmlUtil.attribute(bindingElement, "binding", true, parse);
+    String bindingClassName = XmlUtil.attribute(bindingElement, "binding", parse);
 
     log.trace("adding bpmn binding " + bindingClassName);
 

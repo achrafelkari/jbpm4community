@@ -23,17 +23,17 @@ package org.jbpm.pvm.internal.wire.binding;
 
 import java.util.List;
 
+import org.w3c.dom.Element;
+
 import org.jbpm.pvm.internal.cmd.CommandService;
 import org.jbpm.pvm.internal.svc.AsyncCommandService;
 import org.jbpm.pvm.internal.svc.DefaultCommandService;
-import org.jbpm.pvm.internal.svc.SerializeInterceptor;
 import org.jbpm.pvm.internal.util.XmlUtil;
 import org.jbpm.pvm.internal.wire.Descriptor;
 import org.jbpm.pvm.internal.wire.descriptor.CommandServiceDescriptor;
 import org.jbpm.pvm.internal.wire.xml.WireParser;
 import org.jbpm.pvm.internal.xml.Parse;
 import org.jbpm.pvm.internal.xml.Parser;
-import org.w3c.dom.Element;
 
 /** parses a descriptor for a creating {@link DefaultCommandService}.
  * 
@@ -67,11 +67,13 @@ public class CommandServiceBinding extends WireDescriptorBinding {
   }
 
   protected CommandService getCommandService(Element element, Parse parse, Parser parser) {
-    if ( XmlUtil.attributeBoolean(element, "async", false, parse, Boolean.FALSE)) {
-
+    Boolean async = XmlUtil.attributeBoolean(element, "async", parse);
+    if (Boolean.TRUE.equals(async)) {
       AsyncCommandService asyncCommandService = new AsyncCommandService();
-      if (XmlUtil.attributeBoolean(element, "propagate-auth", false, parse)) {
-        asyncCommandService.setPropagateUserId(true);
+
+      Boolean propagateUserId = XmlUtil.attributeBoolean(element, "propagate-auth", parse);
+      if (propagateUserId!=null) {
+        asyncCommandService.setPropagateUserId(propagateUserId);
       }
       return asyncCommandService;
     }

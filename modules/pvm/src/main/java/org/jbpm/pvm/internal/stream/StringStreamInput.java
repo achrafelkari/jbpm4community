@@ -23,22 +23,28 @@ package org.jbpm.pvm.internal.stream;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-
+import java.io.UnsupportedEncodingException;
 
 /**
  * @author Tom Baeyens
  */
 public class StringStreamInput extends StreamInput {
-  
-  String string;
-  
+
+  private String string;
+
   public StringStreamInput(String string) {
     this.name = "string";
     this.string = string;
   }
 
   public InputStream openStream() {
-    byte[] bytes = string.getBytes();
-    return new ByteArrayInputStream(bytes);
+    try {
+      byte[] bytes = string.getBytes("UTF-8");
+      return new ByteArrayInputStream(bytes);
+    }
+    catch (UnsupportedEncodingException e) {
+      // every implementation of the Java platform is required to support UTF-8
+      throw new AssertionError(e);
+    }
   }
 }

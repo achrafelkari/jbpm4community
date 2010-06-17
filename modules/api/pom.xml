@@ -9,7 +9,7 @@
 <!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6056 2010-01-05 09:13:54Z tom.baeyens@jboss.com $ -->
+<!-- $Id: pom.xml 6363 2010-05-21 00:11:58Z alex.guizar@jboss.com $ -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <!-- Module info -->

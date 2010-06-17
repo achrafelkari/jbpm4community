@@ -19,21 +19,16 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jbpm.examples.goup.timer;
+package org.jbpm.examples.group.concurrency;
 
-import java.util.List;
-
-import org.jbpm.api.Execution;
 import org.jbpm.api.ProcessInstance;
-import org.jbpm.api.job.Job;
-import org.jbpm.api.job.Timer;
 import org.jbpm.test.JbpmTestCase;
 
 
 /**
  * @author Tom Baeyens
  */
-public class GroupTimerTest extends JbpmTestCase {
+public class GroupConcurrencyTest extends JbpmTestCase {
 
   String deploymentId;
   
@@ -41,7 +36,7 @@ public class GroupTimerTest extends JbpmTestCase {
     super.setUp();
     
     deploymentId = repositoryService.createDeployment()
-        .addResourceFromClasspath("org/jbpm/examples/group/timer/process.jpdl.xml")
+        .addResourceFromClasspath("org/jbpm/examples/group/concurrency/process.jpdl.xml")
         .deploy();
   }
 
@@ -51,24 +46,28 @@ public class GroupTimerTest extends JbpmTestCase {
     super.tearDown();
   }
 
-  public void testGroupTimerFires() {
-    ProcessInstance processInstance = executionService.startProcessInstanceByKey("GroupTimer");
-    Execution approveExecution = processInstance.findActiveExecutionIn("approve");
-    assertNotNull(approveExecution);
+  public void testOneFeedbackLoop() {
+    ProcessInstance pi = executionService
+        .startProcessInstanceByKey("GroupConcurrency");
     
-    List<Job> jobs = managementService
-      .createJobQuery()
-      .processInstanceId(processInstance.getId())
-      .list();
+    String documentExecutionId = pi
+        .findActiveExecutionIn("distribute document").getId();
     
-    assertEquals(1, jobs.size());
+    String planningExecutionId = pi
+        .findActiveExecutionIn("make planning").getId();
     
-    Timer timer = (Timer) jobs.get(0);
+    pi = executionService.signalExecutionById(documentExecutionId);
+    assertNotNull(pi.findActiveExecutionIn("collect feedback"));
+    assertNotNull(pi.findActiveExecutionIn("make planning"));
     
-    managementService.executeJob(timer.getId());
+    pi = executionService.signalExecutionById(planningExecutionId);
+    assertNotNull(pi.findActiveExecutionIn("collect feedback"));
+    assertNotNull(pi.findActiveExecutionIn("estimate budget"));
     
-    processInstance = executionService.findProcessInstanceById(processInstance.getId());
-    assertNotNull(processInstance.findActiveExecutionIn("escalate") );
+    pi = executionService.signalExecutionById(planningExecutionId);
+    assertNotNull(pi.findActiveExecutionIn("collect feedback"));
+    
+    pi = executionService.signalExecutionById(documentExecutionId);
+    assertNotNull(pi.findActiveExecutionIn("public project announcement"));
   }
-  
 }

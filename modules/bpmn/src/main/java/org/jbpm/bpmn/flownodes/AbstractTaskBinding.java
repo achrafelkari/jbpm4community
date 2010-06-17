@@ -35,13 +35,13 @@ public class AbstractTaskBinding extends BpmnBinding {
   }
 
   protected void addActivityResources(TaskDefinitionImpl taskDefinition, BpmnActivity taskActivity, Element element, Parse parse) {
-    Element performer = XmlUtil.element(element, PERFORMER, false, parse);
+    Element performer = XmlUtil.element(element, PERFORMER);
     if (performer != null) {
       taskActivity.addActivityResource(addPerformer(taskDefinition, PERFORMER, performer, parse));
     }
 
     // Overrides 'performer'
-    Element humanPerformer = XmlUtil.element(element, HUMAN_PERFORMER, false, parse);
+    Element humanPerformer = XmlUtil.element(element, HUMAN_PERFORMER);
     if (humanPerformer != null) {
       taskActivity.addActivityResource(addPerformer(taskDefinition, HUMAN_PERFORMER, humanPerformer, parse));
     }
@@ -54,19 +54,19 @@ public class AbstractTaskBinding extends BpmnBinding {
 
   private ActivityResource addPerformer(TaskDefinitionImpl taskDefinition, String type, Element performer, Parse parse) {
 
-    String resourceRef = XmlUtil.attribute(performer, "resourceRef", true, parse);
+    String resourceRef = XmlUtil.attribute(performer, "resourceRef", parse);
     
     BpmnProcessDefinition bpmnProcessDefinition = parse.contextStackFind(BpmnProcessDefinition.class);
     
     ActivityResource activityResource = new ActivityResource();
     activityResource.setResourceRef(bpmnProcessDefinition.getResource(resourceRef));
 
-    String scope = XmlUtil.attribute(performer, "jbpm:type", false, parse); // Todo refactor for namespaces
+    String scope = XmlUtil.attribute(performer, "jbpm:type"); // Todo refactor for namespaces
 
-    Element rae = XmlUtil.element(performer, "resourceAssignmentExpression", false, parse);
+    Element rae = XmlUtil.element(performer, "resourceAssignmentExpression");
     if (rae != null) {
-      String formalExpression = XmlUtil.element(rae, "formalExpression", true, parse).getTextContent().trim();
-      String lang = XmlUtil.attribute(rae, "language", false, parse);
+      String formalExpression = XmlUtil.element(rae, "formalExpression", parse).getTextContent().trim();
+      String lang = XmlUtil.attribute(rae, "language");
       Expression expression = Expression.create(formalExpression, lang);
       if (PERFORMER.equals(type) || HUMAN_PERFORMER.equals(type)) {
         taskDefinition.setAssigneeExpression(expression);

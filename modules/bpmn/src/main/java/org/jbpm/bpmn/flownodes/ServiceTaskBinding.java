@@ -47,7 +47,7 @@ public class ServiceTaskBinding extends BpmnBinding {
     BpmnProcessDefinition bpmnProcessDefinition = parse.contextStackFind(BpmnProcessDefinition.class);
         
     // Operation parsing
-    String operationRef = XmlUtil.attribute(element, "operationRef", true, parse, null);
+    String operationRef = XmlUtil.attribute(element, "operationRef", parse);
     Element operationElement = bpmnProcessDefinition.getOperations().get(operationRef);
     if (operationElement == null) {
         parse.addProblem("No operation found for operationRef " + operationRef, operationElement);

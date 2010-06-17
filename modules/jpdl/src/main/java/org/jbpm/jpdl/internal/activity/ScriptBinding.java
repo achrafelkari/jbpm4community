@@ -49,11 +49,13 @@ public class ScriptBinding extends JpdlBinding {
       ScriptManager scriptManager = EnvironmentImpl.getFromCurrent(ScriptManager.class);
       language = scriptManager.getDefaultExpressionLanguage();
       if (textElement!=null) {
-        parse.addProblem("in <script ...> attribute expr can't be combined with a nexted text element", element);
+        parse.addProblem("in <script ...> attribute expr can't be combined with a nested text element", element);
       }
-    } else {
+    } else if(textElement != null) {
       language = XmlUtil.attribute(element, "lang");
       script = XmlUtil.getContentText(textElement);
+    } else {
+      parse.addProblem("<script...> element must have either expr attribute or nested text element", element);
     }
 
     String variableName = XmlUtil.attribute(element, "var");

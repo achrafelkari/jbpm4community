@@ -88,7 +88,7 @@ public class HibernateConfigurationBinding extends WireDescriptorBinding {
     List<Element> configElements = XmlUtil.elements(element);
     for (Element configElement: configElements) {
 
-      if ("cfg".equals(XmlUtil.getTagLocalName(configElement))) {
+      if ("cfg".equals(configElement.getLocalName())) {
         if (configElement.hasAttribute("resource")) {
           String resource = configElement.getAttribute("resource");
           log.trace("adding hibernate configuration resource "+resource);
@@ -108,7 +108,7 @@ public class HibernateConfigurationBinding extends WireDescriptorBinding {
           parse.addProblem("exactly 1 attribute in {resource, file, url} was expected in cfg: "+XmlUtil.toString(configElement), element);
         }
 
-      } else if ("mapping".equals(XmlUtil.getTagLocalName(configElement))) {
+      } else if ("mapping".equals(configElement.getLocalName())) {
         if (configElement.hasAttribute("resource")) {
           String resource = configElement.getAttribute("resource");
           log.trace("adding hibernate mapping resource "+resource);
@@ -133,11 +133,11 @@ public class HibernateConfigurationBinding extends WireDescriptorBinding {
           parse.addProblem("exactly 1 attribute in {resource, file, class, url} was expected in mapping: "+XmlUtil.toString(element));
         }
 
-      } else if ("properties".equals(XmlUtil.getTagLocalName(configElement))) {
+      } else if ("properties".equals(configElement.getLocalName())) {
         PropertiesDescriptor propertiesDescriptor = (PropertiesDescriptor) propertiesBinding.parse(configElement, parse, parser);
         descriptor.setPropertiesDescriptor(propertiesDescriptor);
 
-      } else if ("cache-configuration".equals(XmlUtil.getTagLocalName(configElement))) {
+      } else if ("cache-configuration".equals(configElement.getLocalName())) {
         StreamInput streamSource = null;
 
         String cacheUsage = configElement.getAttribute("usage");
@@ -192,11 +192,11 @@ public class HibernateConfigurationBinding extends WireDescriptorBinding {
           if (cacheElements!=null) {
             for (Element cacheElement : cacheElements) {
 
-              if ("class-cache".equals(XmlUtil.getTagLocalName(cacheElement))) {
+              if ("class-cache".equals(cacheElement.getLocalName())) {
                 String className = cacheElement.getAttribute("class");
                 descriptor.addClassToCache(className, cacheUsage);
 
-              } else if ("collection-cache".equals(XmlUtil.getTagLocalName(cacheElement))) {
+              } else if ("collection-cache".equals(cacheElement.getLocalName())) {
                 String collection = cacheElement.getAttribute("collection");
                 descriptor.addCollectionToCache(collection, cacheUsage);
 

@@ -142,7 +142,6 @@ public class ScopeInstanceImpl implements Serializable {
     variable.setExecution(getExecution());
     variable.setTask(getTask());
     variable.setHistoryEnabled(isHistoryEnabled);
-    
     variable.setValue(value, this);
     
     long dbid = DbidGenerator.getDbidGenerator().getNextId();
@@ -152,7 +151,6 @@ public class ScopeInstanceImpl implements Serializable {
       HistoryEvent.fire(new VariableCreate(variable));
     }
     
-
     return variable;
   }
 
@@ -175,15 +173,13 @@ public class ScopeInstanceImpl implements Serializable {
     if (variable!=null) {
       log.debug("updating variable '"+key+"' in '"+this+"' to value '"+value+"'");
       variable.setValue(value, this);
-
     } else if (getParentVariableScope()==null) {
       createVariable(key, value, null, false);
-
     } else {
       getParentVariableScope().setVariable(key,value);
     }
   }
-  
+
   public void setVariables(Map<String, ?> variables) {
     if (variables!=null) {
       for (Map.Entry<String, ?> entry : variables.entrySet()) {
@@ -241,7 +237,7 @@ public class ScopeInstanceImpl implements Serializable {
     }
     if (hasVariables) {
       for (Map.Entry<String, Variable> entry: variables.entrySet()) {
-        String name = (String) entry.getKey();
+        String name = entry.getKey();
         Variable variable = entry.getValue();
         Object value = variable.getValue(this);
         values.put(name, value);

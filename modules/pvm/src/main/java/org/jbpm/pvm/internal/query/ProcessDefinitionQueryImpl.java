@@ -22,6 +22,7 @@
 package org.jbpm.pvm.internal.query;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -62,18 +63,32 @@ public class ProcessDefinitionQueryImpl extends AbstractQuery implements Process
   protected String deploymentId;
   
   public Object execute(Session session) {
-    List<Map<String, Object>> propertyMaps = (List<Map<String, Object>>) super.execute(session);
-    
-    List<ProcessDefinition> processDefinitions = new ArrayList<ProcessDefinition>();
-    for (Map<String, Object> properties: propertyMaps) {
-      String deploymentId = properties.get("deploymentDbid").toString();
-      String objectName = (String)properties.get("objectName");
-      RepositorySession repositorySession = EnvironmentImpl.getFromCurrent(RepositorySession.class);
-      ProcessDefinitionImpl processDefinition = (ProcessDefinitionImpl) repositorySession.getObject(deploymentId, objectName);
-      processDefinitions.add(processDefinition);
+    Object result = super.execute(session);
+    RepositorySession repositorySession = EnvironmentImpl.getFromCurrent(RepositorySession.class);
+
+    if (uniqueResult) {
+      if (result == null) return null;
+      return getProcessDefinition(repositorySession, result);
     }
-    
-    return processDefinitions;
+    else {
+      List<?> propertyMaps = (List<?>) result;
+      if (propertyMaps.isEmpty()) return Collections.EMPTY_LIST;
+
+      List<ProcessDefinition> processDefinitions = new ArrayList<ProcessDefinition>();
+      for (Object propertyObject: propertyMaps) {
+        ProcessDefinitionImpl processDefinition = getProcessDefinition(repositorySession, propertyObject);
+        processDefinitions.add(processDefinition);
+      }
+      return processDefinitions;
+    }
+  }
+
+  private static ProcessDefinitionImpl getProcessDefinition(RepositorySession repositorySession,
+    Object propertyObject) {
+    Map<?, ?> propertyMap = (Map<?, ?>) propertyObject;
+    String deploymentId = propertyMap.get("deploymentDbid").toString();
+    String objectName = (String)propertyMap.get("objectName");
+    return (ProcessDefinitionImpl) repositorySession.getObject(deploymentId, objectName);
   }
 
   public String hql() {

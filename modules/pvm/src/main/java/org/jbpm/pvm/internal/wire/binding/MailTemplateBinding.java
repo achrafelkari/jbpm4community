@@ -67,7 +67,7 @@ public class MailTemplateBinding extends WireDescriptorBinding {
 
     // create the mail template and add it to the registry
     MailTemplate mailTemplate = parseMailTemplate(element, parse);
-    String templateName = XmlUtil.attribute(element, "name", true, parse);
+    String templateName = XmlUtil.attribute(element, "name", parse);
     templateRegistry.addTemplate(templateName, mailTemplate);
 
     return templateRegistryDescriptor;

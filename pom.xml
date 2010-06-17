@@ -9,7 +9,7 @@
 <!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6237 2010-03-28 00:04:36Z alex.guizar@jboss.com $ -->
+<!-- $Id: pom.xml 6419 2010-06-16 23:22:42Z alex.guizar@jboss.com $ -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -45,19 +45,20 @@
 
   <!-- Properties -->
   <properties>
+    <activation.version>1.1.1</activation.version>
     <apache.ant.version>1.7.0</apache.ant.version>
-    <beanshell.version>2.0b5</beanshell.version>
-    <groovy.version>1.5.6</groovy.version>
-    <cactus.version>1.8.1</cactus.version>
-    <drools.version>5.0.1</drools.version>
     <aspectjrt.version>1.5.3</aspectjrt.version>
+    <beanshell.version>2.0b5</beanshell.version>
+    <cactus.version>1.8.1</cactus.version>
+    <cdi.version>1.0</cdi.version>
+    <drools.version>5.0.1</drools.version>
+    <errai.version>1.1-M1</errai.version>
     <freemarker.version>2.3.15</freemarker.version>
-    <gwt.console.version>2.1-SNAPSHOT</gwt.console.version>
-    <errai.version>1.1-SNAPSHOT</errai.version>
-    <jbpm.gpd.version>4.3</jbpm.gpd.version>
+    <groovy.version>1.5.6</groovy.version>
+    <gwt.console.version>2.1</gwt.console.version>
     <hibernate.version>3.3.1.GA</hibernate.version>
-    <slf4j.version>1.5.2</slf4j.version>
     <hsqldb.version>1.8.0.7</hsqldb.version>
+    <jbpm.gpd.version>4.3</jbpm.gpd.version>
     <jboss.identity.version>1.0.0.Beta1</jboss.identity.version>
     <jboss.j2ee.version>4.2.2.GA</jboss.j2ee.version>
     <jboss.client.version>5.0.1.GA</jboss.client.version>
@@ -70,16 +71,16 @@
     <report.engine.version>2.3.2</report.engine.version>
     <servlet-api.version>2.5</servlet-api.version>
     <signavio.jbpmeditor.version>1.1</signavio.jbpmeditor.version>
+    <slf4j.version>1.5.2</slf4j.version>
     <spring.version>2.0.8</spring.version>
     <stax.api.version>1.0.1</stax.api.version>
     <wiser.version>1.2</wiser.version>
     <woodstox.version>3.2.6</woodstox.version>
-    <mysql.connector.version>5.0.8</mysql.connector.version>
-    <postgresql.version>8.3-603.jdbc3</postgresql.version>
+
     <jtds.version>1.2.2</jtds.version>
+    <mysql.connector.version>5.0.8</mysql.connector.version>
     <oracle.version>10.2.0.4</oracle.version>
-    <cdi.version>1.0</cdi.version>
-    <activation.version>1.1.1</activation.version>
+    <postgresql.version>8.3-603.jdbc3</postgresql.version>
   </properties>
 
   <!-- DependencyManagement -->
@@ -202,11 +203,26 @@
       </dependency>
 
       <!-- External dependencies -->
-      <!-- Please sort by groupid -->
+      <!-- Please sort by artifactId -->
+      <dependency>
+        <groupId>javax.activation</groupId>
+        <artifactId>activation</artifactId>
+        <version>${activation.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.ant</groupId>
+        <artifactId>ant</artifactId>
+        <version>${apache.ant.version}</version>
+      </dependency>
       <dependency>
         <groupId>aspectj</groupId>
         <artifactId>aspectjrt</artifactId>
         <version>${aspectjrt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.beanshell</groupId>
+        <artifactId>bsh</artifactId>
+        <version>${beanshell.version}</version>
       </dependency>
       <dependency>
         <groupId>cactus</groupId>
@@ -224,70 +240,9 @@
         <version>${cactus.version}</version>
       </dependency>
       <dependency>
-        <groupId>jboss</groupId>
-        <artifactId>jboss-j2ee</artifactId>
-        <version>${jboss.j2ee.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>juel</groupId>
-        <artifactId>juel</artifactId>
-        <version>${juel.version}</version>
-      </dependency>
-      <dependency>
-        <!--
-          The juel engine is the library from scripting.java.sun.com that exposes juel as a
-          jsr233 scripting engine. It's not part of the juel distribution. For some reason i
-          don't recall, we uploaded it as an juel-engine artifact in the group juel. And more
-          problematic, used the juel version (2.1.0) for it. That is not intuitive.
-        -->
-        <groupId>juel</groupId>
-        <artifactId>juel-engine</artifactId>
-        <version>${juel.engine.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>${junit.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>servlet-api</artifactId>
-        <version>${servlet-api.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>log4j</groupId>
-        <artifactId>log4j</artifactId>
-        <version>${log4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.activation</groupId>
-        <artifactId>activation</artifactId>
-        <version>${activation.version}</version>
-      </dependency>
-      <dependency>
         <groupId>javax.enterprise</groupId>
         <artifactId>cdi-api</artifactId>
         <version>${cdi.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.mail</groupId>
-        <artifactId>mail</artifactId>
-        <version>${mail.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.ant</groupId>
-        <artifactId>ant</artifactId>
-        <version>${apache.ant.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.beanshell</groupId>
-        <artifactId>bsh</artifactId>
-        <version>${beanshell.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.groovy</groupId>
-        <artifactId>groovy-all</artifactId>
-        <version>${groovy.version}</version>
       </dependency>
       <dependency>
         <groupId>org.drools</groupId>
@@ -300,10 +255,14 @@
         <version>${drools.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.eclipse.birt</groupId>
-        <artifactId>report-engine</artifactId>
-        <type>zip</type>
-        <version>${report.engine.version}</version>
+        <groupId>org.jboss.errai</groupId>
+        <artifactId>errai-common</artifactId>
+        <version>${errai.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.errai</groupId>
+        <artifactId>errai-bus</artifactId>
+        <version>${errai.version}</version>
       </dependency>
       <dependency>
         <groupId>org.freemarker</groupId>
@@ -311,19 +270,9 @@
         <version>${freemarker.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.hibernate</groupId>
-        <artifactId>hibernate-core</artifactId>
-        <version>${hibernate.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jboss.identity.idm</groupId>
-        <artifactId>idm-core</artifactId>
-        <version>${jboss.identity.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jboss.identity.idm</groupId>
-        <artifactId>idm-hibernate</artifactId>
-        <version>${jboss.identity.version}</version>
+        <groupId>org.codehaus.groovy</groupId>
+        <artifactId>groovy-all</artifactId>
+        <version>${groovy.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jboss.bpm</groupId>
@@ -351,14 +300,19 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
-        <groupId>org.jboss.errai</groupId>
-        <artifactId>errai-common</artifactId>
-        <version>${errai.version}</version>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-core</artifactId>
+        <version>${hibernate.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.jboss.errai</groupId>
-        <artifactId>errai-bus</artifactId>
-        <version>${errai.version}</version>
+        <groupId>org.jboss.identity.idm</groupId>
+        <artifactId>idm-core</artifactId>
+        <version>${jboss.identity.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.identity.idm</groupId>
+        <artifactId>idm-hibernate</artifactId>
+        <version>${jboss.identity.version}</version>
       </dependency>
       <dependency>
         <groupId>org.jboss.javaee</groupId>
@@ -372,11 +326,61 @@
         <type>pom</type>
       </dependency>
       <dependency>
+        <groupId>jboss</groupId>
+        <artifactId>jboss-j2ee</artifactId>
+        <version>${jboss.j2ee.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>juel</groupId>
+        <artifactId>juel-api</artifactId>
+        <version>${juel.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>juel</groupId>
+        <artifactId>juel-impl</artifactId>
+        <version>${juel.version}</version>
+      </dependency>
+      <dependency>
+        <!--
+          The juel engine is the library from scripting.java.sun.com that exposes juel as a
+          jsr233 scripting engine. It's not part of the juel distribution. For some reason i
+          don't recall, we uploaded it as an juel-engine artifact in the group juel. And more
+          problematic, used the juel version (2.1.0) for it. That is not intuitive.
+        -->
+        <groupId>juel</groupId>
+        <artifactId>juel-engine</artifactId>
+        <version>${juel.engine.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.livetribe</groupId>
         <artifactId>livetribe-jsr223</artifactId>
         <version>${jsr233.version}</version>
+      </dependency><dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>${log4j.version}</version>
       </dependency>
       <dependency>
+        <groupId>javax.mail</groupId>
+        <artifactId>mail</artifactId>
+        <version>${mail.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.birt</groupId>
+        <artifactId>report-engine</artifactId>
+        <type>zip</type>
+        <version>${report.engine.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>servlet-api</artifactId>
+        <version>${servlet-api.version}</version>
+      </dependency><dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
@@ -419,6 +423,11 @@
         <version>${hsqldb.version}</version>
       </dependency>
       <dependency>
+        <groupId>net.sourceforge.jtds</groupId>
+        <artifactId>jtds</artifactId>
+        <version>${jtds.version}</version>
+      </dependency>
+      <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
         <version>${mysql.connector.version}</version>
@@ -427,11 +436,6 @@
         <groupId>postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>${postgresql.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>net.sourceforge.jtds</groupId>
-        <artifactId>jtds</artifactId>
-        <version>${jtds.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -444,16 +448,11 @@
         <configuration>
           <source>1.5</source>
           <target>1.5</target>
-          <showDeprecation>true</showDeprecation>
-          <showWarnings>true</showWarnings>
-          <optimize>true</optimize>
         </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <failIfNoTests>false</failIfNoTests>
-          <trimStackTrace>false</trimStackTrace>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <excludes>
             <exclude>**/*TestCase.java</exclude>
@@ -468,7 +467,7 @@
     <repository>
       <id>jboss-public-repository-group</id>
       <name>JBoss Public Maven Repository Group</name>
-      <url>https://repository.jboss.org/nexus/content/groups/public/</url>
+      <url>http://repository.jboss.org/nexus/content/groups/public/</url>
       <releases>
         <enabled>true</enabled>
         <updatePolicy>never</updatePolicy>
@@ -483,7 +482,7 @@
     <pluginRepository>
       <id>jboss-public-repository-group</id>
       <name>JBoss Public Maven Repository Group</name>
-      <url>https://repository.jboss.org/nexus/content/groups/public/</url>
+      <url>http://repository.jboss.org/nexus/content/groups/public/</url>
       <releases>
         <enabled>true</enabled>
         <updatePolicy>never</updatePolicy>
@@ -505,7 +504,7 @@
     </profile>
 
     <!-- PROFILE DISTRO
-    -Pdistro
+    -Pdistro 
     -->
     <profile>
       <id>distro</id>
@@ -550,7 +549,7 @@
     </profile>
 
     <!-- PROFILE NO-DATABASE
-    The default configurations are based on hsqldb
+    The default configurations are based on hsqldb 
     -->
     <profile>
       <id>no-database</id>
@@ -592,8 +591,8 @@
       </dependencies>
     </profile>
 
-    <!-- PROFILE ORACLE
-    -Ddatabase=oracle
+    <!-- PROFILE ORACLE    
+    -Ddatabase=oracle 
     -->
     <profile>
       <id>oracle</id>
@@ -619,7 +618,7 @@
       </repositories>
     </profile>
 
-    <!-- PROFILE MYSQL
+    <!-- PROFILE MYSQL 
     -Ddatabase=mysql -->
     <profile>
       <id>mysql</id>
@@ -639,7 +638,7 @@
       </dependencies>
     </profile>
 
-    <!-- PROFILE POSTGRESQL
+    <!-- PROFILE POSTGRESQL 
     -Ddatabase=postgresql -->
     <profile>
       <id>postgresql</id>
@@ -658,7 +657,7 @@
       </dependencies>
     </profile>
 
-    <!-- PROFILE SYBASE
+    <!-- PROFILE SYBASE 
     -Ddatabase=sybase -->
     <profile>
       <id>sybase</id>

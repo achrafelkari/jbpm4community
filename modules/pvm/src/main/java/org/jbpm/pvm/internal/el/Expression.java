@@ -109,13 +109,14 @@ public abstract class Expression implements Serializable {
   public abstract Object evaluateInScope(ScopeInstanceImpl scopeInstance);
 
   protected ELContext getElContext(ScopeInstanceImpl scopeInstance) {
-    ELContext elContext = (ELContext) (scopeInstance!=null ? scopeInstance.getElContext() : null);
-    if (elContext==null) {
-      JbpmElFactory contextFactory = JbpmElFactory.getJbpmElFactory();
-      elContext = contextFactory.createElContext(scopeInstance);
-      if (scopeInstance!=null) {
-        scopeInstance.setElContext(elContext);
-      }
+    if (scopeInstance == null) {
+      return JbpmElFactory.getJbpmElFactory().createElContext();
+    }
+
+    ELContext elContext = (ELContext) scopeInstance.getElContext();
+    if (elContext == null) {
+      elContext = JbpmElFactory.getJbpmElFactory().createElContext(scopeInstance);
+      scopeInstance.setElContext(elContext);
     }
     return elContext;
   }

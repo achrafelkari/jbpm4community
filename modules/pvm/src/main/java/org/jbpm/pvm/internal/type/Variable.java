@@ -41,12 +41,12 @@ public abstract class Variable implements Serializable {
   private static final long serialVersionUID = 1L;
   
   protected long dbid = -1;
-  protected int dbversion = 0;
+  protected int dbversion;
   
-  protected String key = null;
-  protected Converter converter = null;
-  protected String textValue = null;
-  protected boolean isHistoryEnabled = false;
+  protected String key;
+  protected Converter converter;
+  protected String textValue;
+  protected boolean isHistoryEnabled;
   
   protected ExecutionImpl execution;
   protected TaskImpl task;
@@ -79,29 +79,25 @@ public abstract class Variable implements Serializable {
 
   public void setValue(Object value, ScopeInstanceImpl scopeInstance) {
     if (converter!=null) {
-      if (! converter.supports(value, scopeInstance, this)) {
+      if (!converter.supports(value, scopeInstance, this)) {
         throw new JbpmException("the converter '"+converter.getClass().getName()+"' in variable instance '"+this.getClass().getName()+"' does not support values of type '"+value.getClass().getName()+"'.  to change the type of a variable, you have to delete it first");
       }
       value = converter.convert(value, scopeInstance, this);
     }
-    if ( (value!=null)
-         && (! this.isStorable(value)) ) {
-      throw new JbpmException("variable instance '"+this.getClass().getName()+"' does not support values of type '"+value.getClass().getName()+"'.  to change the type of a variable, you have to delete it first");
+    if (value!=null && !isStorable(value)) {
+      throw new JbpmException("variable instance '"+getClass().getName()+"' does not support values of type '"+value.getClass().getName()+"'.  to change the type of a variable, you have to delete it first");
     }
     setObject(value);
     
     HistorySession historySession = EnvironmentImpl.getFromCurrent(HistorySession.class, false);
-    if ( isHistoryEnabled 
-         && (historySession!=null)
-       ) {
+    if (isHistoryEnabled && historySession!=null && getDbid()!=-1) {
       HistoryEvent.fire(new VariableUpdate(this));
     }
   }
 
   public Object getValue(ScopeInstanceImpl scopeInstance) {
     Object value = getObject();
-    if ( (value!=null)
-         && (converter!=null) ) {
+    if (value!=null && converter!=null) {
       value = converter.revert(value, scopeInstance, this);
     }
     return value;
@@ -121,7 +117,7 @@ public abstract class Variable implements Serializable {
   }
   
   public ExecutionImpl getProcessInstance() {
-    return (execution!=null ? execution.getProcessInstance() : null);
+    return execution!=null ? execution.getProcessInstance() : null;
   }
 
   // getters and setters //////////////////////////////////////////////////////

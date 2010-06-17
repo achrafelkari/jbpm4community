@@ -87,7 +87,7 @@ public class ProcessEngineImpl implements Context, ProcessEngine, EnvironmentFac
   private static final long serialVersionUID = 1L;
   private static final Log log = Log.getLog(ProcessEngineImpl.class.getName());
   
-  public static final String JBPM_LIBRARY_VERSION = "4.3";
+  public static final String JBPM_LIBRARY_VERSION = "4.4-SNAPSHOT";
 
   transient protected WireContext processEngineWireContext;
   transient protected WireDefinition transactionWireDefinition;

@@ -75,7 +75,8 @@ public class JobExecutorBinding extends WireDescriptorBinding {
     parseIntAttribute(element, "lock", descriptor, "lockMillis", parse);
 
     // by default invoke the start method, unless auto-start is disabled
-    if (XmlUtil.attributeBoolean(element, "auto-start", false, parse, true)) {
+    Boolean autoStart = XmlUtil.attributeBoolean(element, "auto-start", parse);
+    if (autoStart == null || autoStart.booleanValue()) {
       InvokeOperation invokeStartOperation = new InvokeOperation();
       invokeStartOperation.setMethodName("start");
       descriptor.addOperation(invokeStartOperation);
@@ -87,7 +88,7 @@ public class JobExecutorBinding extends WireDescriptorBinding {
   }
 
   private void parseIntAttribute(Element element, String attributeName, ObjectDescriptor descriptor, String fieldName, Parse parse) {
-    Integer intValue = XmlUtil.attributeInteger(element, attributeName, false, parse);
+    Integer intValue = XmlUtil.attributeInteger(element, attributeName, parse);
     if (intValue!=null) {
       descriptor.addInjection(fieldName, new IntegerDescriptor(intValue));
     }

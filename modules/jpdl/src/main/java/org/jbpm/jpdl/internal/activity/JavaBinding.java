@@ -47,8 +47,8 @@ public class JavaBinding extends JpdlBinding {
 
   public Object parseJpdl(Element element, Parse parse, JpdlParser parser) {
     JavaActivity javaActivity = new JavaActivity();
-    if (XmlUtil.attribute(element, "method", true, parse, null)!=null) {      
-      String jndiName = XmlUtil.attribute(element, "ejb-jndi-name", false, parse, null); 
+    if (XmlUtil.attribute(element, "method", parse)!=null) {      
+      String jndiName = XmlUtil.attribute(element, "ejb-jndi-name"); 
       if (jndiName != null) {
         parseEjbInvocation(javaActivity, element, parse, parser);
       } else {

@@ -21,8 +21,6 @@
  */
 package org.jbpm.pvm.internal.el;
 
-import java.util.Properties;
-
 import javax.el.ArrayELResolver;
 import javax.el.BeanELResolver;
 import javax.el.CompositeELResolver;
@@ -39,7 +37,6 @@ import javax.naming.NamingException;
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.model.ScopeInstanceImpl;
-
 
 /**
  * @author Tom Baeyens
@@ -105,16 +102,20 @@ public class JbpmElFactoryImpl extends JbpmElFactory {
   }
 
   public ExpressionFactory createExpressionFactory() {
-    // TODO these ExpressionFactory properties could be integrated in the configuration  
-    Properties properties = new Properties();
-    properties.setProperty("javax.el.methodInvocations", "true");
-    ExpressionFactory expressionFactory = ExpressionFactory.newInstance(properties);
+    ExpressionFactory expressionFactory;
+    try {
+      expressionFactory = ExpressionFactory.newInstance();
+    } catch (NoSuchMethodError e) {
+      // to support previous version of el-api 
+      expressionFactory = (ExpressionFactory) FactoryFinder.find(ExpressionFactory.class
+        .getName(),"de.odysseus.el.ExpressionFactoryImpl", null, "el.properties");
+    }
 
     BeanManager beanManager = getBeanManager();
     if (beanManager!=null) {
       expressionFactory = beanManager.wrapExpressionFactory(expressionFactory);
     }
-    
+
     return expressionFactory;
   }
 

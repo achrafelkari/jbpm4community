@@ -19,7 +19,10 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jbpm.examples.goup.simple;
+package org.jbpm.examples.group.multipleentries;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jbpm.api.ProcessInstance;
 import org.jbpm.test.JbpmTestCase;
@@ -28,18 +31,16 @@ import org.jbpm.test.JbpmTestCase;
 /**
  * @author Tom Baeyens
  */
-/**
- * @author Tom Baeyens
- */
-public class GroupSimpleTest extends JbpmTestCase {
+public class MultipleEntriesTest extends JbpmTestCase {
 
+  
   String deploymentId;
   
   protected void setUp() throws Exception {
     super.setUp();
     
     deploymentId = repositoryService.createDeployment()
-        .addResourceFromClasspath("org/jbpm/examples/group/simple/process.jpdl.xml")
+        .addResourceFromClasspath("org/jbpm/examples/group/multipleentries/process.jpdl.xml")
         .deploy();
   }
 
@@ -49,24 +50,23 @@ public class GroupSimpleTest extends JbpmTestCase {
     super.tearDown();
   }
 
-  public void testOneFeedbackLoop() {
-    ProcessInstance processInstance = executionService.startProcessInstanceByKey("GroupSimple");
-    String pid = processInstance.getId();
-    assertTrue(processInstance.isActive("distribute document"));
+  public void testPlentyOfTime() {
+    Map<String, Object> variables = new HashMap<String, Object>();
+    variables.put("time", "plenty");
     
-    processInstance = executionService.signalExecutionById(pid);
-    assertTrue(processInstance.isActive("collect feedback"));
+    ProcessInstance pi = executionService
+        .startProcessInstanceByKey("GroupMultipleEntries", variables);
     
-    processInstance = executionService.signalExecutionById(pid, "rejected");
-    assertTrue(processInstance.isActive("update document"));
+    assertNotNull(pi.findActiveExecutionIn("distribute document"));
+  }
+
+  public void testTimeIsRunningOut() {
+    Map<String, Object> variables = new HashMap<String, Object>();
+    variables.put("time", "running out");
     
-    processInstance = executionService.signalExecutionById(pid);
-    assertTrue(processInstance.isActive("distribute document"));
+    ProcessInstance pi = executionService
+        .startProcessInstanceByKey("GroupMultipleEntries", variables);
     
-    processInstance = executionService.signalExecutionById(pid);
-    assertTrue(processInstance.isActive("collect feedback"));
-    
-    processInstance = executionService.signalExecutionById(pid, "approved");
-    assertTrue(processInstance.isActive("publish document"));
+    assertNotNull(pi.findActiveExecutionIn("make planning"));
   }
 }

@@ -257,7 +257,7 @@ public class HistoryActivityInstanceQueryTest extends JbpmTestCase {
     return ids;
   }
   
-  private void testOrderBy(String property, List expectedValues) {
+  private void testOrderBy(String property, List<?> expectedValues) {
     testOrderBy(property, expectedValues, null, false);
   }
 
@@ -265,8 +265,7 @@ public class HistoryActivityInstanceQueryTest extends JbpmTestCase {
     testOrderBy(property, null, expectedNrOfResults, true);
   }
   
-  @SuppressWarnings("unchecked")
-  private void testOrderBy(String property, List expectedValues, 
+  private void testOrderBy(String property, List<?> expectedValues, 
           Integer expectedNrOfResults, boolean naturalOrderCheck) {
     
     deployStartAndSignalTestProcesses();
@@ -282,7 +281,6 @@ public class HistoryActivityInstanceQueryTest extends JbpmTestCase {
     } else {
       QueryAssertions.assertOrderOnProperty(HistoryActivityInstance.class, property, listAsc, listDesc, expectedValues);
     }
-    
   }
   
   /**
@@ -329,7 +327,10 @@ public class HistoryActivityInstanceQueryTest extends JbpmTestCase {
   public void testQueryByProcessInstanceId() {
     deployTestProcessWithTask();
     List<String> ids = generateHistoryForTestProcessWithTask();
-    List<HistoryActivityInstance> history = historyService.createHistoryActivityInstanceQuery().processInstanceId(ids.get(0)).list();
+    List<HistoryActivityInstance> history = historyService
+      .createHistoryActivityInstanceQuery()
+      .processInstanceId(ids.get(0))
+      .orderAsc("id").list();
     
     //first check size of history entries
     assertEquals(3, history.size());
@@ -348,7 +349,10 @@ public class HistoryActivityInstanceQueryTest extends JbpmTestCase {
   public void testQueryByExecutionIdMissingTask() {
     deployTestProcessWithTask();
     List<String> ids = generateHistoryForTestProcessWithTask();
-    List<HistoryActivityInstance> history = historyService.createHistoryActivityInstanceQuery().executionId(ids.get(0)).list();
+    List<HistoryActivityInstance> history = historyService
+      .createHistoryActivityInstanceQuery()
+      .executionId(ids.get(0))
+      .orderAsc("id").list();
     
     // check size of history entries
     assertEquals(2, history.size());

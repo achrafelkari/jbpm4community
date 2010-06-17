@@ -125,7 +125,7 @@ public class ProcessDeployer implements Deployer {
     if (processDefinitionKey==null) {
       // derive the key from the name
       // replace any non-word character with an underscore
-      processDefinitionKey = processDefinitionName.replaceAll("\\W", "_");
+      processDefinitionKey = processDefinitionName.replaceAll("[^\\p{L}\\p{N}]", "_");
       processDefinition.setKey(processDefinitionKey);
     }
     

@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.jbpm.api.Execution;
 import org.jbpm.api.activity.ActivityExecution;
@@ -33,7 +34,6 @@ import org.jbpm.api.model.Transition;
 import org.jbpm.pvm.internal.model.Condition;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.model.TransitionImpl;
-
 
 /**
  * @author Tom Baeyens
@@ -49,55 +49,51 @@ public class ForkActivity extends JpdlActivity {
   public void execute(ExecutionImpl execution) {
     Activity activity = execution.getActivity();
 
-    // evaluate the conditions and find the transitions that should be forked
+    // evaluate the conditions and select the forking transitions
     List<Transition> forkingTransitions = new ArrayList<Transition>();
-    List<TransitionImpl> outgoingTransitions = (List) activity.getOutgoingTransitions();
-    for (TransitionImpl transition: outgoingTransitions) {
-      Condition condition = transition.getCondition();
-      if  ( (condition==null)
-            || (condition.evaluate(execution))
-          ) {
+    for (Transition transition: activity.getOutgoingTransitions()) {
+      Condition condition = ((TransitionImpl) transition).getCondition();
+      if (condition==null || condition.evaluate(execution)) {
         forkingTransitions.add(transition);
       }
     }
 
-    // if no outgoing transitions should be forked, 
-    if (forkingTransitions.size()==0) {
-      // end this execution
+    switch (forkingTransitions.size()) {
+    case 0:
+      // if no outgoing transitions should be forked, end this execution
       execution.end();
-
-    // if there is exactly 1 transition to be taken, just use the incoming execution
-    } else if (forkingTransitions.size()==1) {
+      break;
+    case 1:
+      // if there is exactly one transition to be taken, just use the incoming execution
       execution.take(forkingTransitions.get(0));
-      
-    // if there are more transitions
-    } else {
-      ExecutionImpl concurrentRoot = null;
+      break;
+    default:
+      // if there are more transitions, perform full fork
+      ExecutionImpl concurrentRoot;
       if (Execution.STATE_ACTIVE_ROOT.equals(execution.getState())) {
         concurrentRoot = execution;
         execution.setState(Execution.STATE_INACTIVE_CONCURRENT_ROOT);
         execution.setActivity(null);
-      } else if (Execution.STATE_ACTIVE_CONCURRENT.equals(execution.getState())) {
+      }
+      else if (Execution.STATE_ACTIVE_CONCURRENT.equals(execution.getState())) {
         concurrentRoot = execution.getParent();
         execution.end();
       }
+      else {
+        throw new AssertionError(execution.getState());
+      }
 
-      Map<Transition, ExecutionImpl> childExecutionsMap = new HashMap<Transition, ExecutionImpl>();
+      Map<Transition, ExecutionImpl> concurrentExecutions = new HashMap<Transition, ExecutionImpl>();
       for (Transition transition : forkingTransitions) {
-        // launch a concurrent path of execution
-        String childExecutionName = transition.getName();
-        ExecutionImpl concurrentExecution = concurrentRoot.createExecution(childExecutionName);
+        ExecutionImpl concurrentExecution = concurrentRoot.createExecution(transition.getName());
         concurrentExecution.setActivity(activity);
         concurrentExecution.setState(Execution.STATE_ACTIVE_CONCURRENT);
-        childExecutionsMap.put(transition, concurrentExecution);
+        concurrentExecutions.put(transition, concurrentExecution);
       }
-      
-      for (Transition transition : childExecutionsMap.keySet()) {
-        childExecutionsMap.get(transition).take(transition);
 
-        if (concurrentRoot.isEnded()) {
-          break;
-        }
+      for (Entry<Transition, ExecutionImpl> entry : concurrentExecutions.entrySet()) {
+        entry.getValue().take(entry.getKey());
+        if (concurrentRoot.isEnded()) break;
       }
     }
   }

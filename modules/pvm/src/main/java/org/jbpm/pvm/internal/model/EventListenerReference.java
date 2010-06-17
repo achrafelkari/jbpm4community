@@ -33,10 +33,10 @@ public class EventListenerReference extends ProcessElementImpl {
   private static final long serialVersionUID = 1L;
 
   protected EventListener eventListener;
-  protected boolean isEventListenerStateful= false;
+  protected boolean isEventListenerStateful;
   protected Descriptor eventListenerDescriptor;
   /** does this action accept propagated events ?  */
-  protected boolean isPropagationEnabled = false;
+  protected boolean isPropagationEnabled;
   protected Continuation continuation = Continuation.SYNCHRONOUS;
 
   /** does this action accept propagated events ?  Default is false. */

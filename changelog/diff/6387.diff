@@ -1,0 +1,126 @@
+Index: modules/bpmn/src/main/java/org/jbpm/bpmn/flownodes/ExclusiveGatewayActivity.java
+===================================================================
+--- modules/bpmn/src/main/java/org/jbpm/bpmn/flownodes/ExclusiveGatewayActivity.java	(revision 6386)
++++ modules/bpmn/src/main/java/org/jbpm/bpmn/flownodes/ExclusiveGatewayActivity.java	(revision 6387)
+@@ -53,8 +53,8 @@
+     List<Transition> transitions = findOutgoingSequenceFlow(execution, CONDITIONS_CHECKED);
+     int numTransitions = transitions.size();
+ 
+-    if (numTransitions > 2) {
+-      transitions = transitions.subList(0, 0);
++    if (numTransitions > 1) {
++      transitions = transitions.subList(0, 1);
+       if (log.isInfoEnabled()) {
+ 	      log.info("More than one outgoing sequenceFlow conditions evaluated to true for " 
+ 	    		  + execution.getActivity() + ", taking the first one ("
+Index: modules/test-db/src/test/java/org/jbpm/bpmn/ExclusiveGatewayTest.java
+===================================================================
+--- modules/test-db/src/test/java/org/jbpm/bpmn/ExclusiveGatewayTest.java	(revision 6386)
++++ modules/test-db/src/test/java/org/jbpm/bpmn/ExclusiveGatewayTest.java	(revision 6387)
+@@ -29,12 +29,10 @@
+ import javax.xml.parsers.DocumentBuilderFactory;
+ import javax.xml.parsers.ParserConfigurationException;
+ 
+-import org.dom4j.DocumentFactory;
+ import org.jbpm.api.ProcessInstance;
+ import org.jbpm.api.TaskQuery;
+ import org.jbpm.api.task.Task;
+ import org.jbpm.bpmn.parser.BpmnParser;
+-import org.jbpm.pvm.internal.util.XmlUtil;
+ import org.jbpm.pvm.internal.xml.Problem;
+ import org.jbpm.test.JbpmTestCase;
+ import org.w3c.dom.Document;
+@@ -103,6 +101,45 @@
+     }
+   }
+   
++  public void testTwoTransitionsEvaluatedToTrueExecuteDecisionCondition() {
++
++    String deploymentId = repositoryService.createDeployment().addResourceFromClasspath("org/jbpm/bpmn/exclusiveGatewayTwoTransitions.bpmn.xml").deploy();
++
++    try {
++        ProcessInstance pi = executionService.startProcessInstanceByKey("exclusiveGatewayTwoTransitions");
++        String pid = pi.getId();
++        
++        TaskQuery taskQuery = taskService.createTaskQuery();
++        List<Task> allTasks = taskQuery.list();
++
++        assertEquals(1, allTasks.size());
++        assertEquals("testTask1", allTasks.get(0).getActivityName());
++        taskService.completeTask( allTasks.get(0).getId());
++
++        allTasks = taskQuery.list();
++        assertEquals(1, allTasks.size());
++        assertEquals("testTask2", allTasks.get(0).getActivityName());
++        
++        HashMap<String, Integer> vars = new HashMap<String, Integer>();
++        vars.put("variable", 3);
++        
++        taskService.completeTask( allTasks.get(0).getId(),vars);
++        
++        allTasks = taskQuery.list();
++        assertEquals(1, allTasks.size());
++        
++        taskService.completeTask( allTasks.get(0).getId());
++        
++        // process instance should be ended
++        pi = executionService.findProcessInstanceById(pid);
++        assertNull(pi);
++        
++    }
++    finally {
++        repositoryService.deleteDeploymentCascade(deploymentId);
++    }
++  }
++  
+   public void testNormalExecuteDefault() {
+ 
+     String deploymentId = repositoryService.createDeployment().addResourceFromClasspath("org/jbpm/bpmn/exclusiveGateway.bpmn.xml").deploy();
+Index: modules/test-db/src/test/resources/org/jbpm/bpmn/exclusiveGatewayTwoTransitions.bpmn.xml
+===================================================================
+--- modules/test-db/src/test/resources/org/jbpm/bpmn/exclusiveGatewayTwoTransitions.bpmn.xml	(revision 0)
++++ modules/test-db/src/test/resources/org/jbpm/bpmn/exclusiveGatewayTwoTransitions.bpmn.xml	(revision 6387)
+@@ -0,0 +1,43 @@
++<?xml version="1.0" encoding="UTF-8"?>
++
++<definitions id="testComplexSituationExecuteDecisionConditionProcesses" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
++	xsi:schemaLocation="http://schema.omg.org/spec/BPMN/2.0 BPMN20.xsd"
++	xmlns="http://schema.omg.org/spec/BPMN/2.0" typeLanguage="http://www.w3.org/2001/XMLSchema"
++	expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://vitras.com/rwar"
++	xmlns:jbpm="http://jbpm.org/bpmn2">
++
++	<process id="exclusiveGatewayTwoTransitions" name="exclusiveGatewayTwoTransitions">
++
++		<startEvent id="start" />
++
++		<sequenceFlow id="initial" name="toTestTask1" sourceRef="start"
++			targetRef="testTask1" />
++
++		<userTask id="testTask1" name="testTask1" implementation="other" />
++
++		<sequenceFlow id="toTestTask1" sourceRef="testTask1"
++			targetRef="testTask2" />
++
++		<userTask id="testTask2" name="testTask2" implementation="other" />
++
++		<sequenceFlow id="toExclusiveGateway1" sourceRef="testTask2"
++			targetRef="exclusiveGateway1" />
++
++		<exclusiveGateway id="exclusiveGateway1" name="exclusiveGateway1" />
++
++		<sequenceFlow id="toTestTask3" sourceRef="exclusiveGateway1" targetRef="testTask3">
++			<conditionExpression xsi:type="tFormalExpression">${variable&gt;2}</conditionExpression>
++		</sequenceFlow>
++		
++		<sequenceFlow id="toTestTask1Again" sourceRef="exclusiveGateway1"
++			targetRef="testTask1" />
++
++		<userTask id="testTask3" name="TestTask3" implementation="other" />
++
++		<sequenceFlow id="toEnd" name="to End" sourceRef="testTask3"
++			targetRef="end" />
++
++		<endEvent id="end" name="End" />
++
++	</process>
++</definitions>

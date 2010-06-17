@@ -67,7 +67,7 @@ public class JpdlDeployer extends ProcessDeployer {
         .execute()
         .getDocument();
       Element documentElement = document.getDocumentElement();
-      String tagName = XmlUtil.getTagLocalName(documentElement);
+      String tagName = documentElement.getLocalName();
       
       if ("process-update".equals(tagName)) {
         updateJpdlProcessResource(deployment, resourceName, document);
@@ -173,7 +173,7 @@ public class JpdlDeployer extends ProcessDeployer {
     Map<String, Element> activityMap = new HashMap<String, Element>();
     
     for (Element element: XmlUtil.elements(containerElement)) {
-      String tagName = XmlUtil.getTagLocalName(element);
+      String tagName = element.getLocalName();
       if (activityNames.contains(tagName)) {
         String activityName = element.getAttribute("name");
         activityMap.put(activityName, element);

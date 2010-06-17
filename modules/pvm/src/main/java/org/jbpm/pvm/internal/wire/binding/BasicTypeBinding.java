@@ -20,14 +20,14 @@ public abstract class BasicTypeBinding extends WireDescriptorBinding {
       String value = element.getAttribute("value");
       descriptor = createDescriptor(value, element, parse);
     } else {
-      parse.addProblem("attribute 'value' is required in element '"+XmlUtil.getTagLocalName(element)+"': "+XmlUtil.toString(element), element);
+      parse.addProblem("attribute 'value' is required in element '"+element.getLocalName()+"': "+XmlUtil.toString(element), element);
     }
     
     return descriptor;
   }
   
   public String createValueExceptionMessage(String message, Element element) {
-    return XmlUtil.getTagLocalName(element)+" has invalid formatted value attribute: "+(message!=null ? message+": " : "")+XmlUtil.toString(element);
+    return element.getLocalName()+" has invalid formatted value attribute: "+(message!=null ? message+": " : "")+XmlUtil.toString(element);
   }
 
   /** subclasses can be sure that the value is not null.
