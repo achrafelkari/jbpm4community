@@ -38,18 +38,14 @@ import org.hibernate.engine.SessionFactoryImplementor;
 import org.hibernate.mapping.ForeignKey;
 import org.hibernate.mapping.Table;
 import org.jbpm.api.ProcessEngine;
-import org.jbpm.internal.log.Log;
-
 
 /**
  * @author Tom Baeyens
  */
 public class Db {
   
-  private static final Log log = Log.getLog(Db.class.getName());
-
-  static Map<ProcessEngine, String[]> cleanSqlCache = new HashMap<ProcessEngine, String[]>();
-  static Map<ProcessEngine, String[]> tableNamesCache = new HashMap<ProcessEngine, String[]>();
+  private static final Map<ProcessEngine, String[]> cleanSqlCache = new HashMap<ProcessEngine, String[]>();
+  private static final Map<ProcessEngine, String[]> tableNamesCache = new HashMap<ProcessEngine, String[]>();
   
   public static void clean(ProcessEngine processEngine) {
     SessionFactory sessionFactory = processEngine.get(SessionFactory.class);
@@ -70,28 +66,25 @@ public class Db {
       // loop over all foreign key constraints
       List<String> dropForeignKeysSql = new ArrayList<String>();
       List<String> createForeignKeysSql = new ArrayList<String>();
-      Iterator<Table> iter = configuration.getTableMappings();
       
       //if no session-factory is build, the configuration is not fully initialized.
       //Hence, the ForeignKey's won't have a referenced table. This is calculated on 
       //second pass.
       configuration.buildMappings();
       
-      
-      while (iter.hasNext()) {
+      for (Iterator<?> iter = configuration.getTableMappings(); iter.hasNext();) {
         Table table = (Table) iter.next();
         if (table.isPhysicalTable()) {
           String catalog = table.getCatalog();
           String schema = table.getSchema();
-          Iterator<ForeignKey> subIter = table.getForeignKeyIterator();
-          while (subIter.hasNext()) {
+
+          for (Iterator<?> subIter = table.getForeignKeyIterator(); subIter.hasNext();) {
             ForeignKey fk = (ForeignKey) subIter.next();
             if (fk.isPhysicalConstraint()) {
               // collect the drop foreign key constraint sql
               dropForeignKeysSql.add(fk.sqlDropString(dialect, catalog, schema));
               // MySQLDialect creates an index for each foreign key.
-              // see
-              // http://opensource.atlassian.com/projects/hibernate/browse/HHH-2155
+              // see http://opensource.atlassian.com/projects/hibernate/browse/HHH-2155
               // This index should be dropped or an error will be thrown during
               // the creation phase
               if (dialect instanceof MySQLDialect) {
@@ -105,8 +98,7 @@ public class Db {
       }
 
       List<String> deleteSql = new ArrayList<String>();
-      iter = configuration.getTableMappings();
-      while (iter.hasNext()) {
+      for (Iterator<?> iter = configuration.getTableMappings(); iter.hasNext();) {
         Table table = (Table) iter.next();
         if (table.isPhysicalTable()) {
           deleteSql.add("delete from " + table.getName());
@@ -123,7 +115,7 @@ public class Db {
       cleanSqlList.addAll(deleteSql);
       cleanSqlList.addAll(createForeignKeysSql);
 
-      cleanSql = (String[]) cleanSqlList.toArray(new String[cleanSqlList.size()]);
+      cleanSql = cleanSqlList.toArray(new String[cleanSqlList.size()]);
       
       cleanSqlCache.put(processEngine, cleanSql);
     }
@@ -154,8 +146,7 @@ public class Db {
       
       // loop over all foreign key constraints
       List<String> tableNamesList = new ArrayList<String>();
-      Iterator iter = configuration.getTableMappings();
-      while (iter.hasNext()) {
+      for (Iterator<?> iter = configuration.getTableMappings(); iter.hasNext();) {
         Table table = (Table) iter.next();
         if (table.isPhysicalTable()) {
           tableNamesList.add(table.getName());

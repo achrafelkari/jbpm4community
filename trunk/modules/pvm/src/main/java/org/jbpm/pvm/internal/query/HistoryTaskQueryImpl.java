@@ -25,11 +25,11 @@ import java.util.Date;
 import java.util.List;
 
 import org.hibernate.Query;
+
 import org.jbpm.api.history.HistoryTask;
 import org.jbpm.api.history.HistoryTaskQuery;
 import org.jbpm.pvm.internal.history.model.HistoryTaskImpl;
-import org.jbpm.pvm.internal.util.Clock;
-
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 /**
  * @author Tom Baeyens
@@ -120,7 +120,7 @@ public class HistoryTaskQueryImpl extends AbstractQuery implements HistoryTaskQu
   }
 
   public List<HistoryTask> list() {
-    return (List) untypedList();
+    return CollectionUtil.checkList(untypedList(), HistoryTask.class);
   }
   
   public HistoryTask uniqueResult() {

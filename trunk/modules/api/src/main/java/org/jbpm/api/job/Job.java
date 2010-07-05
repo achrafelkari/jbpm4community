@@ -38,13 +38,13 @@ public interface Job {
   String getLockOwner();
 
   /** in case this is a timer, it is the time that the timer should fire, in case this 
-   * is a message, it is null. 
-   * @deprecated */
-  @Deprecated
+   * is a message, it is null. */
   Date getDueDate();
 
   /** in case this is a timer, it is the time that the timer should fire, in case this 
-   * is a message, it is null. */
+   * is a message, it is null.
+   * @deprecated call {@link #getDueDate()} instead */
+  @Deprecated
   Date getDuedate();
 
   /** exception that occurred during the last execution of this job.  The transaction 

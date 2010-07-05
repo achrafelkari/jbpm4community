@@ -23,9 +23,9 @@
 
   <Service name="Catalina">
 
-    <Connector port="8080" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" />
+    <Connector address="@bind.address@" port="8080" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" />
 
-    <Connector port="8009" protocol="AJP/1.3" redirectPort="8443" />
+    <Connector address="@bind.address@" port="8009" protocol="AJP/1.3" redirectPort="8443" />
 
     <Engine name="Catalina" defaultHost="localhost">
 

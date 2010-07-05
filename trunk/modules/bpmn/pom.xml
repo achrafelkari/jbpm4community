@@ -97,7 +97,7 @@
 			<id>integration.test</id>
 			<activation>
 				<property>
-					<name>jboss.bind.address</name>
+					<name>bind.address</name>
 				</property>
 			</activation>
 			<properties>

@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== -->
+<!--  jBPM: Workflow in Java                                                -->
+<!--                                                                        -->
+<!--  Distributable under LGPL license.                                     -->
+<!--  See terms of license at http://www.gnu.org.                           -->
+<!-- ====================================================================== -->
+
+<!-- $Id: build.xml 6449 2010-07-02 08:05:29Z alex.guizar@jboss.com $ -->
+
 <project name="jbpm.install">
 
   <!-- DEVELOPER SPECIFIC CONFIGURATIONS -->
@@ -7,12 +17,8 @@
   <!-- USER CUSTOMIZABLE PROPERTIES -->
   <!-- {hsqldb | mysql | oracle | postgresql} -->
   <property name="database" value="hsqldb" />
-  <echo message="database......... ${database}" />
   <!-- {standalone | jta | spring} -->
   <property name="tx" value="standalone" />
-  <echo message="tx............... ${tx}" />
-  <property name="mail.smtp.host" value="localhost" />
-  <echo message="mail.smtp.host... ${mail.smtp.host}" />
 
   <!-- INTERNAL PROPERTY DEFAULTS -->
   <property name="jbpm.version" value="4.4-SNAPSHOT" />
@@ -24,9 +30,11 @@
   <property name="logging" value="jdk" />
   <property name="cfg.dest.dir" value="${jbpm.home}/install/generated/cfg" />
   <property name="install.src.dir" value="${jbpm.home}/install/src" />
+  <!-- default | testsuite -->
   <property name="mail.cfg" value="default" />
 
-  <property name="hsql.bind.address" value="localhost" />
+  <property name="bind.address" value="localhost" />
+
   <property name="jdbc.properties.dir" value="${jbpm.home}/install/jdbc" />
   <property file="${jdbc.properties.dir}/${database}.properties" />
 
@@ -49,7 +57,6 @@
   <property name="jboss.version" value="5.1.0.GA" />
   <property name="jboss.parent.dir" value="${jbpm.home}" />
   <property name="jboss.home" value="${jboss.parent.dir}/jboss-${jboss.version}" />
-  <property name="jboss.bind.address" value="localhost" />
   <property name="jboss.filename" value="jboss-${jboss.version}.zip" />
   <property name="jboss.distro.dir" value="downloads" />
   <property name="jboss.distro.url"
@@ -68,19 +75,12 @@
   <property name="signavio.tmp.dir" value="${jbpm.home}/install/generated/signavio-war" />
   <property name="signavio.repo.dir.name" value="signavio-repository" />
 
-  <!-- GENERAL CONDITIONS -->
+  <!-- CONTAINER CONDITIONS -->
   <condition property="is.jboss.distro.available">
     <available file="${jboss.distro.path}" />
   </condition>
   <condition property="is.tomcat.distro.available">
     <available file="${tomcat.distro.path}" />
-  </condition>
-  <condition property="is.linux.unix.or.mac">
-    <or>
-      <os family="unix" />
-      <os family="mac" />
-      <os name="sunos" />
-    </or>
   </condition>
   <condition property="is.hsqldb">
     <equals arg1="${database}" arg2="hsqldb" />
@@ -90,64 +90,42 @@
   <condition property="is.windows">
     <os family="windows" />
   </condition>
-  <condition property="is.not.windows">
-    <not>
-      <isset property="is.windows" />
-    </not>
+  <condition property="is.unix">
+    <os family="unix" />
   </condition>
 
-  <condition property="is.mac">
-    <os family="mac" />
-  </condition>
-
+  <!-- JBOSS CONDITIONS -->
   <condition property="is.jboss.500">
     <equals arg1="${jboss.version}" arg2="5.0.0.GA" />
   </condition>
-
   <condition property="is.jboss.510">
     <equals arg1="${jboss.version}" arg2="5.1.0.GA" />
   </condition>
 
-  <!-- ECLIPSE RELATED CONDITIONS -->
+  <!-- ECLIPSE CONDITIONS -->
   <condition property="eclipse.filename" value="eclipse-jee-galileo-win32.zip">
-    <contains string="${os.name}" casesensitive="false" substring="win" />
+    <os family="windows" />
   </condition>
   <condition property="eclipse.tarfilename" value="eclipse-jee-galileo-macosx-cocoa.tar">
-    <contains string="${os.name}" casesensitive="false" substring="mac" />
+    <os name="Mac OS X" />
   </condition>
   <condition property="eclipse.filename" value="${eclipse.tarfilename}.gz">
-    <contains string="${os.name}" casesensitive="false" substring="mac" />
+    <os name="Mac OS X" />
   </condition>
   <condition property="eclipse.tarfilename" value="eclipse-jee-galileo-linux-gtk.tar">
-    <and>
-      <contains string="${os.name}" casesensitive="false" substring="linux" />
-      <not>
-        <contains string="${os.arch}" casesensitive="false" substring="64" />
-      </not>
-    </and>
+    <os name="Linux" arch="i386" />
   </condition>
   <condition property="eclipse.filename" value="${eclipse.tarfilename}.gz">
-    <and>
-      <contains string="${os.name}" casesensitive="false" substring="linux" />
-      <not>
-        <contains string="${os.arch}" casesensitive="false" substring="64" />
-      </not>
-    </and>
+    <os name="Linux" arch="i386" />
   </condition>
   <condition property="eclipse.tarfilename" value="eclipse-jee-galileo-linux-gtk-x86_64.tar">
-    <and>
-      <contains string="${os.name}" casesensitive="false" substring="linux" />
-      <contains string="${os.arch}" casesensitive="false" substring="64" />
-    </and>
+    <os name="Linux" arch="x86_64" />
   </condition>
   <condition property="eclipse.filename" value="${eclipse.tarfilename}.gz">
-    <and>
-      <contains string="${os.name}" casesensitive="false" substring="linux" />
-      <contains string="${os.arch}" casesensitive="false" substring="64" />
-    </and>
+    <os name="Linux" arch="x86_64" />
   </condition>
   <property name="eclipse.distro.url"
-            value="http://mirror.cc.vt.edu/pub/eclipse/technology/epp/downloads/release/galileo/R/${eclipse.filename}" />
+            value="http://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/galileo/R/${eclipse.filename}" />
   <property name="eclipse.distro.dir" value="downloads" />
   <property name="eclipse.parent.dir" value="${jbpm.home}" />
   <property name="eclipse.distro.path" value="${eclipse.distro.dir}/${eclipse.filename}" />
@@ -192,8 +170,8 @@
       <filterset filtersfile="${jdbc.properties.dir}/${database}.properties" />
     </copy>
     <replace file="${cfg.dest.dir}/jbpm.hibernate.cfg.xml"
-             token="$${hsql.bind.address}"
-             value="${hsql.bind.address}" />
+             token="$${bind.address}"
+             value="${bind.address}" />
     <copy todir="${cfg.dest.dir}" overwrite="true">
       <fileset dir="${install.src.dir}/cfg/logging/${logging}" />
     </copy>
@@ -201,16 +179,13 @@
           file="${install.src.dir}/cfg/mail/jbpm.mail.${mail.cfg}.properties"
           overwrite="true">
       <filterset>
-        <filter token="mail.smtp.host" value="${mail.smtp.host}" />
+        <filter token="bind.address" value="${bind.address}" />
       </filterset>
     </copy>
 
     <!-- If the target environment uses Spring, also copy the applicationContext.xml file-->
     <condition property="is.spring.environment">
-      <or>
-        <equals arg1="${tx}" arg2="spring" />
-        <equals arg1="${tx}" arg2="spring.testsuite" />
-      </or>
+      <contains string="${tx}" substring="spring" />
     </condition>
     <antcall target="internal.copy.spring.applicationContext" />
   </target>
@@ -247,14 +222,13 @@
         <include name="antlr.jar" />
         <include name="antlr-runtime.jar" />
         <include name="commons-collections.jar" />
-        <!-- include name="core.jar" /-->
         <include name="dom4j.jar" />
         <include name="drools-api.jar" />
         <include name="drools-core.jar" />
         <include name="drools-compiler.jar" />
         <include name="freemarker.jar" />
         <include name="hibernate-core.jar" />
-        <include name="hibernate-cglib-repack.jar" />
+        <include name="cglib.jar" />
         <include name="janino.jar" />
         <include name="javassist.jar" />
         <include name="jta.jar" />
@@ -307,7 +281,9 @@
   </target>
 
   <!-- ### INSTALL JBPM INTO JBOSS ######################### -->
-  <target name="install.jbpm.into.jboss" description="Installs jBPM into JBoss">
+  <target name="install.jbpm.into.jboss"
+          depends="create.cfg"
+          description="Installs jBPM into JBoss">
     <!-- copy static configuration files -->
     <copy todir="${jboss.server.config.dir}" overwrite="true">
       <fileset dir="${jbpm.home}/install/src/jboss/config" />
@@ -320,15 +296,19 @@
 
     <!-- copy the right datasource configuration file and replace the jdbc properties with
          the values in the jdbc/${database}.properties file -->
-    <copy todir="${jboss.server.config.dir}/deploy/jbpm" overwrite="true">
+    <copy file="${jbpm.home}/install/src/jboss/datasources/jbpm-${database}-ds.xml"
+          todir="${jboss.server.config.dir}/deploy/jbpm"
+          overwrite="true">
       <filterset filtersfile="${jdbc.properties.dir}/${database}.properties" />
-      <fileset dir="${jbpm.home}/install/src/jboss/datasources">
-        <include name="jbpm-${database}-ds.xml" />
-      </fileset>
     </copy>
     <replace file="${jboss.server.config.dir}/deploy/jbpm/jbpm-${database}-ds.xml"
-             token="$${hsql.bind.address}"
-             value="${hsql.bind.address}" />
+             token="$${bind.address}"
+             value="${bind.address}" />
+
+    <!-- copy the right mail properties file -->
+    <copy file="${cfg.dest.dir}/jbpm.mail.properties"
+          todir="${jboss.server.config.dir}/deploy/jbpm/jbpm-service.sar"
+          overwrite="true" />
 
     <!-- unzip console.war -->
     <mkdir dir="${jboss.server.config.dir}/deploy/jbpm/gwt-console-jbpm.war" />
@@ -419,21 +399,22 @@
   <!-- ### START JBOSS ################################################### -->
   <target name="start.jboss"
           description="starts jboss and waits till jboss is booted, then lets jboss run in the background">
-    <exec executable="${jboss.home}/bin/run.bat" spawn="yes"
-          os="Windows 7,Windows Vista,Windows XP,Windows 2000">
+    <exec executable="${jboss.home}/bin/run.bat"
+          os="Windows 7,Windows Vista,Windows XP,Windows 2000"
+          spawn="yes">
       <arg value="-b" />
-      <arg value="${jboss.bind.address}" />
+      <arg value="${bind.address}" />
     </exec>
     <exec executable="${jboss.home}/bin/run.sh" spawn="yes" os="Linux,Mac OS X">
       <arg value="-b" />
-      <arg value="${jboss.bind.address}" />
+      <arg value="${bind.address}" />
     </exec>
     <waitfor maxwait="5"
              maxwaitunit="minute"
              checkevery="30"
              checkeveryunit="second"
              timeoutproperty="jboss.timeout">
-      <socket server="${jboss.bind.address}" port="8080" />
+      <socket server="${bind.address}" port="8080" />
     </waitfor>
     <fail if="jboss.timeout" message="jboss did not start within 5 minutes" />
   </target>
@@ -444,12 +425,12 @@
     <exec executable="${jboss.home}/bin/shutdown.bat"
           os="Windows 7,Windows Vista,Windows XP,Windows 2000">
       <arg value="-s" />
-      <arg value="jnp://${jboss.bind.address}:1099" />
+      <arg value="jnp://${bind.address}:1099" />
       <arg value="-S" />
     </exec>
     <exec executable="${jboss.home}/bin/shutdown.sh" os="Linux,Mac OS X">
       <arg value="-s" />
-      <arg value="jnp://${jboss.bind.address}:1099" />
+      <arg value="jnp://${bind.address}:1099" />
       <arg value="-S" />
     </exec>
   </target>
@@ -493,10 +474,10 @@
           depends="get.tomcat"
           description="Downloads tomcat to ${tomcat.distro.dir} if its not available and then unzips tomcat">
     <unzip src="${tomcat.distro.path}" dest="${tomcat.parent.dir}" />
-    <antcall target="install.tomcat.linuxandmac" />
+    <antcall target="install.tomcat.unix" />
   </target>
 
-  <target name="install.tomcat.linuxandmac" if="is.linux.unix.or.mac">
+  <target name="install.tomcat.unix" if="is.unix">
     <chmod perm="a+x">
       <fileset dir="${tomcat.home}/bin">
         <include name="*.sh" />
@@ -610,6 +591,9 @@
           overwrite="true">
       <filterset filtersfile="${jdbc.properties.dir}/${database}.properties" />
     </copy>
+    <replace file="${tomcat.home}/conf/server.xml"
+             token="@bind.address@"
+             value="${bind.address}" />
   </target>
 
   <!-- ### INSTALL EXAMPLES INTO TOMCAT ################################################ -->
@@ -639,7 +623,7 @@
     <java classname="org.hsqldb.Server" fork="yes" spawn="yes">
       <classpath location="${hsqldb.server.install.dir}/hsqldb.jar" />
       <arg value="-address" />
-      <arg value="${hsql.bind.address}" />
+      <arg value="${bind.address}" />
       <arg value="-port" />
       <arg value="1701" />
       <arg value="-dbname.0" />
@@ -650,7 +634,7 @@
              checkevery="10"
              checkeveryunit="second"
              timeoutproperty="hsqldb.timeout">
-      <socket server="${hsql.bind.address}" port="1701" />
+      <socket server="${bind.address}" port="1701" />
     </waitfor>
     <fail if="hsqldb.timeout" message="hsqldb server did not start within one minute" />
   </target>
@@ -786,7 +770,7 @@
   <target name="hsqldb.databasemanager" description="start the hsqldb database manager">
     <java classname="org.hsqldb.util.DatabaseManager" fork="true">
       <arg value="-url" />
-      <arg value="jdbc:hsqldb:hsql://${hsql.bind.address}:1701" />
+      <arg value="jdbc:hsqldb:hsql://${bind.address}:1701" />
       <classpath>
         <fileset dir="${jbpm.home}/lib">
           <include name="hsqldb.jar" />
@@ -799,8 +783,8 @@
   <target name="install.eclipse"
           depends="get.eclipse"
           description="unzips eclipse, downloads eclipse if it is not available in ${eclipse.distro.dir}">
+    <antcall target="internal.install.eclipse.unix" />
     <antcall target="internal.install.eclipse.windows" />
-    <antcall target="internal.install.eclipse.non.windows" />
   </target>
 
   <!-- ### GET ECLIPSE ##################################################### -->
@@ -950,7 +934,7 @@
            overwrite="true" />
   </target>
 
-  <target name="internal.install.eclipse.non.windows" if="is.not.windows">
+  <target name="internal.install.eclipse.unix" if="is.unix">
     <gunzip src="${eclipse.distro.dir}/${eclipse.filename}" dest="${eclipse.distro.dir}" />
     <untar src="${eclipse.distro.dir}/${eclipse.tarfilename}"
            dest="${jbpm.home}"

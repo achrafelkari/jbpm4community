@@ -44,7 +44,7 @@ public class TransitionTake extends AtomicOperation {
     execution.fire(Event.TAKE, transition, AtomicOperation.TRANSITION_START_ACTIVITY);
   }
 
-  public MessageImpl< ? > createAsyncMessage(ExecutionImpl execution) {
+  public MessageImpl createAsyncMessage(ExecutionImpl execution) {
     return null;
   }
 

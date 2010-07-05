@@ -30,6 +30,7 @@ import javax.el.ExpressionFactory;
 import javax.el.FunctionMapper;
 import javax.el.ListELResolver;
 import javax.el.MapELResolver;
+import javax.el.ResourceBundleELResolver;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -42,24 +43,24 @@ import org.jbpm.pvm.internal.model.ScopeInstanceImpl;
  * @author Tom Baeyens
  */
 public class JbpmElFactoryImpl extends JbpmElFactory {
-  
+
   private static Log log = Log.getLog(JbpmElFactoryImpl.class.getName());
-  
+
   Class<?> functionClass = JstlFunction.class;
-  
+
   /** create ElContext used during parsing time */
   public ELContext createElContext() {
     return createCompositeResolver(null);
   }
-  
+
   /** create ElContext used during evaluation time related to an execution */
   public ELContext createElContext(ScopeInstanceImpl scopeInstance) {
     return createCompositeResolver(scopeInstance);
   }
-  
+
   protected ELContext createCompositeResolver(ScopeInstanceImpl scopeInstance) {
     CompositeELResolver compositeELResolver = new CompositeELResolver();
-    
+
     if (scopeInstance!=null) {
       compositeELResolver.add(new JbpmConstantsElResolver(scopeInstance));
       compositeELResolver.add(new JbpmVariableElResolver(scopeInstance));
@@ -69,13 +70,13 @@ public class JbpmElFactoryImpl extends JbpmElFactory {
     if (environment!=null) {
       compositeELResolver.add(new JbpmEnvironmentElResolver(environment));
     }
-    
+
     addCdiResolver(compositeELResolver);
 
     addBasicResolvers(compositeELResolver);
-    
+
     FunctionMapper functionMapper = createFunctionMapper();
-    
+
     return createElContext(compositeELResolver, functionMapper);
   }
 
@@ -106,7 +107,7 @@ public class JbpmElFactoryImpl extends JbpmElFactory {
     try {
       expressionFactory = ExpressionFactory.newInstance();
     } catch (NoSuchMethodError e) {
-      // to support previous version of el-api 
+      // to support previous version of el-api
       expressionFactory = (ExpressionFactory) FactoryFinder.find(ExpressionFactory.class
         .getName(),"de.odysseus.el.ExpressionFactoryImpl", null, "el.properties");
     }
@@ -120,6 +121,7 @@ public class JbpmElFactoryImpl extends JbpmElFactory {
   }
 
   protected void addBasicResolvers(CompositeELResolver compositeELResolver) {
+    compositeELResolver.add(new ResourceBundleELResolver());
     compositeELResolver.add(new MapELResolver());
     compositeELResolver.add(new ListELResolver());
     compositeELResolver.add(new ArrayELResolver());

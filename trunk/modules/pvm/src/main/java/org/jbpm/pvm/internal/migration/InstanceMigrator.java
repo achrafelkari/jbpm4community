@@ -80,7 +80,7 @@ public class InstanceMigrator {
   
   private static List<ProcessInstance> getProcessInstancesToMigrate(String processDefinitionName, MigrationDescriptor migrationDescriptor) {
     List<ProcessInstance> result = new ArrayList<ProcessInstance>();
-    ExecutionService executionService = (ExecutionService) EnvironmentImpl.getFromCurrent(ExecutionService.class);
+    ExecutionService executionService = EnvironmentImpl.getFromCurrent(ExecutionService.class);
     List<ProcessDefinition> processesToMigrate = getProcessesToMigrate(processDefinitionName, migrationDescriptor);
     for (ProcessDefinition processDefinition : processesToMigrate) {
       result.addAll(

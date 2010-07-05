@@ -27,12 +27,14 @@ import java.util.List;
 import org.hibernate.Session;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.identity.Group;
 import org.jbpm.api.identity.User;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.id.DbidGenerator;
 import org.jbpm.pvm.internal.identity.spi.IdentitySession;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 /**
  * @author Tom Baeyens
@@ -41,13 +43,14 @@ public class IdentitySessionImpl implements IdentitySession {
 
   protected Session session;
 
-  public String createUser(String userName, String givenName, String familyName, String businessEmail) {
+  public String createUser(String userName, String givenName, String familyName,
+    String businessEmail) {
     UserImpl user = new UserImpl(userName, givenName, familyName);
     user.setBusinessEmail(businessEmail);
-    
+
     long dbid = EnvironmentImpl.getFromCurrent(DbidGenerator.class).getNextId();
     user.setDbid(dbid);
-    
+
     session.save(user);
 
     return user.getId();
@@ -55,35 +58,36 @@ public class IdentitySessionImpl implements IdentitySession {
 
   public User findUserById(String userId) {
     return (User) session.createCriteria(UserImpl.class)
-        .add(Restrictions.eq("id", userId))
-        .uniqueResult();
+      .add(Restrictions.eq("id", userId))
+      .uniqueResult();
   }
 
   public List<User> findUsersById(String... userIds) {
-    List<User> users = session.createCriteria(UserImpl.class)
-        .add(Restrictions.in("id", userIds))
-        .list();
+    List<?> users = session.createCriteria(UserImpl.class)
+      .add(Restrictions.in("id", userIds))
+      .list();
     if (userIds.length != users.size()) {
       throw new JbpmException("not all users were found: " + Arrays.toString(userIds));
     }
-    return users;
+    return CollectionUtil.checkList(users, User.class);
   }
 
   public List<User> findUsers() {
-    return session.createCriteria(UserImpl.class).list();
+    List<?> users = session.createCriteria(UserImpl.class).list();
+    return CollectionUtil.checkList(users, User.class);
   }
 
   public void deleteUser(String userId) {
     // lookup the user
     User user = findUserById(userId);
 
-    // cascade the deletion to the memberships 
-    List<MembershipImpl> memberships = session.createCriteria(MembershipImpl.class)
-        .add(Restrictions.eq("user", user))
-        .list();
+    // cascade the deletion to the memberships
+    List<?> memberships = session.createCriteria(MembershipImpl.class)
+      .add(Restrictions.eq("user", user))
+      .list();
 
-    // delete the related memberships 
-    for (MembershipImpl membership : memberships) {
+    // delete the related memberships
+    for (Object membership : memberships) {
       session.delete(membership);
     }
 
@@ -106,63 +110,62 @@ public class IdentitySessionImpl implements IdentitySession {
       GroupImpl parentGroup = findGroupById(parentGroupId);
       group.setParent(parentGroup);
     }
-    
+
     session.save(group);
 
     return group.getId();
   }
 
   public List<User> findUsersByGroup(String groupId) {
-    return session.createCriteria(MembershipImpl.class)
-        .createAlias("group", "g")
-        .add(Restrictions.eq("g.id", groupId))
-        .setProjection(Projections.property("user"))
-        .list();
+    List<?> users = session.createCriteria(MembershipImpl.class)
+      .createAlias("group", "g")
+      .add(Restrictions.eq("g.id", groupId))
+      .setProjection(Projections.property("user"))
+      .list();
+    return CollectionUtil.checkList(users, User.class);
   }
 
   public GroupImpl findGroupById(String groupId) {
     return (GroupImpl) session.createCriteria(GroupImpl.class)
-        .add(Restrictions.eq("id", groupId))
-        .uniqueResult();
+      .add(Restrictions.eq("id", groupId))
+      .uniqueResult();
   }
 
   public List<Group> findGroupsByUserAndGroupType(String userId, String groupType) {
-    return session.createQuery("select distinct m.group"
-        + " from "
-        + MembershipImpl.class.getName()
-        + " as m where m.user.id = :userId"
-        + " and m.group.type = :groupType")
-        .setString("userId", userId)
-        .setString("groupType", groupType)
-        .list();
+    List<?> groups = session.getNamedQuery("findGroupsByUserAndGroupType")
+      .setString("userId", userId)
+      .setString("groupType", groupType)
+      .list();
+    return CollectionUtil.checkList(groups, Group.class);
   }
 
   public List<Group> findGroupsByUser(String userId) {
-    return session.createQuery("select distinct m.group"
-        + " from "
-        + MembershipImpl.class.getName()
-        + " as m where m.user.id = :userId").setString("userId", userId).list();
+    List<?> groups = session.getNamedQuery("findGroupsByUser")
+      .setParameter("userId", userId)
+      .list();
+    return CollectionUtil.checkList(groups, Group.class);
   }
 
   public List<Group> findGroups() {
-    return session.createCriteria(GroupImpl.class).list();
+    List<?> groups = session.createCriteria(GroupImpl.class).list();
+    return CollectionUtil.checkList(groups, Group.class);
   }
 
   public void deleteGroup(String groupId) {
     // look up the group
     GroupImpl group = findGroupById(groupId);
 
-    // cascade the deletion to the memberships 
-    List<MembershipImpl> memberships = session.createCriteria(MembershipImpl.class)
-        .add(Restrictions.eq("group", group))
-        .list();
+    // cascade the deletion to the memberships
+    List<?> memberships = session.createCriteria(MembershipImpl.class)
+      .add(Restrictions.eq("group", group))
+      .list();
 
-    // delete the related memberships 
-    for (MembershipImpl membership : memberships) {
+    // delete the related memberships
+    for (Object membership : memberships) {
       session.delete(membership);
     }
 
-    // delete the group 
+    // delete the group
     session.delete(group);
   }
 
@@ -189,11 +192,11 @@ public class IdentitySessionImpl implements IdentitySession {
 
   public void deleteMembership(String userId, String groupId, String role) {
     MembershipImpl membership = (MembershipImpl) session.createCriteria(MembershipImpl.class)
-        .createAlias("user", "u")
-        .createAlias("group", "g")
-        .add(Restrictions.eq("u.id", userId))
-        .add(Restrictions.eq("g.id", groupId))
-        .uniqueResult();
+      .createAlias("user", "u")
+      .createAlias("group", "g")
+      .add(Restrictions.eq("u.id", userId))
+      .add(Restrictions.eq("g.id", groupId))
+      .uniqueResult();
     session.delete(membership);
   }
 

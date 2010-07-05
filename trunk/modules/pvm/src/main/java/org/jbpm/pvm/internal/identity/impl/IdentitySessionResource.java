@@ -21,12 +21,11 @@
  */
 package org.jbpm.pvm.internal.identity.impl;
 
-import org.jboss.identity.idm.api.IdentitySession;
-import org.jboss.identity.idm.api.Transaction;
-import org.jboss.identity.idm.common.exception.IdentityException;
+import org.picketlink.idm.api.IdentitySession;
+import org.picketlink.idm.api.Transaction;
+import org.picketlink.idm.common.exception.IdentityException;
 import org.jbpm.api.JbpmException;
 import org.jbpm.pvm.internal.tx.StandardResource;
-
 
 /**
  * @author Tom Baeyens

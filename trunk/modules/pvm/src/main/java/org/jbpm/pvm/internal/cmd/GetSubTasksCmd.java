@@ -23,12 +23,13 @@ package org.jbpm.pvm.internal.cmd;
 
 import java.util.List;
 
-import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
+
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.api.task.Task;
 import org.jbpm.pvm.internal.task.TaskImpl;
-
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 /**
  * @author Tom Baeyens
@@ -44,14 +45,10 @@ public class GetSubTasksCmd extends AbstractCommand<List<Task>> {
   }
 
   public List<Task> execute(Environment environment) throws Exception {
-    Session session = environment.get(Session.class);
-    
-    Query query = session.createQuery(
-      "select task " +
-      "from "+TaskImpl.class.getName()+" as task " +
-      "where task.superTask.dbid = "+parentTaskId+" "
-    );
-    
-    return query.list();
+    List<?> tasks = environment.get(Session.class).createCriteria(TaskImpl.class)
+      .createAlias("superTask", "super")
+      .add(Restrictions.eq("super.dbid", Long.parseLong(parentTaskId)))
+      .list();
+    return CollectionUtil.checkList(tasks, Task.class);
   }
 }

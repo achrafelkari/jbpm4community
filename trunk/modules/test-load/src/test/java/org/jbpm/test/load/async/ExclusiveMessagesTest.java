@@ -29,8 +29,8 @@ import org.hibernate.Session;
 import org.jbpm.api.Execution;
 import org.jbpm.api.activity.ActivityExecution;
 import org.jbpm.api.activity.ExternalActivityBehaviour;
-import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
+import org.jbpm.api.cmd.VoidCommand;
 import org.jbpm.pvm.internal.builder.ProcessDefinitionBuilder;
 import org.jbpm.pvm.internal.cmd.StartProcessInstanceCmd;
 import org.jbpm.pvm.internal.job.CommandMessage;
@@ -67,9 +67,10 @@ public class ExclusiveMessagesTest extends JobExecutorTestCase {
       jobExecutor.stop(true);
     }
 
-    commandService.execute(new Command<Object>() {
+    commandService.execute(new VoidCommand() {
+      private static final long serialVersionUID = 1L;
 
-      public Object execute(Environment environment) throws Exception {
+      protected void executeVoid(Environment environment) {
         // exclusiveMessageIds maps execution keys to a set of thread ids.
         // the idea is that for each execution, all the exclusive jobs will
         // be executed by 1 thread sequentially.
@@ -80,7 +81,6 @@ public class ExclusiveMessagesTest extends JobExecutorTestCase {
           assertNotNull("no thread id set for " + executionKey + " in: " + exclusiveThreadIds, threadIds);
           assertEquals("exclusive messages for " + executionKey + " have been executed by multiple threads: " + threadIds, 1, threadIds.size());
         }
-        return null;
       }
     });
   }
@@ -98,9 +98,11 @@ public class ExclusiveMessagesTest extends JobExecutorTestCase {
   }
 
   public void insertDecisionTestMessages() {
-    commandService.execute(new Command<Object>() {
-      public Object execute(Environment environment) throws Exception {
-        ProcessDefinitionImpl processDefinition = (ProcessDefinitionImpl) ProcessDefinitionBuilder
+    commandService.execute(new VoidCommand() {
+      private static final long serialVersionUID = 1L;
+
+      protected void executeVoid(Environment environment) {
+        ProcessDefinitionImpl processDefinition = ProcessDefinitionBuilder
         .startProcess("excl")
           .startActivity("wait", WaitState.class)
             .initial()
@@ -110,13 +112,13 @@ public class ExclusiveMessagesTest extends JobExecutorTestCase {
         
         Session session = environment.get(Session.class);
         session.save(processDefinition);
-        return null;
       }
     });
 
-    commandService.execute(new Command<Object>() {
+    commandService.execute(new VoidCommand() {
+      private static final long serialVersionUID = 1L;
 
-      public Object execute(Environment environment) throws Exception {
+      protected void executeVoid(Environment environment) throws Exception {
         MessageSession messageSession = environment.get(MessageSession.class);
         for (int i = 0; i < nbrOfTestExecutions; i++) {
           Execution execution = new StartProcessInstanceCmd("excl:1", null, "execution-" + i).execute(environment);
@@ -126,7 +128,6 @@ public class ExclusiveMessagesTest extends JobExecutorTestCase {
             messageSession.send(exclusiveTestMessage);
           }
         }
-        return null;
       }
     });
   }

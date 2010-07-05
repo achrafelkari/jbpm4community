@@ -151,7 +151,7 @@ public class XPathScriptEngine extends AbstractScriptEngine implements Compilabl
   // Internals only below this point
 
   // find a variable of given qname in given context
-  private static Object findVariable(QName qname, ScriptContext ctx) {
+  static Object findVariable(QName qname, ScriptContext ctx) {
     String name;
     int scope;
 
@@ -176,23 +176,6 @@ public class XPathScriptEngine extends AbstractScriptEngine implements Compilabl
       } // else fallthru
     }
     return null;
-  }
-
-  private static void collectNamespaces(Map<String, String> map, Bindings scope) {
-    for (String key : scope.keySet()) {
-      if (key.startsWith(XMLNS_COLON)) {
-        Object uri = scope.get(key);
-        // collect all variables starting with "xmlns:" and
-        // collect the prefix to URI mappings.
-        String prefix = key.substring(XMLNS_COLON.length());
-        if (uri instanceof String) {
-          String tmp = (String) uri;
-          if (tmp.length() != 0) {
-            map.put(prefix, tmp);
-          }
-        }
-      }
-    }
   }
 
   private static NamespaceContext makeNamespaceContext(ScriptContext ctx) {
@@ -246,11 +229,11 @@ public class XPathScriptEngine extends AbstractScriptEngine implements Compilabl
         return null;
       }
 
-      public Iterator getPrefixes(String namespaceURI) {
+      public Iterator<String> getPrefixes(String namespaceURI) {
         if (namespaceURI == null) {
           throw new IllegalArgumentException();
         }
-        List list = new ArrayList();
+        List<String> list = new ArrayList<String>();
         for (String prefix : namespaces.keySet()) {
           String uri = namespaces.get(prefix);
           if (namespaceURI.equals(uri)) {
@@ -262,12 +245,12 @@ public class XPathScriptEngine extends AbstractScriptEngine implements Compilabl
     };
   }
 
-  private static XPathFunction makeXPathFunction(final Constructor ctr, int arity) {
+  private static XPathFunction makeXPathFunction(final Constructor<?> ctr, int arity) {
     if (ctr.getParameterTypes().length != arity) {
       return null;
     }
     return new XPathFunction() {
-
+      @SuppressWarnings("unchecked")
       public Object evaluate(List args) {
         try {
           return ctr.newInstance(args.toArray());
@@ -284,7 +267,7 @@ public class XPathScriptEngine extends AbstractScriptEngine implements Compilabl
     if (Modifier.isStatic(modifiers) && numArgs == arity) {
       // static method. expose "as is".
       return new XPathFunction() {
-
+        @SuppressWarnings("unchecked")
         public Object evaluate(List args) {
           try {
             return method.invoke(null, args.toArray());
@@ -296,9 +279,9 @@ public class XPathScriptEngine extends AbstractScriptEngine implements Compilabl
     } else if ((numArgs + 1) == arity) {
       // instance method. treat the first arg as 'this'
       return new XPathFunction() {
-
+        @SuppressWarnings("unchecked")
         public Object evaluate(List args) {
-          List tmp = args.subList(1, args.size());
+          List<?> tmp = args.subList(1, args.size());
           try {
             return method.invoke(args.get(0), tmp.toArray());
           } catch (Exception exp) {
@@ -313,7 +296,7 @@ public class XPathScriptEngine extends AbstractScriptEngine implements Compilabl
 
   private static XPathFunction makeXPathFunction(final String funcName, final Invocable invocable) {
     return new XPathFunction() {
-
+      @SuppressWarnings("unchecked")
       public Object evaluate(List args) {
         try {
           return invocable.invokeFunction(funcName, args.toArray());
@@ -325,7 +308,7 @@ public class XPathScriptEngine extends AbstractScriptEngine implements Compilabl
   }
 
   // make a XPathFunction from given object
-  private static XPathFunction makeXPathFunction(QName qname, Object obj, int arity) {
+  static XPathFunction makeXPathFunction(QName qname, Object obj, int arity) {
     if (obj == null) {
       return null;
     } else if (obj instanceof XPathFunction) {
@@ -334,9 +317,9 @@ public class XPathScriptEngine extends AbstractScriptEngine implements Compilabl
     } else if (obj instanceof Method) {
       // a Method object. wrap as XPathFunction
       return makeXPathFunction((Method) obj, arity);
-    } else if (obj instanceof Constructor) {
+    } else if (obj instanceof Constructor<?>) {
       // a Constructor object. wrap as XPathFunction
-      return makeXPathFunction((Constructor) obj, arity);
+      return makeXPathFunction((Constructor<?>) obj, arity);
     } else if (obj instanceof Invocable) {
       // wrap a script function as XPathFunction. Using this,
       // scripts from other languages (for eg. JavaScript) can use
@@ -404,7 +387,7 @@ public class XPathScriptEngine extends AbstractScriptEngine implements Compilabl
     }
     return null;
   }
-  private Object evalXPath(XPathExpression expr, final ScriptContext ctx) throws ScriptException {
+  Object evalXPath(XPathExpression expr, final ScriptContext ctx) throws ScriptException {
 
     try {
       Object resultType = getVariable(ctx, XPATH_RESULT_TYPE);

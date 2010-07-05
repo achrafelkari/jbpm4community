@@ -32,7 +32,6 @@ import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.model.ObservableElement;
 import org.jbpm.pvm.internal.model.ObservableElementImpl;
 
-
 /**
  * @author Tom Baeyens
  */
@@ -81,7 +80,7 @@ public class ExecuteEventListener extends AtomicOperation {
           eventListener.notify(execution);
         } catch (Exception e) {
           log.trace("exception during action: " + e);
-          execution.handleException((ObservableElementImpl) observableElement, event, eventListenerReference, e, "couldn't run action " + eventListener);
+          execution.handleException(observableElement, event, eventListenerReference, e, "couldn't run action " + eventListener);
         }
       }
       // increment the event listener index
@@ -126,7 +125,7 @@ public class ExecuteEventListener extends AtomicOperation {
     }
   }
 
-  public MessageImpl< ? > createAsyncMessage(ExecutionImpl execution) {
+  public MessageImpl createAsyncMessage(ExecutionImpl execution) {
     return new ExecuteEventListenerMessage(execution);
   }
 

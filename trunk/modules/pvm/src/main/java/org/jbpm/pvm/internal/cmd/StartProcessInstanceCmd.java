@@ -50,8 +50,7 @@ public class StartProcessInstanceCmd extends VariablesCmd<ProcessInstance> {
   public ProcessInstance execute(Environment environment) throws Exception {
     RepositorySession repositorySession = environment.get(RepositorySession.class);
 
-    ClientProcessDefinition processDefinition = (ClientProcessDefinition) 
-    repositorySession.findProcessDefinitionById(processDefinitionId);
+    ClientProcessDefinition processDefinition = repositorySession.findProcessDefinitionById(processDefinitionId);
     if (processDefinition==null) {
       throw new JbpmException("no process definition with id '"+processDefinitionId+"'");
     }

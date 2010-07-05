@@ -53,7 +53,7 @@ public class ClassWireTest extends WireTestCase {
       wireContext.get("o");
       fail("expected exception");
     } catch (WireException e) {
-      assertTextPresent("couldn't load class '"+className+"'", e.getMessage());
+      assertTextPresent(className, e.getMessage());
     }
   }
 

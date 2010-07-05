@@ -35,10 +35,8 @@ import org.jbpm.pvm.internal.env.Context;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.env.ExecutionContext;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
-import org.jbpm.pvm.internal.script.ScriptManager;
 import org.jbpm.pvm.internal.session.RepositorySession;
 import org.jbpm.pvm.internal.task.SwimlaneImpl;
-
 
 /**
  * @author Tom Baeyens
@@ -114,9 +112,7 @@ public class SubProcessActivity extends JpdlExternalActivity {
   }
 
   public void signal(ExecutionImpl execution, String signalName, Map<String, ?> parameters) throws Exception {
-    ExecutionImpl executionImpl = (ExecutionImpl) execution;
-
-    ExecutionImpl subProcessInstance = executionImpl.getSubProcessInstance();
+    ExecutionImpl subProcessInstance = execution.getSubProcessInstance();
 
     String transitionName = null;
 
@@ -125,24 +121,24 @@ public class SubProcessActivity extends JpdlExternalActivity {
     EnvironmentImpl environment = EnvironmentImpl.getCurrent();
     if (environment!=null) {
       originalExecutionContext = (ExecutionContext) environment.removeContext(Context.CONTEXTNAME_EXECUTION);
-      subProcessExecutionContext = new ExecutionContext((ExecutionImpl) subProcessInstance);
+      subProcessExecutionContext = new ExecutionContext(subProcessInstance);
       environment.setContext(subProcessExecutionContext);
     }
 
     try {
       subProcessInstance.setSuperProcessExecution(null);
-      executionImpl.setSubProcessInstance(null);
+      execution.setSubProcessInstance(null);
       
 
       for (SubProcessOutParameterImpl outParameter: outParameters) {
-        outParameter.consume(executionImpl, subProcessInstance);
+        outParameter.consume(execution, subProcessInstance);
       }
       
       Activity activity = execution.getActivity();
       String subProcessActivityName = subProcessInstance.getActivityName();
       
       if (outcomeExpression!=null) {
-        Object value = outcomeExpression.evaluate(executionImpl);
+        Object value = outcomeExpression.evaluate(execution);
         // if the value is a String and matches the name of an outgoing transition
         if ( (value instanceof String)
              && (activity.hasOutgoingTransition(((String) value)))
@@ -167,7 +163,7 @@ public class SubProcessActivity extends JpdlExternalActivity {
       }
     }
     
-    executionImpl.historyActivityEnd();
+    execution.historyActivityEnd();
 
     if (transitionName!=null) {
       execution.take(transitionName);

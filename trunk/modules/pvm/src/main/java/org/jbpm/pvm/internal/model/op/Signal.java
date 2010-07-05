@@ -87,7 +87,7 @@ public class Signal extends AtomicOperation {
   }
 
   @Override
-  public MessageImpl<?> createAsyncMessage(ExecutionImpl execution) {
+  public MessageImpl createAsyncMessage(ExecutionImpl execution) {
     return null;
   }
 }

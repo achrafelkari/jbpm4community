@@ -31,14 +31,18 @@ import org.jbpm.api.JbpmException;
 /**
  * @author Tom Baeyens
  */
-public abstract class StringUtil {
+public class StringUtil {
+  
+  private StringUtil() {
+    // hide default constructor to prevent instantiation
+  }
   
   public static List<String> tokenize(String text, String delimiter) {
     if (delimiter==null) {
       throw new JbpmException("delimiter is null");
     }
     if (text==null) {
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
     
     List<String> pieces = new ArrayList<String>();

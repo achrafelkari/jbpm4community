@@ -86,7 +86,7 @@ public class TransitionStartActivity extends AtomicOperation {
     }
   }
   
-  public MessageImpl<?> createAsyncMessage(ExecutionImpl execution) {
+  public MessageImpl createAsyncMessage(ExecutionImpl execution) {
     throw new UnsupportedOperationException("please implement me");
   }
 

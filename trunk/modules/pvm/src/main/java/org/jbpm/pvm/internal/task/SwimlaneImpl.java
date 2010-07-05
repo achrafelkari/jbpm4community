@@ -103,7 +103,7 @@ public class SwimlaneImpl implements Serializable, Swimlane, Assignable {
       throw new JbpmException("participant is null");
     }
     if (participations.remove(participant)) {
-      ((ParticipationImpl)participant).setSwimlane(null);
+      participant.setSwimlane(null);
     }
   }
   

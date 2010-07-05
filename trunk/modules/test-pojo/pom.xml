@@ -9,7 +9,7 @@
 <!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6371 2010-05-21 11:46:12Z alex.guizar@jboss.com $ -->
+<!-- $Id: pom.xml 6437 2010-06-26 01:59:29Z alex.guizar@jboss.com $ -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <name>jBPM 4 - Test POJO</name>
@@ -53,20 +53,6 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
-  
-  <!-- Plugins -->
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <testSourceDirectory>src/main/java</testSourceDirectory>
-          <classesDirectory>target/classes</classesDirectory>
-          <testClassesDirectory>target/classes</testClassesDirectory>        
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
   
   <profiles>
     <!-- skip tests if this is an integration test run 

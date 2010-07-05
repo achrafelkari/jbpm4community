@@ -73,8 +73,7 @@ public class SubscribeBinding extends WireOperationBinding {
     String methodName = XmlUtil.attribute(element, "method");
     subscribeOperation.setMethodName(methodName);
     List<Element> argElements = XmlUtil.elements(element, "arg");
-    Parser wireParser = (Parser) parser;
-    List<ArgDescriptor> argDescriptors = wireParser.parseArgs(argElements, parse);
+    List<ArgDescriptor> argDescriptors = parser.parseArgs(argElements, parse);
     subscribeOperation.setArgDescriptors(argDescriptors);
 
    return subscribeOperation;

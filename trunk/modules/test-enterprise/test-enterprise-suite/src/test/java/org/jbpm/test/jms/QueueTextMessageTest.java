@@ -27,7 +27,6 @@ import javax.jms.TextMessage;
 import junit.framework.Test;
 
 import org.apache.cactus.ServletTestSuite;
-import org.jbpm.pvm.internal.tx.JtaTransaction;
 import org.jbpm.test.JbpmTestCase;
 
 public class QueueTextMessageTest extends JbpmTestCase {

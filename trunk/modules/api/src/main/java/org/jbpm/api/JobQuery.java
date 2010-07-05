@@ -37,7 +37,7 @@ import org.jbpm.api.job.Job;
 public interface JobQuery {
 
   /** duedate property to be used as property in {@link #orderAsc(String)} and {@link #orderDesc(String)} */
-  public static final String PROPERTY_DUEDATE = "duedate";
+  public static final String PROPERTY_DUEDATE = "dueDate";
   /** state property to be used as property in {@link #orderAsc(String)} and {@link #orderDesc(String)} */
   public static final String PROPERTY_STATE = "state";
   

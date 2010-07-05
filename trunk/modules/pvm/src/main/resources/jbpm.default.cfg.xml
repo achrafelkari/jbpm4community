@@ -3,6 +3,7 @@
 <jbpm-configuration>
 
   <import resource="jbpm.default.scriptmanager.xml" />
+  <import resource="jbpm.mail.templates.xml" />
 
   <process-engine-context>
   
@@ -25,29 +26,7 @@
     <types resource="jbpm.variable.types.xml" />
 
     <address-resolver />
-
-    <mail-template name='task-notification'>
-      <to users="${task.assignee}"/>
-      <subject>${task.name}</subject>
-      <text><![CDATA[Hi ${task.assignee},
-Task "${task.name}" has been assigned to you.
-${task.description}
-
-Sent by JBoss jBPM
-]]></text>
-    </mail-template>
-  
-    <mail-template name='task-reminder'>
-      <to users="${task.assignee}"/>
-      <subject>${task.name}</subject>
-      <text><![CDATA[Hey ${task.assignee},
-Do not forget about task "${task.name}".
-${task.description}
-
-Sent by JBoss jBPM
-]]></text>
-    </mail-template>
-  
+ 
   </process-engine-context>
 
   <transaction-context>

@@ -10,13 +10,14 @@ import org.jboss.errai.bus.client.api.MessageCallback;
 import org.jboss.errai.bus.client.api.base.MessageBuilder;
 import org.jboss.errai.bus.client.framework.MessageBus;
 import org.jboss.errai.bus.server.annotations.Service;
+
+import org.jbpm.api.JbpmException;
 import org.jbpm.api.history.HistoryActivityInstance;
 import org.jbpm.api.history.HistoryProcessInstance;
 import org.jbpm.integration.console.JBPMIntegration;
 import org.jbpm.integration.console.ModelAdaptor;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -43,26 +44,19 @@ public class HistoryService extends JBPMIntegration implements MessageCallback
         String definitionId = message.get(String.class, HistoryParts.PROCESS_DEFINITION_ID);
         List<HistoryProcessInstanceRef> results = getFinishedProcessInstances(definitionId);
 
-        try
-        {
-          MessageBuilder.createConversation(message)
-              .subjectProvided()
-              .command(HistoryCommands.GET_FINISHED_PROCESS_INSTANCES)
-              .with(HistoryParts.PROCESS_DEFINITION_ID, definitionId)
-              .with(HistoryParts.INSTANCE_LIST, results)
-              .errorsHandledBy(new ErrorCallback()
+        MessageBuilder.createConversation(message)
+            .subjectProvided()
+            .command(HistoryCommands.GET_FINISHED_PROCESS_INSTANCES)
+            .with(HistoryParts.PROCESS_DEFINITION_ID, definitionId)
+            .with(HistoryParts.INSTANCE_LIST, results)
+            .errorsHandledBy(new ErrorCallback()
+            {
+              public boolean error(Message message, Throwable throwable)
               {
-                public boolean error(Message message, Throwable throwable)
-                {
-                  throw new RuntimeException("Failed to send message", throwable);
-                }
-              })
-              .sendNowWith(bus);
-        }
-        catch (Throwable e)
-        {
-          throw new RuntimeException("Sending failed", e);
-        }
+                throw new JbpmException("Failed to send message", throwable);
+              }
+            })
+            .sendNowWith(bus);
         
         break;
       case GET_PROCESS_INSTANCE_HISTORY:

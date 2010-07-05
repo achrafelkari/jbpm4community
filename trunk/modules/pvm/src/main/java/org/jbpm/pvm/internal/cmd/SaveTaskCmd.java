@@ -23,7 +23,6 @@ package org.jbpm.pvm.internal.cmd;
 
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.pvm.internal.history.HistoryEvent;
-import org.jbpm.pvm.internal.history.HistorySession;
 import org.jbpm.pvm.internal.history.events.TaskCreated;
 import org.jbpm.pvm.internal.history.events.TaskUpdated;
 import org.jbpm.pvm.internal.session.DbSession;
@@ -48,7 +47,7 @@ public class SaveTaskCmd extends AbstractCommand<String> {
 
     if (task.isNew()) {
       if (task.getSuperTaskDbid()!=null) {
-        TaskImpl parentTask = (TaskImpl) dbSession.get(TaskImpl.class, task.getSuperTaskDbid());
+        TaskImpl parentTask = dbSession.get(TaskImpl.class, task.getSuperTaskDbid());
         parentTask.addSubTask(task);
         task.setSuperTaskDbid(null);
       }

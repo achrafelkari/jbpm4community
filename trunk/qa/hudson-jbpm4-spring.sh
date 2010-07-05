@@ -1,5 +1,5 @@
 #!/bin/sh
 #
-# runs the smoke test suite
+# runs the spring test suite
 
-mvn -U -Prun.spring.testsuite clean install
+mvn -U -Prun.spring.testsuite -Dmaven.test.failure.ignore=true clean install

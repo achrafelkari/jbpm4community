@@ -36,6 +36,7 @@ import org.jbpm.pvm.internal.model.ProcessDefinitionImpl;
 import org.jbpm.pvm.internal.repository.DeploymentImpl;
 import org.jbpm.pvm.internal.repository.DeploymentProperty;
 import org.jbpm.pvm.internal.session.RepositorySession;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 
 /** returns partially initialized ProcessDefinitionImpl's that can only be exposed 
@@ -153,7 +154,7 @@ public class ProcessDefinitionQueryImpl extends AbstractQuery implements Process
   }
   
   public List<ProcessDefinition> list() {
-    return (List<ProcessDefinition>) untypedList();
+    return CollectionUtil.checkList(untypedList(), ProcessDefinition.class);
   }
   
   public ProcessDefinition uniqueResult() {

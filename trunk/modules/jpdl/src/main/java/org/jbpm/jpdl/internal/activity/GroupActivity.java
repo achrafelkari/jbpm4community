@@ -30,9 +30,7 @@ import org.jbpm.api.JbpmException;
 import org.jbpm.api.activity.ActivityExecution;
 import org.jbpm.api.model.Activity;
 import org.jbpm.api.model.Transition;
-import org.jbpm.pvm.internal.model.ActivityImpl;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
-
 
 /**
  * @author Tom Baeyens
@@ -73,8 +71,8 @@ public class GroupActivity extends JpdlExternalActivity {
 
   private List<Activity> findStartActivities(Activity activity) {
     List<Activity> startActivities = new ArrayList<Activity>();
-    List nestedActivities = activity.getActivities();
-    for (ActivityImpl nestedActivity : (List<ActivityImpl>) nestedActivities) {
+    List<? extends Activity> nestedActivities = activity.getActivities();
+    for (Activity nestedActivity : nestedActivities) {
       if ( (nestedActivity.getIncomingTransitions()==null)
            || (nestedActivity.getIncomingTransitions().isEmpty())
          ) {
@@ -91,7 +89,7 @@ public class GroupActivity extends JpdlExternalActivity {
   public void signal(ExecutionImpl execution, String signalName, Map<String, ?> parameters) throws Exception {
     Transition transition = null;
     Activity activity = execution.getActivity();
-    List<Transition> outgoingTransitions = activity.getOutgoingTransitions();
+    List<? extends Transition> outgoingTransitions = activity.getOutgoingTransitions();
     
     int nbrOfOutgoingTransitions  = (outgoingTransitions!=null ? outgoingTransitions.size() : 0);
     if ( (signalName==null)

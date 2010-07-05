@@ -26,14 +26,14 @@ import java.util.Collection;
 import java.util.List;
 
 import org.hibernate.LockMode;
-import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 import org.hibernate.metadata.ClassMetadata;
 
 import org.jbpm.api.Execution;
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.history.HistoryComment;
-import org.jbpm.api.history.HistoryProcessInstance;
 import org.jbpm.api.task.Task;
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.client.ClientExecution;
@@ -54,12 +54,13 @@ import org.jbpm.pvm.internal.query.TaskQueryImpl;
 import org.jbpm.pvm.internal.session.DbSession;
 import org.jbpm.pvm.internal.task.TaskImpl;
 import org.jbpm.pvm.internal.util.Clock;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 /**
  * @author Tom Baeyens
  */
 public class DbSessionImpl implements DbSession {
-  
+
   private static Log log = Log.getLog(DbSessionImpl.class.getName());
 
   protected Session session;
@@ -109,104 +110,93 @@ public class DbSessionImpl implements DbSession {
   }
 
   public void deleteProcessDefinitionHistory(String processDefinitionId) {
-    List<HistoryProcessInstanceImpl> historyProcessInstances = 
-          session.createQuery(
-            "select hpi " +
-            "from "+HistoryProcessInstanceImpl.class.getName()+" hpi "+
-            "where hpi.processDefinitionId = :processDefinitionId "
-          )
-          .setString("processDefinitionId", processDefinitionId)
-          .list();
-    
-    for (HistoryProcessInstanceImpl hpi: historyProcessInstances) {
+    List<?> historyProcessInstances = session.createCriteria(HistoryProcessInstanceImpl.class)
+      .add(Restrictions.eq("processDefinitionId", processDefinitionId))
+      .list();
+
+    for (Object hpi : historyProcessInstances) {
       session.delete(hpi);
     }
   }
 
   public boolean isHistoryEnabled() {
-    ClassMetadata historyHibernateMetadata = session.getSessionFactory().getClassMetadata(HistoryProcessInstanceImpl.class);
-    return historyHibernateMetadata!=null;
+    ClassMetadata historyHibernateMetadata = session.getSessionFactory()
+      .getClassMetadata(HistoryProcessInstanceImpl.class);
+    return historyHibernateMetadata != null;
   }
-
 
   // process execution queries ////////////////////////////////////////////////
 
   public ClientExecution findExecutionById(String executionId) {
-    // query definition can be found at the bottom of resource jbpm.pvm.execution.hbm.xml
-    Query query = session.getNamedQuery("findExecutionById");
-    query.setString("id", executionId);
-    query.setMaxResults(1);
-    return (ClientExecution) query.uniqueResult();
+    // query definition can be found at the bottom of resource jbpm.execution.hbm.xml
+    return (ClientExecution) session.getNamedQuery("findExecutionById")
+      .setString("id", executionId)
+      .setMaxResults(1)
+      .uniqueResult();
   }
 
   public ClientExecution findProcessInstanceById(String processInstanceId) {
-    // query definition can be found at the bottom of resource jbpm.pvm.execution.hbm.xml
-    Query query = session.getNamedQuery("findProcessInstanceById");
-    query.setString("processInstanceId", processInstanceId);
-    query.setMaxResults(1);
-    return (ClientExecution) query.uniqueResult();
+    // query definition can be found at the bottom of resource jbpm.execution.hbm.xml
+    return (ClientExecution) session.getNamedQuery("findProcessInstanceById")
+      .setString("processInstanceId", processInstanceId)
+      .setMaxResults(1)
+      .uniqueResult();
   }
 
   public ClientExecution findProcessInstanceByIdIgnoreSuspended(String processInstanceId) {
-    // query definition can be found at the bottom of resource jbpm.pvm.execution.hbm.xml
-    Query query = session.getNamedQuery("findProcessInstanceByIdIgnoreSuspended");
-    query.setString("processInstanceId", processInstanceId);
-    query.setMaxResults(1);
-    return (ClientExecution) query.uniqueResult();
+    // query definition can be found at the bottom of resource jbpm.execution.hbm.xml
+    return (ClientExecution) session.getNamedQuery("findProcessInstanceByIdIgnoreSuspended")
+      .setString("processInstanceId", processInstanceId)
+      .setMaxResults(1)
+      .uniqueResult();
   }
-  
+
   public List<String> findProcessInstanceIds(String processDefinitionId) {
-    // query definition can be found at the bottom of resource jbpm.pvm.job.hbm.xml
-    Query query = session.createQuery(
-      "select processInstance.id " +
-      "from org.jbpm.pvm.internal.model.ExecutionImpl as processInstance " +
-      "where processInstance.processDefinitionId = :processDefinitionId " +
-      "  and processInstance.parent is null"
-    );
-    query.setString("processDefinitionId", processDefinitionId);
-    return query.list();
+    // query definition can be found at the bottom of resource jbpm.execution.hbm.xml
+    List<?> processInstanceIds = session.getNamedQuery("findProcessInstanceIds")
+      .setString("processDefinitionId", processDefinitionId)
+      .list();
+    return CollectionUtil.checkList(processInstanceIds, String.class);
   }
-  
+
   public void deleteProcessInstance(String processInstanceId) {
     deleteProcessInstance(processInstanceId, true);
   }
 
   public void deleteProcessInstance(String processInstanceId, boolean deleteHistory) {
-    if (processInstanceId==null) {
+    if (processInstanceId == null) {
       throw new JbpmException("processInstanceId is null");
     }
-    
-    // if history should be deleted 
-    if ( deleteHistory 
-         && (isHistoryEnabled())
-       ) {
-      // try to get the history 
+
+    // if history should be deleted
+    if (deleteHistory && (isHistoryEnabled())) {
+      // try to get the history
       HistoryProcessInstanceImpl historyProcessInstance = findHistoryProcessInstanceById(processInstanceId);
-  
+
       // if there is a history process instance in the db
-      if (historyProcessInstance!=null) {
+      if (historyProcessInstance != null) {
         if (log.isDebugEnabled()) {
-          log.debug("deleting history process instance "+processInstanceId);
+          log.debug("deleting history process instance " + processInstanceId);
         }
         session.delete(historyProcessInstance);
       }
     }
-    
+
     ExecutionImpl processInstance = (ExecutionImpl) findProcessInstanceByIdIgnoreSuspended(processInstanceId);
-    if (processInstance!=null) {
+    if (processInstance != null) {
       deleteSubProcesses(processInstance, deleteHistory);
-      
+
       // delete remaining tasks for this process instance
       List<TaskImpl> tasks = findTasks(processInstanceId);
-      for (TaskImpl task: tasks) {
+      for (TaskImpl task : tasks) {
         session.delete(task);
       }
 
       // delete remaining jobs for this process instance
       JobImpl currentJob = EnvironmentImpl.getFromCurrent(JobImpl.class, false);
       List<JobImpl> jobs = findJobs(processInstanceId);
-      for (JobImpl job: jobs) {
-        if (job!=currentJob){ 
+      for (JobImpl job : jobs) {
+        if (job != currentJob) {
           session.delete(job);
         }
       }
@@ -215,109 +205,86 @@ public class DbSessionImpl implements DbSession {
         log.debug("Deleting process instance " + processInstanceId);
       }
       session.delete(processInstance);
-      
-    } else {
-    	throw new JbpmException("Can't delete processInstance " + processInstanceId 
-    			+ ": no processInstance found for the given id");
+    }
+    else {
+      throw new JbpmException("Can't delete processInstance " + processInstanceId
+        + ": no processInstance found for the given id");
     }
   }
 
   private void deleteSubProcesses(ExecutionImpl execution, boolean deleteHistory) {
     ExecutionImpl subProcessInstance = execution.getSubProcessInstance();
-    if (subProcessInstance!=null) {
+    if (subProcessInstance != null) {
       subProcessInstance.setSuperProcessExecution(null);
       execution.setSubProcessInstance(null);
       deleteProcessInstance(subProcessInstance.getId(), deleteHistory);
     }
     Collection<ExecutionImpl> childExecutions = execution.getExecutions();
-    if (childExecutions!=null) {
-      for (ExecutionImpl childExecution: childExecutions) {
+    if (childExecutions != null) {
+      for (ExecutionImpl childExecution : childExecutions) {
         deleteSubProcesses(childExecution, deleteHistory);
       }
     }
   }
 
   public HistoryProcessInstanceImpl findHistoryProcessInstanceById(String processInstanceId) {
-    return (HistoryProcessInstanceImpl) session
-      .createQuery(
-        "select hpi " +
-        "from "+HistoryProcessInstance.class.getName()+" as hpi " +
-        "where hpi.processInstanceId = '"+processInstanceId+"'"
-      ).uniqueResult();
+    return (HistoryProcessInstanceImpl) session.createCriteria(HistoryProcessInstanceImpl.class)
+      .add(Restrictions.eq("processInstanceId", processInstanceId))
+      .uniqueResult();
   }
 
   List<TaskImpl> findTasks(String processInstanceId) {
-    Query query = session.createQuery(
-      "select task " +
-      "from "+TaskImpl.class.getName()+" as task " +
-      "where task.processInstance.id = :processInstanceId"
-    );
-    query.setString("processInstanceId", processInstanceId);
-    return query.list();
+    List<?> tasks = session.createCriteria(TaskImpl.class)
+      .createAlias("processInstance", "pi")
+      .add(Restrictions.eq("pi.id", processInstanceId))
+      .list();
+    return CollectionUtil.checkList(tasks, TaskImpl.class);
   }
 
   List<JobImpl> findJobs(String processInstanceId) {
-    Query query = session.createQuery(
-      "select job " +
-      "from "+JobImpl.class.getName()+" as job " +
-      "where job.processInstance.id = :processInstanceId"
-    );
-    query.setString("processInstanceId", processInstanceId);
-    return query.list();
+    List<?> jobs = session.createCriteria(JobImpl.class)
+      .createAlias("processInstance", "pi")
+      .add(Restrictions.eq("pi.id", processInstanceId))
+      .list();
+    return CollectionUtil.checkList(jobs, JobImpl.class);
   }
-  
+
   public void cascadeExecutionSuspend(ExecutionImpl execution) {
     // cascade suspend to jobs
-    Query query = session.createQuery(
-      "select job " +
-      "from "+JobImpl.class.getName()+" as job " +
-      "where job.execution = :execution " +
-      "  and job.state != '"+JobImpl.STATE_SUSPENDED+"' "
-    );
-    query.setEntity("execution", execution);
-    List<JobImpl> jobs = query.list();
-    for (JobImpl job: jobs) {
+    List<?> jobs = session.createCriteria(JobImpl.class)
+      .add(Restrictions.eq("execution", execution))
+      .add(Restrictions.ne("state", JobImpl.STATE_SUSPENDED))
+      .list();
+    for (JobImpl job : CollectionUtil.checkList(jobs, JobImpl.class)) {
       job.suspend();
     }
 
     // cascade suspend to tasks
-    query = session.createQuery(
-      "select task " +
-      "from "+TaskImpl.class.getName()+" as task " +
-      "where task.execution = :execution " +
-      "  and task.state != '"+Task.STATE_SUSPENDED+"' "
-    );
-    query.setEntity("execution", execution);
-    List<TaskImpl> tasks = query.list();
-    for (TaskImpl task: tasks) {
+    List<?> tasks = session.createCriteria(TaskImpl.class)
+      .add(Restrictions.eq("execution", execution))
+      .add(Restrictions.ne("state", Task.STATE_SUSPENDED))
+      .list();
+    for (TaskImpl task : CollectionUtil.checkList(tasks, TaskImpl.class)) {
       task.suspend();
     }
   }
 
   public void cascadeExecutionResume(ExecutionImpl execution) {
-    // cascade suspend to jobs
-    Query query = session.createQuery(
-      "select job " +
-      "from "+JobImpl.class.getName()+" as job " +
-      "where job.execution = :execution " +
-      "  and job.state = '"+Task.STATE_SUSPENDED+"' "
-    );
-    query.setEntity("execution", execution);
-    List<JobImpl> jobs = query.list();
-    for (JobImpl job: jobs) {
+    // cascade resume to jobs
+    List<?> jobs = session.createCriteria(JobImpl.class)
+      .add(Restrictions.eq("execution", execution))
+      .add(Restrictions.eq("state", JobImpl.STATE_SUSPENDED))
+      .list();
+    for (JobImpl job : CollectionUtil.checkList(jobs, JobImpl.class)) {
       job.resume();
     }
 
-    // cascade suspend to tasks
-    query = session.createQuery(
-      "select task " +
-      "from "+TaskImpl.class.getName()+" as task " +
-      "where task.execution = :execution " +
-      "  and task.state = '"+Task.STATE_SUSPENDED+"' "
-    );
-    query.setEntity("execution", execution);
-    List<TaskImpl> tasks = query.list();
-    for (TaskImpl task: tasks) {
+    // cascade resume to tasks
+    List<?> tasks = session.createCriteria(TaskImpl.class)
+      .add(Restrictions.eq("execution", execution))
+      .add(Restrictions.eq("state", Task.STATE_SUSPENDED))
+      .list();
+    for (TaskImpl task : CollectionUtil.checkList(tasks, TaskImpl.class)) {
       task.resume();
     }
   }
@@ -340,45 +307,40 @@ public class DbSessionImpl implements DbSession {
     return (TaskImpl) session.get(TaskImpl.class, taskDbid);
   }
 
-
   public TaskImpl findTaskByExecution(Execution execution) {
-    Query query = session.createQuery(
-      "select task " +
-      "from "+TaskImpl.class.getName()+" as task " +
-      "where task.execution = :execution"
-    );
-    query.setEntity("execution", execution);
-    return (TaskImpl) query.uniqueResult();
-  }
-  
-  public JobImpl<?> findFirstAcquirableJob() {
-    Query query = session.getNamedQuery("findFirstAcquirableJob");
-    query.setTimestamp("now", Clock.getTime());
-    query.setMaxResults(1);
-    return (JobImpl<?>) query.uniqueResult();
+    return (TaskImpl) session.createCriteria(TaskImpl.class)
+      .add(Restrictions.eq("execution", execution))
+      .uniqueResult();
   }
 
-  public List<JobImpl<?>> findExclusiveJobs(Execution processInstance) {
-    Query query = session.getNamedQuery("findExclusiveJobs");
-    query.setTimestamp("now", Clock.getTime());
-    query.setEntity("processInstance", processInstance);
-    return query.list();
+  public JobImpl findFirstAcquirableJob() {
+    return (JobImpl) session.getNamedQuery("findFirstAcquirableJob")
+      .setTimestamp("now", Clock.getTime())
+      .setMaxResults(1)
+      .uniqueResult();
   }
 
-  public JobImpl<?> findFirstDueJob() {
-    Query query = session.getNamedQuery("findFirstDueJob");
-    query.setMaxResults(1);
-    return (JobImpl<?>) query.uniqueResult();
+  public List<JobImpl> findExclusiveJobs(Execution processInstance) {
+    List<?> exclusiveJobs = session.getNamedQuery("findExclusiveJobs")
+      .setTimestamp("now", Clock.getTime())
+      .setEntity("processInstance", processInstance)
+      .list();
+    return CollectionUtil.checkList(exclusiveJobs, JobImpl.class);
   }
-  
+
+  public JobImpl findFirstDueJob() {
+    return (JobImpl) session.getNamedQuery("findFirstDueJob")
+      .setMaxResults(1)
+      .uniqueResult();
+  }
+
   public List<StartProcessTimer> findStartProcessTimers(String processDefinitionName) {
-    Query query = session.createQuery(
-      "select spt from " + StartProcessTimer.class.getName() + " as spt " +
-      "where spt.signalName = :procDefName");
-    query.setString("procDefName", processDefinitionName);
-    return query.list();
+    List<?> timers = session.createCriteria(StartProcessTimer.class)
+      .add(Restrictions.eq("signalName", processDefinitionName))
+      .list();
+    return CollectionUtil.checkList(timers, StartProcessTimer.class);
   }
-  
+
   public ProcessInstanceQueryImpl createProcessInstanceQuery() {
     return new ProcessInstanceQueryImpl();
   }
@@ -394,11 +356,11 @@ public class DbSessionImpl implements DbSession {
   public HistoryActivityInstanceQueryImpl createHistoryActivityInstanceQuery() {
     return new HistoryActivityInstanceQueryImpl();
   }
-  
+
   public HistoryDetailQueryImpl createHistoryDetailQuery() {
     return new HistoryDetailQueryImpl();
   }
-  
+
   public JobQueryImpl createJobQuery() {
     return new JobQueryImpl();
   }
@@ -408,18 +370,11 @@ public class DbSessionImpl implements DbSession {
   }
 
   public List<HistoryComment> findCommentsByTaskId(String taskId) {
-    Long taskDbid = null;
-    try {
-      taskDbid = Long.parseLong(taskId);
-    } catch (Exception e) {
-      throw new JbpmException("invalid taskId: "+taskId);
-    }
-    return session.createQuery(
-      "select hc " +
-      "from "+HistoryCommentImpl.class.getName()+" as hc " +
-      "where hc.historyTask.dbid = :taskDbid " +
-      "order by hc.historyTaskIndex asc "
-    ).setLong("taskDbid", taskDbid)
-    .list();
+    List<?> comments = session.createCriteria(HistoryCommentImpl.class)
+      .createAlias("historyTask", "task")
+      .add(Restrictions.eq("task.dbid", Long.parseLong(taskId)))
+      .addOrder(Order.asc("historyTaskIndex"))
+      .list();
+    return CollectionUtil.checkList(comments, HistoryComment.class);
   }
 }

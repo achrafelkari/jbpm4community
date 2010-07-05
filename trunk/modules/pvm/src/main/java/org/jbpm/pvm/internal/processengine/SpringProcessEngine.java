@@ -22,17 +22,17 @@
 package org.jbpm.pvm.internal.processengine;
 
 import org.hibernate.cfg.Configuration;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.orm.hibernate3.LocalSessionFactoryBean;
+
 import org.jbpm.api.ProcessEngine;
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.cfg.ConfigurationImpl;
-import org.jbpm.pvm.internal.env.EnvironmentFactory;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.env.PvmEnvironment;
 import org.jbpm.pvm.internal.env.SpringContext;
 import org.jbpm.pvm.internal.wire.descriptor.ProvidedObjectDescriptor;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.orm.hibernate3.LocalSessionFactoryBean;
 
 /**
  * this environment factory will see only the singleton beans.
@@ -42,7 +42,7 @@ import org.springframework.orm.hibernate3.LocalSessionFactoryBean;
  *
  * @author Andries Inze
  */
-public class SpringProcessEngine extends ProcessEngineImpl implements EnvironmentFactory, ProcessEngine {
+public class SpringProcessEngine extends ProcessEngineImpl {
 
   private static final Log log = Log.getLog(SpringProcessEngine.class.getName());
 

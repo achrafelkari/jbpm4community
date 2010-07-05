@@ -32,10 +32,8 @@ import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.cal.CronExpression;
 import org.jbpm.pvm.internal.cal.Duration;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
-import org.jbpm.pvm.internal.session.DbSession;
 import org.jbpm.pvm.internal.session.RepositorySession;
 import org.jbpm.pvm.internal.util.Clock;
-
 
 /**
  * Job that starts a new process instance of a given process definition 
@@ -51,26 +49,22 @@ public class StartProcessTimer extends TimerImpl {
 
   // Override execution logic of regular timer
   public Boolean execute(Environment environment) throws Exception {
-    
     if (LOG.isDebugEnabled()) {
       LOG.debug("Periodic start process triggered at " + Clock.getTime());
     }
-    
-    boolean processDefinitionExists = processDefinitionExists(environment);
-    boolean newDueDateCalculated = false;
-    
-    if (processDefinitionExists) {
+
+    // if process definition exists
+    if (processDefinitionExists(environment)) {
       startProcessInstance(environment);
-      newDueDateCalculated = calculateDueDate(environment);
-    } 
-    
-    if (!processDefinitionExists || !newDueDateCalculated) {
-      deleteThisJob(environment);
-    } else {
-      saveThisJob(environment);
+      // and a new date is appointed
+      if (calculateDueDate(environment)) {
+        // do not delete this timer
+        return false;
+      }
     }
-    
-    return null;
+
+    // delete timer otherwise
+    return true;
   }
   
   protected boolean processDefinitionExists(Environment environment) {
@@ -107,9 +101,9 @@ public class StartProcessTimer extends TimerImpl {
   protected boolean calculateDueDate(Environment environment) throws ParseException {
       
     if (getIntervalExpression() != null && Duration.isValidExpression(getIntervalExpression())) {
-      duedate = Duration.calculateDueDate(getIntervalExpression());
+      dueDate = Duration.calculateDueDate(getIntervalExpression());
     } else if (getIntervalExpression() != null &&  CronExpression.isValidExpression(getIntervalExpression())) {
-      duedate = new CronExpression(getIntervalExpression()).getNextValidTimeAfter(Clock.getTime());
+      dueDate = new CronExpression(getIntervalExpression()).getNextValidTimeAfter(Clock.getTime());
     } else {
       if (LOG.isDebugEnabled()) {
         LOG.debug("No next duedate calculated for start process job " +
@@ -119,41 +113,21 @@ public class StartProcessTimer extends TimerImpl {
     }
     
     if (LOG.isDebugEnabled()) {
-      LOG.debug("Next process start duedate: " + duedate);
+      LOG.debug("Next process start duedate: " + dueDate);
     }
     
     return true;
   }
   
-  protected void saveThisJob(Environment environment) {
-    DbSession dbSession = environment.get(DbSession.class);
-    if (dbSession == null) {
-      throw new JbpmException("no " + DbSession.class.getName() + " in environment"); 
-    }
-    dbSession.save(this);
-  }
-  
-  protected void deleteThisJob(Environment environment) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Deleting start process job for process definition with name " + getProcessDefinitionName());
-    }
-    
-    DbSession dbSession = environment.get(DbSession.class);
-    if (dbSession == null) {
-      throw new JbpmException("no " + DbSession.class.getName() + " in environment"); 
-    }
-    dbSession.delete(this);
-  }
-  
   @Override
   public void schedule() {
-    if (duedate == null && getIntervalExpression() != null) {
+    if (dueDate == null && getIntervalExpression() != null) {
       try {
         calculateDueDate(EnvironmentImpl.getCurrent());
       } catch (ParseException e) {
         throw new JbpmException("Cannot parse intervalExpression", e);
       }
-    } else if (duedate == null) {
+    } else if (dueDate == null) {
       throw new JbpmException("Cannot schedule start process timer: " +
                               "no duedate or intervalExpression set");
     }
@@ -165,7 +139,7 @@ public class StartProcessTimer extends TimerImpl {
     if (getProcessDefinitionName() == null) {
       throw new JbpmException("No process definition name set for start process timer");
     }
-    if (duedate == null && getIntervalExpression() == null) {
+    if (dueDate == null && getIntervalExpression() == null) {
       throw new JbpmException("No duedate or intervalExpression found for start process timer");
     }
   }
@@ -199,8 +173,8 @@ public class StartProcessTimer extends TimerImpl {
     if (getProcessDefinitionName() != null) {
       strb.append(getProcessDefinitionName());
     }
-    if (duedate != null) {
-      strb.append("| " + duedate);
+    if (dueDate != null) {
+      strb.append("| " + dueDate);
     }
     if (getIntervalExpression() != null) {
       strb.append("| " + getIntervalExpression());

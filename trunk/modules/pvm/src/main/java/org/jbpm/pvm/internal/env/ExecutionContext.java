@@ -24,10 +24,8 @@ package org.jbpm.pvm.internal.env;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jbpm.api.Execution;
 import org.jbpm.api.JbpmException;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
-import org.jbpm.pvm.internal.model.ScopeInstanceImpl;
 
 public class ExecutionContext implements Context {
   
@@ -70,8 +68,8 @@ public class ExecutionContext implements Context {
   }
 
   public <T> T get(Class<T> type) {
-    if (Execution.class.isAssignableFrom(type.getClass())) {
-      return (T) execution;
+    if (type.isAssignableFrom(ExecutionImpl.class)) {
+      return type.cast(execution);
     }
     return null;
   }

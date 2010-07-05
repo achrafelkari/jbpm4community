@@ -63,8 +63,8 @@ public class HistoryCommentImpl extends HistoryDetailImpl implements HistoryComm
     return reply;
   }
 
-  public List<HistoryComment> getReplies() {
-    return (List) replies;
+  public List<? extends HistoryComment> getReplies() {
+    return replies;
   }
   
   // getters and setters //////////////////////////////////////////////////////

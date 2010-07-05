@@ -58,6 +58,9 @@ public interface TaskQuery {
    * associated as a candidate group to the task. */
   TaskQuery candidate(String userId);
   
+    /** only select tasks that are associated to the given execution */
+  TaskQuery executionId(String executionId);
+
   /** only select tasks that are associated to the given process instance */
   TaskQuery processInstanceId(String processInstanceId);
 

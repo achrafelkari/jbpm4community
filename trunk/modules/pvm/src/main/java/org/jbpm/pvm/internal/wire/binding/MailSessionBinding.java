@@ -24,18 +24,20 @@ package org.jbpm.pvm.internal.wire.binding;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.w3c.dom.Element;
+
+import org.jbpm.pvm.internal.email.impl.AddressFilter;
 import org.jbpm.pvm.internal.email.impl.MailServer;
 import org.jbpm.pvm.internal.email.impl.MailSessionImpl;
-import org.jbpm.pvm.internal.email.impl.AddressFilter;
 import org.jbpm.pvm.internal.email.spi.MailSession;
 import org.jbpm.pvm.internal.util.XmlUtil;
 import org.jbpm.pvm.internal.wire.Descriptor;
+import org.jbpm.pvm.internal.wire.descriptor.JndiDescriptor;
 import org.jbpm.pvm.internal.wire.descriptor.ListDescriptor;
 import org.jbpm.pvm.internal.wire.descriptor.ObjectDescriptor;
 import org.jbpm.pvm.internal.wire.descriptor.PatternDescriptor;
 import org.jbpm.pvm.internal.xml.Parse;
 import org.jbpm.pvm.internal.xml.Parser;
-import org.w3c.dom.Element;
 
 /**
  * Parses a descriptor for creating a {@link MailSession}.
@@ -43,9 +45,6 @@ import org.w3c.dom.Element;
  * @author Alejandro Guizar
  */
 public class MailSessionBinding extends WireDescriptorBinding {
-
-  private static final PropertiesBinding propertiesBinding = new PropertiesBinding();
-  private static final ObjectBinding objectBinding = new ObjectBinding();
 
   public MailSessionBinding() {
     super("mail-session");
@@ -86,23 +85,29 @@ public class MailSessionBinding extends WireDescriptorBinding {
         serverDescriptor.addInjection("addressFilter", filterDescriptor);
       }
 
-      // mail session properties
-      Element propertiesElement = XmlUtil.element(serverElement, "session-properties");
-      if (propertiesElement != null) {
-        Descriptor propertiesDescriptor =
-            (Descriptor) propertiesBinding.parse(propertiesElement, parse, parser);
-        serverDescriptor.addInjection("sessionProperties", propertiesDescriptor);
+      if (serverElement.hasAttribute("session-jndi")) {
+        // session jndi name
+        String jndiName = serverElement.getAttribute("session-jndi");
+        Descriptor jndiDescriptor = new JndiDescriptor(jndiName);
+        serverDescriptor.addInjection("mailSession", jndiDescriptor);
       }
       else {
-        parse.addProblem("missing mail session properties", element);
-      }
+        // session properties
+        Element propertiesElement = XmlUtil.element(serverElement, "session-properties");
+        if (propertiesElement != null) {
+          Descriptor propertiesDescriptor = PropertiesBinding.parseDescriptor(propertiesElement, parse, parser);
+          serverDescriptor.addInjection("sessionProperties", propertiesDescriptor);
+        }
+        else {
+          parse.addProblem("missing mail session properties or jndi name", serverElement);
+        }
 
-      // authenticator
-      Element authenticatorElement = XmlUtil.element(serverElement, "authenticator");
-      if (authenticatorElement != null) {
-        Descriptor authenticatorDescriptor =
-            (Descriptor) objectBinding.parse(authenticatorElement, parse, parser);
-        serverDescriptor.addInjection("authenticator", authenticatorDescriptor);
+        // authenticator
+        Element authenticatorElement = XmlUtil.element(serverElement, "authenticator");
+        if (authenticatorElement != null) {
+          Descriptor authenticatorDescriptor = ObjectBinding.parseObjectDescriptor(authenticatorElement, parse, parser);
+          serverDescriptor.addInjection("authenticator", authenticatorDescriptor);
+        }
       }
     }
 
@@ -116,20 +121,23 @@ public class MailSessionBinding extends WireDescriptorBinding {
     return sessionDescriptor;
   }
 
-  protected Descriptor parsePattern(Element patternElement, Parse parse, Parser parser) {
-    PatternDescriptor patternDescriptor =
-        new PatternDescriptor(XmlUtil.getContentText(patternElement));
+  public static PatternDescriptor parsePattern(Element element, Parse parse, Parser parser) {
+    // content
+    String regex = XmlUtil.getContentText(element);
+    PatternDescriptor patternDescriptor = new PatternDescriptor(regex);
     // literal
-    String literalAttr = XmlUtil.attribute(patternElement, "literal");
+    String literalAttr = XmlUtil.attribute(element, "literal");
     if (literalAttr != null) {
       Boolean literal = XmlUtil.parseBooleanValue(literalAttr);
-      if (literal != null) patternDescriptor.setLiteral(literal);
+      if (literal != null)
+        patternDescriptor.setLiteral(literal);
     }
     // canonEq
-    String canonEqAttr = XmlUtil.attribute(patternElement, "canonEq");
+    String canonEqAttr = XmlUtil.attribute(element, "canonEq");
     if (canonEqAttr != null) {
       Boolean canonEq = XmlUtil.parseBooleanValue(canonEqAttr);
-      if (canonEq != null) patternDescriptor.setCanonEq(canonEq);
+      if (canonEq != null)
+        patternDescriptor.setCanonEq(canonEq);
     }
     return patternDescriptor;
   }

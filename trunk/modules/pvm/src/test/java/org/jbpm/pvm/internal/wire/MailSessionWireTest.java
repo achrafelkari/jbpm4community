@@ -27,11 +27,16 @@ import java.util.regex.Pattern;
 
 import javax.mail.Authenticator;
 import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 
 import org.jbpm.api.JbpmException;
 import org.jbpm.pvm.internal.email.impl.AddressFilter;
 import org.jbpm.pvm.internal.email.impl.MailServer;
 import org.jbpm.pvm.internal.email.impl.MailSessionImpl;
+
+import com.mockrunner.ejb.JNDIUtil;
 
 /**
  * @author Alejandro Guizar
@@ -39,18 +44,17 @@ import org.jbpm.pvm.internal.email.impl.MailSessionImpl;
 public class MailSessionWireTest extends WireTestCase {
 
   public void testSessionProperties() {
-    WireContext wireContext =
-        createWireContext("<objects>"
-          + "  <mail-session>"
-          + "    <mail-server>"
-          + "      <session-properties>"
-          + "        <property name='mail.host' value='localhost' />"
-          + "        <property name='mail.user' value='aguizar' />"
-          + "        <property name='mail.from' value='noreply@jbpm.org' />"
-          + "      </session-properties>"
-          + "    </mail-server>"
-          + "  </mail-session>"
-          + "</objects>");
+    WireContext wireContext = createWireContext("<objects>"
+      + "  <mail-session>"
+      + "    <mail-server>"
+      + "      <session-properties>"
+      + "        <property name='mail.host' value='localhost' />"
+      + "        <property name='mail.user' value='aguizar' />"
+      + "        <property name='mail.from' value='noreply@jbpm.org' />"
+      + "      </session-properties>"
+      + "    </mail-server>"
+      + "  </mail-session>"
+      + "</objects>");
 
     MailSessionImpl mailSession = wireContext.get(MailSessionImpl.class);
     List<MailServer> mailServers = mailSession.getMailServers();
@@ -71,55 +75,62 @@ public class MailSessionWireTest extends WireTestCase {
         + "    <mail-server />"
         + "  </mail-session>"
         + "</objects>");
-      fail("expected wire context creation to puke");
+      fail("expected mail session binding to complain");
     }
     catch (JbpmException e) {
       // session properties are mandatory
     }
   }
 
-  public static class MyAuthenticator extends Authenticator {
+  public static class BasicAuthenticator extends Authenticator {
+
+    String userName;
+    String password;
+
     @Override
     protected PasswordAuthentication getPasswordAuthentication() {
-      return new PasswordAuthentication("aguizar", "wontsay");
+      return new PasswordAuthentication(userName, password);
     }
   }
 
   public void testAuthenticator() {
-    WireContext wireContext =
-        createWireContext("<objects>" +
-          "  <mail-session>" +
-          "    <mail-server>" +
-          "      <session-properties />" +
-          "      <authenticator class='" +
-          MyAuthenticator.class.getName() +
-          "' />" +
-          "    </mail-server>" +
-          "  </mail-session>" +
-          "</objects>");
+    WireContext wireContext = createWireContext("<objects>"
+      + "  <mail-session>"
+      + "    <mail-server>"
+      + "      <session-properties />"
+      + "      <authenticator class='"
+      + BasicAuthenticator.class.getName()
+      + "'>"
+      + "        <field name='userName'><string value='aguizar'/></field>"
+      + "        <field name='password'><string value='wontsay'/></field>"
+      + "      </authenticator>"
+      + "    </mail-server>"
+      + "  </mail-session>"
+      + "</objects>");
 
     MailSessionImpl mailSession = wireContext.get(MailSessionImpl.class);
     List<MailServer> mailServers = mailSession.getMailServers();
     assertEquals(1, mailServers.size());
 
     MailServer mailServer = mailServers.get(0);
-    assertSame(MyAuthenticator.class, mailServer.getAuthenticator().getClass());
+    BasicAuthenticator authenticator = (BasicAuthenticator) mailServer.getAuthenticator();
+    assertEquals("aguizar", authenticator.userName);
+    assertEquals("wontsay", authenticator.password);
   }
 
   public void testAddressFilter() {
-    WireContext wireContext =
-        createWireContext("<objects>"
-          + "  <mail-session>"
-          + "    <mail-server>"
-          + "      <address-filter>"
-          + "        <include>.+@jbpm.org</include>"
-          + "        <exclude>.+@jboss.com</exclude>"
-          + "        <exclude>.+@redhat.com</exclude>"
-          + "      </address-filter>"
-          + "      <session-properties />"
-          + "    </mail-server>"
-          + "  </mail-session>"
-          + "</objects>");
+    WireContext wireContext = createWireContext("<objects>"
+      + "  <mail-session>"
+      + "    <mail-server>"
+      + "      <address-filter>"
+      + "        <include>.+@jbpm.org</include>"
+      + "        <exclude>.+@jboss.com</exclude>"
+      + "        <exclude>.+@redhat.com</exclude>"
+      + "      </address-filter>"
+      + "      <session-properties />"
+      + "    </mail-server>"
+      + "  </mail-session>"
+      + "</objects>");
 
     MailSessionImpl mailSession = wireContext.get(MailSessionImpl.class);
     List<MailServer> mailServers = mailSession.getMailServers();
@@ -141,14 +152,13 @@ public class MailSessionWireTest extends WireTestCase {
   }
 
   public void testNoAddressFilter() {
-    WireContext wireContext =
-        createWireContext("<objects>"
-          + "  <mail-session>"
-          + "    <mail-server>"
-          + "      <session-properties />"
-          + "    </mail-server>"
-          + "  </mail-session>"
-          + "</objects>");
+    WireContext wireContext = createWireContext("<objects>"
+      + "  <mail-session>"
+      + "    <mail-server>"
+      + "      <session-properties />"
+      + "    </mail-server>"
+      + "  </mail-session>"
+      + "</objects>");
 
     MailSessionImpl mailSession = wireContext.get(MailSessionImpl.class);
     List<MailServer> mailServers = mailSession.getMailServers();
@@ -160,23 +170,46 @@ public class MailSessionWireTest extends WireTestCase {
   }
 
   public void testMultipleMailServers() {
-    WireContext wireContext =
-        createWireContext("<objects>"
-          + "  <mail-session>"
-          + "    <mail-server>"
-          + "      <session-properties />"
-          + "    </mail-server>"
-          + "    <mail-server>"
-          + "      <session-properties />"
-          + "    </mail-server>"
-          + "    <mail-server>"
-          + "      <session-properties />"
-          + "    </mail-server>"
-          + "  </mail-session>"
-          + "</objects>");
+    WireContext wireContext = createWireContext("<objects>"
+      + "  <mail-session>"
+      + "    <mail-server>"
+      + "      <session-properties />"
+      + "    </mail-server>"
+      + "    <mail-server>"
+      + "      <session-properties />"
+      + "    </mail-server>"
+      + "    <mail-server>"
+      + "      <session-properties />"
+      + "    </mail-server>"
+      + "  </mail-session>"
+      + "</objects>");
 
     MailSessionImpl mailSession = wireContext.get(MailSessionImpl.class);
     List<MailServer> mailServers = mailSession.getMailServers();
     assertEquals(3, mailServers.size());
+  }
+
+  public void testJndiName() throws NamingException {
+    JNDIUtil.initMockContextFactory();
+    try {
+      Session session = Session.getInstance(new Properties());
+      new InitialContext().bind("java:comp/env/mail/smtp", session);
+
+      WireContext wireContext = createWireContext("<objects>"
+        + "  <mail-session>"
+        + "    <mail-server session-jndi='java:comp/env/mail/smtp' />"
+        + "  </mail-session>"
+        + "</objects>");
+
+      MailSessionImpl mailSession = wireContext.get(MailSessionImpl.class);
+      List<MailServer> mailServers = mailSession.getMailServers();
+      assertEquals(1, mailServers.size());
+
+      MailServer mailServer = mailServers.get(0);
+      assertSame(session, mailServer.getMailSession());
+    }
+    finally {
+      JNDIUtil.resetMockContextFactory();
+    }
   }
 }

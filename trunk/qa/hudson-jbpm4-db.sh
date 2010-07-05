@@ -1,8 +1,12 @@
 #!/bin/sh
 #
-# runs the smoke test suite
+# runs the database test suite
 
+# build distribution
 mvn -U -Pdistro clean install
+# set up
 ant -f qa/build.xml -Ddatabase=$DATABASE -Djbpm.parent.dir=$WORKSPACE testsuite.db.setup
-mvn -Ddatabase=$DATABASE test
+# run test suite
+mvn -Ddatabase=$DATABASE -Dmaven.test.failure.ignore=true test
+# tear down
 ant -f qa/build.xml -Ddatabase=$DATABASE -Djbpm.parent.dir=$WORKSPACE testsuite.db.teardown

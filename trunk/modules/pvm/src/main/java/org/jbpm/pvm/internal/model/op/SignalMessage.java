@@ -27,12 +27,11 @@ import org.jbpm.api.Execution;
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.pvm.internal.job.MessageImpl;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
-import org.jbpm.pvm.internal.session.DbSession;
 
 /**
  * @author Tom Baeyens
  */
-public class SignalMessage extends MessageImpl<Object> {
+public class SignalMessage extends MessageImpl {
   
   private static final long serialVersionUID = 1L;
   
@@ -48,16 +47,11 @@ public class SignalMessage extends MessageImpl<Object> {
     this.parameters = parameters;
   }
 
-  public Object execute(Environment environment) throws Exception {
+  protected void executeVoid(Environment environment) throws Exception {
     execution.setState(Execution.STATE_ACTIVE_ROOT);
     
     Signal signal = new Signal(signalName, parameters);
     execution.performAtomicOperationSync(signal);
-    
-    DbSession dbSession = environment.get(DbSession.class);
-    dbSession.delete(this);
-
-    return null;
   }
 
   public String toString() {

@@ -32,6 +32,7 @@ import org.jbpm.pvm.internal.history.model.HistoryDetailImpl;
 import org.jbpm.pvm.internal.job.CommandMessage;
 import org.jbpm.pvm.internal.jobexecutor.JobExecutor;
 import org.jbpm.pvm.internal.session.MessageSession;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 import org.jbpm.test.Db;
 
 /**
@@ -64,11 +65,13 @@ public class NormalMessageTest extends JobExecutorTestCase {
     }
     
     List<Integer> processedMessageNumbers = commandService.execute(new Command<List<Integer>>() {
+      private static final long serialVersionUID = 1L;
+
       public List<Integer> execute(Environment environment) {
         List<Integer> processedMessageNumbers = new ArrayList<Integer>();
         Session session = environment.get(Session.class);
-        List<HistoryComment> comments = session.createCriteria(HistoryDetailImpl.class).list();
-        for (HistoryComment comment: comments) {
+        List<?> comments = session.createCriteria(HistoryDetailImpl.class).list();
+        for (HistoryComment comment: CollectionUtil.checkList(comments, HistoryComment.class)) {
           int processedMessageNumber = Integer.parseInt(comment.getMessage());
           processedMessageNumbers.add(processedMessageNumber);
           // make sure the db stays clean

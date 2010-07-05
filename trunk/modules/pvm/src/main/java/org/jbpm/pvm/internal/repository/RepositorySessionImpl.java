@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.hibernate.Query;
 import org.hibernate.Session;
+
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.NewDeployment;
 import org.jbpm.api.ProcessDefinition;
@@ -37,6 +38,7 @@ import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.model.ProcessDefinitionImpl;
 import org.jbpm.pvm.internal.query.ProcessDefinitionQueryImpl;
 import org.jbpm.pvm.internal.session.RepositorySession;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 /**
  * @author Tom Baeyens
@@ -78,8 +80,8 @@ public class RepositorySessionImpl implements RepositorySession {
         "  and execution.state != '"+ExecutionImpl.STATE_SUSPENDED+"'"   
       );
       query.setParameterList("processDefinitionIds", processDefinitionIds);
-      List<ExecutionImpl> executions = query.list();
-      for (ExecutionImpl execution: executions) {
+      List<?> executions = query.list();
+      for (ExecutionImpl execution: CollectionUtil.checkList(executions, ExecutionImpl.class)) {
         execution.suspend();
       }
     }
@@ -103,8 +105,8 @@ public class RepositorySessionImpl implements RepositorySession {
         "  and execution.state = '"+ExecutionImpl.STATE_SUSPENDED+"'"   
       );
       query.setParameterList("processDefinitionIds", processDefinitionIds);
-      List<ExecutionImpl> executions = query.list();
-      for (ExecutionImpl execution: executions) {
+      List<?> executions = query.list();
+      for (ExecutionImpl execution: CollectionUtil.checkList(executions, ExecutionImpl.class)) {
         execution.resume();
       }
     }

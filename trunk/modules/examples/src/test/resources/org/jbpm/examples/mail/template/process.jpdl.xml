@@ -6,12 +6,10 @@
     <transition to="send rectify note"/>
   </start>
 
-  <mail name="send rectify note" 
-        template="rectify-template" 
-        g="99,25,115,45">
-    <transition to="end"/>
+  <mail g="99,25,115,45" name="send rectify note" template="rectify-template">
+    <transition to="wait"/>
   </mail>
 
-  <state name="end" g="240,25,98,45"/>
+  <state g="240,25,98,45" name="wait"/>
 
 </process>

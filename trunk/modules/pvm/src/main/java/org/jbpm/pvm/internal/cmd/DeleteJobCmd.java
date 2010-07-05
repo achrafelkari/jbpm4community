@@ -26,7 +26,6 @@ import org.jbpm.api.cmd.Environment;
 import org.jbpm.pvm.internal.job.JobImpl;
 import org.jbpm.pvm.internal.session.DbSession;
 
-
 /**
  * @author Joram Barrez
  */

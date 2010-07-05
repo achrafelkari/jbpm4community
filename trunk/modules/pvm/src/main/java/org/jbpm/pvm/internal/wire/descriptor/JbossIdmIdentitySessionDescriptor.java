@@ -21,18 +21,16 @@
  */
 package org.jbpm.pvm.internal.wire.descriptor;
 
-import org.jboss.identity.idm.api.IdentitySession;
-import org.jboss.identity.idm.api.IdentitySessionFactory;
-import org.jboss.identity.idm.common.exception.IdentityException;
+import org.picketlink.idm.api.IdentitySession;
+import org.picketlink.idm.api.IdentitySessionFactory;
+import org.picketlink.idm.common.exception.IdentityException;
 import org.jbpm.api.JbpmException;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.identity.impl.IdentitySessionResource;
 import org.jbpm.pvm.internal.identity.impl.JBossIdmIdentitySessionImpl;
-import org.jbpm.pvm.internal.tx.JtaTransaction;
 import org.jbpm.pvm.internal.tx.StandardTransaction;
 import org.jbpm.pvm.internal.wire.WireContext;
 import org.jbpm.pvm.internal.wire.WireDefinition;
-
 
 /**
  * @author Tom Baeyens

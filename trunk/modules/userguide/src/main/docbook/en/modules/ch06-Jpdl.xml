@@ -2640,17 +2640,7 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
   &lt;/mail&gt;
   &lt;state name=&quot;end&quot;/&gt;
 &lt;/process&gt;</programlisting>
-
-      <para>The default configuration after installation includes a 
-      	<literal>jbpm.mail.properties</literal> file specifying the SMTP host 
-      	that jBPM employs to send mail. To use a mail server other than the
-        local host, set the <literal>mail.smtp.host</literal> property in the
-        mail properties file.</para>
-
-      <para>Refer to the Developers Guide for (unsupported) advanced mail 
-        configuration and usage.</para>
     </section>
-
   </section>
 
   <!-- ##################################################################### -->

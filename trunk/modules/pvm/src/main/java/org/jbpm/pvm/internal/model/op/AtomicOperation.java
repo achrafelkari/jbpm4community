@@ -41,7 +41,7 @@ public abstract class AtomicOperation implements Serializable {
   public static final AtomicOperation TRANSITION_END_ACTIVITY = new TransitionEndActivity();
 
   public abstract boolean isAsync(ExecutionImpl execution);
-  public abstract MessageImpl<?> createAsyncMessage(ExecutionImpl execution);
+  public abstract MessageImpl createAsyncMessage(ExecutionImpl execution);
   public abstract void perform(ExecutionImpl execution);
   
   public static AtomicOperation parseAtomicOperation(String text) {

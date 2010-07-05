@@ -99,14 +99,12 @@ public class DelayedInitTest extends WireTestCase {
         "  </object>"+
         "</objects>"
       );
-      Object b = wireContext.get("b");
-
+      B b = (B) wireContext.get("b");
       assertNotNull(b);
-      assertEquals(B.class, b.getClass());
-      Object a = ((B)b).a;
+
+      A a = b.a;
       assertNotNull(a);
-      assertEquals(A.class, a.getClass());
-      assertEquals(b, ((A)((B)b).a).b);
+      assertEquals(b, a.b);
       assertEquals(a, wireContext.get("a"));
     }
 
@@ -130,14 +128,12 @@ public class DelayedInitTest extends WireTestCase {
         "  </object>"+
         "</objects>"
       );
-      Object b = wireContext.get("b");
-
+      B b = (B) wireContext.get("b");
       assertNotNull(b);
-      assertEquals(B.class, b.getClass());
-      Object a = ((B)b).a;
+
+      A a = b.a;
       assertNotNull(a);
-      assertEquals(A.class, a.getClass());
-      assertEquals(b, ((A)((B)b).a).b);
+      assertEquals(b, b.a.b);
       assertEquals(a, wireContext.get("a"));
     }
 
@@ -162,14 +158,12 @@ public class DelayedInitTest extends WireTestCase {
         "  </object>"+
         "</objects>"
       );
-      Object b = wireContext.get("b");
-
+      B b = (B) wireContext.get("b");
       assertNotNull(b);
-      assertEquals(B.class, b.getClass());
-      Object a = ((B)b).a;
+
+      A a = b.a;
       assertNotNull(a);
-      assertEquals(A.class, a.getClass());
-      assertEquals(b, ((A)((B)b).a).b);
+      assertEquals(b, b.a.b);
       assertEquals(a, wireContext.get("a"));
     }
 

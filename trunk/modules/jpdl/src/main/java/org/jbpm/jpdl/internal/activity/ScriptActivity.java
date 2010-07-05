@@ -23,24 +23,24 @@ package org.jbpm.jpdl.internal.activity;
 
 import org.jbpm.api.model.OpenExecution;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
-import org.jbpm.pvm.internal.script.ScriptManager;
+import org.jbpm.pvm.internal.el.Expression;
 
 /**
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public class ScriptActivity extends JpdlAutomaticActivity {
 
   private static final long serialVersionUID = 1L;
-  
+
   protected String script;
   protected String language;
   protected String variableName;
 
   public void perform(OpenExecution execution) {
-    ScriptManager scriptManager = EnvironmentImpl.getFromCurrent(ScriptManager.class);
-    Object returnValue = scriptManager.evaluateScript(script, language);
-    
-    if (variableName!=null) {
+    Object returnValue = Expression.create(script, language).evaluate(execution);
+
+    if (variableName != null) {
       execution.setVariable(variableName, returnValue);
     }
   }

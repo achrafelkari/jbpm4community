@@ -27,7 +27,6 @@ import java.util.List;
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
 
-
 /** container for executing multiple commands in one transaction. 
  * 
  * @author Tom Baeyens
@@ -39,7 +38,7 @@ public class CompositeCmd extends AbstractCommand<Void> {
   protected List<Command<?>> commands = new ArrayList<Command<?>>();
 
   public Void execute(Environment environment) throws Exception {
-    for (Command command: commands) {
+    for (Command<?> command: commands) {
       command.execute(environment);
     }
     return null;

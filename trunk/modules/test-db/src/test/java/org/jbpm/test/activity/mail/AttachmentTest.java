@@ -39,6 +39,8 @@ import junit.framework.Test;
 import org.jbpm.api.ProcessInstance;
 import org.jbpm.pvm.internal.util.IoUtil;
 import org.jbpm.test.JbpmTestCase;
+import org.jbpm.test.mail.MailTestSetup;
+
 import org.subethamail.wiser.Wiser;
 import org.subethamail.wiser.WiserMessage;
 

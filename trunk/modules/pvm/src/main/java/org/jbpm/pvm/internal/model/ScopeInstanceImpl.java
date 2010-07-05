@@ -34,6 +34,7 @@ import org.jbpm.api.Execution;
 import org.jbpm.api.JbpmException;
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.cal.CronExpression;
+import org.jbpm.pvm.internal.el.Expression;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.history.HistoryEvent;
 import org.jbpm.pvm.internal.history.events.VariableCreate;
@@ -101,21 +102,8 @@ public class ScopeInstanceImpl implements Serializable {
   protected Variable createVariableObject(String key, Object value, String typeName, boolean isHistoryEnabled) {
     log.debug("create variable '"+key+"' in '"+this+"' with value '"+value+"'");
     
-    Type type = null;
-    
-    if (type==null) {
-      TypeSet typeSet = EnvironmentImpl.getFromCurrent(TypeSet.class, false);
-      if (typeSet!=null) {
-        if (typeName!=null) {
-          type = typeSet.findTypeByName(typeName);
-        }
-        if (type==null) {
-          type = typeSet.findTypeByMatch(key, value);
-        }
-      }
-    }
-    
-    Variable variable = null;
+    Type type = findType(key, value, typeName);
+    Variable variable;
 
     if (type!=null) {
       Class<?> variableClass = type.getVariableClass();
@@ -152,6 +140,17 @@ public class ScopeInstanceImpl implements Serializable {
     }
     
     return variable;
+  }
+
+  private static Type findType(String key, Object value, String typeName) {
+    TypeSet typeSet = EnvironmentImpl.getFromCurrent(TypeSet.class, false);
+    if (typeSet == null) return null;
+
+    Type type;
+    if (typeName == null || (type = typeSet.findTypeByName(typeName)) == null) {
+      type = typeSet.findTypeByMatch(key, value);
+    }
+    return type;
   }
 
   public void setVariable(String key, Object value) {
@@ -301,12 +300,12 @@ public class ScopeInstanceImpl implements Serializable {
     if (timerDefinition!=null) {
       timer.setEventName(timerDefinition.getEventName());
       timer.setSignalName(timerDefinition.getSignalName());
-      timer.setDuedate(timerDefinition.getDueDate());
+      timer.setDueDate(timerDefinition.getDueDate());
       timer.setDueDateDescription(timerDefinition.getDueDateDescription());
       
-      if (timer.getDuedate() == null && timerDefinition.getCronExpression() != null) {
+      if (timer.getDueDate() == null && timerDefinition.getCronExpression() != null) {
         try {
-          timer.setDuedate(new CronExpression(timerDefinition.getCronExpression()).getNextValidTimeAfter(Clock.getTime()));
+          timer.setDueDate(new CronExpression(timerDefinition.getCronExpression()).getNextValidTimeAfter(Clock.getTime()));
         } catch (ParseException pe) {
           throw new JbpmException("Can't parse cron expression " + timerDefinition.getCronExpression(), pe);
         }
@@ -320,7 +319,14 @@ public class ScopeInstanceImpl implements Serializable {
       if (retries!=null) {
         timer.setRetries(retries);
      }
-      timer.setRepeat(timerDefinition.getRepeat());
+      // support for repeat attribute given as expression 
+      // only if repeat is specified
+      if (timerDefinition.getRepeat() != null) {
+        Object repeatEl = Expression.create(timerDefinition.getRepeat(), Expression.LANGUAGE_UEL_VALUE).evaluate();
+        timer.setRepeat(repeatEl.toString());
+      } else {
+        timer.setRepeat(timerDefinition.getRepeat());
+      }
     }
     
     return timer;

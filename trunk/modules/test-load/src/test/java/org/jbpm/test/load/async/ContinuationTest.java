@@ -25,8 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.Session;
-import org.jbpm.api.cmd.Command;
+
 import org.jbpm.api.cmd.Environment;
+import org.jbpm.api.cmd.VoidCommand;
 import org.jbpm.pvm.internal.builder.ProcessDefinitionBuilder;
 import org.jbpm.pvm.internal.model.OpenProcessDefinition;
 
@@ -67,8 +68,11 @@ public class ContinuationTest extends JobExecutorTestCase {
   }
 
   public void deployProcess() {
-    commandService.execute(new Command<Object>() {
-      public Object execute(Environment environment) throws Exception {
+    commandService.execute(new VoidCommand() {
+      private static final long serialVersionUID = 1L;
+
+      @Override
+      protected void executeVoid(Environment environment) throws Exception {
         OpenProcessDefinition processDefinition = ProcessDefinitionBuilder.startProcess("continuations")
           .key("continuations")
           .startActivity("start", AutomaticActivity.class)
@@ -94,7 +98,6 @@ public class ContinuationTest extends JobExecutorTestCase {
         
         Session session = environment.get(Session.class);
         session.save(processDefinition);
-        return null;
       }
     });
   }

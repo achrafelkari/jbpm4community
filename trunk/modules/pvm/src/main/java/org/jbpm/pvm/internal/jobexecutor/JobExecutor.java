@@ -52,25 +52,25 @@ public class JobExecutor implements Serializable {
 
   // configuration parameters
   
-  CommandService commandService;
-  String name = "JobExecutor-"+getHostName();
-  int nbrOfThreads = 3;
-  int idleMillis = 5*1000; // default normal poll interval is 5 seconds
-  int idleMillisMax = 5*60*1000; // default max poll interval in case of continuous exceptions is 5 minutes
-  int historySize = 200;
-  int lockMillis = 30*60*1000; // default max lock time is 30 minutes
+  private CommandService commandService;
+  private String name = "JobExecutor-"+getHostName();
+  private int nbrOfThreads = 3;
+  private int idleMillis = 5*1000; // default normal poll interval is 5 seconds
+  private int idleMillisMax = 5*60*1000; // default max poll interval in case of continuous exceptions is 5 minutes
+  private int historySize = 200;
+  private int lockMillis = 30*60*1000; // default max lock time is 30 minutes
 
   // runtime state
 
-  Command<Collection<Long>> acquireJobsCommand;
-  Command<Date> nextDueDateCommand;
+  private Command<Collection<Long>> acquireJobsCommand;
+  private Command<Date> nextDueDateCommand;
   
-  boolean isActive;
+  private boolean isActive;
 
-  ExecutorService threadPool;
-  DispatcherThread dispatcherThread;
+  private ExecutorService threadPool;
+  private DispatcherThread dispatcherThread;
   
-  List<JobHistoryEntry> history = new ArrayList<JobHistoryEntry>();
+  private List<JobHistoryEntry> history = new ArrayList<JobHistoryEntry>();
   
   /** starts the {@link DispatcherThread} and {@link JobExecutorThread}s for this job executor */
   public synchronized void start() {
@@ -79,7 +79,7 @@ public class JobExecutor implements Serializable {
     }
     if (! isActive) {
       acquireJobsCommand = new AcquireJobsCmd(this);
-      nextDueDateCommand = new GetNextDueDateCmd(this);
+      nextDueDateCommand = new GetNextDueDateCmd();
       
       isActive = true;
       log.trace("starting thread pool for job executor '"+name+"'...");
@@ -129,7 +129,7 @@ public class JobExecutor implements Serializable {
     log.debug("stopping job executor");
     if (isActive) {
       isActive = false;
-      dispatcherThread.deactivate(true);
+      dispatcherThread.deactivate(join);
       threadPool.shutdown();
       if (join) {
         try {

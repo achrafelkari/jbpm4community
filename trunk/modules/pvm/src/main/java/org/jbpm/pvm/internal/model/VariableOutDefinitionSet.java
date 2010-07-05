@@ -26,16 +26,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.jbpm.pvm.internal.el.Expression;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
-import org.jbpm.pvm.internal.script.ScriptManager;
 
 /**
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public class VariableOutDefinitionSet implements Serializable {
-  
+
   private static final long serialVersionUID = 1L;
-  
+
   protected List<VariableOutDefinitionImpl> variableOutDefinitions;
 
   public void processOutVariables(ExecutionImpl outerExecution, ScopeInstanceImpl innerScopeInstance) {
@@ -44,13 +45,11 @@ public class VariableOutDefinitionSet implements Serializable {
       for (VariableOutDefinitionImpl variableOutDefinition: variableOutDefinitions) {
         String variableName = variableOutDefinition.getName();
         if (variableName!=null) {
-          ScriptManager scriptManager = EnvironmentImpl.getFromCurrent(ScriptManager.class);
-          
           // TODO update evaluateExpression so that scopeInstance can be passed in directly
           String expression = variableOutDefinition.getExpression();
           String language = variableOutDefinition.getLanguage();
 
-          Object value = scriptManager.evaluateExpression(expression, language);
+          Object value = Expression.create(expression, language).evaluateInScope(innerScopeInstance);
           outerExecution.setVariable(variableName, value);
         }
       }
@@ -62,10 +61,10 @@ public class VariableOutDefinitionSet implements Serializable {
              && (!variableOutDefinitions.isEmpty())
            );
   }
-  
+
   public List<VariableOutDefinitionImpl> getVariableOutDefinitions() {
     if (variableOutDefinitions==null) {
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
     return variableOutDefinitions;
   }

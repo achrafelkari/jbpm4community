@@ -34,7 +34,7 @@ public class ExecuteActivity extends AtomicOperation {
   
   private static final long serialVersionUID = 1L;
   
-  private static Log log = Log.getLog(ExecuteActivity.class.getName());
+  private static final Log log = Log.getLog(ExecuteActivity.class.getName());
   
   public boolean isAsync(ExecutionImpl execution) {
     return execution.getActivity().isAsync();
@@ -72,7 +72,7 @@ public class ExecuteActivity extends AtomicOperation {
     return "ExecuteActivity";
   }
 
-  public MessageImpl<?> createAsyncMessage(ExecutionImpl execution) {
+  public MessageImpl createAsyncMessage(ExecutionImpl execution) {
     ExecuteActivityMessage executeActivityMessage = new ExecuteActivityMessage(execution);
     if (execution.getActivity().getContinuation()==Continuation.EXCLUSIVE) {
       executeActivityMessage.setExclusive(true);

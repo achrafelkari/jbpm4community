@@ -29,12 +29,12 @@ import javax.script.Bindings;
 
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 
-
 /**
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public class EnvironmentBindings implements Bindings {
-  
+
   protected EnvironmentImpl environment;
 
   public EnvironmentBindings(String[] readContextNames, String writeContextName) {
@@ -42,19 +42,21 @@ public class EnvironmentBindings implements Bindings {
   }
 
   public Object get(Object key) {
-    return environment.get((String)key);
+    return environment.get((String) key);
   }
 
   public boolean containsKey(Object key) {
-    return (get(key)!=null);
+    return get(key) != null;
   }
 
   public Object put(String key, Object value) {
-    return null;
+    // return named object, if any, to comply with Map contract
+    // ignore put otherwise
+    return environment.get(key);
   }
 
-  public void putAll(Map< ? extends String, ? extends Object> toMerge) {
-    throw new UnsupportedOperationException();
+  public void putAll(Map<? extends String, ? extends Object> toMerge) {
+    // ignore puts
   }
 
   public Object remove(Object key) {
@@ -69,7 +71,7 @@ public class EnvironmentBindings implements Bindings {
     throw new UnsupportedOperationException();
   }
 
-  public Set<java.util.Map.Entry<String, Object>> entrySet() {
+  public Set<Entry<String, Object>> entrySet() {
     throw new UnsupportedOperationException();
   }
 

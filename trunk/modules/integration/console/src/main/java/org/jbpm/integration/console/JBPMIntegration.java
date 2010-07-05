@@ -21,14 +21,11 @@
  */
 package org.jbpm.integration.console;
 
-import org.jbpm.api.Configuration;
 import org.jbpm.api.ExecutionService;
 import org.jbpm.api.HistoryService;
 import org.jbpm.api.ProcessEngine;
 import org.jbpm.api.RepositoryService;
 import org.jbpm.api.TaskService;
-
-import javax.naming.InitialContext;
 
 /**
  * Base class for jbpm integration

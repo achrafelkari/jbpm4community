@@ -2,21 +2,21 @@
 
 <process name="Purchase order" xmlns="http://jbpm.org/4.3/jpdl">
 
-  <start>
+  <start g="46,33,80,40">
     <transition to="a" />
   </start>
 
-  <state name="a">
-    <transition name="Supplier ok" to="b" />
+  <state name="a" g="169,36,80,40">
+    <transition name="Supplier ok" to="b" g="-85,-23"/>
   </state>
 
-  <state name="b">
-    <transition name="nok" to="Error" />
-    <transition name="ok" to="Completed" />
-  </state >
+  <state name="b" g="169,145,80,40">
+    <transition name="nok" to="Error" g="-31,-23"/>
+    <transition name="ok" to="Completed" g="-22,-23"/>
+  </state>
 
-  <end name="Completed" />
+  <end name="Completed" g="350,142,80,40"/>
 
-  <end name="Error" />
+  <end name="Error" g="186,253,80,40"/>
 
 </process>

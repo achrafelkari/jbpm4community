@@ -128,7 +128,7 @@ public abstract class CompositeElementImpl extends ScopeElementImpl implements C
    * Beware: the actual member is returned.  No copy is made. 
    */
   public List<? extends Activity> getActivities() {
-    return (List) activities;
+    return activities;
   }
 
   /** the nested activities, keyed by activity name.  If a activity with 
@@ -138,11 +138,11 @@ public abstract class CompositeElementImpl extends ScopeElementImpl implements C
    * in the map.
    * Beware: the actual member is returned.  No copy is made. 
    */
-  public Map<String, Activity> getActivitiesMap() {
+  public Map<String, ? extends Activity> getActivitiesMap() {
     if (activitiesMap == null) {
       this.activitiesMap = ActivityImpl.getActivitiesMap(activities);
     }
-    return (Map) activitiesMap;
+    return activitiesMap;
   }
   
   /** indicates if this processDefinition has activities. */

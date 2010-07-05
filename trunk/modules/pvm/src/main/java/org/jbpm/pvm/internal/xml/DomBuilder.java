@@ -30,14 +30,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 import org.xml.sax.Attributes;
-import org.xml.sax.ContentHandler;
 import org.xml.sax.Locator;
 import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
 /** builds the dom model from SAX events, optionally adding the line and 
  * column number as attributes to every element. */
-public class DomBuilder extends DefaultHandler implements ContentHandler, LexicalHandler {  /** Root document */
+public class DomBuilder extends DefaultHandler implements LexicalHandler {  /** Root document */
 
   public Document document;
   
@@ -57,10 +56,10 @@ public class DomBuilder extends DefaultHandler implements ContentHandler, Lexica
   public DocumentFragment docFrag = null;
 
   /** Vector of element activities */
-  protected Stack elemStack = new Stack();
+  protected Stack<Element> elemStack = new Stack<Element>();
 
   /** Namespace support */
-  protected Vector prefixMappings = new Vector();
+  protected Vector<String> prefixMappings = new Vector<String>();
 
   /** to obtain the line number information */
   protected Locator locator = null;
@@ -331,12 +330,12 @@ public class DomBuilder extends DefaultHandler implements ContentHandler, Lexica
       String prefix, declURL;
 
       for (int i = 0; i < nDecls; i += 2) {
-        prefix = (String) this.prefixMappings.elementAt(i);
+        prefix = this.prefixMappings.elementAt(i);
 
         if (prefix == null)
           continue;
 
-        declURL = (String) this.prefixMappings.elementAt(i + 1);
+        declURL = this.prefixMappings.elementAt(i + 1);
 
         elem.setAttributeNS("http://www.w3.org/2000/xmlns/", prefix, declURL);
       }

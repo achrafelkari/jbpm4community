@@ -3,13 +3,13 @@
 <process name="InlineMail" xmlns="http://jbpm.org/4.3/jpdl">
 
   <start g="20,25,80,40">
-    <transition to="send rectify note" />
+    <transition to="send rectify note"/>
   </start>
 
-  <mail name="send rectify note" language="juel" g="99,25,115,45">
-    <to addresses="winston@minitrue" />
-    <cc users="bb" groups="innerparty" />
-    <bcc groups="thinkpol" />
+  <mail g="99,25,115,45" language="juel" name="send rectify note">
+    <to addresses="winston@minitrue"/>
+    <cc groups="innerparty" users="bb"/>
+    <bcc groups="thinkpol"/>
     <subject>rectify ${newspaper}</subject>
     <text>${newspaper} ${date} reporting bb dayorder doubleplusungood
       refs unpersons rewrite fullwise upsub antefiling</text>
@@ -24,9 +24,9 @@
       <attachment file='${user.home}/.face' />
     </attachments>
     -->
-    <transition to="end" />
+    <transition to="wait"/>
   </mail>
 
-  <state name="end" g="240,25,98,45"/>
+  <state g="240,25,98,45" name="wait"/>
 
 </process>

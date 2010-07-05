@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<project name="test-ant">
+  <target name="init">
+    <dirname file="${ant.file}" property="base.dir" />
+    <echo>base directory: ${base.dir}</echo>
+    <taskdef name="jbpm-deploy" classname="org.jbpm.pvm.internal.ant.JbpmDeployTask" />
+  </target>
+
+  <target name="deploy-xml" depends="init">
+    <jbpm-deploy file="${base.dir}/valid.jpdl.xml" />
+  </target>
+
+  <target name="deploy-zip" depends="init">
+    <jbpm-deploy file="${base.dir}/valid.zip" />
+  </target>
+
+  <target name="deploy-bar" depends="init">
+    <jbpm-deploy file="${base.dir}/valid.bar" />
+  </target>
+</project>

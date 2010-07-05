@@ -27,7 +27,6 @@ import org.jbpm.pvm.internal.job.CommandMessage;
 import org.jbpm.pvm.internal.session.DbSession;
 import org.jbpm.pvm.internal.wire.descriptor.ObjectDescriptor;
 
-
 /**
  * @author Tom Baeyens
  */

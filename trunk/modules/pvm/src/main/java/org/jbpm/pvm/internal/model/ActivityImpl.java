@@ -35,7 +35,7 @@ import org.jbpm.pvm.internal.wire.Descriptor;
 /**
  * @author Tom Baeyens
  */
-public class ActivityImpl extends CompositeElementImpl implements Activity, ObservableElement {
+public class ActivityImpl extends CompositeElementImpl implements Activity {
 
   private static final long serialVersionUID = 1L;
   
@@ -181,8 +181,8 @@ public class ActivityImpl extends CompositeElementImpl implements Activity, Obse
   /** the list of leaving transitions.
    * Beware: the actual member is returned.  No copy is made. 
    */
-  public List<Transition> getOutgoingTransitions() {
-    return (List) outgoingTransitions;
+  public List<? extends Transition> getOutgoingTransitions() {
+    return outgoingTransitions;
   }
 
   /** indicates if a leaving transition with the given transitionName exists. */
@@ -250,8 +250,8 @@ public class ActivityImpl extends CompositeElementImpl implements Activity, Obse
   /** the list of arriving transitions.
    * Beware: the actual member is returned.  No copy is made.
    */ 
-  public List<Transition> getIncomingTransitions() {
-    return (List) incomingTransitions;
+  public List<? extends Transition> getIncomingTransitions() {
+    return incomingTransitions;
   }
 
   /** indicates if this activity has arriving transitions */
@@ -288,16 +288,16 @@ public class ActivityImpl extends CompositeElementImpl implements Activity, Obse
    * in the map.
    * Beware: the actual member is returned.  No copy is made. 
    */
-  public Map<String, Transition> getOutgoingTransitionsMap() {
+  public Map<String, ? extends Transition> getOutgoingTransitionsMap() {
     if(outgoingTransitionsMap == null){
-      this.outgoingTransitionsMap = new HashMap<String, TransitionImpl>();
+      outgoingTransitionsMap = new HashMap<String, TransitionImpl>();
       for (TransitionImpl transition: outgoingTransitions) {
-        if (! this.outgoingTransitionsMap.containsKey(transition.getName())) {
-          this.outgoingTransitionsMap.put(transition.getName(), transition);
+        if (!outgoingTransitionsMap.containsKey(transition.getName())) {
+          outgoingTransitionsMap.put(transition.getName(), transition);
         }
       }
     }
-    return (Map) outgoingTransitionsMap;
+    return outgoingTransitionsMap;
   }
 
   void clearOutgoingTransitionsMap() {

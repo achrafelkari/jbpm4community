@@ -22,10 +22,11 @@
       <unpack>false</unpack>
     </dependencySet -->
     <dependencySet>
+      <outputDirectory>lib</outputDirectory>
       <outputFileNameMapping>${artifact.artifactId}${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
       <!-- useStrictFiltering>true</useStrictFiltering -->
-      <unpack>false</unpack>
       <scope>test</scope>
+      <unpack>false</unpack>
       <excludes>
         <exclude>org.jbpm.jbpm4:jbpm-api:jar</exclude>
         <exclude>org.jbpm.jbpm4:jbpm-log:jar</exclude>
@@ -34,26 +35,23 @@
         <exclude>org.jbpm.jbpm4:jbpm-jpdl:jar</exclude>
         <exclude>org.jbpm.jbpm4:jbpm-enterprise:jar</exclude>
         <exclude>org.jbpm.jbpm4:jbpm-distro:jar</exclude>
-        <exclude>org.jbpm.jbpm4:jbpm-examples:jar</exclude>
         <exclude>org.jbpm.jbpm4:jbpm-gpd:zip</exclude>
         <exclude>org.jbpm.jbpm4.dependencies.signavio:jbpmeditor:war</exclude>
-        <exclude>org.jbpm.jbpm4:jbpm-test-db:jar</exclude>
       </excludes>
-      <outputDirectory>lib</outputDirectory>
     </dependencySet>
     <dependencySet>
+      <outputDirectory>install/src/gpd</outputDirectory>
+      <outputFileNameMapping>jbpm-gpd-site.zip</outputFileNameMapping>
       <includes>
         <include>org.jbpm.jbpm4:jbpm-gpd:zip</include>
       </includes>
-      <outputFileNameMapping>jbpm-gpd-site.zip</outputFileNameMapping>
-      <outputDirectory>install/src/gpd</outputDirectory>
     </dependencySet>
     <dependencySet>
+      <outputDirectory>install/src/signavio</outputDirectory>
+      <outputFileNameMapping>jbpmeditor.war</outputFileNameMapping>
       <includes>
         <include>org.jbpm.jbpm4.dependencies.signavio:jbpmeditor:war</include>
       </includes>
-      <outputFileNameMapping>jbpmeditor.war</outputFileNameMapping>
-      <outputDirectory>install/src/signavio</outputDirectory>
     </dependencySet>
   </dependencySets>
 

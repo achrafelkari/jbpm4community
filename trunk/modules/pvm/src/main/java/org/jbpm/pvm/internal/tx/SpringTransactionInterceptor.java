@@ -22,7 +22,6 @@
 package org.jbpm.pvm.internal.tx;
 
 import org.jbpm.api.cmd.Command;
-import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.svc.Interceptor;
 import org.jbpm.pvm.internal.svc.Policy;
@@ -39,15 +38,12 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 public class SpringTransactionInterceptor extends Interceptor {
 
-  @SuppressWarnings("unused")
-  private static final Log log = Log.getLog(SpringTransactionInterceptor.class.getName());
-
   protected int springPropagationBehaviour = TransactionDefinition.PROPAGATION_REQUIRED;
   private String transactionManagerName;
 
   @SuppressWarnings("unchecked")
   public <T> T execute(Command<T> command) {
-    PlatformTransactionManager platformTransactionManager = (PlatformTransactionManager) resolveTransactionManager();
+    PlatformTransactionManager platformTransactionManager = resolveTransactionManager();
     TransactionTemplate template = new TransactionTemplate(platformTransactionManager);
     template.setPropagationBehavior(springPropagationBehaviour);
     return (T) template.execute(new SpringCommandCallback(next, command));

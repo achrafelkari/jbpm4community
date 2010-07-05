@@ -22,27 +22,22 @@
 package org.jbpm.pvm.internal.query;
 
 import java.io.ObjectStreamException;
-import java.sql.SQLException;
 import java.util.List;
 
-import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.Session;
+
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
-import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.cmd.CommandService;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
-
 
 /**
  * @author Tom Baeyens
  */
 public abstract class AbstractQuery implements Command<Object> {
   
-  private static Log log = Log.getLog(AbstractQuery.class.getName());
-
   private static final long serialVersionUID = 1L;
   
   protected CommandService commandService;

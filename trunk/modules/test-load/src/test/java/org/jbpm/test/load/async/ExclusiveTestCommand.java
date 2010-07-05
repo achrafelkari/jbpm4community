@@ -26,23 +26,21 @@ import java.util.Random;
 import java.util.Set;
 
 import org.hibernate.Session;
+
 import org.jbpm.api.Execution;
-import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
-import org.jbpm.internal.log.Log;
+import org.jbpm.api.cmd.VoidCommand;
 import org.jbpm.pvm.internal.job.CommandMessage;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.wire.descriptor.ObjectDescriptor;
 import org.jbpm.pvm.internal.wire.descriptor.StringDescriptor;
 
-
 /**
  * @author Tom Baeyens
  */
-public class ExclusiveTestCommand implements Command<Object> {
+public class ExclusiveTestCommand extends VoidCommand {
 
   private static final long serialVersionUID = 1L;
-  private static final Log log = Log.getLog(ExclusiveTestCommand.class.getName());
   static Random random = new Random();
   
   String executionId;
@@ -61,7 +59,7 @@ public class ExclusiveTestCommand implements Command<Object> {
     return commandMessage;
   }
 
-  public Object execute(Environment environment) throws Exception {
+  protected void executeVoid(Environment environment) throws Exception {
     Long threadId = Thread.currentThread().getId();
     
     Session session = environment.get(Session.class);
@@ -92,8 +90,6 @@ public class ExclusiveTestCommand implements Command<Object> {
       log.debug("sleeping was interrupted");
     }
     */
-    
-    return null;
   }
 
 }

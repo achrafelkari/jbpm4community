@@ -55,12 +55,12 @@ public class DeleteTaskCmd extends AbstractCommand<Void> {
 
   public Void execute(Environment environment) throws Exception {
     DbSession dbSession = environment.get(DbSession.class);
-    TaskImpl task = (TaskImpl) dbSession.get(TaskImpl.class, taskDbid);
+    TaskImpl task = dbSession.get(TaskImpl.class, taskDbid);
     if (task!=null) {
       task.delete(reason);
       dbSession.delete(task);
       if (deleteHistory) {
-        HistoryTaskImpl historyTask = (HistoryTaskImpl) dbSession.get(HistoryTaskImpl.class, taskDbid);
+        HistoryTaskImpl historyTask = dbSession.get(HistoryTaskImpl.class, taskDbid);
         if (historyTask!=null) {
           dbSession.delete(historyTask);
         }

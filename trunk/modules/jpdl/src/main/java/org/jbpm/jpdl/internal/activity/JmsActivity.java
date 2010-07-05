@@ -55,7 +55,6 @@ import org.jbpm.api.model.OpenExecution;
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.el.Expression;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
-import org.jbpm.pvm.internal.script.ScriptManager;
 import org.jbpm.pvm.internal.wire.Descriptor;
 import org.jbpm.pvm.internal.wire.WireContext;
 import org.jbpm.pvm.internal.wire.descriptor.MapDescriptor;

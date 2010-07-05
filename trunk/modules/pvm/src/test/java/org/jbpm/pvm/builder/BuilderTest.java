@@ -87,7 +87,7 @@ public class BuilderTest extends BaseJbpmTestCase {
     ActivityImpl decisionActivity = (ActivityImpl) processDefinition.getActivity("x");
     assertNotNull(decisionActivity);
     
-    List<Transition> outgoingTransitions = decisionActivity.getOutgoingTransitions();
+    List<? extends Transition> outgoingTransitions = decisionActivity.getOutgoingTransitions();
     assertNotNull(outgoingTransitions);
     assertEquals("expected 4 transitions: "+outgoingTransitions, 4, outgoingTransitions.size());
     Transition toA = outgoingTransitions.get(0);
@@ -106,13 +106,13 @@ public class BuilderTest extends BaseJbpmTestCase {
     assertNull(toX.getName());
     assertEquals("x", toX.getDestination().getName());
     
-    Map<String, Transition> outgoingTransitionsMap = decisionActivity.getOutgoingTransitionsMap();
+    Map<String, ? extends Transition> outgoingTransitionsMap = decisionActivity.getOutgoingTransitionsMap();
     assertSame(toA, outgoingTransitionsMap.get(null));
     assertSame(toB, outgoingTransitionsMap.get("to b"));
     assertSame(toC, outgoingTransitionsMap.get("to c"));
     
     ActivityImpl b = (ActivityImpl) processDefinition.getActivity("b");
-    List<Transition> incomingTransitions = b.getIncomingTransitions();
+    List<? extends Transition> incomingTransitions = b.getIncomingTransitions();
     assertNotNull(incomingTransitions);
     assertEquals("x", incomingTransitions.get(0).getSource().getName());
     assertEquals("a", incomingTransitions.get(1).getSource().getName());

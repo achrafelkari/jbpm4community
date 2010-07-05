@@ -26,10 +26,9 @@ import java.util.List;
 
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
-import org.jbpm.pvm.internal.model.ActivityImpl;
+import org.jbpm.api.model.Activity;
 import org.jbpm.pvm.internal.model.ProcessDefinitionImpl;
 import org.jbpm.pvm.internal.session.RepositorySession;
-
 
 /**
  * @author Tom Baeyens
@@ -50,7 +49,7 @@ public class GetStartActivityNamesCmd implements Command<List<String>> {
     RepositorySession repositorySession = environment.get(RepositorySession.class);
     ProcessDefinitionImpl processDefinition = repositorySession.findProcessDefinitionById(processDefinitionId);
     
-    for (ActivityImpl activity: (List<ActivityImpl>) processDefinition.getActivities()) {
+    for (Activity activity: processDefinition.getActivities()) {
       if (activity.getIncomingTransitions().isEmpty()) {
         activityNames.add(activity.getName());
       }

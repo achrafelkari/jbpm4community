@@ -51,8 +51,7 @@ public class InvokeBinding extends WireOperationBinding {
       parse.addProblem("invoke must have method : "+XmlUtil.toString(element), element);
     }
     List<Element> argElements = XmlUtil.elements(element, "arg");
-    Parser wireParser = (Parser) parser;
-    List<ArgDescriptor> argDescriptors = wireParser.parseArgs(argElements, parse);
+    List<ArgDescriptor> argDescriptors = parser.parseArgs(argElements, parse);
     invokeOperation.setArgDescriptors(argDescriptors);
     return invokeOperation;
   }

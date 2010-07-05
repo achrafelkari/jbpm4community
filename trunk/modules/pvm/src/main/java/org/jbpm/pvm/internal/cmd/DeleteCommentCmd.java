@@ -45,7 +45,7 @@ public class DeleteCommentCmd extends AbstractCommand<Object> {
 
   public Object execute(Environment environment) throws Exception {
     DbSession dbSession = environment.get(DbSession.class);
-    HistoryDetailImpl comment = (HistoryDetailImpl) dbSession.get(HistoryDetailImpl.class, Long.parseLong(commentId));
+    HistoryDetailImpl comment = dbSession.get(HistoryDetailImpl.class, Long.parseLong(commentId));
     if (comment!=null) {
       dbSession.delete(comment);
       

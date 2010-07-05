@@ -94,8 +94,8 @@ public class ProcessExecutionTest extends LoadTestCase {
         for (int i=0; i<processes; i++) {
           executeProcess();
         }
-      } catch (Throwable t) {
-        exception = t;
+      } catch (RuntimeException e) {
+        exception = e;
       }
     }
     public void executeProcess() {

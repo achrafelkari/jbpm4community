@@ -25,9 +25,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jbpm.api.job.Job;
 import org.jbpm.pvm.internal.task.TaskImpl;
-
 
 /**
  * @author Tom Baeyens
@@ -36,15 +34,15 @@ public class TaskContext implements Context {
   
   private static final String KEY_TASK = "task";
   
-  static final Set<String> keys = Collections.unmodifiableSet(getKeys());
+  private static final Set<String> keys = Collections.unmodifiableSet(getKeys());
   
-  static Set<String> getKeys() {
+  private static Set<String> getKeys() {
     Set<String> keys = new HashSet<String>();
     keys.add(KEY_TASK);
     return keys;
   }
 
-  TaskImpl task;
+  private TaskImpl task;
 
   public TaskContext(TaskImpl task) {
     this.task = task;
@@ -71,8 +69,8 @@ public class TaskContext implements Context {
   }
   
   public <T> T get(Class<T> type) {
-    if (Job.class.isAssignableFrom(type)) {
-      return (T) task;
+    if (type.isAssignableFrom(TaskImpl.class)) {
+      return type.cast(task);
     }
     return null;
   }

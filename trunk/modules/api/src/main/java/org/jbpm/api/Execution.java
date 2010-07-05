@@ -204,7 +204,7 @@ public interface Execution extends Serializable {
    * have the same name, the first one is taken.  Can be null or can be an empty 
    * map.  The first execution without a name is also included with null as the key.
    */ 
-  Map<String, Execution> getExecutionsMap();
+  Map<String, ? extends Execution> getExecutionsMap();
   
   /** the child execution for the given name or null in case such execution doesn't exist. */ 
   Execution getExecution(String name);

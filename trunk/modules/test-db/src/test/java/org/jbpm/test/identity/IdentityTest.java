@@ -21,6 +21,7 @@
  */
 package org.jbpm.test.identity;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -63,17 +64,12 @@ public class IdentityTest extends JbpmTestCase {
     identityService.createMembership("jeffyu", redhatGroupId);
 
     List<Group> groups = identityService.findGroupsByUser("jeffyu");
-    assertTrue(groups.size() > 0);
-
     Set<String> groupNames = new HashSet<String>(); 
     for (Group group : groups) {
       groupNames.add(group.getName());
     }
     
-    Set<String> expectedGroupNames = new HashSet<String>();
-    expectedGroupNames.add("redhat");
-    
-    assertEquals(expectedGroupNames, groupNames);
+    assertEquals(Collections.singleton("redhat"), groupNames);
 
     identityService.deleteUser("jeffyu");
     identityService.deleteGroup(redhatGroupId);
@@ -86,17 +82,12 @@ public class IdentityTest extends JbpmTestCase {
     identityService.createMembership("johndoe", redhatGroupId, "developer");
 
     List<Group> groups = identityService.findGroupsByUserAndGroupType("johndoe", "unit");
-    assertTrue(groups.size() > 0);
-
     Set<String> groupNames = new HashSet<String>(); 
     for (Group group : groups) {
       groupNames.add(group.getName());
     }
     
-    Set<String> expectedGroupNames = new HashSet<String>();
-    expectedGroupNames.add("redhat");
-    
-    assertEquals(expectedGroupNames, groupNames);
+    assertEquals(Collections.singleton("redhat"), groupNames);
 
     identityService.deleteUser("johndoe");
     identityService.deleteGroup(redhatGroupId);

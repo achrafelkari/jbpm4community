@@ -24,8 +24,6 @@ import org.hibernate.jdbc.JDBCContext;
 import org.hibernate.transaction.JDBCTransaction;
 import org.hibernate.transaction.TransactionFactory;
 
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-
 /**
  * Spring-aware implementation of the Hibernate TransactionFactory interface, aware of
  * Spring-synchronized transactions (in particular Spring-managed JTA transactions)

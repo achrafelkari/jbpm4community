@@ -21,6 +21,9 @@
  */
 package org.jbpm.pvm.internal.wire.descriptor;
 
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.util.Listener;
 import org.jbpm.pvm.internal.wire.Descriptor;
@@ -28,18 +31,13 @@ import org.jbpm.pvm.internal.wire.WireContext;
 import org.jbpm.pvm.internal.wire.WireDefinition;
 import org.jbpm.pvm.internal.wire.WireException;
 
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
-
-import java.net.URL;
-
 /**
  * @author Tom Baeyens
  */
 public class HibernateSessionFactoryDescriptor extends AbstractDescriptor {
 
   private static final long serialVersionUID = 1L;
-  private static final Log log = Log.getLog(HibernateSessionFactoryDescriptor.class.getName());
+  static final Log log = Log.getLog(HibernateSessionFactoryDescriptor.class.getName());
   
   String configurationName;
   Descriptor configurationDescriptor;

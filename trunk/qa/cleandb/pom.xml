@@ -17,7 +17,7 @@
   <groupId>org.jbpm.jbpm4</groupId>
   <artifactId>jbpm-fetch-old-distro</artifactId>
   <packaging>jar</packaging>
-  <version>4.4-SNAPSHOT</version>
+  <version>4.3-hot-patch-v1</version>
 
   <build>
     <plugins>

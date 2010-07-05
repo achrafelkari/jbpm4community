@@ -29,6 +29,7 @@ import org.jbpm.api.history.HistoryDetail;
 import org.jbpm.api.history.HistoryDetailQuery;
 import org.jbpm.pvm.internal.history.model.HistoryCommentImpl;
 import org.jbpm.pvm.internal.history.model.HistoryDetailImpl;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 
 /**
@@ -88,7 +89,7 @@ public class HistoryDetailQueryImpl extends AbstractQuery implements HistoryDeta
   }
 
   public List<HistoryDetail> list() {
-    return (List) untypedList();
+    return CollectionUtil.checkList(untypedList(), HistoryDetail.class);
   }
   
   public HistoryDetail uniqueResult() {

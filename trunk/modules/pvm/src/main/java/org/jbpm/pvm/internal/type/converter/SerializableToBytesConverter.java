@@ -30,7 +30,6 @@ import java.io.Serializable;
 
 import org.jbpm.api.JbpmException;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
-import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.model.ScopeInstanceImpl;
 import org.jbpm.pvm.internal.repository.DeploymentObjectInputStream;
 import org.jbpm.pvm.internal.tx.DeserializedObject;

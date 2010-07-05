@@ -35,22 +35,26 @@ import org.jbpm.pvm.internal.util.IoUtil;
 /**
  * @author Tom Baeyens
  */
-public abstract class DbHelper {
-  
-  private static Log log = Log.getLog(DbHelper.class.getName());
+public class DbHelper {
+
+  private static final Log log = Log.getLog(DbHelper.class.getName());
+
+  private DbHelper() {
+    // hide default constructor to prevent instantiation
+  }
 
   public static void initializeLogging() {
-    Jdk14LogFactory.initializeJdk14Logging(); 
+    Jdk14LogFactory.initializeJdk14Logging();
   }
 
   public static void printSyntax(Class<?> clazz) {
-    log.info("Syntax: java -cp ... "+clazz.getName()+" database [delimiter]"); 
-    log.info("where database is one of {oracle, postgresql, mysql, hsqldb}"); 
+    log.info("Syntax: java -cp ... " + clazz.getName() + " database [delimiter]");
+    log.info("where database is one of {oracle, postgresql, mysql, hsqldb}");
     log.info("and delimiter is the db sql delimiter.  default delimiter is ;");
   }
 
   public static void executeSqlResource(String resource, Session session) {
-    InputStream stream = Upgrade.class.getClassLoader().getResourceAsStream(resource);
+    InputStream stream = DbHelper.class.getClassLoader().getResourceAsStream(resource);
     if (stream == null) {
       throw new JbpmException("resource not found: " + resource);
     }
@@ -59,14 +63,15 @@ public abstract class DbHelper {
       byte[] bytes = IoUtil.readBytes(stream);
       String fileContents = new String(bytes);
       List<String> commands = extractCommands(fileContents);
-      
+
       log.info("--- Executing DB Commands -------------------------");
-      for (String command: commands) {
+      for (String command : commands) {
         log.info(command);
         try {
           int result = session.createSQLQuery(command).executeUpdate();
-          log.info("--- Result: "+result+" --------------------------");
-        } catch (Exception e) {
+          log.info("--- Result: " + result + " --------------------------");
+        }
+        catch (Exception e) {
           e.printStackTrace();
           log.info("-----------------------------------------------");
         }
@@ -83,16 +88,16 @@ public abstract class DbHelper {
   public static List<String> extractCommands(String fileContents) {
     List<String> commands = new ArrayList<String>();
     int i = 0;
-    while (i<fileContents.length()) {
+    while (i < fileContents.length()) {
       int j = fileContents.indexOf(";", i);
-      if (j==-1) {
+      if (j == -1) {
         j = fileContents.length();
       }
       String command = fileContents.substring(i, j).trim();
-      if (command.length()>0) {
+      if (command.length() > 0) {
         commands.add(command);
       }
-      i = j+1;
+      i = j + 1;
     }
     return commands;
   }

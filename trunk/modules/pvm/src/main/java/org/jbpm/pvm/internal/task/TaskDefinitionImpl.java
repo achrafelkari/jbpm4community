@@ -21,7 +21,6 @@
  */
 package org.jbpm.pvm.internal.task;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +29,7 @@ import org.jbpm.pvm.internal.util.Priority;
 /**
  * defines a task and how the actor(s) must be calculated at runtime.
  */
-public class TaskDefinitionImpl extends AssignableDefinitionImpl implements Serializable {
+public class TaskDefinitionImpl extends AssignableDefinitionImpl {
   
   private static final long serialVersionUID = 1L;
 

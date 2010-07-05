@@ -25,10 +25,8 @@ import java.util.Set;
 
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.cmd.Environment;
-import org.jbpm.pvm.internal.client.ClientExecution;
 import org.jbpm.pvm.internal.session.DbSession;
 import org.jbpm.pvm.internal.task.TaskImpl;
-
 
 /**
  * @author Tom Baeyens
@@ -37,7 +35,7 @@ public class GetTaskVariableNamesCmd extends AbstractCommand<Set<String>> {
 
   private static final long serialVersionUID = 1L;
   
-  String taskId;
+  private String taskId;
   
   public GetTaskVariableNamesCmd(String taskId) {
     if (taskId==null) {

@@ -23,13 +23,15 @@ package org.jbpm.pvm.internal.cmd;
 
 import java.util.List;
 
-import org.hibernate.Query;
+import org.hibernate.Criteria;
 import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
+
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.api.task.Participation;
 import org.jbpm.pvm.internal.task.ParticipationImpl;
-
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 /**
  * @author Tom Baeyens
@@ -50,25 +52,17 @@ public class GetParticipantsCmd extends AbstractCommand<List<Participation>> {
   }
 
   public List<Participation> execute(Environment environment) throws Exception {
-    StringBuilder hql = new StringBuilder();
-    hql.append("select role from ");
-    hql.append(ParticipationImpl.class.getName());
-    hql.append(" as role where ");
+    Criteria criteria = environment.get(Session.class).createCriteria(ParticipationImpl.class);
     
     if (taskId!=null) {
-      hql.append(" role.task.dbid = "+taskId+" ");
-
+      criteria.add(Restrictions.eq("task.dbid", Long.parseLong(taskId)));
     } else if (swimlaneId!=null) {
-      hql.append(" role.swimlane.dbid = "+swimlaneId+" ");
-      
+      criteria.add(Restrictions.eq("swimlane.dbid", Long.parseLong(swimlaneId)));
     } else {
       throw new JbpmException("no task nor swimlane specified");
     }
 
-    Session session = environment.get(Session.class);
-    Query query = session.createQuery(hql.toString());
-
-    List<Participation> participations = query.list();
-    return participations;
+    List<?> participations = criteria.list();
+    return CollectionUtil.checkList(participations, Participation.class);
   }
 }

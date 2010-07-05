@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ====================================================================== -->
-<!--                                                                        -->
-<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--  jBPM: Workflow in Java                                                -->
 <!--                                                                        -->
 <!--  Distributable under LGPL license.                                     -->
 <!--  See terms of license at http://www.gnu.org.                           -->
-<!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6056 2010-01-05 09:13:54Z tom.baeyens@jboss.com $ -->
+<!-- $Id: pom.xml 6447 2010-07-01 08:54:37Z alex.guizar@jboss.com $ -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -42,6 +40,7 @@
       <groupId>org.jbpm.jbpm4</groupId>
       <artifactId>jbpm-test-base</artifactId>
     </dependency>
+
     <dependency>
       <groupId>jboss</groupId>
       <artifactId>jboss-j2ee</artifactId>
@@ -50,11 +49,12 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
+      <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -62,7 +62,6 @@
       <artifactId>cactus.core</artifactId>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
 
   <!-- Plugins -->
@@ -145,10 +144,10 @@
 
   <profiles>
     <profile>
-      <id>no-jboss-bind-address</id>
+      <id>no-bind-address</id>
       <activation>
         <property>
-          <name>!jboss.bind.address</name>
+          <name>!bind.address</name>
         </property>
       </activation>
       <build>

@@ -22,15 +22,11 @@
 package org.jbpm.pvm.internal.cmd;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.api.history.HistoryComment;
-import org.jbpm.pvm.internal.history.model.HistoryDetailImpl;
-import org.jbpm.pvm.internal.history.model.HistoryTaskImpl;
 import org.jbpm.pvm.internal.session.DbSession;
-
 
 /**
  * @author Tom Baeyens
@@ -53,7 +49,7 @@ public class GetTaskCommentsCmd extends AbstractCommand<List<HistoryComment>> {
     return comments;
   }
 
-  protected void forceInitializationAndClean(List<HistoryComment> comments) {
+  protected void forceInitializationAndClean(List<? extends HistoryComment> comments) {
     if (comments!=null) {
       comments.size();
       List<HistoryComment> copy = new ArrayList<HistoryComment>(comments);

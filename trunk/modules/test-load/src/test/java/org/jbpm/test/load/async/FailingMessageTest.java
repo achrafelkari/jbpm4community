@@ -24,12 +24,11 @@ package org.jbpm.test.load.async;
 import java.util.List;
 
 import org.jbpm.api.JbpmException;
-import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
+import org.jbpm.api.cmd.VoidCommand;
 import org.jbpm.api.job.Job;
 import org.jbpm.pvm.internal.job.CommandMessage;
 import org.jbpm.pvm.internal.session.MessageSession;
-
 
 /**
  * @author Tom Baeyens
@@ -40,13 +39,14 @@ public class FailingMessageTest extends JobExecutorTestCase {
   public void testFailedMessageProcessing() {
     jobExecutor.start();
     try {
-      commandService.execute(new Command<Object>() {
+      commandService.execute(new VoidCommand() {
+        private static final long serialVersionUID = 1L;
 
-        public Object execute(Environment environment) throws Exception {
+        @Override
+        protected void executeVoid(Environment environment) throws Exception {
           MessageSession messageSession = environment.get(MessageSession.class);
           CommandMessage commandMessage = FailingTestCommand.createMessage();
           messageSession.send(commandMessage);
-          return null;
         }
       });
 
@@ -56,16 +56,17 @@ public class FailingMessageTest extends JobExecutorTestCase {
       jobExecutor.stop(true);
     }
 
-    commandService.execute(new Command<Object>() {
+    commandService.execute(new VoidCommand() {
+      private static final long serialVersionUID = 1L;
 
-      public Object execute(Environment environment) throws Exception {
+      @Override
+      public void executeVoid(Environment environment) throws Exception {
         List<Job> deadJobs = null;
         throw new JbpmException("todo get the jobs with exception");
 
 //        Session session = environment.get(Session.class);
 //        List commands = session.createQuery("from " + HistoryCommentImpl.class.getName()).list();
 //        assertTrue("command insertion should have been rolled back", commands.isEmpty());
-//        return null;
       }
     });
   }

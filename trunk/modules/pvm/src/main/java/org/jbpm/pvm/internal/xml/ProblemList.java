@@ -41,7 +41,7 @@ public class ProblemList implements Serializable {
 
   static final String NEWLINE = System.getProperty("line.separator");
 
-  protected List<ProblemImpl> problems;
+  protected List<Problem> problems;
 
   // problem constructor method ///////////////////////////////////////////////
   
@@ -93,13 +93,13 @@ public class ProblemList implements Serializable {
     if (problems==null) {
       return Collections.emptyList();
     }
-    return (List) problems;
+    return problems;
   }
 
   /** to add parsing problems during XML parsing and DOM walking. */
   public void addProblem(ProblemImpl problem) {
     if (problems==null) {
-      problems = new ArrayList<ProblemImpl>();
+      problems = new ArrayList<Problem>();
     }
     problems.add(problem);
   }
@@ -107,14 +107,14 @@ public class ProblemList implements Serializable {
   /** add all problems */
   public void addProblems(List<Problem> problems) {
     if (this.problems==null) {
-      this.problems = new ArrayList<ProblemImpl>();
+      this.problems = new ArrayList<Problem>();
     }
-    this.problems.addAll((List)problems);
+    this.problems.addAll(problems);
   }
 
   /** indicates presence of problems */
   public boolean hasProblems() {
-    return ((problems != null) && (problems.size() > 0));
+    return problems != null && !problems.isEmpty();
   }
 
   /** indicates presence of errors */
@@ -133,7 +133,7 @@ public class ProblemList implements Serializable {
   /** allows to provide the list object that should be used to 
    * capture the parsing problems. */
   public void setProblems(List<Problem> problems) {
-    this.problems = (List)problems;
+    this.problems = problems;
   }
   
     
@@ -168,7 +168,7 @@ public class ProblemList implements Serializable {
         errorMsg.append(p.toString());
 
         if (p.getCause()!=null) {
-          cause = new JbpmException(p.getCause());
+          cause = p.getCause();
         }
       }
     }

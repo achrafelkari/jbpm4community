@@ -21,7 +21,7 @@
  */
 package org.jbpm.pvm.internal.svc;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,19 +43,18 @@ import org.jbpm.pvm.internal.query.HistoryDetailQueryImpl;
 import org.jbpm.pvm.internal.query.HistoryProcessInstanceQueryImpl;
 import org.jbpm.pvm.internal.query.HistoryTaskQueryImpl;
 
-
 /**
  * @author Tom Baeyens
  * @author Maciej Swiderski
  */
 public class HistoryServiceImpl extends AbstractServiceImpl implements HistoryService {
   
-  public Map<String, Long> avgDurationPerActivity(String processDefinitionId) {
-    return (Map) commandService.execute(new AvgDurationPerActivityQueryCmd(processDefinitionId));
+  public Map<String, Number> avgDurationPerActivity(String processDefinitionId) {
+    return commandService.execute(new AvgDurationPerActivityQueryCmd(processDefinitionId));
   }
 
-  public Map<String, Integer> choiceDistribution(String processDefinitionId, String activityName) {
-    return (Map) commandService.execute(new ChoiceDistributionQueryCmd(processDefinitionId, activityName));
+  public Map<String, Number> choiceDistribution(String processDefinitionId, String activityName) {
+    return commandService.execute(new ChoiceDistributionQueryCmd(processDefinitionId, activityName));
   }
 
   public HistoryProcessInstanceQuery createHistoryProcessInstanceQuery() {
@@ -87,13 +86,12 @@ public class HistoryServiceImpl extends AbstractServiceImpl implements HistorySe
   }
 
   public Object getVariable(String processInstanceId, String variableName) {
-    Set<String> variableNames = new HashSet<String>();
-    variableNames.add(variableName);
-    Map<String, Object> variables = commandService.execute(new GetHistoryVariablesCmd(processInstanceId, variableNames));
+    Set<String> variableNames = Collections.singleton(variableName);
+    Map<String, ?> variables = commandService.execute(new GetHistoryVariablesCmd(processInstanceId, variableNames));
     return variables.get(variableName);
   }
 
-  public Map<String, Object> getVariables(String processInstanceId, Set<String> variableNames) {
+  public Map<String, ?> getVariables(String processInstanceId, Set<String> variableNames) {
     return commandService.execute(new GetHistoryVariablesCmd(processInstanceId, variableNames));
   }
 }

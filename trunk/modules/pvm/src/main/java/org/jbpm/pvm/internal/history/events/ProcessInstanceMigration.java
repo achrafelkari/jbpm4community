@@ -30,7 +30,6 @@ import org.jbpm.pvm.internal.history.model.HistoryProcessInstanceMigrationImpl;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.session.DbSession;
 
-
 /**
  * @author Koen Aers
  */
@@ -47,14 +46,13 @@ public class ProcessInstanceMigration extends HistoryEvent {
   }
 
   public void process() {
-    
     if (processDefinition == null || processInstance == null || !(processInstance instanceof ExecutionImpl)) return;
     
     DbSession dbSession = EnvironmentImpl.getFromCurrent(DbSession.class);
 
     HistoryProcessInstanceImpl historyProcessInstance = null;
     long processInstanceDbid = ((ExecutionImpl)processInstance).getDbid();
-    historyProcessInstance = (HistoryProcessInstanceImpl)dbSession.get(HistoryProcessInstanceImpl.class, processInstanceDbid);
+    historyProcessInstance = dbSession.get(HistoryProcessInstanceImpl.class, processInstanceDbid);
     if (historyProcessInstance == null) return;
     
     String oldVersion = historyProcessInstance.getProcessDefinitionId();
@@ -64,7 +62,6 @@ public class ProcessInstanceMigration extends HistoryEvent {
     HistoryProcessInstanceMigrationImpl historyProcessInstanceMigration = 
         new HistoryProcessInstanceMigrationImpl(oldVersion, newVersion);
     historyProcessInstance.addDetail(historyProcessInstanceMigration);
-    
     
     dbSession.save(historyProcessInstanceMigration);
   }

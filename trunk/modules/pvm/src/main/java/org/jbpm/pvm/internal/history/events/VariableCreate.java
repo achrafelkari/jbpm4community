@@ -54,16 +54,14 @@ public class VariableCreate extends HistoryEvent {
     ExecutionImpl processInstance = variable.getProcessInstance();
     if (processInstance!=null) {
       long processInstanceDbid = processInstance.getDbid();
-      historyProcessInstance = (HistoryProcessInstanceImpl) 
-          dbSession.get(HistoryProcessInstanceImpl.class, processInstanceDbid);
+      historyProcessInstance = dbSession.get(HistoryProcessInstanceImpl.class, processInstanceDbid);
     }
     
     HistoryTaskImpl historyTask = null;
     TaskImpl task = variable.getTask();
     if (task!=null) {
       long taskDbid = task.getDbid();
-      historyTask = (HistoryTaskImpl) 
-          dbSession.get(HistoryTaskImpl.class, taskDbid);
+      historyTask = dbSession.get(HistoryTaskImpl.class, taskDbid);
     }
     
     HistoryVariableImpl historyVariable = new HistoryVariableImpl(historyProcessInstance, historyTask, variable);

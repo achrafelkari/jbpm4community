@@ -61,7 +61,7 @@ import org.jbpm.test.assertion.CollectionAssertions;
  */
 public abstract class JbpmTestCase extends BaseJbpmTestCase {
 
-  protected static ProcessEngine processEngine = null;
+  protected static ProcessEngine processEngine;
 
   protected static RepositoryService repositoryService;
   protected static ExecutionService executionService;

@@ -24,18 +24,16 @@ package org.jbpm.pvm.internal.cmd;
 import java.util.List;
 
 import org.hibernate.Session;
+
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.ProcessDefinition;
-import org.jbpm.api.ProcessInstance;
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.internal.log.Log;
-import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.repository.DeploymentImpl;
 import org.jbpm.pvm.internal.repository.RepositoryCache;
 import org.jbpm.pvm.internal.session.DbSession;
 import org.jbpm.pvm.internal.session.RepositorySession;
-
 
 /**
  * @author Tom Baeyens

@@ -21,19 +21,17 @@
  */
 package org.jbpm.pvm.internal.history.events;
 
-import java.io.Serializable;
-
 import org.hibernate.Session;
+
 import org.jbpm.api.history.HistoryProcessInstance;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.history.HistoryEvent;
 import org.jbpm.pvm.internal.history.model.HistoryProcessInstanceImpl;
 
-
 /**
  * @author Tom Baeyens
  */
-public class ProcessInstanceCreate extends HistoryEvent implements Serializable {
+public class ProcessInstanceCreate extends HistoryEvent {
 
   private static final long serialVersionUID = 1L;
   

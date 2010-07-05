@@ -50,7 +50,7 @@ public class TaskCommentsTest extends JbpmTestCase {
 
     taskService.addTaskComment(taskId, "i'll clean up the mess");
     
-    List<HistoryComment> taskComments = taskService.getTaskComments(taskId);
+    List<? extends HistoryComment> taskComments = taskService.getTaskComments(taskId);
     assertEquals("what a party yesterday", taskComments.get(0).getMessage());
     assertEquals("i'll clean up the mess", taskComments.get(1).getMessage());
     

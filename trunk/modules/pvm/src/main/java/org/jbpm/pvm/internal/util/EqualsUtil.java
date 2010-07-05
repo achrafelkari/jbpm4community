@@ -21,38 +21,54 @@
  */
 package org.jbpm.pvm.internal.util;
 
-public abstract class EqualsUtil {
+public class EqualsUtil {
 
+  private EqualsUtil() {
+    // hide default constructor to prevent instantiation
+  }
+
+  /**
+   * hack to support comparing hibernate proxies against the real objects. since it falls back
+   * to ==, clients do not need to override {@link Object#hashCode()}.
+   * 
+   * @deprecated hack does not work
+   * @see <a href="https://jira.jboss.org/jira/browse/JBPM-2489">JBPM-2489</a>   
+   */
+  @Deprecated
   public static boolean equals(Object thisObject, Object otherObject) {
-    if ( (thisObject==null) || (otherObject==null) ) return false;
-    
+    if ((thisObject == null) || (otherObject == null))
+      return false;
+
     if (isProxy(otherObject)) {
       return otherObject.equals(thisObject);
-    } else {
-      return otherObject==thisObject;
+    }
+    else {
+      return otherObject == thisObject;
     }
   }
 
-  static boolean isInitialized = false;
-  static boolean isHibernateInClasspth = true;
-  static Class<?> hibernateProxyClass = null;
-  
-  static boolean isProxy(Object otherObject) {
-    boolean isProxy = false;
-    if (!isInitialized) initializeHibernateProxyClass();
+  private static boolean isInitialized;
+  private static boolean isHibernateInClasspath = true;
+  private static Class<?> hibernateProxyClass;
 
-    if (isHibernateInClasspth) {
+  private static boolean isProxy(Object otherObject) {
+    boolean isProxy = false;
+    if (!isInitialized)
+      initializeHibernateProxyClass();
+
+    if (isHibernateInClasspath) {
       return hibernateProxyClass.isAssignableFrom(otherObject.getClass());
     }
     return isProxy;
   }
 
-  static synchronized void initializeHibernateProxyClass() {
+  private static synchronized void initializeHibernateProxyClass() {
     try {
       ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
       hibernateProxyClass = classLoader.loadClass("org.hibernate.proxy.HibernateProxy");
-    } catch (ClassNotFoundException e) {
-      isHibernateInClasspth = false;
+    }
+    catch (ClassNotFoundException e) {
+      isHibernateInClasspath = false;
     }
     isInitialized = true;
   }

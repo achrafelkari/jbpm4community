@@ -34,7 +34,6 @@ import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.job.JobImpl;
 import org.jbpm.pvm.internal.session.DbSession;
 
-
 /**
  * @author Tom Baeyens
  */
@@ -45,7 +44,7 @@ public class AcquireJobsCmd implements Command<Collection<Long>> {
   private static final Log log = Log.getLog(AcquireJobsCmd.class.getName());
   private static final DateFormat timeFormat = new SimpleDateFormat("HH:mm:ss,SSS");
   
-  JobExecutor jobExecutor;
+  private JobExecutor jobExecutor;
 
   public AcquireJobsCmd(JobExecutor jobExecutor) {
     this.jobExecutor = jobExecutor;
@@ -55,23 +54,23 @@ public class AcquireJobsCmd implements Command<Collection<Long>> {
     Collection<Long> acquiredJobDbids = new ArrayList<Long>();
 
     try {
-      Collection<JobImpl<?>> acquiredJobs = new ArrayList<JobImpl<?>>();
+      Collection<JobImpl> acquiredJobs = new ArrayList<JobImpl>();
       
       DbSession dbSession = environment.get(DbSession.class);
       if (log.isTraceEnabled()) log.trace("start querying first acquirable job...");
 
-      JobImpl<?> job = dbSession.findFirstAcquirableJob();
+      JobImpl job = dbSession.findFirstAcquirableJob();
 
       if (job!=null) {
         if (job.isExclusive()) {
           if (log.isTraceEnabled()) log.trace("exclusive acquirable job found ("+job+"). querying for other exclusive jobs to lock them all in one tx...");
-          List<JobImpl<?>> otherExclusiveJobs = dbSession.findExclusiveJobs(job.getProcessInstance());
+          List<JobImpl> otherExclusiveJobs = dbSession.findExclusiveJobs(job.getProcessInstance());
           acquiredJobs.addAll(otherExclusiveJobs);
         } else {
           acquiredJobs.add(job);
         }
 
-        for (JobImpl<?> acquiredJob: acquiredJobs) {
+        for (JobImpl acquiredJob: acquiredJobs) {
           long lockExpirationTime = System.currentTimeMillis()+jobExecutor.getLockMillis();
           if (log.isTraceEnabled()) log.trace("trying to obtain a lock for '"+acquiredJob+"' with exp "+timeFormat.format(new Date(lockExpirationTime)));
           acquiredJob.acquire(jobExecutor.getName(), new Date(lockExpirationTime));

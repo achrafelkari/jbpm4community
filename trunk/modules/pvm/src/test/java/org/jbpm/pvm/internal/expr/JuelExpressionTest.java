@@ -23,7 +23,6 @@ package org.jbpm.pvm.internal.expr;
 
 import org.jbpm.pvm.activities.WaitState;
 import org.jbpm.pvm.internal.builder.ProcessDefinitionBuilder;
-import org.jbpm.pvm.internal.client.ClientExecution;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.env.EnvironmentFactory;
 import org.jbpm.pvm.internal.env.ExecutionContext;
@@ -31,7 +30,6 @@ import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.processengine.ProcessEngineImpl;
 import org.jbpm.pvm.internal.script.ScriptManager;
 import org.jbpm.test.BaseJbpmTestCase;
-
 
 /**
  * @author Tom Baeyens

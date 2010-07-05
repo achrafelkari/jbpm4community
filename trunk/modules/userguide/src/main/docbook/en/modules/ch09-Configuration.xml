@@ -4,12 +4,12 @@
   <section>
     <title>Business calendar</title>
     <para>To customize the business calendar configuration,
-    remove the import of the default business calendar configuration
-    and replace it with your customized calendar configuration. E.g.
+      remove the default business calendar configuration import
+      and replace it with the custom values.
     </para>
     <programlisting>&lt;jbpm-configuration&gt;
-    
-  &lt;import resource=&quot;jbpm.default.cfg.xml&quot; /&gt;
+
+  &lt;import resource=&quot;jbpm.businesscalendar.cfg.xml&quot; /&gt;
   ...
 
   &lt;process-engine-context&gt;
@@ -24,36 +24,103 @@
   &lt;/process-engine-context&gt;
 
 &lt;/jbpm-configuration&gt;</programlisting>
-    
   </section>
-  
+
   <section>
-  
     <title>Console</title>
     <para>By default the server host and port of the console
-    webapplication are respectively <literal>localhost</literal>
-    and <literal>8080</literal>. It is not hard to imagine 
+    web app are respectively <literal>localhost</literal>
+    and <literal>8080</literal>. It is not hard to imagine
     situations where it is needed to change those defaults.
     Hence they are made configurable. To customize,
-    change the values of the default configuration 
-    (e.g. in the file &quot;jbpm.console.cfg.xml&quot;) 
+    change the values of the default configuration
+    (e.g. in the file &quot;jbpm.console.cfg.xml&quot;)
     and replace them with the values you want.</para>
 
     <programlisting>&lt;jbpm-configuration&gt;
-    
+
   &lt;process-engine-context&gt;
     &lt;string name=&quot;jbpm.console.server.host&quot; value=&quot;myNewHost&quot;&gt;
     &lt;string name=&quot;jbpm.console.server.port&quot; value=&quot;9191&quot;&gt;
   &lt;/process-engine-context&gt;
 
 &lt;/jbpm-configuration&gt;</programlisting>
-
   </section>
-  
+
   <section>
     <title>Email</title>
-    <para>TODO document supported config customization 
-    of the jbpm.mail.properties</para>
-  </section>  
+    <para>The default configuration looks for a <literal>jbpm.mail.properties</literal>
+      classpath resource containing <ulink
+      url="http://java.sun.com/products/javamail/javadocs/">JavaMail properties</ulink>.
+      To send mail through a server other than local host, set the
+      <literal>mail.smtp.host</literal> property in the mail properties file.</para>
 
+    <programlisting><![CDATA[mail.smtp.host=localhost
+mail.smtp.port=25
+mail.from=noreply@jbpm.org]]></programlisting>
+
+    <para>If the SMTP server requires authentication, the application can supply a
+      custom authenticator in the configuration file.</para>
+
+    <programlisting><![CDATA[<mail-session>
+  <mail-server>
+    <session-properties resource="jbpm.mail.properties" />
+    <authenticator class='BasicAuthenticator'>
+      <field name='userName'><string value='aguizar'/></field>
+      <field name='password'><string value='wontsay'/></field>
+    </authenticator>
+  </mail-server>
+</mail-session>]]></programlisting>
+
+    <para>In Java EE environments it is often the case that a mail session is already
+      configured and bound to JNDI. To employ such a session, specify its JNDI name in
+      the configuration file.</para>
+
+    <programlisting><![CDATA[<mail-session>
+  <mail-server session-jndi='java:comp/env/mail/smtp' />
+</mail-session>]]></programlisting>
+
+    <important><para>If present, the session JNDI name has precedence over the session
+      properties and the authenticator. The combined absence of session-properties
+      and session-jndi constitutes an error.</para></important>
+
+    <para>Refer to the <ulink
+      url="http://docs.jboss.com/jbpm/v4/devguide/html_single/#mailsupport">Developer
+      Guide</ulink> for advanced, yet unsupported, email settings.</para>
+  </section>
+
+  <section id="configuration-jpdl">
+    <title>Validate activity name</title>
+
+    <para>When we try to deploy a jpdl process definition,
+      the <literal>JpdlBinding</literal> will validate the name of activities contained by this process definition.
+      By default, the rule of validation as followed:
+      <itemizedlist>
+          <listitem>
+              <para>If the activity has a name, the name shouldnot be empty.
+              The <literal>""</literal> isnot allowed to be used by the name of activity.</para>
+          </listitem>
+          <listitem>
+              <para>The name of activity cannot contain slash(/).  It comes from jBPM 3.x.
+              Because jBPM 3.x supported <literal>hierarchical names</literal>,
+              it allowed an execution could jump from a super-state to the other level of activities.
+              But in jBPM 4.x, there would be no chance to achieve this feature.
+              So if someone want to use slash(/) in the name of activity.
+              He could add this configuration parameter into jbpm.cfg.xml.</para>
+              <programlisting>
+&lt;jbpm-configuration>
+  &lt;import resource="jbpm.default.cfg.xml" />
+  &lt;import resource="jbpm.tx.hibernate.cfg.xml" />
+  &lt;import resource="jbpm.jpdl.cfg.xml" />
+
+  &lt;process-engine-context>
+    <emphasis role="bold">&lt;true name='jbpm.activity.allow.slash'/></emphasis>
+  &lt;/process-engine-context>
+&lt;/jbpm-configuration>
+              </programlisting>
+              <para>By using this, JpdlBinding will skip validation for slash(/) in activity name.</para>
+          </listitem>
+      </itemizedlist>
+    </para>
+  </section>
 </chapter>

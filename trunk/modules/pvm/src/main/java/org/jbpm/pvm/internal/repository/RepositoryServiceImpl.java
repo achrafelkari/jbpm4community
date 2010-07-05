@@ -31,7 +31,6 @@ import org.jbpm.api.NewDeployment;
 import org.jbpm.api.ProcessDefinitionQuery;
 import org.jbpm.api.RepositoryService;
 import org.jbpm.api.model.ActivityCoordinates;
-import org.jbpm.pvm.internal.cmd.CommandService;
 import org.jbpm.pvm.internal.cmd.CreateDeploymentQueryCmd;
 import org.jbpm.pvm.internal.cmd.CreateProcessDefinitionQueryCmd;
 import org.jbpm.pvm.internal.cmd.DeleteDeploymentCmd;

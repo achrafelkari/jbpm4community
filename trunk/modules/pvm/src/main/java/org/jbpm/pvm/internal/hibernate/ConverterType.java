@@ -71,7 +71,7 @@ public class ConverterType extends ImmutableType implements ParameterizedType {
     return "converter";
   }
 
-  public Class getReturnedClass() {
+  public Class<?> getReturnedClass() {
     return Converter.class;
   }
 

@@ -23,11 +23,9 @@ package org.jbpm.jpdl.internal.convert.problem;
 
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
- * This class orginates from jpbm3 codebase
- *
+ * This class orginates from jbbm3 codebase
  */
 public class Problem implements Serializable {
   
@@ -74,10 +72,8 @@ public class Problem implements Serializable {
     return buffer.toString();
   }
   
-  public static boolean containsProblemsOfLevel(Collection c, int level) {
-    Iterator iter = c.iterator();
-    while (iter.hasNext()) {
-      Problem problem = (Problem) iter.next();
+  public static boolean containsProblemsOfLevel(Collection<Problem> problems, int level) {
+    for (Problem problem : problems) {
       if (problem.level <= level) {
         return true;
       }

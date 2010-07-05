@@ -25,52 +25,50 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hibernate.Query;
 import org.hibernate.Session;
+
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.pvm.internal.history.model.HistoryActivityInstanceImpl;
 
-
 /**
  * @author Tom Baeyens
  */
-public class ChoiceDistributionQueryCmd implements Command<Object> {
+public class ChoiceDistributionQueryCmd implements Command<Map<String, Number>> {
 
   private static final long serialVersionUID = 1L;
-  
+
   protected String processDefinitionId;
   protected String activityName;
-  
+
   public ChoiceDistributionQueryCmd(String processDefinitionId, String activityName) {
     this.processDefinitionId = processDefinitionId;
     this.activityName = activityName;
   }
 
-  public Object execute(Environment environment) {
-    Session session = environment.get(Session.class);
-    
-    Query query = session.createQuery(
-      "select hai.transitionName, count(hai) " +
-      "from "+HistoryActivityInstanceImpl.class.getName()+" as hai " +
-      "where hai.historyProcessInstance.processDefinitionId = :processDefinitionId " +
-      "  and hai.activityName = :activityName " +
-      "group by hai.transitionName "
-    );
-    query.setString("processDefinitionId", processDefinitionId);
-    query.setString("activityName", activityName);
+  public Map<String, Number> execute(Environment environment) {
+    List<?> results = environment.get(Session.class)
+      .createQuery("select hai.transitionName, count(hai) "
+        + "from "
+        + HistoryActivityInstanceImpl.class.getName()
+        + " as hai "
+        + "where hai.historyProcessInstance.processDefinitionId = :processDefinitionId "
+        + "  and hai.activityName = :activityName "
+        + "group by hai.transitionName")
+      .setString("processDefinitionId", processDefinitionId)
+      .setString("activityName", activityName)
+      .list();
 
-    List<Object[]> transitionCounts = query.list();
+    Map<String, Number> choiceDistributionCounts = new HashMap<String, Number>();
 
-    Map<String, Integer> choiceDistributionCounts = new HashMap<String, Integer>();
-    
-    for (Object[] pair: transitionCounts) {
+    for (Object result : results) {
+      Object[] pair = (Object[]) result;
       String transitionName = (String) pair[0];
       Number number = (Number) pair[1];
-      
-      choiceDistributionCounts.put(transitionName, new Integer(number.intValue()));
+
+      choiceDistributionCounts.put(transitionName, number);
     }
-    
+
     return choiceDistributionCounts;
   }
 }

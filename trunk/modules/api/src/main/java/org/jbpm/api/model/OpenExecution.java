@@ -101,7 +101,7 @@ public interface OpenExecution extends Execution {
   /** a non-null map containing all the key-value pairs in this scope. 
    * Even if there are no variable keys, an empty, non-null map will 
    * be returned. */
-  Map<String, Object> getVariables();
+  Map<String, ?> getVariables();
   
   /** create a new variable in this execution scope and determine 
    * the type automagically. */

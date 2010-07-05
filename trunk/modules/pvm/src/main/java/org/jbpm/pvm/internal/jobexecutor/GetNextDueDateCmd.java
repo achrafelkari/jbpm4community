@@ -29,8 +29,6 @@ import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.job.JobImpl;
 import org.jbpm.pvm.internal.session.DbSession;
 
-
-
 /**
  * @author Tom Baeyens
  */
@@ -40,17 +38,11 @@ public class GetNextDueDateCmd implements Command<Date> {
 
   private static final Log log = Log.getLog(GetNextDueDateCmd.class.getName());
   
-  JobExecutor jobExecutor;
-
-  public GetNextDueDateCmd(JobExecutor jobExecutor) {
-    this.jobExecutor = jobExecutor;
-  }
-
   public Date execute(Environment environment) throws Exception {
     Date nextDueDate = null;
     if (log.isTraceEnabled()) log.trace("getting next due date...");
     DbSession dbSession = environment.get(DbSession.class);
-    JobImpl<?> job = dbSession.findFirstDueJob();
+    JobImpl job = dbSession.findFirstDueJob();
     if (job!=null) {
       nextDueDate = job.getDueDate();
     }

@@ -32,12 +32,11 @@ import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.model.ObservableElementImpl;
 import org.jbpm.pvm.internal.model.ProcessDefinitionImpl;
 import org.jbpm.pvm.internal.model.TransitionImpl;
-import org.jbpm.pvm.internal.session.DbSession;
 
 /**
  * @author Tom Baeyens
  */
-public class ExecuteEventListenerMessage extends MessageImpl<Object> {
+public class ExecuteEventListenerMessage extends MessageImpl {
 
   private static final String KEY_EVENT_COMPLETED_OPERATION = "ECO";
   private static final String KEY_EVENT_LISTENER_INDEX = "ELI";
@@ -69,7 +68,7 @@ public class ExecuteEventListenerMessage extends MessageImpl<Object> {
 
     asyncExecutionInfo.put(KEY_STATE, execution.getState());
 
-    ObservableElementImpl eventSource = (ObservableElementImpl) execution.getEventSource();
+    ObservableElementImpl eventSource = execution.getEventSource();
     if (eventSource instanceof ProcessDefinitionImpl) {
       asyncExecutionInfo.put(KEY_EVENT_SOURCE_PROCESS_DEFINITION, null);
       
@@ -105,8 +104,8 @@ public class ExecuteEventListenerMessage extends MessageImpl<Object> {
     return parentLevel;
   }
 
-  public Object execute(Environment environment) throws Exception {
-    Map<String, Object> asyncExecutionInfo = (Map) getConfiguration();
+  protected void executeVoid(Environment environment) throws Exception {
+    Map<?, ?> asyncExecutionInfo = (Map<?, ?>) getConfiguration();
 
     String transitionSourceName = (String) asyncExecutionInfo.get(KEY_TRANSITION_SOURCE);
     TransitionImpl transition = null;
@@ -132,7 +131,7 @@ public class ExecuteEventListenerMessage extends MessageImpl<Object> {
       execution.setEventSource(transition);
     }
     
-    ObservableElementImpl observableElement = (ObservableElementImpl) execution.getEventSource();
+    ObservableElementImpl observableElement = execution.getEventSource();
     int parentLevel = (Integer) asyncExecutionInfo.get(KEY_EVENT_OBSERVABLE_PARENT_LEVEL);
     for (int i=0; i<parentLevel; parentLevel++) {
       observableElement = observableElement.getParent();
@@ -152,10 +151,5 @@ public class ExecuteEventListenerMessage extends MessageImpl<Object> {
     execution.setState((String) asyncExecutionInfo.get(KEY_STATE));
 
     execution.performAtomicOperationSync(AtomicOperation.EXECUTE_EVENT_LISTENER);
-    
-    DbSession dbSession = environment.get(DbSession.class);
-    dbSession.delete(this);
-
-    return null;
   }
 }

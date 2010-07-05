@@ -21,7 +21,6 @@
  */
 package org.jbpm.pvm.internal.builder;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,7 +70,7 @@ public class ProcessDefinitionBuilder extends CompositeBuilder {
 
   protected void resolveFlows() {
     for (UnresolvedFlow unresolvedFlow: unresolvedFlows) {
-      ActivityImpl destination = (ActivityImpl) processDefinition.findActivity(unresolvedFlow.destinationName);
+      ActivityImpl destination = processDefinition.findActivity(unresolvedFlow.destinationName);
       if (destination==null) {
         errorUnexistingFlowDestination(unresolvedFlow);
       }

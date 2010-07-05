@@ -21,11 +21,13 @@
  */
 package org.jbpm.test.task;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.jbpm.api.Execution;
 
 import org.jbpm.api.ProcessInstance;
 import org.jbpm.api.task.Task;
@@ -243,4 +245,55 @@ public class TaskQueryProcessTest extends JbpmTestCase {
     assertEquals(0, workHardForTheMoneyTasks);
   }
   
+
+      public void testTaskQueryExecutionId() {
+        deployJpdlXmlString(
+                "<process name='VacationTrip'>"
+                + "  <start>"
+                + "    <transition to='f' />"
+                + "  </start>"
+                + "  <fork name='f'>"
+                + "    <transition to='select destination' />"
+                + "    <transition to='work hard for the money' />"
+                + "  </fork>"
+                + "  <task name='select destination' "
+                + "        assignee='johndoe'>"
+                + "    <transition to='join' />"
+                + "  </task>"
+                + "  <task name='work hard for the money' "
+                + "        assignee='johndoe'>"
+                + "    <transition to='join' />"
+                + "  </task>"
+                + "  <join name='join'>"
+                + "    <transition to='end' />"
+                + "  </join>"
+                + "  <end name='end'/>"
+                + "</process>");
+        // start the process
+        ProcessInstance process = executionService.startProcessInstanceByKey("VacationTrip");
+
+        // we should have two tasks and two executions here:
+        Collection<? extends Execution> executions = process.getExecutions();
+        assertEquals(2, executions.size());
+
+        // check if there is one task in each execution:
+        for (Execution execution : executions) {
+            Task task = taskService.createTaskQuery().executionId(execution.getId()).uniqueResult();
+            assertNotNull(task);
+            assertEquals(execution.getId(), task.getExecutionId());
+}
+
+        // complete the tasks
+        process = executionService.findProcessInstanceById(process.getId());
+        executions = process.getExecutions();
+        for (Execution execution : executions) {
+            assertFalse(execution.isEnded());
+            Task task = taskService.createTaskQuery().executionId(execution.getId()).uniqueResult();
+            taskService.completeTask(task.getId());
+        }
+
+        // process should be ended now
+        process = executionService.findProcessInstanceById(process.getId());
+        assertNull(process);
+    }
 }

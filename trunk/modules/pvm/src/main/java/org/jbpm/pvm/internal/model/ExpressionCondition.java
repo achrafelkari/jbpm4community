@@ -23,34 +23,34 @@ package org.jbpm.pvm.internal.model;
 
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.model.OpenExecution;
-import org.jbpm.pvm.internal.script.ScriptManager;
+import org.jbpm.pvm.internal.el.Expression;
 
 
 /**
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public class ExpressionCondition implements Condition {
 
   private static final long serialVersionUID = 1L;
-  
+
   protected String expression;
   protected String language;
-  
+
   public boolean evaluate(OpenExecution execution) {
-    ScriptManager scriptManager = ScriptManager.getScriptManager();
-    Object result = scriptManager.evaluateExpression(expression, language);
+    Object result = Expression.create(expression, language).evaluate();
     if (result instanceof Boolean) {
       return ((Boolean) result).booleanValue();
     }
-    throw new JbpmException("expression condition '"+expression+"' did not return a boolean: "+result);
+    throw new JbpmException("expression condition '" + expression + "' did not return a boolean: "+result);
   }
 
   public void setExpression(String expression) {
     this.expression = expression;
   }
-  
+
   public void setLanguage(String language) {
     this.language = language;
   }
-  
+
 }

@@ -53,70 +53,70 @@ public class ConfigurationParser extends Parser {
   }
 
   public Object parseDocument(Document document, Parse parse) {
-    Element documentElement = document.getDocumentElement();
-    
     // if the default environment factory was already set in the parse
     ConfigurationImpl configuration = parse.contextStackFind(ConfigurationImpl.class);
-
-    // this code will be called for the original jbpm.cfg.xml document as 
-    // well as for the imported documents.  only one of those can specify
-    // a spring-cfg.  for sure no 2 config files can specify different jndi-names
-    String spring = XmlUtil.attribute(documentElement, "spring");
-    if ("enabled".equals(spring)) {
-      configuration.springEnabled();
-    }
-
-    // this code will be called for the original jbpm.cfg.xml document as 
-    // well as for the imported documents.  only one of those can specify
-    // a jndi-name.  for sure no 2 config files can specify different jndi-names
-    String jndiName = XmlUtil.attribute(documentElement, "jndi-name");
-    if (jndiName!=null) {
-      if ( (configuration.getJndiName()!=null)
-           && (!jndiName.equals(configuration.getJndiName()))
-         ) {
-        parse.addProblem("duplicate jndi name specification: "+jndiName+" != "+configuration.getJndiName());
-      } else {
-        configuration.jndi(jndiName);
+    
+    Element documentElement = document.getDocumentElement();
+    if (documentElement != null) {
+      // this code will be called for the original jbpm.cfg.xml document as 
+      // well as for the imported documents.  only one of those can specify
+      // a spring-cfg.  for sure no 2 config files can specify different jndi-names
+      String spring = XmlUtil.attribute(documentElement, "spring");
+      if ("enabled".equals(spring)) {
+        configuration.springEnabled();
       }
-    }
-
-    for (Element importElement : XmlUtil.elements(documentElement, "import")) {
-      if (importElement.hasAttribute("resource")) {
-        String resource = importElement.getAttribute("resource");
-        Parse importParse = createParse()
-          .setResource(resource)
-          .contextStackPush(configuration)
-          .propagateContexMap(parse)
-          .execute();
-        
-        parse.addProblems(importParse.getProblems());
+  
+      // this code will be called for the original jbpm.cfg.xml document as 
+      // well as for the imported documents.  only one of those can specify
+      // a jndi-name.  for sure no 2 config files can specify different jndi-names
+      String jndiName = XmlUtil.attribute(documentElement, "jndi-name");
+      if (jndiName!=null) {
+        if ( (configuration.getJndiName()!=null)
+             && (!jndiName.equals(configuration.getJndiName()))
+           ) {
+          parse.addProblem("duplicate jndi name specification: "+jndiName+" != "+configuration.getJndiName());
+        } else {
+          configuration.jndi(jndiName);
+        }
       }
-    }
-
-    Element processEngineElement = XmlUtil.element(documentElement, "process-engine-context");
-    if (processEngineElement != null) {
-      WireDefinition processEngineContextDefinition = configuration.getProcessEngineWireContext().getWireDefinition();
-      parse.contextStackPush(processEngineContextDefinition);
-      try {
-        processEngineContextParser.parseDocumentElement(processEngineElement, parse);
-      } finally {
-        parse.contextStackPop();
+  
+      for (Element importElement : XmlUtil.elements(documentElement, "import")) {
+        if (importElement.hasAttribute("resource")) {
+          String resource = importElement.getAttribute("resource");
+          Parse importParse = createParse()
+            .setResource(resource)
+            .contextStackPush(configuration)
+            .propagateContexMap(parse)
+            .execute();
+          
+          parse.addProblems(importParse.getProblems());
+        }
       }
-    }
-
-    Element txCtxElement = XmlUtil.element(documentElement, "transaction-context");
-    if (txCtxElement != null) {
-      WireDefinition transactionContextDefinition = configuration.getTransactionWireDefinition();
-      parse.contextStackPush(transactionContextDefinition);
-      try {
-        transactionContextParser.parseDocumentElement(txCtxElement, parse);
-      } finally {
-        parse.contextStackPop();
+  
+      Element processEngineElement = XmlUtil.element(documentElement, "process-engine-context");
+      if (processEngineElement != null) {
+        WireDefinition processEngineContextDefinition = configuration.getProcessEngineWireContext().getWireDefinition();
+        parse.contextStackPush(processEngineContextDefinition);
+        try {
+          processEngineContextParser.parseDocumentElement(processEngineElement, parse);
+        } finally {
+          parse.contextStackPop();
+        }
+      }
+  
+      Element txCtxElement = XmlUtil.element(documentElement, "transaction-context");
+      if (txCtxElement != null) {
+        WireDefinition transactionContextDefinition = configuration.getTransactionWireDefinition();
+        parse.contextStackPush(transactionContextDefinition);
+        try {
+          transactionContextParser.parseDocumentElement(txCtxElement, parse);
+        } finally {
+          parse.contextStackPop();
+        }
       }
     }
 
     parse.setDocumentObject(configuration);
-    
     return configuration;
   }
 

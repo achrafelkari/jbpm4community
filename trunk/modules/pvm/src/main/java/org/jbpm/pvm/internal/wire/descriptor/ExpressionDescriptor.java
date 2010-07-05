@@ -21,23 +21,23 @@
  */
 package org.jbpm.pvm.internal.wire.descriptor;
 
-import org.jbpm.pvm.internal.script.ScriptManager;
+import org.jbpm.pvm.internal.el.Expression;
 import org.jbpm.pvm.internal.wire.WireContext;
 
 
 /**
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public class ExpressionDescriptor extends AbstractDescriptor {
 
   private static final long serialVersionUID = 1L;
-  
+
   protected String expression;
   protected String language;
-  
+
   public Object construct(WireContext wireContext) {
-    ScriptManager scriptManager = ScriptManager.getScriptManager();
-    Object result = scriptManager.evaluateExpression(expression, language);
+    Object result = Expression.create(expression, language).evaluate();
     return result;
   }
 
