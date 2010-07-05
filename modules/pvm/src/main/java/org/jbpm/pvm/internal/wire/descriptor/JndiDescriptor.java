@@ -21,12 +21,12 @@
  */
 package org.jbpm.pvm.internal.wire.descriptor;
 
+import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 import org.jbpm.pvm.internal.wire.WireContext;
 import org.jbpm.pvm.internal.wire.WireException;
-
 
 /**
  * @author Tom Baeyens
@@ -34,9 +34,9 @@ import org.jbpm.pvm.internal.wire.WireException;
 public class JndiDescriptor extends AbstractDescriptor {
 
   private static final long serialVersionUID = 1L;
-  
-  String jndiName;
-  
+
+  private String jndiName;
+
   protected JndiDescriptor() {
   }
 
@@ -46,10 +46,16 @@ public class JndiDescriptor extends AbstractDescriptor {
 
   public Object construct(WireContext wireContext) {
     try {
-      InitialContext initialContext = new InitialContext();
-      return initialContext.lookup(jndiName);
-    } catch (NamingException e) {
-      throw new WireException("couldn't lookup '"+jndiName+"' from the initial context");
+      Context initialContext = new InitialContext();
+      try {
+        return initialContext.lookup(jndiName);
+      }
+      finally {
+        initialContext.close();
+      }
+    }
+    catch (NamingException e) {
+      throw new WireException("failed to retrieve named object: " + jndiName, e);
     }
   }
 }

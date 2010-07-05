@@ -25,11 +25,9 @@ import java.util.List;
 
 import org.jbpm.api.activity.ActivityExecution;
 import org.jbpm.api.model.Activity;
-import org.jbpm.api.model.OpenExecution;
 import org.jbpm.api.model.Transition;
 import org.jbpm.pvm.internal.model.ActivityImpl;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
-
 
 /**
  * @author Tom Baeyens
@@ -47,7 +45,7 @@ public class EndActivity extends JpdlActivity {
 
   public void execute(ExecutionImpl execution) {
     Activity activity = execution.getActivity();
-    List<Transition> outgoingTransitions = activity.getOutgoingTransitions();
+    List<? extends Transition> outgoingTransitions = activity.getOutgoingTransitions();
     ActivityImpl parentActivity = (ActivityImpl) activity.getParentActivity();
 
     if ( (parentActivity!=null)

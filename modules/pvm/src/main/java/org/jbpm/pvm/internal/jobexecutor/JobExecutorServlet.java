@@ -32,7 +32,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.jbpm.api.Configuration;
 import org.jbpm.api.JbpmException;
 import org.jbpm.pvm.internal.env.EnvironmentFactory;
-import org.jbpm.pvm.internal.processengine.ProcessEngineImpl;
 
 /**
  * starts the job executor on init and closes the 
@@ -79,8 +78,9 @@ public class JobExecutorServlet extends HttpServlet {
 
   private static final long serialVersionUID = 1L;
   
-  JobExecutor jobExecutor;
+  private JobExecutor jobExecutor;
   
+  @Override
   public void init() throws ServletException {
     String configurationResource = getInitParameter("jbpm.configuration.resource", "jbpm.cfg.xml");
     EnvironmentFactory environmentFactory = (EnvironmentFactory) new Configuration().setResource(configurationResource).buildProcessEngine();
@@ -91,6 +91,14 @@ public class JobExecutorServlet extends HttpServlet {
     jobExecutor.start();
   }
   
+  @Override
+  public void destroy() {
+    if (jobExecutor != null) {
+      jobExecutor.stop(true);
+    }
+  }
+
+  @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     PrintWriter out = response.getWriter();
     out.println("<html>");

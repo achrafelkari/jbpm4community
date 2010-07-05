@@ -27,11 +27,10 @@ import javax.transaction.Synchronization;
 
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-
 /**
  * @author Tom Baeyens
  */
-public class SpringTransaction extends AbstractTransaction implements Transaction, Serializable {
+public class SpringTransaction extends AbstractTransaction implements Serializable {
 
   private static final long serialVersionUID = 1L;
 

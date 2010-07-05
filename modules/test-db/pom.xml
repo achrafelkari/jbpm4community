@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ====================================================================== -->
-<!--                                                                        -->
-<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--  jBPM: Workflow in Java                                                -->
 <!--                                                                        -->
 <!--  Distributable under LGPL license.                                     -->
 <!--  See terms of license at http://www.gnu.org.                           -->
-<!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6415 2010-06-15 08:40:55Z alex.guizar@jboss.com $ -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<!-- $Id: pom.xml 6447 2010-07-01 08:54:37Z alex.guizar@jboss.com $ -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <name>jBPM 4 - Test DB</name>
   <groupId>org.jbpm.jbpm4</groupId>
@@ -51,6 +51,7 @@
       <artifactId>jbpm-console-reports</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>org.drools</groupId>
       <artifactId>drools-core</artifactId>
@@ -58,11 +59,7 @@
     <dependency>
       <groupId>org.drools</groupId>
       <artifactId>drools-compiler</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.subethamail</groupId>
-      <artifactId>subethasmtp-wiser</artifactId>
-      <scope>test</scope>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -70,7 +67,7 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  
+
   <build>
     <plugins>
       <plugin>
@@ -87,7 +84,7 @@
                 <exclude>jbpm.*</exclude>
                 <exclude>logging.properties</exclude>
                 <exclude>META-INF/*</exclude>
-              </excludes> 
+              </excludes>
             </configuration>
           </execution>
         </executions>
@@ -140,14 +137,14 @@
                       <fileset dir="${user.home}/.jbpm4/jdbc" />
                     </copy>
                     <ant antfile="../distro/src/main/files/install/build.xml" target="create.cfg">
-                      <property name="tx" value="standalone.testsuite.examples" />
+                      <property name="tx" value="standalone.testsuite" />
                       <property name="mail.cfg" value="testsuite" />
                       <property name="database" value="${database}" />
                       <property name="cfg.dest.dir" value="target/test-classes" />
                       <property name="install.src.dir" value="../distro/src/main/files/install/src" />
                       <property name="jdbc.properties.dir" value="target/jdbc.properties" />
                       <property name="logging" value="none" /> <!-- then the original logging.properties in the resources of this project will be used -->
-                    </ant> 
+                    </ant>
                   </tasks>
                 </configuration>
               </execution>
@@ -183,27 +180,25 @@
                       <property name="install.src.dir" value="../distro/src/main/files/install/src" />
                       <property name="jdbc.properties.dir" value="../distro/src/main/files/install/jdbc" />
                       <property name="logging" value="none" />
-                    </ant> 
+                    </ant>
                   </tasks>
                 </configuration>
               </execution>
             </executions>
           </plugin>
-		      <plugin>
-		        <artifactId>maven-surefire-plugin</artifactId>
-		        <configuration>
-		          <failIfNoTests>false</failIfNoTests>
-		          <trimStackTrace>false</trimStackTrace>
-		          <redirectTestOutputToFile>true</redirectTestOutputToFile>
-		          <excludes>
-		            <exclude>org/jbpm/test/reporting/SQLStmtTest.java</exclude>
-		          </excludes>
-		        </configuration>
-		      </plugin>
+
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <failIfNoTests>false</failIfNoTests>
+              <redirectTestOutputToFile>true</redirectTestOutputToFile>
+              <excludes>
+                <exclude>org/jbpm/test/reporting/SQLStmtTest.java</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
         </plugins>
       </build>
     </profile>
-
   </profiles>
-
 </project>

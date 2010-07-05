@@ -35,32 +35,37 @@ import org.jbpm.pvm.internal.job.JobImpl;
 import org.jbpm.pvm.internal.session.DbSession;
 import org.jbpm.pvm.internal.tx.Transaction;
 
-/**  
+/**
  * @author Tom Baeyens
  */
 public class JobExceptionHandler implements Synchronization, Command<Object> {
-  
+
   private static final Log log = Log.getLog(JobExceptionHandler.class.getName());
   private static final long serialVersionUID = 1L;
-  
+
   protected CommandService commandService;
   protected long jobDbid;
   protected Throwable exception;
-  
-  public JobExceptionHandler(long jobDbid, Throwable exception, CommandService commandService) {
+
+  public JobExceptionHandler(long jobDbid, CommandService commandService) {
     this.commandService = commandService;
     this.jobDbid = jobDbid;
-    this.exception = exception;
   }
 
-  
+  public void setException(Throwable exception) {
+      this.exception = exception;
+  }
+
   public void beforeCompletion() {
   }
 
   public void afterCompletion(int status) {
-    // after the transaction rolled back, 
-    // execute this job exception handler object as a command with 
-    // the command service so that this gets done in a separate 
+    if (exception == null) {
+      return;
+    }
+    // after the transaction rolled back,
+    // execute this job exception handler object as a command with
+    // the command service so that this gets done in a separate
     // transaction
     log.debug("starting new transaction for handling job exception");
     commandService.execute(this);
@@ -69,13 +74,13 @@ public class JobExceptionHandler implements Synchronization, Command<Object> {
 
   public Object execute(Environment environment) throws Exception {
     log.debug("handling job "+jobDbid+" exception: "+exception.getMessage());
-    
+
     // load the job from the db
     DbSession dbSession = environment.get(DbSession.class);
     if (dbSession==null) {
       throw new JbpmException("no job-session configured to handle job");
     }
-    JobImpl<?> job = (JobImpl<?>) dbSession.get(JobImpl.class, jobDbid);
+    JobImpl job = dbSession.get(JobImpl.class, jobDbid);
     // serialize the stack trace
     StringWriter sw = new StringWriter();
     exception.printStackTrace(new PrintWriter(sw));
@@ -85,8 +90,8 @@ public class JobExceptionHandler implements Synchronization, Command<Object> {
       log.debug("decrementing retries to "+decrementedRetries+" for "+job);
       job.release();
       job.setRetries(decrementedRetries);
-	  job.setException(sw.toString());
-      
+      job.setException(sw.toString());
+
       // notify the job executor after the transaction is completed
       Transaction transaction = environment.get(Transaction.class);
       JobExecutor jobExecutor = environment.get(JobExecutor.class);

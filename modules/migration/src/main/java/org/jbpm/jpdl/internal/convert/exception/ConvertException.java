@@ -30,9 +30,9 @@ public class ConvertException extends RuntimeException {
 
 	  private static final long serialVersionUID = 1L;
 	  
-	  protected List problems = null;
+	  protected List<Problem> problems = null;
 	  
-	  public ConvertException(List problems) {
+	  public ConvertException(List<Problem> problems) {
 	    super(problems.toString());
 	    this.problems = problems;
 	  }
@@ -42,7 +42,7 @@ public class ConvertException extends RuntimeException {
 	  public ConvertException(String msg, Throwable e ) {
 	    this(Collections.singletonList(new Problem(Problem.LEVEL_ERROR, msg, e)));
 	  }
-	  public List getProblems() {
+	  public List<Problem> getProblems() {
 	    return problems;
 	  }
 }

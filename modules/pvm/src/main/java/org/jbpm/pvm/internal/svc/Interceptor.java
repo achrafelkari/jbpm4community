@@ -21,18 +21,13 @@
  */
 package org.jbpm.pvm.internal.svc;
 
-import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.cmd.CommandService;
-
-
 
 /**
  * @author Tom Baeyens
  */
 public abstract class Interceptor implements CommandService {
 
-  private static final Log log = Log.getLog(Interceptor.class.getName());
-  
   protected CommandService next;
 
   public CommandService getNext() {

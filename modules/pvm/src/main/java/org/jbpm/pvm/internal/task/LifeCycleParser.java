@@ -51,7 +51,7 @@ public class LifeCycleParser extends Parser {
     String initialStateName = null;
     if (element.hasAttribute("initial")) {
       initialStateName = element.getAttribute("initial");
-      ActivityImpl initial = (ActivityImpl) lifeCycleProcess.getActivity(initialStateName);
+      ActivityImpl initial = lifeCycleProcess.getActivity(initialStateName);
       if (initial!=null) {
         lifeCycleProcess.setInitial(initial);
       } else {
@@ -68,7 +68,7 @@ public class LifeCycleParser extends Parser {
       return;
     }
     String stateName = element.getAttribute("name");
-    ActivityImpl state = (ActivityImpl) lifeCycleProcess.getActivity(stateName);
+    ActivityImpl state = lifeCycleProcess.getActivity(stateName);
     
     List<Element> transitionElements = XmlUtil.elements(element, "transition");
     for (Element transitionElement: transitionElements) {
@@ -87,7 +87,7 @@ public class LifeCycleParser extends Parser {
       return;
     }
     String destinationName = element.getAttribute("to");
-    ActivityImpl destination = (ActivityImpl) state.getProcessDefinition().getActivity(destinationName);
+    ActivityImpl destination = state.getProcessDefinition().getActivity(destinationName);
     if (destination!=null) {
       TransitionImpl transition = state.createOutgoingTransition();
       transition.setDestination(destination);

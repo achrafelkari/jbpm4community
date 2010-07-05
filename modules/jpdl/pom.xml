@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ====================================================================== -->
-<!--                                                                        -->
-<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--  jBPM: Workflow in Java                                                -->
 <!--                                                                        -->
 <!--  Distributable under LGPL license.                                     -->
 <!--  See terms of license at http://www.gnu.org.                           -->
-<!--                                                                        -->
 <!-- ====================================================================== -->
 
 <!-- $Id: pom.xml 1790 2008-07-31 12:13:06Z tom.baeyens@jboss.com $ -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <name>jBPM 4 - jPDL</name>
@@ -46,17 +43,32 @@
 
     <!-- 3rd Party -->
     <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.drools</groupId>
+      <artifactId>drools-core</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.jms</groupId>
-	  <artifactId>jms</artifactId>
-	  <version>1.1</version>
+      <artifactId>jms</artifactId>
+      <version>1.1</version>
       <scope>provided</scope>
-	</dependency>
+    </dependency>
+    <dependency>
+      <groupId>javax.mail</groupId>
+      <artifactId>mail</artifactId>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
-  
+
   <build>
     <plugins>
       <plugin>
@@ -72,8 +84,10 @@
 
   <!-- Profiles -->
   <profiles>
-    <!-- skip tests if this is an integration test run 
-    (only examples and test-db are part of the integration test runs) -->
+    <!--
+      skip tests if this is an integration test run (only examples and test-db are part of the
+      integration test runs)
+    -->
     <profile>
       <id>skip.tests.during.database.testrun</id>
       <activation>
@@ -86,5 +100,4 @@
       </properties>
     </profile>
   </profiles>
-
 </project>

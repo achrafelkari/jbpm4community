@@ -37,10 +37,6 @@ public enum JbpmVersion {
       dbVersion = dbVersion.substring(0, dbVersion.length() - 9);
     }
     return dbVersion.startsWith("4.") && dbVersion.length() > 2 ? valueOf("V_4_"
-        + dbVersion.substring(2)) : null;
-  }
-  
-  public boolean isEarlier(JbpmVersion other) {
-    return ordinal() < other.ordinal();
+      + dbVersion.substring(2)) : null;
   }
 }

@@ -1,17 +1,17 @@
 #!/bin/sh
 #
-# runs the jboss integration test suite
+# runs the tomcat integration test suite
 
-MAVEN_OPTS="-Xmx512M -Dtomcat.bind.address=$TOMCAT_BINDADDR"
-ANT_OPTS="-Djbpm.parent.dir=$WORKSPACE -Djboss.distro.dir=$SOURCE_REPO/jboss \
--Dtomcat.distro.dir=tomcat.downloads -Dtomcat.bind.address=$TOMCAT_BINDADDR"
+export MAVEN_OPTS="-Dbind.address=$TOMCAT_BINDADDR"
 
+export ANT_OPTS="-Djbpm.parent.dir=$WORKSPACE -Dbind.address=$TOMCAT_BINDADDR \
+       -Dtomcat.distro.dir=tomcat.downloads"
+
+# build distribution
 mvn -U -Pdistro,integration clean install
-ant -f qa/build.xml reinstall.jbpm
+# set up
 ant -f qa/build.xml testsuite.tomcat.setup
-
-cd modules/test-cactus
-mvn -Pruntest test
-cd ../..
-
+# run test suite
+mvn -f modules/test-cactus/pom.xml -Pruntest -Dmaven.test.failure.ignore=true test
+# tear down
 ant -f qa/build.xml testsuite.tomcat.teardown

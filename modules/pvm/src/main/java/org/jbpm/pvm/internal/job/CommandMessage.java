@@ -24,14 +24,12 @@ package org.jbpm.pvm.internal.job;
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
-import org.jbpm.pvm.internal.session.DbSession;
 import org.jbpm.pvm.internal.wire.Descriptor;
-
 
 /**
  * @author Tom Baeyens
  */
-public class CommandMessage extends MessageImpl<Object> {
+public class CommandMessage extends MessageImpl {
 
   private static final long serialVersionUID = 1L;
   
@@ -46,14 +44,9 @@ public class CommandMessage extends MessageImpl<Object> {
     setConfiguration(command);
   }
 
-  public Object execute(Environment environment) throws Exception {
+  protected void executeVoid(Environment environment) throws Exception {
     Command<?> command = (Command<?>) getConfiguration();
     command.execute(environment);
-    
-    DbSession dbSession = environment.get(DbSession.class);
-    dbSession.delete(this);
-
-    return null;
   }
 
 }

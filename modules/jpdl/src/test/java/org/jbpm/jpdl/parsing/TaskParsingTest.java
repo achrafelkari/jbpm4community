@@ -5,10 +5,12 @@ import org.jbpm.api.model.Activity;
 import org.jbpm.jpdl.internal.activity.TaskActivity;
 import org.jbpm.pvm.internal.client.ClientProcessDefinition;
 import org.jbpm.pvm.internal.el.Expression;
-import org.jbpm.pvm.internal.el.StaticTextExpression;
 import org.jbpm.pvm.internal.model.ActivityImpl;
 import org.jbpm.pvm.internal.task.TaskDefinitionImpl;
 
+/**
+ * @author Huisheng Xu
+ */
 public class TaskParsingTest extends JpdlParseTestCase {
 
   public void testTaskParse() {
@@ -33,8 +35,8 @@ public class TaskParsingTest extends JpdlParseTestCase {
     TaskDefinitionImpl taskDefinition = taskActivity.getTaskDefinition();
 
     // check for properties not previously parsed
-    StaticTextExpression descriptionExpression = (StaticTextExpression) taskDefinition.getDescription();
-    assertEquals("first task", descriptionExpression.getText());
+    Expression descriptionExpression = taskDefinition.getDescription();
+    assertEquals("first task", descriptionExpression.getExpressionString());
     assertEquals(3, taskDefinition.getPriority());
     assertEquals("aForm", taskDefinition.getFormResourceName());
     assertEquals("1 day", taskDefinition.getDueDateDescription());

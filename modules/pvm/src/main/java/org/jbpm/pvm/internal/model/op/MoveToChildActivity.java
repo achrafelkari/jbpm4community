@@ -25,7 +25,6 @@ import org.jbpm.pvm.internal.job.MessageImpl;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.model.ActivityImpl;
 
-
 /**
  * @author Tom Baeyens
  */
@@ -33,7 +32,7 @@ public class MoveToChildActivity extends AtomicOperation {
   
   private static final long serialVersionUID = 1L;
 
-  ActivityImpl activity;
+  private ActivityImpl activity;
 
   public MoveToChildActivity(ActivityImpl activity) {
     this.activity = activity;
@@ -49,7 +48,7 @@ public class MoveToChildActivity extends AtomicOperation {
     return false;
   }
 
-  public MessageImpl<?> createAsyncMessage(ExecutionImpl execution) {
+  public MessageImpl createAsyncMessage(ExecutionImpl execution) {
     return null;
   }
 }

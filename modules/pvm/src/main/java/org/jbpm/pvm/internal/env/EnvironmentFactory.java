@@ -23,7 +23,6 @@ package org.jbpm.pvm.internal.env;
 
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.List;
 
 import org.xml.sax.InputSource;
 

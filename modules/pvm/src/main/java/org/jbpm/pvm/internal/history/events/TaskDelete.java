@@ -54,7 +54,7 @@ public class TaskDelete extends ActivityEnd {
     super.updateHistoryActivityInstance(historyActivityInstance);
 
     DbSession dbSession = EnvironmentImpl.getFromCurrent(DbSession.class);
-    HistoryTaskImpl historyTask = (HistoryTaskImpl) dbSession.get(HistoryTaskImpl.class, task.getDbid());
+    HistoryTaskImpl historyTask = dbSession.get(HistoryTaskImpl.class, task.getDbid());
     historyTask.setState(reason);
     historyTask.setEndTime(Clock.getTime());
   }

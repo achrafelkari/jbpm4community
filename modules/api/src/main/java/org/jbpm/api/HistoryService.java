@@ -51,10 +51,10 @@ public interface HistoryService {
   HistoryDetailQuery createHistoryDetailQuery();
 
   /** returns the average duration in milliseconds for each activity in the given process definition */
-  Map<String, Long> avgDurationPerActivity(String processDefinitionId);
+  Map<String, Number> avgDurationPerActivity(String processDefinitionId);
   
   /** returns for each transitionName, the number of times that transition was taken */
-  Map<String, Integer> choiceDistribution(String processDefinitionId, String activityName);
+  Map<String, Number> choiceDistribution(String processDefinitionId, String activityName);
   
   /** retrieves a variable */
   Set<String> getVariableNames(String processInstanceId);
@@ -63,5 +63,5 @@ public interface HistoryService {
   Object getVariable(String processInstanceId, String variableName);
   
   /** all the variables visible in the given history execution scope */
-  Map<String, Object> getVariables(String processInstanceId, Set<String> variableNames);
+  Map<String, ?> getVariables(String processInstanceId, Set<String> variableNames);
 }

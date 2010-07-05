@@ -22,17 +22,14 @@
 package org.jbpm.pvm.internal.history.model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.jbpm.api.history.HistoryTask;
 import org.jbpm.pvm.internal.task.TaskImpl;
 import org.jbpm.pvm.internal.util.Clock;
 import org.jbpm.pvm.internal.util.EqualsUtil;
-
 
 /**
  * @author Tom Baeyens

@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ====================================================================== -->
-<!--                                                                        -->
-<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--  jBPM: Workflow in Java                                                -->
 <!--                                                                        -->
 <!--  Distributable under LGPL license.                                     -->
 <!--  See terms of license at http://www.gnu.org.                           -->
-<!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 5319 2009-07-17 10:03:46Z tom.baeyens@jboss.com $ -->
+<!-- $Id: pom.xml 6449 2010-07-02 08:05:29Z alex.guizar@jboss.com $ -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -60,30 +58,6 @@
         <filtering>true</filtering>
       </testResource>
     </testResources>
-
-    <plugins>
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>delete.previous.generated.files</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <tasks>
-                <delete>
-                  <fileset dir=".">
-                    <include name="src/test/java/org/jbpm/test/AllIntegrationTests.java*" />
-                  </fileset>
-                </delete>
-              </tasks>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
   </build>
 
   <profiles>
@@ -177,7 +151,8 @@
                   <goal>copy</goal>
                 </goals>
                 <configuration>
-                  <outputDirectory>target/jbpm.test.webapp.libs</outputDirectory>
+                  <outputDirectory>${project.build.directory}/jbpm.test.webapp.libs
+                  </outputDirectory>
                   <artifactItems>
                     <artifactItem>
                       <groupId>aspectj</groupId>
@@ -235,9 +210,8 @@
       <id>runtest</id>
       <dependencies>
         <dependency>
-          <groupId>apache-httpclient</groupId>
+          <groupId>commons-httpclient</groupId>
           <artifactId>commons-httpclient</artifactId>
-          <version>3.1</version>
         </dependency>
         <dependency>
           <groupId>org.jbpm.jbpm4</groupId>
@@ -271,6 +245,7 @@
           <scope>runtime</scope>
         </dependency>
       </dependencies>
+
       <build>
         <plugins>
           <plugin>
@@ -284,38 +259,35 @@
                 </goals>
                 <configuration>
                   <tasks>
-                    <property name="test_classpath" refid="maven.test.classpath" />
-                    <echo message="${test_classpath}" />
-                    <delete>
-                      <fileset dir=".">
-                        <include name="src/test/java/org/jbpm/test/AllIntegrationTests.java*" />
-                      </fileset>
-                    </delete>
-                    <java classname="org.jbpm.cactustool.CactusTestGenerator">
-                      <classpath path="${test_classpath}" />
-                      <arg line="src/test/java ../examples/src/test/java ../test-db/src/test/java" />
+                    <java classname="org.jbpm.cactustool.CactusTestGenerator"
+                      classpathref="maven.test.classpath">
+                      <arg file="${project.build.testSourceDirectory}" />
+                      <arg file="${basedir}/../examples/src/test/java" />
+                      <arg file="${basedir}/../test-db/src/test/java" />
+                      <sysproperty key="excluded.tests" value="SQLStmtTest.java AttachmentTest.java" />
                     </java>
                   </tasks>
                 </configuration>
               </execution>
+
               <execution>
                 <id>remove-generated-cactus-test</id>
-                <phase>package</phase>
+                <phase>clean</phase>
                 <goals>
                   <goal>run</goal>
                 </goals>
                 <configuration>
                   <tasks>
                     <delete>
-                      <fileset dir=".">
-                        <include name="src/test/java/org/jbpm/test/AllIntegrationTests.java*" />
-                      </fileset>
+                      <fileset dir="${project.build.testSourceDirectory}"
+                        includes="org/jbpm/test/AllIntegrationTests.java" />
                     </delete>
                   </tasks>
                 </configuration>
               </execution>
             </executions>
           </plugin>
+
           <plugin>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
@@ -328,5 +300,4 @@
       </build>
     </profile>
   </profiles>
-
 </project>

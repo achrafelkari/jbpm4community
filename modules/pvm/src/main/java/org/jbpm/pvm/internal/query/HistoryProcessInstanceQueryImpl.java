@@ -28,6 +28,7 @@ import org.hibernate.Query;
 import org.jbpm.api.history.HistoryProcessInstance;
 import org.jbpm.api.history.HistoryProcessInstanceQuery;
 import org.jbpm.pvm.internal.history.model.HistoryProcessInstanceImpl;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 /**
  * @author Tom Baeyens
@@ -101,7 +102,7 @@ public class HistoryProcessInstanceQueryImpl extends AbstractQuery implements Hi
   }
 
   public List<HistoryProcessInstance> list() {
-    return (List) untypedList();
+    return CollectionUtil.checkList(untypedList(), HistoryProcessInstance.class);
   }
   
   public HistoryProcessInstance uniqueResult() {

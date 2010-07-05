@@ -14,7 +14,7 @@ import org.jbpm.pvm.internal.lob.Lob;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.wire.Descriptor;
 
-public abstract class JobImpl<T> implements Command<T>, Serializable, Job {
+public abstract class JobImpl implements Command<Boolean>, Serializable, Job {
 
   private static final long serialVersionUID = 1L;
   // private static final DateFormat dateFormat = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss,SSS");
@@ -28,8 +28,8 @@ public abstract class JobImpl<T> implements Command<T>, Serializable, Job {
   protected int dbversion;
 
   /** date until which the command should not be executed
-   * for async messages, this duedate should be set to null. */
-  protected Date duedate = null;
+   * for async messages, this due date should be set to null. */
+  protected Date dueDate;
   
   /** job state. */
   protected String state = STATE_WAITING;
@@ -148,16 +148,20 @@ public abstract class JobImpl<T> implements Command<T>, Serializable, Job {
   public String getLockOwner() {
     return lockOwner;
   }
-  /** @deprecated */
-  @Deprecated
   public Date getDueDate() {
-    return getDuedate();
+    return dueDate;
   }
+  public void setDueDate(Date dueDate) {
+    this.dueDate = dueDate;
+  }
+  @Deprecated
   public Date getDuedate() {
-    return duedate;
+    return getDueDate();
   }
+  /** @deprecated call {@link #setDueDate(Date)} instead */
+  @Deprecated
   public void setDuedate(Date duedate) {
-    this.duedate = duedate;
+    setDueDate(duedate);
   }
   public String getException() {
     return exception;

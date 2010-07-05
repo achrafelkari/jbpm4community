@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jbpm-configuration>
+
+  <import resource="jbpm.default.cfg.xml" />
+  <import resource="jbpm.tx.hibernate.cfg.xml" />
+  <import resource="jbpm.jpdl.cfg.xml" />
+  <import resource="jbpm.identity.cfg.xml" />
+
+  <process-engine-context>
+    <business-calendar>
+      <monday    hours="9:00-18:00"/>
+      <tuesday   hours="9:00-18:00"/>
+      <wednesday hours="9:00-18:00"/>
+      <thursday  hours="9:00-18:00"/>
+      <friday    hours="9:00-18:00"/>
+      <holiday period="01/02/2009 - 31/10/2009"/>
+    </business-calendar>
+  </process-engine-context>
+
+</jbpm-configuration>

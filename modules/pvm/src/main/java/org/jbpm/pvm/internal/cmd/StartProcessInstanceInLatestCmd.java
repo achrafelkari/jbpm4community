@@ -23,13 +23,11 @@ package org.jbpm.pvm.internal.cmd;
 
 import java.util.Map;
 
-import org.hibernate.Session;
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.ProcessInstance;
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.pvm.internal.client.ClientProcessDefinition;
 import org.jbpm.pvm.internal.client.ClientProcessInstance;
-import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.session.RepositorySession;
 
 /**
@@ -55,7 +53,7 @@ public class StartProcessInstanceInLatestCmd extends VariablesCmd<ProcessInstanc
     ClientProcessDefinition processDefinition = null;
     
     RepositorySession repositorySession = environment.get(RepositorySession.class);
-    processDefinition = (ClientProcessDefinition) repositorySession.findProcessDefinitionByKey(processDefinitionKey);
+    processDefinition = repositorySession.findProcessDefinitionByKey(processDefinitionKey);
     if (processDefinition==null) {
       throw new JbpmException("no process definition with key '"+processDefinitionKey+"'");
     }

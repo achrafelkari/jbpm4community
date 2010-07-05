@@ -22,16 +22,17 @@
 package org.jbpm.pvm.internal.identity.impl;
 
 import org.hibernate.ejb.HibernateEntityManager;
-import org.jboss.identity.idm.common.exception.IdentityException;
-import org.jboss.identity.idm.impl.store.hibernate.HibernateIdentityStoreImpl;
-import org.jboss.identity.idm.spi.store.IdentityStoreInvocationContext;
+import org.picketlink.idm.common.exception.IdentityException;
+import org.picketlink.idm.impl.store.hibernate.HibernateIdentityStoreImpl;
+import org.picketlink.idm.spi.store.IdentityStoreInvocationContext;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
-
 
 /**
  * @author Tom Baeyens
  */
 public class JbpmIdentityStore extends HibernateIdentityStoreImpl {
+
+  private static final long serialVersionUID = 1L;
 
   public JbpmIdentityStore(String id) {
     super(id);
@@ -48,6 +49,4 @@ public class JbpmIdentityStore extends HibernateIdentityStoreImpl {
   protected HibernateEntityManager getEntityManagerFromEnvironment() {
     return EnvironmentImpl.getFromCurrent(HibernateEntityManager.class);
   }
-
-  
 }

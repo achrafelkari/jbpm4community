@@ -24,7 +24,6 @@ package org.jbpm.bpmn.flownodes;
 import java.util.Map;
 
 import org.jbpm.api.activity.ActivityExecution;
-import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.el.Expression;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.history.HistoryEvent;
@@ -42,8 +41,6 @@ public class UserTaskActivity extends BpmnExternalActivity {
 
   private static final long serialVersionUID = 1L;
 
-  private static final Log LOG = Log.getLog(UserTaskActivity.class.getName());
-
   protected TaskDefinitionImpl taskDefinition;
 
   public void execute(ActivityExecution execution) {
@@ -52,7 +49,7 @@ public class UserTaskActivity extends BpmnExternalActivity {
 
   public void execute(ExecutionImpl execution) {
     DbSession dbSession = EnvironmentImpl.getFromCurrent(DbSession.class);
-    TaskImpl task = (TaskImpl) dbSession.createTask();
+    TaskImpl task = dbSession.createTask();
     task.setTaskDefinition(taskDefinition);
     task.setExecution(execution);
     task.setProcessInstance(execution.getProcessInstance());
@@ -103,7 +100,7 @@ public class UserTaskActivity extends BpmnExternalActivity {
     execution.fire(signalName, activity);
 
     DbSession taskDbSession = EnvironmentImpl.getFromCurrent(DbSession.class);
-    TaskImpl task = (TaskImpl) taskDbSession.findTaskByExecution(execution);
+    TaskImpl task = taskDbSession.findTaskByExecution(execution);
     if (task!=null) {
       task.setSignalling(false);
     }

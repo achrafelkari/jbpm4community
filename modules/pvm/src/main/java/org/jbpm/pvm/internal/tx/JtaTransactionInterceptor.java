@@ -27,18 +27,14 @@ import javax.transaction.UserTransaction;
 
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.cmd.Command;
-import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.svc.Interceptor;
 import org.jbpm.pvm.internal.svc.Policy;
-
 
 /**
  * @author Tom Baeyens
  */
 public class JtaTransactionInterceptor extends Interceptor {
-  
-  private static Log log = Log.getLog(JtaTransactionInterceptor.class.getName());
   
   protected Policy policy = Policy.REQUIRES;
 

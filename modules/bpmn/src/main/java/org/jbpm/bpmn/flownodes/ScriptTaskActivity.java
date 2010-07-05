@@ -24,41 +24,41 @@ package org.jbpm.bpmn.flownodes;
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.model.OpenExecution;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
-import org.jbpm.pvm.internal.script.ScriptManager;
+import org.jbpm.pvm.internal.el.Expression;
 
+/**
+ * @author Huisheng Xu
+ */
 public class ScriptTaskActivity extends BpmnAutomaticActivity {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-	private String language;
+    private String language;
 
-	private String script;
+    private String script;
 
-	public void perform(OpenExecution execution) {
-		try {
+    public void perform(OpenExecution execution) {
+        try {
+            Expression.create(script, language).evaluate(execution);
+        } catch (Exception e) {
+            throw new JbpmException("couldn't run script: " + e.getMessage(), e);
+        }
+    }
 
-			ScriptManager scriptManager = EnvironmentImpl.getFromCurrent(ScriptManager.class);
-			scriptManager.evaluateScript(script, language);
+    public String getLanguage() {
+        return language;
+    }
 
-		} catch (Exception e) {
-			throw new JbpmException("couldn't run script: " + e.getMessage(), e);
-		}
-	}
+    public void setLanguage(String language) {
+        this.language = language;
+    }
 
-	public String getLanguage() {
-		return language;
-	}
+    public String getScript() {
+        return script;
+    }
 
-	public void setLanguage(String language) {
-		this.language = language;
-	}
-
-	public String getScript() {
-		return script;
-	}
-
-	public void setScript(String script) {
-		this.script = script;
-	}
+    public void setScript(String script) {
+        this.script = script;
+    }
 
 }

@@ -42,7 +42,7 @@ public class ProcessEngineRefBinding extends WireDescriptorBinding {
   }
 
   public Object parse(Element element, Parse parse, Parser parser) {
-    ConfigurationImpl configuration = (ConfigurationImpl) parse.contextStackFind(ConfigurationImpl.class);
+    ConfigurationImpl configuration = parse.contextStackFind(ConfigurationImpl.class);
     return new ProcessEngineDescriptor(configuration);
   }
 }

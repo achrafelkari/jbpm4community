@@ -127,6 +127,8 @@ import org.jbpm.api.cmd.Environment;
  */
 public abstract class EnvironmentImpl implements Serializable, Environment {
 
+  private static final long serialVersionUID = 1L;
+
   /**
    * searches a named object in all the contexts in the default search order. 
    * @return the object if it exists in the environment, <code>null</code> if there is no object with the given name in the environment.

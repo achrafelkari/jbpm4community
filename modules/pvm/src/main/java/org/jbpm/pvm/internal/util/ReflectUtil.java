@@ -57,8 +57,6 @@ public class ReflectUtil {
     try {
       field = clazz.getDeclaredField(fieldName);
       if (log.isTraceEnabled()) log.trace("found field "+fieldName+" in "+clazz.getName());
-    } catch (SecurityException e) {
-      throw new JbpmException("wasn't allowed to get field '"+clazz.getName()+"."+fieldName+"'", e);
     } catch (NoSuchFieldException e) {
       if (clazz.getSuperclass()!=null) {
         return findField(clazz.getSuperclass(), fieldName, original);
@@ -83,8 +81,6 @@ public class ReflectUtil {
 
       if (log.isTraceEnabled()) log.trace("found method "+clazz.getName()+"."+methodName+"("+Arrays.toString(parameterTypes)+")");
 
-    } catch (SecurityException e) {
-      throw new JbpmException("wasn't allowed to get method '"+clazz.getName()+"."+methodName+"("+getParameterTypesText(parameterTypes)+")'", e);
     } catch (NoSuchMethodException e) {
       if (clazz.getSuperclass()!=null) {
         return getMethod(clazz.getSuperclass(), methodName, parameterTypes, original);
@@ -110,36 +106,39 @@ public class ReflectUtil {
   }
 
   public static <T> T newInstance(Class<T> clazz) {
-    return newInstance(clazz, null, null);
-  }
-  public static <T> T newInstance(Constructor<T> constructor) {
-    return newInstance(null, constructor, null);
-  }
-  public static <T> T newInstance(Constructor<T> constructor, Object[] args) {
-    return newInstance(null, constructor, args);
+    if (clazz==null) {
+      throw new IllegalArgumentException("cannot create new instance without class");
+    }
+    try {
+      return newInstance(clazz.getConstructor());
+    }
+    catch (NoSuchMethodException e) {
+      throw new IllegalArgumentException("cannot instantiate class without default constructor");
+    }
   }
 
-  private static <T> T newInstance(Class<T> clazz, Constructor<T> constructor, Object[] args) {
-    if ( (clazz==null)
-         && (constructor==null)
-       ) {
-      throw new IllegalArgumentException("can't create new instance without clazz or constructor");
+  public static <T> T newInstance(Constructor<T> constructor, Object... args) {
+    if (constructor==null) {
+      throw new IllegalArgumentException("cannot create new instance without constructor");
     }
 
+    Class<T> clazz = constructor.getDeclaringClass();
+    if (log.isTraceEnabled()) log.trace("creating new instance for "+clazz+" with args "+Arrays.toString(args));
+    if (!constructor.isAccessible()) {
+      if (log.isTraceEnabled()) log.trace("making constructor accessible");
+      constructor.setAccessible(true);
+    }
     try {
-      if (log.isTraceEnabled()) log.trace("creating new instance for class '"+clazz.getName()+"' with args "+Arrays.toString(args));
-      if (constructor==null) {
-        if (log.isTraceEnabled()) log.trace("getting default constructor");
-        constructor = clazz.getConstructor((Class[])null);
-      }
-      if (!constructor.isAccessible()) {
-        if (log.isTraceEnabled()) log.trace("making constructor accessible");
-        constructor.setAccessible(true);
-      }
       return constructor.newInstance(args);
-
-    } catch (Throwable t) {
-      throw new JbpmException("couldn't construct new '"+clazz.getName()+"' with args "+Arrays.toString(args), t);
+    }
+    catch (InstantiationException e) {
+      throw new JbpmException("failed to instantiate " + clazz, e);
+    }
+    catch (IllegalAccessException e) {
+      throw new JbpmException(ReflectUtil.class + " has no access to " + constructor, e);
+    }
+    catch (InvocationTargetException e) {
+      throw new JbpmException(constructor + " threw exception", e.getCause());
     }
   }
 
@@ -446,14 +445,15 @@ public class ReflectUtil {
    * @return The class reference.
    * @throws ClassNotFoundException From {@link Class#forName(String)}.
    */
-  public static Class classForName(String name) throws ClassNotFoundException {
-    try {
-      ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-      if (contextClassLoader != null) {
-        return contextClassLoader.loadClass(name);
+  public static Class<?> classForName(String name) throws ClassNotFoundException {
+    ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+    if (contextClassLoader != null) {
+      try {
+        return Class.forName(name, true, contextClassLoader);
       }
-    }
-    catch (Throwable ignore) {
+      catch (ClassNotFoundException e) {
+        // keep going to load through the loader of the current class
+      }
     }
     return Class.forName(name);
   }

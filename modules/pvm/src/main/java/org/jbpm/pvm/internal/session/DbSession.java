@@ -94,13 +94,13 @@ public interface DbSession {
   // job methods //////////////////////////////////////////////////////////////
 
   /** the first job to finish among eligible and non-locked jobs or null if none */
-  public JobImpl<?> findFirstAcquirableJob();
+  public JobImpl findFirstAcquirableJob();
 
   /** the list of jobs of the process instance that mustn't be concurrent */
-  public List<JobImpl<?>> findExclusiveJobs(Execution processInstance);
+  public List<JobImpl> findExclusiveJobs(Execution processInstance);
 
   /** the first job to finish among non-owned jobs or null if none */
-  public JobImpl<?> findFirstDueJob();
+  public JobImpl findFirstDueJob();
   
   /** returns a list of start process timers for the given process definition */
   public List<StartProcessTimer> findStartProcessTimers(String processDefinitionId);

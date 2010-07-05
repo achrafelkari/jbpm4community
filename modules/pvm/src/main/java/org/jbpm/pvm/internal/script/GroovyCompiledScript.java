@@ -29,25 +29,28 @@
  */
 
 package org.jbpm.pvm.internal.script;
-import javax.script.*;
 
+import javax.script.CompiledScript;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
 
 public class GroovyCompiledScript extends CompiledScript {
-    
-    private GroovyScriptEngine engine;
-    private Class clasz;
-    
-    public GroovyCompiledScript(GroovyScriptEngine engine, Class clasz) {
-        this.engine = engine;
-        this.clasz = clasz;
-    }
-    
-    public Object eval(ScriptContext context) throws ScriptException {
-        return engine.eval(clasz, context);
-    }    
-    
-    public ScriptEngine getEngine() {
-        return engine;
-    }
-    
+
+  private GroovyScriptEngine engine;
+  private Class<?> clasz;
+
+  public GroovyCompiledScript(GroovyScriptEngine engine, Class<?> clasz) {
+    this.engine = engine;
+    this.clasz = clasz;
+  }
+
+  public Object eval(ScriptContext context) throws ScriptException {
+    return engine.eval(clasz, context);
+  }
+
+  public ScriptEngine getEngine() {
+    return engine;
+  }
+
 }

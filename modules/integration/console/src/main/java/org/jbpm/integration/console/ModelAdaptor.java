@@ -50,6 +50,7 @@ import org.jbpm.api.model.Transition;
 import org.jbpm.api.task.Participation;
 import org.jbpm.api.task.Task;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
+import org.jbpm.pvm.internal.model.ProcessDefinitionImpl;
 import org.jbpm.pvm.internal.task.TaskImpl;
 
 /**
@@ -88,15 +89,16 @@ public class ModelAdaptor {
                                    .uniqueResult().getStartTime();
     ref.setStartDate(startDate);
 
-    Execution topLevelExecution = execution.getProcessInstance();
-    TokenReference tok = execution2TokenReference(topLevelExecution);
-      
+    ExecutionImpl processInstance = (ExecutionImpl) execution.getProcessInstance();
+    ProcessDefinitionImpl processDefinition = processInstance.getProcessDefinition();
+    TokenReference tok = execution2TokenReference(processInstance);
 
-    Collection<ExecutionImpl> childExecutions = (Collection) topLevelExecution.getExecutions();
+    Collection<? extends Execution> childExecutions = processInstance.getExecutions();
     if (childExecutions != null) {
-      for (ExecutionImpl childExecution : childExecutions) {
-        // set process definition on child execution from topLevelExecution
-        childExecution.setProcessDefinition(((ExecutionImpl)topLevelExecution).getProcessDefinition());
+      for (Execution child : childExecutions) {
+        ExecutionImpl childExecution = (ExecutionImpl) child; 
+        // set process definition on child execution from process instance
+        childExecution.setProcessDefinition(processDefinition);
         
         TokenReference childTok = execution2TokenReference(childExecution);
         tok.getChildren().add(childTok);
@@ -104,11 +106,10 @@ public class ModelAdaptor {
     }
 
     ref.setRootToken(tok);
-
     return ref;
   }
 
-  private static TokenReference execution2TokenReference(Execution execution) {
+  private static TokenReference execution2TokenReference(ExecutionImpl execution) {
     String executionId = execution.getId();
 
     TokenReference tok = new TokenReference();
@@ -116,7 +117,7 @@ public class ModelAdaptor {
     tok.setId(executionId);
     
     // mark execution as signalable if it is in wait state and it is active
-    if (((ExecutionImpl) execution).isActive() && "state".equals(((ExecutionImpl) execution).getActivity().getType())) {
+    if (execution.isActive() && "state".equals(execution.getActivity().getType())) {
       tok.setCanBeSignaled(true);
     }
 
@@ -137,16 +138,16 @@ public class ModelAdaptor {
       tok.setCurrentNodeName(executionId);
     }
            
-    if (((ExecutionImpl) execution).getActivity() !=null && "state".equals(((ExecutionImpl) execution).getActivity().getType())) {
+    if (execution.getActivity() !=null && "state".equals(execution.getActivity().getType())) {
       // transitions
       List<String> availableSignals = new ArrayList<String>();
       // fetch outgoing transitions for state activity only, it is required to allow proper
       // signaling to be made from console - it must send real signal name (outgoing transition)
       // because there is not signal name check when signaling and if wrong name was given caller will not get any error
       // and execution will remain in wait state
-      ExecutionImpl openTopLevelExecution = (ExecutionImpl) execution;
+      ExecutionImpl openTopLevelExecution = execution;
       
-      List<Transition> outTransitions = openTopLevelExecution.getActivity().getOutgoingTransitions();
+      List<? extends Transition> outTransitions = openTopLevelExecution.getActivity().getOutgoingTransitions();
       if (outTransitions != null) {
         for (Transition t : outTransitions) {
           // if name is not given use 'default transition' as name to be consistent with ProcessFacade check
@@ -243,8 +244,8 @@ public class ModelAdaptor {
     JobRef jobRef = new JobRef();
     jobRef.setId(String.valueOf(job.getId()));
     
-    if (job.getDuedate() != null) {
-      jobRef.setTimestamp(job.getDuedate().getTime());
+    if (job.getDueDate() != null) {
+      jobRef.setTimestamp(job.getDueDate().getTime());
     }
     if (job.getException() != null) {
       jobRef.setErrMsg(job.getException());

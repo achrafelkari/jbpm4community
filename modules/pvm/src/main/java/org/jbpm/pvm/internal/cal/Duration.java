@@ -22,38 +22,38 @@
 package org.jbpm.pvm.internal.cal;
 
 import java.io.Serializable;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jbpm.api.Execution;
 import org.jbpm.api.JbpmException;
+import org.jbpm.pvm.internal.el.Expression;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
-import org.jbpm.pvm.internal.script.ScriptManager;
 import org.jbpm.pvm.internal.util.Clock;
 
 /**
  * represents a time duration.
- * 
- * <p>With the constructor {link {@link #Duration(String)} you can create a 
+ *
+ * <p>With the constructor {link {@link #Duration(String)} you can create a
  * Duration from a text representation.  The syntax is as follows
  * </p>
- * 
+ *
  * <pre>
  * duration = part [',' part | 'and' part]*
  * part = number ['business'] unit
  * number = (0..9)+
  * unit = (y|year|years|month|months|w|week|weeks|d|day|days|h|hour|hours|min|minute|minutes|s|sec|second|seconds|milli|millis|millisecond|milliseconds)
  * </pre>
- * 
+ *
  * <p>Duration is immutable.
  * </p>
+ *
+ * @author Huisheng Xu
  */
 public class Duration implements Serializable {
 
@@ -68,12 +68,12 @@ public class Duration implements Serializable {
   protected int weeks;
   protected int months;
   protected int years;
-  
+
   private final static String dateFormat = "yyyy-MM-dd HH:mm:ss";
-  
+
   private static final Pattern dateDurationPattern = Pattern.compile("\\s*(#\\{.+\\})\\s*"
           + "(?:(\\+|-)\\s*(\\d+\\s+(?:business\\s+)?\\w+))?\\s*");
-       
+
   private static final Pattern durationPattern = Pattern.compile("\\s*(\\d+\\s+(?:business\\s+)?"
           + "\\w+)\\s*");
 
@@ -81,13 +81,13 @@ public class Duration implements Serializable {
   protected Duration() {
   }
 
-  /** parses the duration from a text 
-   * 
+  /** parses the duration from a text
+   *
    * duration = part [',' part | 'and' part]*
    * part = number ['business'] unit
    * number = (0..9)+
    * unit = (y|year|years|month|months|w|week|weeks|d|day|days|h|hour|hours|min|minute|minutes|s|sec|second|seconds|milli|millis|millisecond|milliseconds)
-   * 
+   *
    * @throws JbpmException if the parsing is unsuccessful
    */
   public Duration(String text) {
@@ -96,23 +96,22 @@ public class Duration implements Serializable {
     for (String part: splitInParts(text)) {
       parsePart(part);
     }
-    
+
     isBusinessTime = text.indexOf("business")!=-1;
   }
-  
+
   public static boolean isValidExpression(String durationExpression) {
     try {
-     new Duration(durationExpression); 
+     new Duration(durationExpression);
     } catch (JbpmException e) {
       return false;
     }
     return true;
   }
-  
+
   public static Date calculateDueDate(String durationExpression) {
     Date duedate = null;
     if (durationExpression != null) {
-      ScriptManager scriptManager = ScriptManager.getScriptManager();
 
       Date baseDate;
       String durationString = null;
@@ -121,24 +120,34 @@ public class Duration implements Serializable {
       if (durationExpression.startsWith("#")) {
 
         String baseDateEL = durationExpression.substring(0, durationExpression.indexOf("}") + 1);
-        Object result = scriptManager.evaluateExpression(baseDateEL, null);
+        Object result = Expression.create(baseDateEL).evaluate();
 
         if (result instanceof Date) {
           baseDate = (Date) result;
         } else if (result instanceof Calendar) {
           baseDate = ((Calendar) result).getTime();
+        } else if (result instanceof String) {
+          baseDate = Clock.getTime();
+          int endOfELIndex = durationExpression.indexOf("}");
+          if (endOfELIndex < (durationExpression.length() - 1)) {
+            throw new JbpmException("Invalid duedate, didnot support + or - in String type EL.");
+          }
+          durationString = (String) Expression.create(durationExpression, null).evaluate((Execution) null);
         } else {
-          throw new JbpmException("Invalid basedate type: " + baseDateEL + " is of type " + result.getClass().getName()
+          throw new JbpmException("Invalid basedate type: " + baseDateEL + " is of type "
+                  + result.getClass().getName()
                   + ". Only Date and Calendar are supported");
         }
 
-        int endOfELIndex = durationExpression.indexOf("}");
-        if (endOfELIndex < (durationExpression.length() - 1)) {
-          durationSeparator = durationExpression.substring(endOfELIndex + 1).trim().charAt(0);
-          if (durationSeparator != '+' && durationSeparator != '-') {
-            throw new JbpmException("Invalid duedate, + or - missing after EL");
+        if (durationString == null) {
+          int endOfELIndex = durationExpression.indexOf("}");
+          if (endOfELIndex < (durationExpression.length() - 1)) {
+            durationSeparator = durationExpression.substring(endOfELIndex + 1).trim().charAt(0);
+            if (durationSeparator != '+' && durationSeparator != '-') {
+              throw new JbpmException("Invalid duedate, + or - missing after EL");
+            }
+            durationString = durationExpression.substring(endOfELIndex + 1).substring(2).trim();
           }
-          durationString = durationExpression.substring(endOfELIndex + 1).substring(2).trim();
         }
 
       } else {
@@ -176,40 +185,40 @@ public class Duration implements Serializable {
     this.months = months;
     this.years = years;
   }
-  
+
   private List<String> splitInParts(String text) {
     List<String> parts = new ArrayList<String>(2);
     while (text!=null) {
       int commaIndex = text.indexOf(',');
       int andIndex = text.indexOf(" and ");
-      if ( ( (commaIndex==-1) 
+      if ( ( (commaIndex==-1)
              && (andIndex!=-1)
-           ) 
-           || 
-           ( ( (commaIndex!=-1) 
+           )
+           ||
+           ( ( (commaIndex!=-1)
                && (andIndex!=-1)
-             ) 
+             )
              && (andIndex<commaIndex)
            )
          ) {
         String part = text.substring(0, andIndex).trim();
         parts.add(part);
         text = text.substring(andIndex+5);
-        
-      } else if ( ( (commaIndex!=-1) 
+
+      } else if ( ( (commaIndex!=-1)
                     && (andIndex==-1)
-                  ) 
-                  || 
-                  ( ( (commaIndex!=-1) 
+                  )
+                  ||
+                  ( ( (commaIndex!=-1)
                       && (andIndex!=-1)
-                    ) 
+                    )
                     && (andIndex>commaIndex)
                   )
                 ) {
         String part = text.substring(0, commaIndex).trim();
         parts.add(part);
         text = text.substring(commaIndex+1);
-        
+
       } else {
         parts.add(text.trim());
         text = null;
@@ -227,7 +236,7 @@ public class Duration implements Serializable {
     String quantityText = part.substring(0, spaceIndex).trim();
     spaceIndex = part.lastIndexOf(' ');
     String unitText = part.substring(spaceIndex+1).trim().toLowerCase();
-    
+
     int quantity;
     try {
       quantity = Integer.parseInt(quantityText);
@@ -240,46 +249,46 @@ public class Duration implements Serializable {
     }
     fieldSetter.set(this, quantity);
   }
-  
-  private interface FieldSetter {
+
+  interface FieldSetter {
     void set(Duration duration, int quantity);
   }
-  private static class MillisSetter implements FieldSetter {
+  static class MillisSetter implements FieldSetter {
     public void set(Duration duration, int quantity) {
       duration.millis = quantity;
     }
   }
-  private static class SecondSetter implements FieldSetter {
+  static class SecondSetter implements FieldSetter {
     public void set(Duration duration, int quantity) {
       duration.seconds = quantity;
     }
   }
-  private static class MinuteSetter implements FieldSetter {
+  static class MinuteSetter implements FieldSetter {
     public void set(Duration duration, int quantity) {
       duration.minutes = quantity;
     }
   }
-  private static class HourSetter implements FieldSetter {
+  static class HourSetter implements FieldSetter {
     public void set(Duration duration, int quantity) {
       duration.hours = quantity;
     }
   }
-  private static class DaySetter implements FieldSetter {
+  static class DaySetter implements FieldSetter {
     public void set(Duration duration, int quantity) {
       duration.days = quantity;
     }
   }
-  private static class WeekSetter implements FieldSetter {
+  static class WeekSetter implements FieldSetter {
     public void set(Duration duration, int quantity) {
       duration.weeks = quantity;
     }
   }
-  private static class MonthSetter implements FieldSetter {
+  static class MonthSetter implements FieldSetter {
     public void set(Duration duration, int quantity) {
       duration.months = quantity;
     }
   }
-  private static class YearSetter implements FieldSetter {
+  static class YearSetter implements FieldSetter {
     public void set(Duration duration, int quantity) {
       duration.years = quantity;
     }
@@ -288,7 +297,7 @@ public class Duration implements Serializable {
   private static final Map<String, FieldSetter> fieldSetters = new HashMap<String, FieldSetter>();
   static {
     FieldSetter fieldSetter = new MillisSetter();
-    fieldSetters.put("milli", fieldSetter);
+    fieldSetters.put("ms", fieldSetter);
     fieldSetters.put("millis", fieldSetter);
     fieldSetters.put("millisecond", fieldSetter);
     fieldSetters.put("milliseconds", fieldSetter);
@@ -328,47 +337,39 @@ public class Duration implements Serializable {
     fieldSetters.put("year", fieldSetter);
     fieldSetters.put("years", fieldSetter);
   }
-  
+
   public int getDays() {
     return days;
   }
 
-  
   public int getHours() {
     return hours;
   }
 
-  
   public boolean isBusinessTime() {
     return isBusinessTime;
   }
 
-  
   public int getMillis() {
     return millis;
   }
 
-  
   public int getMinutes() {
     return minutes;
   }
 
-  
   public int getMonths() {
     return months;
   }
 
-  
   public int getSeconds() {
     return seconds;
   }
 
-  
   public int getWeeks() {
     return weeks;
   }
 
-  
   public int getYears() {
     return years;
   }

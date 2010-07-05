@@ -41,7 +41,7 @@ public class MoveToParentActivity extends AtomicOperation {
     propagatingExecution.performAtomicOperation(new Signal(null, null));
   }
 
-  public MessageImpl<?> createAsyncMessage(ExecutionImpl execution) {
+  public MessageImpl createAsyncMessage(ExecutionImpl execution) {
     return null;
   }
 

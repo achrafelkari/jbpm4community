@@ -21,18 +21,19 @@
  */
 package org.jbpm.api.cmd;
 
-
 /** convenience for commands without return value.
  * 
  * @author Tom Baeyens
  */
 public abstract class VoidCommand implements Command<Void> {
 
+  private static final long serialVersionUID = 1L;
+
   public Void execute(Environment environment) throws Exception {
     executeVoid(environment);
     return null;
   }
 
-  public abstract void executeVoid(Environment environment);
+  protected abstract void executeVoid(Environment environment) throws Exception;
 
 }

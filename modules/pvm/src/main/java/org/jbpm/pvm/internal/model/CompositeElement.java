@@ -65,5 +65,5 @@ public interface CompositeElement extends ObservableElement {
    * Beware: the actual member is returned.  No copy is made. In fact, the 
    * returned map is maintained as a cache.  So updates to the map will 
    * influence subsequent retrievals of activities by name.*/
-  Map<String, Activity> getActivitiesMap();
+  Map<String, ? extends Activity> getActivitiesMap();
 }

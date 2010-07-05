@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 /**
- * 
+ *
  */
 package org.jbpm.test.variables;
 
@@ -39,7 +39,7 @@ import org.jbpm.test.JbpmTestCase;
  * @author Maciej Swiderski
  */
 public class VariableExpressionTest extends JbpmTestCase {
-  
+
   public void testExpression() {
     deployJpdlXmlString(
             "<process name='theProcess'>" +
@@ -51,7 +51,7 @@ public class VariableExpressionTest extends JbpmTestCase {
             "  </custom>" +
             "  <decision name='decideToGoFurther'>" +
             "    <transition to='waitHere'>" +
-            "      <condition expr='#{counter == 10}' />" + 
+            "      <condition expr='#{counter == 10}' />" +
             "    </transition>" +
             "    <transition to='incrementCounter'>" +
             "      <condition expr='#{counter &lt; 10}' />" +
@@ -63,17 +63,17 @@ public class VariableExpressionTest extends JbpmTestCase {
             "  <end name='theEnd' />" +
             "</process>"
           );
-    
+
     Map<String, Integer> vars = new HashMap<String, Integer>();
     vars.put("counter", 0);
-    
+
     ProcessInstance processInstance = executionService.startProcessInstanceByKey("theProcess", vars);
     assertActivityActive(processInstance.getId(), "waitHere");
-    
+
     Integer counter = (Integer) executionService.getVariable(processInstance.getId(), "counter");
     assertEquals(new Integer(10), counter);
   }
-  
+
   public void testNullValueExpression() {
     deployJpdlXmlString(
             "<process name='theProcess'>" +
@@ -85,7 +85,7 @@ public class VariableExpressionTest extends JbpmTestCase {
             "  </custom>" +
             "  <decision name='decideToGoFurther'>" +
             "    <transition to='waitHere'>" +
-            "      <condition expr='#{counter==null}' />" + 
+            "      <condition expr='#{counter==null}' />" +
             "    </transition>" +
             "    <transition to='incrementCounter'>" +
             "      <condition expr='#{counter &lt; 10}' />" +
@@ -97,17 +97,17 @@ public class VariableExpressionTest extends JbpmTestCase {
             "  <end name='theEnd' />" +
             "</process>"
           );
-    
+
     Map<String, Object> vars = new HashMap<String, Object>();
     vars.put("counter", null);
-    
+
     ProcessInstance processInstance = executionService.startProcessInstanceByKey("theProcess", vars);
     assertActivityActive(processInstance.getId(), "waitHere");
-    
+
     Object value = executionService.getVariable(processInstance.getId(), "counter");
     assertEquals(null, value);
   }
-  
+
   public void testMissingVariableExpression() {
     deployJpdlXmlString(
             "<process name='theProcess'>" +
@@ -119,7 +119,7 @@ public class VariableExpressionTest extends JbpmTestCase {
             "  </custom>" +
             "  <decision name='decideToGoFurther'>" +
             "    <transition to='waitHere'>" +
-            "      <condition expr='#{counter==null}' />" + 
+            "      <condition expr='#{counter==null}' />" +
             "    </transition>" +
             "    <transition to='incrementCounter'>" +
             "      <condition expr='#{counter &lt; 10}' />" +
@@ -131,20 +131,21 @@ public class VariableExpressionTest extends JbpmTestCase {
             "  <end name='theEnd' />" +
             "</process>"
           );
-    
+
     Map<String, Object> vars = new HashMap<String, Object>();
     try {
       ProcessInstance processInstance = executionService.startProcessInstanceByKey("theProcess", vars);
 
       fail("Variable counter is not set, should fail");
-    } catch (JbpmException e) {
+    } catch (Exception e) {
 
-      assertTrue(e.getMessage().indexOf("Cannot find property counter") != -1);
+      assertEquals("Cannot resolve identifier 'counter'",
+          e.getMessage());
     }
 
   }
-  
-  
+
+
   public static class MyJavaActivity implements ActivityBehaviour {
 
     private static final long serialVersionUID = 1L;
@@ -154,7 +155,7 @@ public class VariableExpressionTest extends JbpmTestCase {
       counter++;
       execution.setVariable("counter", counter);
     }
-    
+
   }
 
 }

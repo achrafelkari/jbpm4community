@@ -34,28 +34,32 @@ import org.jbpm.api.JbpmException;
 import org.jbpm.api.task.Task;
 import org.jbpm.pvm.internal.model.ScopeInstanceImpl;
 
-
 /** handles all expression resolving
- * 
+ *
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public abstract class Expression implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  public static final String LANGUAGE_UEL = "uel";
-  public static final String LANGUAGE_UEL_METHOD = "uel-method";
-  public static final String LANGUAGE_UEL_VALUE = "uel-value";
+  private static final String LANGUAGE_UEL = "uel";
+  public static final String LANGUAGE_UEL_METHOD = LANGUAGE_UEL + "-method";
+  public static final String LANGUAGE_UEL_VALUE = LANGUAGE_UEL + "-value";
 
-  private static ExpressionFactory expressionFactory = null;
-  private static ELContext elContext = null;
+  private static ExpressionFactory expressionFactory;
+  private static ELContext elContext;
+
+  public static Expression create(String expressionText) {
+    return create(expressionText, null);
+  }
 
   public static Expression create(String expressionText, String language) {
     // if there is an expr specified
     if (expressionText==null) {
       throw new JbpmException("expressionText is null");
     }
-    
+
     if (language==null || language.startsWith(LANGUAGE_UEL)) {
       if (expressionText.indexOf('{')==-1) {
         return new StaticTextExpression(expressionText);
@@ -65,26 +69,28 @@ public abstract class Expression implements Serializable {
       // by default, expr is interpreted as a value expression
       if (language==null || LANGUAGE_UEL_VALUE.equals(language)) {
         try {
-          ValueExpression valueExpression = expressionFactory.createValueExpression(elContext, expressionText, Object.class);
-          
+          ValueExpression valueExpression = expressionFactory
+              .createValueExpression(elContext, expressionText, Object.class);
+
           return new UelValueExpression(valueExpression);
-          
+
         // if the expr is not a valid value expr...
         } catch (ELException e) {
-          // ... and the expr-type was not specified 
+          // ... and the expr-type was not specified
           if (language==null) {
             // then try to parse it as a method expression
             language = LANGUAGE_UEL_METHOD;
           }
-        } 
-      } 
+        }
+      }
 
       if (LANGUAGE_UEL_METHOD.equals(language)) {
-        MethodExpression methodExpression = expressionFactory.createMethodExpression(elContext, expressionText, null, new Class<?>[]{});
+        MethodExpression methodExpression = expressionFactory
+            .createMethodExpression(elContext, expressionText, null, new Class<?>[]{});
         return new UelMethodExpression(methodExpression);
       }
 
-    } 
+    }
     return new ScriptExpression(expressionText, language);
   }
 
@@ -97,7 +103,11 @@ public abstract class Expression implements Serializable {
   }
 
   // runtime evaluation ///////////////////////////////////////////////////////
-  
+
+  public Object evaluate() {
+    return evaluateInScope(null);
+  }
+
   public Object evaluate(Execution execution) {
     return evaluateInScope((ScopeInstanceImpl)execution);
   }
@@ -105,7 +115,7 @@ public abstract class Expression implements Serializable {
   public Object evaluate(Task task) {
     return evaluateInScope((ScopeInstanceImpl)task);
   }
-  
+
   public abstract Object evaluateInScope(ScopeInstanceImpl scopeInstance);
 
   protected ELContext getElContext(ScopeInstanceImpl scopeInstance) {
@@ -120,4 +130,8 @@ public abstract class Expression implements Serializable {
     }
     return elContext;
   }
+
+  public abstract String getExpressionString();
+
+  public abstract boolean isLiteralText();
 }

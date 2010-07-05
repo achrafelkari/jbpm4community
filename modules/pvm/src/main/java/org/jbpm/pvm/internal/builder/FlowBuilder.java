@@ -79,6 +79,6 @@ public class FlowBuilder extends ObservableBuilder {
   }
 
   public ActivityBuilder endFlow() {
-    return (ActivityBuilder) activityBuilder;
+    return activityBuilder;
   }
 }

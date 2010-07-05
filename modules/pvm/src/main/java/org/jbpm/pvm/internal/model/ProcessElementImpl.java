@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.wire.Descriptor;
 
 /** 
@@ -39,7 +38,6 @@ import org.jbpm.pvm.internal.wire.Descriptor;
 public class ProcessElementImpl implements Serializable {
 
   private static final long serialVersionUID = 1L;
-  private static final Log log = Log.getLog(ProcessElementImpl.class.getName());
 
   protected long dbid;
   protected int dbversion;
@@ -81,7 +79,7 @@ public class ProcessElementImpl implements Serializable {
 
   public Set<String> getPropertyKeys() {
     if (properties==null) {
-      return Collections.EMPTY_SET;
+      return Collections.emptySet();
     }
     return properties.keys();
   }

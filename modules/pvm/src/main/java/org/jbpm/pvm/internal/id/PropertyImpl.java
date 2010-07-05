@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
+
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.history.model.HistoryActivityInstanceImpl;
 import org.jbpm.pvm.internal.history.model.HistoryDetailImpl;
@@ -44,7 +44,6 @@ import org.jbpm.pvm.internal.task.ParticipationImpl;
 import org.jbpm.pvm.internal.task.SwimlaneImpl;
 import org.jbpm.pvm.internal.task.TaskImpl;
 import org.jbpm.pvm.internal.type.Variable;
-
 
 /** jbpm installation properties.
  * 
@@ -181,9 +180,7 @@ public class PropertyImpl {
   }
 
   protected static PropertyImpl getProperty(Session session, String key) {
-    return (PropertyImpl) session.createCriteria(PropertyImpl.class)
-        .add(Restrictions.eq("key", key))
-        .uniqueResult();
+    return (PropertyImpl) session.get(PropertyImpl.class, key);
   }
 
   public static void setDbVersionTo41(Session session) {

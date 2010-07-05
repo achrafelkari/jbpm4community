@@ -28,7 +28,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jbpm.api.Configuration;
 import org.jbpm.api.ProcessEngine;
-import org.jbpm.pvm.internal.processengine.ProcessEngineImpl;
 
 /**
  * common strategy for jbpm ant tasks to obtain a hibernate SessionFactory.
@@ -40,7 +39,7 @@ public abstract class AntHelper {
   private static final Log log = LogFactory.getLog(AntHelper.class);
 
   public static ProcessEngine getProcessEngine(String jbpmCfgXml) {
-    ProcessEngine processEngine = (ProcessEngineImpl) processEngines.get(jbpmCfgXml);
+    ProcessEngine processEngine = processEngines.get(jbpmCfgXml);
     if (processEngine == null) {
       Configuration configuration = new Configuration();
       if (jbpmCfgXml!=null) {

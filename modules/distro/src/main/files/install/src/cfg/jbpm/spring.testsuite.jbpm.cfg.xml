@@ -9,7 +9,6 @@
   <import resource="jbpm.identity.cfg.xml" />
   <import resource="jbpm.businesscalendar.cfg.xml" />
   <import resource="jbpm.console.cfg.xml" />
-  <import resource="jbpm.mail.templates.examples.xml" />
   
   <process-engine-context>
     <string name="spring.cfg" value="applicationContext.xml" />

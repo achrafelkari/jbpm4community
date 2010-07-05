@@ -56,5 +56,25 @@
                  foreign-key="FK_GROUP_PARENT"
                  index="IDX_GROUP_PARENT"/>
   </class>
-  
+
+  <query name="findGroupsByUser">
+    <![CDATA[
+    select distinct g
+    from org.jbpm.pvm.internal.identity.impl.MembershipImpl m
+      join m.user u
+      join m.group g
+    where u.id = :userId
+    ]]>
+  </query>
+
+  <query name="findGroupsByUserAndGroupType">
+    <![CDATA[
+    select distinct g
+    from org.jbpm.pvm.internal.identity.impl.MembershipImpl m
+      join m.user u
+      join m.group g
+    where u.id = :userId
+      and g.type = :groupType
+    ]]>
+  </query>
 </hibernate-mapping>

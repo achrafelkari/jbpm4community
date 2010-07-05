@@ -8,7 +8,6 @@
   <import resource="jbpm.bpmn.cfg.xml" />
   <import resource="jbpm.identity.cfg.xml" />
   <import resource="jbpm.businesscalendar.cfg.xml" />
-  <!-- import resource="jbpm.jobexecutor.cfg.xml" / -->
 
   <import resource="jbpm.mail.templates.examples.xml" />
 

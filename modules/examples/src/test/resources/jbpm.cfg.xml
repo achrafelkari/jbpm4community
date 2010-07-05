@@ -15,6 +15,4 @@
   <import resource="jbpm.jobexecutor.cfg.xml" />
   -->
 
-  <import resource="jbpm.mail.templates.examples.xml" />
-
 </jbpm-configuration>

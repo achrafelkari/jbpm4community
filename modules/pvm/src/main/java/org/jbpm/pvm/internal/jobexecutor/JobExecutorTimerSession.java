@@ -15,8 +15,9 @@ package org.jbpm.pvm.internal.jobexecutor;
 
 import java.util.List;
 
-import org.hibernate.Query;
 import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
+
 import org.jbpm.api.Execution;
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.job.Timer;
@@ -24,6 +25,7 @@ import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.job.TimerImpl;
 import org.jbpm.pvm.internal.session.TimerSession;
 import org.jbpm.pvm.internal.tx.Transaction;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 /**
  * Timers created with this service are committed at the end of the transaction,
@@ -77,12 +79,9 @@ public class JobExecutorTimerSession implements TimerSession {
   }
 
   public List<Timer> findTimersByExecution(Execution execution) {
-    Query query = session.createQuery(
-      "select timer " +
-      "from "+TimerImpl.class.getName()+" timer " +
-      "where timer.execution = :execution"
-    );
-    query.setEntity("execution", execution);
-    return query.list();
+    List<?> timers = session.createCriteria(TimerImpl.class)
+      .add(Restrictions.eq("execution", execution))
+      .list();
+    return CollectionUtil.checkList(timers, Timer.class);
   }
 }

@@ -43,7 +43,7 @@ public class NewTaskCmd extends AbstractCommand<Task> {
 
   public Task execute(Environment environment) throws Exception {
     DbSession dbSession = environment.get(DbSession.class);
-    TaskImpl task = (TaskImpl) dbSession.createTask();
+    TaskImpl task = dbSession.createTask();
     task.setSuperTaskDbid(parentTaskDbid);
     return task;
   }

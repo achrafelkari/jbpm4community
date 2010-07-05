@@ -89,7 +89,7 @@ public class ConfigurationImpl extends Configuration {
     if (isSpringEnabled) {
       return SpringProcessEngine.create(this);
     }
-    return new ProcessEngineImpl(this);
+    return instantiateProcessEngine();
   }
   
   /**

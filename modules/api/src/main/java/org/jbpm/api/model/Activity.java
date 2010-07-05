@@ -63,7 +63,7 @@ public interface Activity {
 
   /** the list of outgoing transitions.
    * Caution: the actual member is returned.  No copy is made. */
-  List<Transition> getOutgoingTransitions();
+  List<? extends Transition> getOutgoingTransitions();
 
   /** the default outgoing transition. */
   Transition getDefaultOutgoingTransition();
@@ -91,7 +91,7 @@ public interface Activity {
    * Beware: the actual member is returned.  No copy is made.  In fact, the 
    * returned map is maintained as a cache.  So updates to the map will 
    * influence subsequent retrievals of outgoing transitions by name. */
-  Map<String, Transition> getOutgoingTransitionsMap();
+  Map<String, ? extends Transition> getOutgoingTransitionsMap();
   
   /** searches for the given transitionName in this activity and then up the 
    * parent chain. Returns null if no such transition is found. */
@@ -99,7 +99,7 @@ public interface Activity {
 
   /** the list of arriving transitions.
    * Beware: the actual member is returned.  No copy is made. */
-  List<Transition> getIncomingTransitions();
+  List<? extends Transition> getIncomingTransitions();
 
   /** indicates if this activity has arriving transitions */
   boolean hasIncomingTransitions();
@@ -140,7 +140,7 @@ public interface Activity {
    * Beware: the actual member is returned.  No copy is made. In fact, the 
    * returned map is maintained as a cache.  So updates to the map will 
    * influence subsequent retrievals of activities by name.*/
-  Map<String, Activity> getActivitiesMap();
+  Map<String, ? extends Activity> getActivitiesMap();
 
   /** the type of this activity which corresponds to the xml tag */
   String getType();

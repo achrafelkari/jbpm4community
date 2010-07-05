@@ -44,8 +44,7 @@ public class TaskAssign extends HistoryEvent {
 
   public void process() {
     DbSession dbSession = EnvironmentImpl.getFromCurrent(DbSession.class);
-    HistoryTaskImpl historyTaskInstance = (HistoryTaskImpl) 
-        dbSession.get(HistoryTaskImpl.class, task.getDbid());
+    HistoryTaskImpl historyTaskInstance = dbSession.get(HistoryTaskImpl.class, task.getDbid());
     historyTaskInstance.setAssignee(assignee);
   }
   

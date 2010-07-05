@@ -23,11 +23,10 @@ package org.jbpm.pvm.internal.wire.binding;
 
 import java.util.List;
 
-import org.jbpm.pvm.internal.jobexecutor.JobExecutor;
 import org.jbpm.pvm.internal.wire.descriptor.CollectionDescriptor;
 import org.jbpm.pvm.internal.wire.descriptor.ListDescriptor;
 
-/** parses a descriptor for creating a {@link JobExecutor}.
+/** parses a descriptor for creating a {@link List}.
  * 
  * See schema docs for more details.
  * 

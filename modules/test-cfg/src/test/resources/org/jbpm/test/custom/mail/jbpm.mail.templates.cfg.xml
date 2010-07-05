@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jbpm-configuration>
+
+  <process-engine-context>
+
+    <mail-template name="rectify-template">
+      <to addresses="${addressee}" />
+      <cc users="bb" groups="innerparty" />
+      <subject>rectify ${newspaper}</subject>
+      <text>${newspaper} ${date} ${details}</text>
+    </mail-template>
+
+  </process-engine-context>
+
+</jbpm-configuration>

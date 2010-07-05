@@ -39,6 +39,7 @@ import org.jbpm.pvm.internal.identity.spi.IdentitySession;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.task.ParticipationImpl;
 import org.jbpm.pvm.internal.task.TaskImpl;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 /**
  * @author Tom Baeyens
@@ -53,6 +54,7 @@ public class TaskQueryImpl extends AbstractQuery implements TaskQuery {
   protected String assignee;
   protected String candidate;
   protected Boolean suspended;
+  protected String executionId;
   protected String processInstanceId;
   protected String processDefinitionId;
   protected String activityName;
@@ -71,6 +73,11 @@ public class TaskQueryImpl extends AbstractQuery implements TaskQuery {
   public TaskQuery candidate(String userId) {
     this.candidate = userId;
     unassigned();
+    return this;
+  }
+
+  public TaskQuery executionId(String executionId) {
+    this.executionId = executionId;
     return this;
   }
 
@@ -189,6 +196,10 @@ public class TaskQueryImpl extends AbstractQuery implements TaskQuery {
       }
     }
     
+    if (executionId!=null) {
+      appendWhereClause("task.execution.id = '"+executionId+"' ", hql);
+    }
+
     if (processInstanceId!=null) {
       appendWhereClause("task.processInstance.id = '"+processInstanceId+"' ", hql);
     }
@@ -241,9 +252,9 @@ public class TaskQueryImpl extends AbstractQuery implements TaskQuery {
   }
 
   public List<Task> list() {
-    return (List<Task>) commandService.execute(this);
+    return CollectionUtil.checkList(untypedList(), Task.class);
   }
-  
+
   public Task uniqueResult() {
     return (Task) untypedUniqueResult();
   }

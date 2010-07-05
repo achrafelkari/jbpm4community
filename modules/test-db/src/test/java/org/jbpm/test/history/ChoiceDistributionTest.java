@@ -62,13 +62,11 @@ public class ChoiceDistributionTest extends JbpmTestCase {
     executionService.startProcessInstanceByKey("TRS", variables);
     executionService.startProcessInstanceByKey("TRS", variables);
 
-    Map<String, Integer> choiceDistribution = historyService.choiceDistribution("TRS-1", "How far?");
+    Map<String, Number> choiceDistribution = historyService.choiceDistribution("TRS-1", "How far?");
     
-    assertEquals(1, (int)choiceDistribution.get("far"));
-    assertEquals(3, (int)choiceDistribution.get("nearby"));
-    assertEquals(2, (int)choiceDistribution.get("other country"));
-      
+    assertEquals(1, choiceDistribution.get("far").intValue());
+    assertEquals(3, choiceDistribution.get("nearby").intValue());
+    assertEquals(2, choiceDistribution.get("other country").intValue());
   }
-
 
 }

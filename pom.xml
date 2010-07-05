@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ====================================================================== -->
-<!--                                                                        -->
-<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--  jBPM: Workflow in Java                                                -->
 <!--                                                                        -->
 <!--  Distributable under LGPL license.                                     -->
 <!--  See terms of license at http://www.gnu.org.                           -->
-<!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6419 2010-06-16 23:22:42Z alex.guizar@jboss.com $ -->
+<!-- $Id: pom.xml 6447 2010-07-01 08:54:37Z alex.guizar@jboss.com $ -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -47,10 +45,12 @@
   <properties>
     <activation.version>1.1.1</activation.version>
     <apache.ant.version>1.7.0</apache.ant.version>
+    <asm.version>1.5.3</asm.version>
     <aspectjrt.version>1.5.3</aspectjrt.version>
     <beanshell.version>2.0b5</beanshell.version>
     <cactus.version>1.8.1</cactus.version>
     <cdi.version>1.0</cdi.version>
+    <commons.httpclient.version>3.1</commons.httpclient.version>
     <drools.version>5.0.1</drools.version>
     <errai.version>1.1-M1</errai.version>
     <freemarker.version>2.3.15</freemarker.version>
@@ -59,15 +59,15 @@
     <hibernate.version>3.3.1.GA</hibernate.version>
     <hsqldb.version>1.8.0.7</hsqldb.version>
     <jbpm.gpd.version>4.3</jbpm.gpd.version>
-    <jboss.identity.version>1.0.0.Beta1</jboss.identity.version>
     <jboss.j2ee.version>4.2.2.GA</jboss.j2ee.version>
     <jboss.client.version>5.0.1.GA</jboss.client.version>
-    <jsr233.version>2.0.5</jsr233.version>
     <juel.version>2.2.1</juel.version>
     <juel.engine.version>2.1.0</juel.engine.version>
     <junit.version>3.8.2</junit.version>
+    <livetribe.version>2.0.5</livetribe.version>
     <log4j.version>1.2.14</log4j.version>
     <mail.version>1.4.1</mail.version>
+    <picketlink.version>1.1.1.GA</picketlink.version>
     <report.engine.version>2.3.2</report.engine.version>
     <servlet-api.version>2.5</servlet-api.version>
     <signavio.jbpmeditor.version>1.1</signavio.jbpmeditor.version>
@@ -77,7 +77,6 @@
     <wiser.version>1.2</wiser.version>
     <woodstox.version>3.2.6</woodstox.version>
 
-    <jtds.version>1.2.2</jtds.version>
     <mysql.connector.version>5.0.8</mysql.connector.version>
     <oracle.version>10.2.0.4</oracle.version>
     <postgresql.version>8.3-603.jdbc3</postgresql.version>
@@ -215,6 +214,11 @@
         <version>${apache.ant.version}</version>
       </dependency>
       <dependency>
+        <groupId>asm</groupId>
+        <artifactId>asm</artifactId>
+        <version>${asm.version}</version>
+      </dependency>
+      <dependency>
         <groupId>aspectj</groupId>
         <artifactId>aspectjrt</artifactId>
         <version>${aspectjrt.version}</version>
@@ -243,6 +247,11 @@
         <groupId>javax.enterprise</groupId>
         <artifactId>cdi-api</artifactId>
         <version>${cdi.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-httpclient</groupId>
+        <artifactId>commons-httpclient</artifactId>
+        <version>${commons.httpclient.version}</version>
       </dependency>
       <dependency>
         <groupId>org.drools</groupId>
@@ -305,16 +314,6 @@
         <version>${hibernate.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.jboss.identity.idm</groupId>
-        <artifactId>idm-core</artifactId>
-        <version>${jboss.identity.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jboss.identity.idm</groupId>
-        <artifactId>idm-hibernate</artifactId>
-        <version>${jboss.identity.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.jboss.javaee</groupId>
         <artifactId>jboss-javaee</artifactId>
         <version>${jboss.client.version}</version>
@@ -359,8 +358,9 @@
       <dependency>
         <groupId>org.livetribe</groupId>
         <artifactId>livetribe-jsr223</artifactId>
-        <version>${jsr233.version}</version>
-      </dependency><dependency>
+        <version>${livetribe.version}</version>
+      </dependency>
+      <dependency>
         <groupId>log4j</groupId>
         <artifactId>log4j</artifactId>
         <version>${log4j.version}</version>
@@ -369,6 +369,16 @@
         <groupId>javax.mail</groupId>
         <artifactId>mail</artifactId>
         <version>${mail.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.picketlink.idm</groupId>
+        <artifactId>picketlink-idm-core</artifactId>
+        <version>${picketlink.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.picketlink.idm</groupId>
+        <artifactId>picketlink-idm-hibernate</artifactId>
+        <version>${picketlink.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.birt</groupId>
@@ -380,7 +390,8 @@
         <groupId>javax.servlet</groupId>
         <artifactId>servlet-api</artifactId>
         <version>${servlet-api.version}</version>
-      </dependency><dependency>
+      </dependency>
+      <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
@@ -423,11 +434,6 @@
         <version>${hsqldb.version}</version>
       </dependency>
       <dependency>
-        <groupId>net.sourceforge.jtds</groupId>
-        <artifactId>jtds</artifactId>
-        <version>${jtds.version}</version>
-      </dependency>
-      <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
         <version>${mysql.connector.version}</version>
@@ -450,6 +456,7 @@
           <target>1.5</target>
         </configuration>
       </plugin>
+
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>

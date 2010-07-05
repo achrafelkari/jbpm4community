@@ -43,8 +43,16 @@ public class MailServer {
 
   public Session getMailSession() {
     if (mailSession == null) {
-      mailSession = Session.getInstance(sessionProperties, authenticator);
+      synchronized (this) {
+        if (mailSession == null) {
+          mailSession = Session.getInstance(sessionProperties, authenticator);
+        }
+      }
     }
     return mailSession;
+  }
+
+  protected void setMailSession(Session mailSession) {
+    this.mailSession = mailSession;
   }
 }

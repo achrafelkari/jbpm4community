@@ -40,7 +40,7 @@ public class ExecutionType implements UserType, ParameterizedType {
   public Object nullSafeGet(ResultSet rs, String[] names, Object owner) throws HibernateException, SQLException {
     ExecutionImpl execution = createExecution(owner);
     String activityName = rs.getString(names[0]);
-    ActivityImpl activity = (ActivityImpl) execution.getProcessDefinition().getActivity(activityName);
+    ActivityImpl activity = execution.getProcessDefinition().getActivity(activityName);
     execution.setActivity(activity);
     execution.setState(Execution.STATE_ACTIVE_ROOT);
     return execution;

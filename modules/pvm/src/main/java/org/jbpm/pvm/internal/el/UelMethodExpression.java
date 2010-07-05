@@ -29,11 +29,12 @@ import org.jbpm.pvm.internal.model.ScopeInstanceImpl;
 
 /**
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public class UelMethodExpression extends Expression {
 
   private static final long serialVersionUID = 1L;
-  
+
   protected MethodExpression methodExpression;
 
   public UelMethodExpression(MethodExpression methodExpression) {
@@ -42,6 +43,14 @@ public class UelMethodExpression extends Expression {
 
   public Object evaluateInScope(ScopeInstanceImpl scopeInstance) {
     ELContext elContext = getElContext(scopeInstance);
-    return methodExpression.invoke((ELContext) elContext, null);
+    return methodExpression.invoke(elContext, null);
+  }
+
+  public String getExpressionString() {
+    return methodExpression.getExpressionString();
+  }
+
+  public boolean isLiteralText() {
+    return false;
   }
 }

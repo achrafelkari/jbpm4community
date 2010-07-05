@@ -25,8 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hibernate.Query;
 import org.hibernate.Session;
+
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.pvm.internal.history.model.HistoryActivityInstanceImpl;
@@ -34,43 +34,33 @@ import org.jbpm.pvm.internal.history.model.HistoryActivityInstanceImpl;
 /**
  * @author Tom Baeyens
  */
-public class AvgDurationPerActivityQueryCmd implements Command<Object> {
+public class AvgDurationPerActivityQueryCmd implements Command<Map<String, Number>> {
 
   private static final long serialVersionUID = 1L;
-  
+
   protected String processDefinitionId;
 
   public AvgDurationPerActivityQueryCmd(String processDefinitionId) {
     this.processDefinitionId = processDefinitionId;
   }
 
-  public Object execute(Environment environment) throws Exception {
-    Session session = environment.get(Session.class);
-    
-    Query query = session.createQuery(
-      "select distinct hai.activityName " +
-      "from "+HistoryActivityInstanceImpl.class.getName()+" as hai " +
-      "where hai.historyProcessInstance.processDefinitionId = :processDefinitionId"
-    );
-    query.setString("processDefinitionId", processDefinitionId);
-    
-    Map<String, Long> avgDuration = new HashMap<String, Long>();
-    
-    List<String> activityNames = query.list();
-    for (String activityName: activityNames) {
-      query = session.createQuery(
-        "select avg(hai.duration) " +
-        "from "+HistoryActivityInstanceImpl.class.getName()+" as hai " +
-        "where hai.historyProcessInstance.processDefinitionId = :processDefinitionId " +
-        "  and hai.activityName = :activityName"
-      );
-      query.setString("processDefinitionId", processDefinitionId);
-      query.setString("activityName", activityName);
-      
-      Number number = (Number) query.uniqueResult();
-      avgDuration.put(activityName, new Long(number.longValue()));
+  public Map<String, Number> execute(Environment environment) throws Exception {
+    List<?> results = environment.get(Session.class)
+      .createQuery("select hai.activityName, avg(hai.duration) "
+        + "from "
+        + HistoryActivityInstanceImpl.class.getName()
+        + " as hai "
+        + "where hai.historyProcessInstance.processDefinitionId = :processDefinitionId "
+        + "group by hai.activityName")
+      .setString("processDefinitionId", processDefinitionId)
+      .list();
+
+    Map<String, Number> avgDurationPerActivity = new HashMap<String, Number>();
+    for (Object result: results) {
+      Object[] pair = (Object[]) result;
+      avgDurationPerActivity.put((String) pair[0], (Number) pair[1]);
     }
-    
-    return avgDuration;
+
+    return avgDurationPerActivity;
   }
 }

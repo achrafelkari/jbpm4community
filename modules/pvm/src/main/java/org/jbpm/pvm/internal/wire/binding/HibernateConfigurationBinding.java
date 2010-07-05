@@ -22,24 +22,22 @@
 package org.jbpm.pvm.internal.wire.binding;
 
 import java.io.File;
-import java.io.InputStream;
 import java.net.URL;
-import java.util.Enumeration;
 import java.util.List;
 
 import org.hibernate.cfg.Configuration;
+import org.w3c.dom.Element;
+
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.stream.FileStreamInput;
 import org.jbpm.pvm.internal.stream.ResourceStreamInput;
 import org.jbpm.pvm.internal.stream.StreamInput;
 import org.jbpm.pvm.internal.stream.UrlStreamInput;
-import org.jbpm.pvm.internal.util.ReflectUtil;
 import org.jbpm.pvm.internal.util.XmlUtil;
 import org.jbpm.pvm.internal.wire.descriptor.HibernateConfigurationDescriptor;
 import org.jbpm.pvm.internal.wire.descriptor.PropertiesDescriptor;
 import org.jbpm.pvm.internal.xml.Parse;
 import org.jbpm.pvm.internal.xml.Parser;
-import org.w3c.dom.Element;
 
 /** parses a descriptor for creating a hibernate Configuration.
  * 
@@ -51,8 +49,6 @@ public class HibernateConfigurationBinding extends WireDescriptorBinding {
 
   private static final Log log = Log.getLog(HibernateConfigurationBinding.class.getName());
   
-  private static final PropertiesBinding propertiesBinding = new PropertiesBinding();
-
   public HibernateConfigurationBinding() {
     super("hibernate-configuration");
   }
@@ -134,7 +130,7 @@ public class HibernateConfigurationBinding extends WireDescriptorBinding {
         }
 
       } else if ("properties".equals(configElement.getLocalName())) {
-        PropertiesDescriptor propertiesDescriptor = (PropertiesDescriptor) propertiesBinding.parse(configElement, parse, parser);
+        PropertiesDescriptor propertiesDescriptor = PropertiesBinding.parseDescriptor(configElement, parse, parser);
         descriptor.setPropertiesDescriptor(propertiesDescriptor);
 
       } else if ("cache-configuration".equals(configElement.getLocalName())) {

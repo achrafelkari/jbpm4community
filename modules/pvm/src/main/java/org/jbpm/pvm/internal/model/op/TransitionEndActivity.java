@@ -25,8 +25,6 @@ import org.jbpm.api.model.Event;
 import org.jbpm.pvm.internal.job.MessageImpl;
 import org.jbpm.pvm.internal.model.ActivityImpl;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
-import org.jbpm.pvm.internal.model.ObservableElementImpl;
-
 
 /**
  * @author Tom Baeyens
@@ -59,7 +57,7 @@ public class TransitionEndActivity extends AtomicOperation {
     }
   }
 
-  public MessageImpl< ? > createAsyncMessage(ExecutionImpl execution) {
+  public MessageImpl createAsyncMessage(ExecutionImpl execution) {
     throw new UnsupportedOperationException("please implement me");
   }
 

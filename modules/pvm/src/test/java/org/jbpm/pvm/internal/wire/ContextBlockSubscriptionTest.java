@@ -21,14 +21,12 @@
  */
 package org.jbpm.pvm.internal.wire;
 
-
 import org.jbpm.pvm.internal.env.Context;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.env.EnvironmentFactory;
 import org.jbpm.pvm.internal.processengine.ProcessEngineImpl;
 import org.jbpm.pvm.internal.wire.Descriptor;
 import org.jbpm.pvm.internal.wire.WireContext;
-import org.jbpm.pvm.internal.wire.WireDefinition;
 import org.jbpm.pvm.internal.wire.WireException;
 import org.jbpm.pvm.internal.wire.WireObjectEventInfo;
 import org.jbpm.pvm.internal.wire.xml.WireParser;
@@ -55,7 +53,7 @@ public class ContextBlockSubscriptionTest extends SubscriptionTestCase {
     // <subscribe /> will use the scope as the observable
     // In this test, there is no eager initialization
 
-    WireContext context = new WireContext((WireDefinition) WireParser.getInstance().parseXmlString(
+    WireContext context = new WireContext(WireParser.parseXmlString(
       "  <transaction-context>" +
       "    <object name='recorder' class='"+Recorder.class.getName()+"'>" +
       "      <subscribe context='foo'/>" +
@@ -69,7 +67,6 @@ public class ContextBlockSubscriptionTest extends SubscriptionTestCase {
     } catch (WireException e) {
       assertTextPresent("couldn't get context foo for subscribe because no environment available in context ", e.getMessage());
     }
-
   }
 
   public void testEventReception() {

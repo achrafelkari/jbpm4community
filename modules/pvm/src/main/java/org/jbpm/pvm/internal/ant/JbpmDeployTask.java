@@ -23,9 +23,10 @@ package org.jbpm.pvm.internal.ant;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.zip.ZipInputStream;
 
@@ -33,6 +34,7 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.taskdefs.MatchingTask;
 import org.apache.tools.ant.types.FileSet;
+
 import org.jbpm.api.NewDeployment;
 import org.jbpm.api.ProcessEngine;
 import org.jbpm.api.RepositoryService;
@@ -42,10 +44,9 @@ import org.jbpm.api.RepositoryService;
  */
 public class JbpmDeployTask extends MatchingTask {
 
-  String jbpmCfg = null;
-  File file = null;
-  List fileSets = new ArrayList();
-  boolean failOnError = true;
+  private String jbpmCfg;
+  private File file;
+  private List<FileSet> fileSets = new ArrayList<FileSet>();
 
   public void execute() throws BuildException {
     Thread currentThread = Thread.currentThread();
@@ -54,72 +55,84 @@ public class JbpmDeployTask extends MatchingTask {
     try {
       // get the ProcessEngineImpl
       ProcessEngine processEngine = AntHelper.getProcessEngine(jbpmCfg);
-      
+
       // if attribute process is set, deploy that process file
-      if (file!=null) {
+      if (file != null) {
         deployFile(processEngine, file);
       }
-      
+
       // loop over all files that are specified in the filesets
-      Iterator iter = fileSets.iterator();
-      while (iter.hasNext()) {
-        FileSet fileSet = (FileSet) iter.next();
+      for (FileSet fileSet : fileSets) {
         DirectoryScanner dirScanner = fileSet.getDirectoryScanner(getProject());
         File baseDir = dirScanner.getBasedir();
-        String[] includedFiles = dirScanner.getIncludedFiles();
-        List excludedFiles = Arrays.asList(dirScanner.getExcludedFiles());
 
-        for (int i = 0; i < includedFiles.length; i++) {
-          String fileName = includedFiles[i];
-          if (!excludedFiles.contains(fileName)) {
+        String[] excludedFiles = dirScanner.getExcludedFiles();
+        // sort excluded files in preparation for binary search
+        Arrays.sort(excludedFiles);
+
+        for (String fileName : dirScanner.getIncludedFiles()) {
+          if (Arrays.binarySearch(excludedFiles, fileName) < 0) {
             File file = new File(baseDir, fileName);
             deployFile(processEngine, file);
           }
         }
       }
-      
-    } finally {
+    }
+    finally {
       currentThread.setContextClassLoader(originalClassLoader);
     }
   }
 
   protected void deployFile(ProcessEngine processEngine, File processFile) {
     RepositoryService repositoryService = processEngine.getRepositoryService();
+    String fileName = processFile.getName();
+
     NewDeployment deployment = repositoryService.createDeployment();
-    deployment.setName(processFile.getName());
+    deployment.setName(fileName);
     deployment.setTimestamp(System.currentTimeMillis());
-    
-    if (processFile.getName().endsWith(".xml")) {
-      log("deploying process file "+processFile.getName());
-      deployment.addResourceFromFile(processFile);
-      
-    } else if (processFile.getName().endsWith("ar")) {
-      log("deploying business archive "+processFile.getName());
-      try {
-        FileInputStream fileInputStream = new FileInputStream(processFile);
-        ZipInputStream zipInputStream = new ZipInputStream(fileInputStream);
-        deployment.addResourcesFromZipInputStream(zipInputStream);
-      } catch (Exception e) {
-        throw new BuildException("couldn't read business archive "+processFile, e);
+
+    try {
+      String contentType = new URL("file", null, processFile.getPath()).openConnection()
+        .getContentType();
+      // XXX getContentType() is supposed to return null if not known,
+      // yet sun jdk returns "content/unknown"
+      if (contentType == null || "content/unknown".equals(contentType)) {
+        // guess content type from file name
+        if (fileName.endsWith(".bar") || fileName.endsWith(".jar") || fileName.endsWith(".zip"))
+          contentType = "application/zip";
+        else if (fileName.endsWith(".xml"))
+          contentType = "application/xml";
+        else
+          throw new BuildException("failed to determine content type of " + processFile);
       }
 
-    } else {
-      throw new BuildException("unsupported extension: "+processFile+"  Only .xml files and .*ar archives are supported");
+      if ("application/xml".equals(contentType)) {
+        log("deploying process file " + fileName);
+        deployment.addResourceFromFile(processFile);
+      }
+      else if ("application/zip".equals(contentType)) {
+        log("deploying business archive " + fileName);
+        ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(processFile));
+        deployment.addResourcesFromZipInputStream(zipInputStream);
+      }
+      else {
+        throw new BuildException("unsupported content type: " + contentType
+          + " - only xml and zip files are allowed");
+      }
     }
-    
+    catch (IOException e) {
+      throw new BuildException("failed to read: " + processFile, e);
+    }
     deployment.deploy();
   }
 
   public void addFileset(FileSet fileSet) {
-    this.fileSets.add(fileSet);
+    fileSets.add(fileSet);
   }
   public void setJbpmCfg(String jbpmCfg) {
     this.jbpmCfg = jbpmCfg;
   }
   public void setFile(File file) {
     this.file = file;
-  }
-  public void setFailOnError(boolean failOnError) {
-    this.failOnError = failOnError;
   }
 }

@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ====================================================================== -->
-<!--                                                                        -->
-<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--  jBPM: Workflow in Java                                                -->
 <!--                                                                        -->
 <!--  Distributable under LGPL license.                                     -->
 <!--  See terms of license at http://www.gnu.org.                           -->
-<!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6237 2010-03-28 00:04:36Z alex.guizar@jboss.com $ -->
+<!-- $Id: pom.xml 6424 2010-06-18 01:27:36Z alex.guizar@jboss.com $ -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" 
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -27,7 +26,6 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
   
-
   <!-- Dependencies -->
   <dependencies>
     <dependency>
@@ -135,30 +133,14 @@
       <artifactId>gwt-console-rpc</artifactId>      
       <scope>provided</scope>
     </dependency>
-
-    <dependency>
-      <groupId>org.jboss.identity.idm</groupId>
-      <artifactId>idm-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.identity.idm</groupId>
-      <artifactId>idm-hibernate</artifactId>
-    </dependency>
     
     <!--  Signavio -->
-
     <dependency>
       <groupId>org.jbpm.jbpm4.dependencies.signavio</groupId>
       <artifactId>jbpmeditor</artifactId>
       <type>war</type>
     </dependency>
 
-    <!-- Please sort by groupid -->
-    <dependency>
-      <groupId>org.apache.ant</groupId>
-      <artifactId>ant</artifactId>
-    </dependency>
-    
     <!-- Database Drivers -->
     <dependency>
       <groupId>mysql</groupId>
@@ -168,22 +150,15 @@
       <groupId>postgresql</groupId>
       <artifactId>postgresql</artifactId>
     </dependency>
-    <dependency>
-      <groupId>net.sourceforge.jtds</groupId>
-      <artifactId>jtds</artifactId>
-    </dependency>
   </dependencies>
 
   <!-- Plugins -->
   <build>
     <finalName>jbpm-${project.version}</finalName>
     <plugins>
-    
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.2-beta-3</version>
         <executions>
-
           <execution>
             <id>create-jbpm-single-jar</id>
             <phase>process-resources</phase>
@@ -215,7 +190,6 @@
               </descriptors>
             </configuration>
           </execution>
-
         </executions>
       </plugin>
 
@@ -249,7 +223,6 @@
           </execution>
         </executions>
       </plugin>
-
     </plugins>
   </build>
 
@@ -259,5 +232,4 @@
       <url>http://www.qa.jboss.com/jdbc-drivers/maven2</url>
     </repository>
   </repositories>
-
 </project>

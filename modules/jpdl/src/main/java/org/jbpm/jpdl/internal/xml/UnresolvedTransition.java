@@ -38,7 +38,7 @@ public class UnresolvedTransition {
   public void resolve(ProcessDefinitionImpl processDefinition, Parse parse) {
     String to = XmlUtil.attribute(transitionElement, "to", parse);
     if (to!=null) {
-      ActivityImpl destination = (ActivityImpl) processDefinition.findActivity(to);
+      ActivityImpl destination = processDefinition.findActivity(to);
       if (destination!=null) {
         destination.addIncomingTransition(transition);
       } else {

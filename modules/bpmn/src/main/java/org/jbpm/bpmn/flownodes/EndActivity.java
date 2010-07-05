@@ -48,13 +48,13 @@ public class EndActivity extends BpmnActivity implements BpmnEvent {
   
   public void execute(ExecutionImpl execution) {
     Activity activity = execution.getActivity();
-    List<Transition> outgoingTransitions = activity.getOutgoingTransitions();
+    List<? extends Transition> outgoingTransitions = activity.getOutgoingTransitions();
     ActivityImpl parentActivity = (ActivityImpl) activity.getParentActivity();
 
-    if ( (parentActivity != null) && ("subProcess".equals(parentActivity.getType())) ) {
+    if (parentActivity != null && "subProcess".equals(parentActivity.getType())) {
       // if the end activity itself has an outgoing transition 
       // (such end activities should be drawn on the border of the group)
-      if ( (outgoingTransitions != null) && (outgoingTransitions.size() == 1) ) {
+      if (outgoingTransitions != null && outgoingTransitions.size() == 1) {
          Transition outgoingTransition = outgoingTransitions.get(0);
          // taking the transition that goes over the group boundaries will 
          // destroy the scope automatically (see atomic operation TakeTransition)

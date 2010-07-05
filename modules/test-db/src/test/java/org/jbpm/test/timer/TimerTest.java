@@ -22,6 +22,8 @@
 package org.jbpm.test.timer;
 
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,9 +41,10 @@ import org.jbpm.test.JbpmTestCase;
  * @author Tom Baeyens
  * @author Ronald Van Kuijk
  * @author Joram Barrez
+ * @author Huisheng Xu
  */
 public class TimerTest extends JbpmTestCase {
-  
+
   private static final String TEST_PROCESS_CUSTOM =
     "<process name='Insurance claim' key='ICL'>" +
     "  <start>" +
@@ -80,14 +83,14 @@ public class TimerTest extends JbpmTestCase {
     Job job = managementService.createJobQuery()
       .processInstanceId(processInstance.getId())
       .uniqueResult();
-    
+
     managementService.executeJob(job.getId());
     assertProcessInstanceEnded(processInstance);
   }
-  
+
   /**
    * Test case for https://jira.jboss.org/jira/browse/JBPM-2517
-   * 
+   *
    * In this issue, it is stated that the calculations for the timer
    * will overflow if larger than 4 weeks due to integer limitations.
    */
@@ -109,20 +112,20 @@ public class TimerTest extends JbpmTestCase {
     );
 
     ProcessInstance processInstance = executionService.startProcessInstanceByKey("theProcess");
-    
+
     Calendar now = Calendar.getInstance();
     int currentYear = now.get(Calendar.YEAR);
 
     Job job = managementService.createJobQuery()
       .processInstanceId(processInstance.getId())
       .uniqueResult();
-    
+
     Calendar jobDate = Calendar.getInstance();
     jobDate.setTime(job.getDuedate());
-    
+
     assertEquals(currentYear + 10, jobDate.get(Calendar.YEAR));
   }
-  
+
   public void testTimerELDate() {
     deployJpdlXmlString(
       "<process name='Insurance claim' key='ICL'>" +
@@ -139,22 +142,22 @@ public class TimerTest extends JbpmTestCase {
       "  <end name='escalate' />" +
       "</process>"
     );
-    
+
     Map<String, Object> proc_vars = new HashMap<String, Object>();
     Calendar cal = Calendar.getInstance();
     cal.add(Calendar.DAY_OF_MONTH, 6);
     proc_vars.put("proc_var", cal.getTime());
     ProcessInstance processInstance = executionService.startProcessInstanceByKey("ICL", proc_vars, "82436");
-    
+
     Job job = managementService.createJobQuery()
       .processInstanceId(processInstance.getId())
       .uniqueResult();
-	    
+
     Calendar jobDate = Calendar.getInstance();
     jobDate.setTime(job.getDuedate());
-	    
+
     assertEquals(cal.get(Calendar.DAY_OF_MONTH), jobDate.get(Calendar.DAY_OF_MONTH));
-	    
+
     managementService.executeJob(job.getId());
     assertProcessInstanceEnded(processInstance);
   }
@@ -175,26 +178,59 @@ public class TimerTest extends JbpmTestCase {
       "  <end name='escalate' />" +
       "</process>"
     );
-	    
+
     Map<String, Object> proc_vars = new HashMap<String, Object>();
     Calendar cal = Calendar.getInstance();
     cal.add(Calendar.DAY_OF_MONTH, 6);
     proc_vars.put("proc_var", cal);
     ProcessInstance processInstance = executionService.startProcessInstanceByKey("ICL", proc_vars, "82436");
-	    
+
     Job job = managementService.createJobQuery()
       .processInstanceId(processInstance.getId())
       .uniqueResult();
-    
+
     Calendar jobDate = Calendar.getInstance();
     jobDate.setTime(job.getDuedate());
-    
+
     assertEquals(cal.get(Calendar.DAY_OF_MONTH), jobDate.get(Calendar.DAY_OF_MONTH));
-    
+
     managementService.executeJob(job.getId());
     assertProcessInstanceEnded(processInstance);
   }
-  
+
+  public void testTimerELString() {
+    deployJpdlXmlString(
+      "<process name='Insurance claim' key='ICL'>" +
+      "  <start>" +
+      "    <transition to='a' />" +
+      "  </start>" +
+      "  <state name='a'>" +
+      "    <transition to='b' />" +
+      "    <transition name='timeout' to='escalate'>" +
+      "      <timer duedate='#{proc_var}' />" +
+      "    </transition>" +
+      "  </state>" +
+      "  <state name='b' />" +
+      "  <end name='escalate' />" +
+      "</process>"
+    );
+
+    Map<String, Object> proc_vars = new HashMap<String, Object>();
+    proc_vars.put("proc_var", "2 minutes");
+
+    ProcessInstance processInstance = executionService.startProcessInstanceByKey("ICL", proc_vars, "82436");
+
+    Job job = managementService.createJobQuery()
+      .processInstanceId(processInstance.getId())
+      .uniqueResult();
+
+    Date jobDate = job.getDuedate();
+    assertTrue("should less than 2 minutes", jobDate.getTime() - new Date().getTime() <= 2 * 60 * 1000);
+
+    managementService.executeJob(job.getId());
+    assertProcessInstanceEnded(processInstance);
+  }
+
   public void testTimerELCalendarAdd() {
     deployJpdlXmlString(
       "<process name='Insurance claim' key='ICL'>" +
@@ -252,7 +288,7 @@ public class TimerTest extends JbpmTestCase {
     Map<String, Object> proc_vars = new HashMap<String, Object>();
     Calendar cal = Calendar.getInstance();
     cal.add(Calendar.DAY_OF_MONTH, 6);
-    
+
     proc_vars.put("proc_var", cal);
     ProcessInstance processInstance = executionService.startProcessInstanceByKey("ICL", proc_vars, "82436");
 
@@ -324,7 +360,7 @@ public class TimerTest extends JbpmTestCase {
       "  <end name='escalate' />" +
       "</process>"
     );
-	    
+
     Map<String, Object> proc_vars = new HashMap<String, Object>();
     proc_vars.put("proc_var", new Long(0));
     try {
@@ -359,7 +395,7 @@ public class TimerTest extends JbpmTestCase {
       fail("Should not happen, exception expected");
     } catch (Exception e) {}
   }
-  
+
   public void testTimerELSubtractPastFail() {
     deployJpdlXmlString(
       "<process name='Insurance claim' key='ICL'>" +
@@ -416,23 +452,114 @@ public class TimerTest extends JbpmTestCase {
   public void testTimerSignalCustom() {
     deployJpdlXmlString(TEST_PROCESS_CUSTOM);
     ProcessInstance processInstance = executionService.startProcessInstanceByKey("ICL");
-    
+
     Job async = managementService.createJobQuery().messages().processInstanceId(processInstance.getId()).uniqueResult();
     managementService.executeJob(async.getId());
-    
+
     int beforeTimer = MyCustomWait.nrOfTimesCalled;
     Job timer = managementService.createJobQuery().timers().processInstanceId(processInstance.getId()).uniqueResult();
     managementService.executeJob(timer.getId());
     int afterTimer = MyCustomWait.nrOfTimesCalled;
     assertEquals(beforeTimer + 1, afterTimer);
-    
+
+    assertProcessInstanceEnded(processInstance);
+  }
+
+  public void testTimerRepeat() {
+    deployJpdlXmlString(
+      "<process name='Insurance claim' key='ICL'>" +
+      "  <start>" +
+      "    <transition to='a' />" +
+      "  </start>" +
+      "  <state name='a'>" +
+      "    <on event='timeout'>" +
+      "     <timer duedate='20 minutes' repeat='10 seconds' />" +
+      "     <event-listener class='" + MyCustomWait.class.getName() + "' />" +
+      "   </on>" +
+      "    <transition to='b' />" +
+      "  </state>" +
+      "  <state name='b' >" +
+      "    <transition to='escalate' />" +
+      "  </state>" +
+      "  <end name='escalate' />" +
+      "</process>"
+    );
+
+    ProcessInstance processInstance = executionService.startProcessInstanceByKey("ICL", "82436");
+
+    Job job = managementService.createJobQuery()
+      .processInstanceId(processInstance.getId())
+      .uniqueResult();
+
+    managementService.executeJob(job.getId());
+
+
+    job = managementService.createJobQuery()
+    .processInstanceId(processInstance.getId())
+    .uniqueResult();
+
+    managementService.executeJob(job.getId());
+
+    processInstance = executionService.findProcessInstanceById(processInstance.getId());
+    String processInstanceId = processInstance.findActiveExecutionIn("a").getId();
+
+    processInstance = executionService.signalExecutionById(processInstanceId);
+
+    processInstance = executionService.signalExecutionById(processInstance.getId());
+
+    assertProcessInstanceEnded(processInstance);
+  }
+
+  public void testTimerELRepeat() {
+    deployJpdlXmlString(
+      "<process name='Insurance claim' key='ICL'>" +
+      "  <start>" +
+      "    <transition to='a' />" +
+      "  </start>" +
+      "  <state name='a'>" +
+      "    <on event='timeout'>" +
+      "     <timer duedate='20 minutes' repeat='#{repeat}' />" +
+      "     <event-listener class='" + MyCustomWait.class.getName() + "' />" +
+      "   </on>" +
+      "    <transition to='b' />" +
+      "  </state>" +
+      "  <state name='b' >" +
+      "    <transition to='escalate' />" +
+      "  </state>" +
+      "  <end name='escalate' />" +
+      "</process>"
+    );
+
+    Map<String, String> variables = Collections.singletonMap("repeat", "20 seconds");
+    ProcessInstance processInstance = executionService.startProcessInstanceByKey("ICL", variables, "82436");
+
+    Job job = managementService.createJobQuery()
+      .processInstanceId(processInstance.getId())
+      .uniqueResult();
+
+    managementService.executeJob(job.getId());
+
+
+    job = managementService.createJobQuery()
+    .processInstanceId(processInstance.getId())
+    .uniqueResult();
+
+    managementService.executeJob(job.getId());
+
+    processInstance = executionService.findProcessInstanceById(processInstance.getId());
+    String processInstanceId = processInstance.findActiveExecutionIn("a").getId();
+
+    processInstance = executionService.signalExecutionById(processInstanceId);
+
+    processInstance = executionService.signalExecutionById(processInstance.getId());
+
     assertProcessInstanceEnded(processInstance);
   }
 
   public static class MyCustomWait implements ExternalActivityBehaviour, EventListener {
 
     private static final long serialVersionUID = 1L;
-    
+
     static int nrOfTimesCalled;
 
     public void execute(ActivityExecution execution) throws Exception {

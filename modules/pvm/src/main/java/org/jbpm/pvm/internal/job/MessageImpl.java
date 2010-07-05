@@ -21,6 +21,7 @@
  */
 package org.jbpm.pvm.internal.job;
 
+import org.jbpm.api.cmd.Environment;
 import org.jbpm.api.job.Message;
 import org.jbpm.pvm.internal.id.DbidGenerator;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
@@ -28,20 +29,28 @@ import org.jbpm.pvm.internal.model.ExecutionImpl;
 /**
  * @author Tom Baeyens
  */
-public abstract class MessageImpl<T> extends JobImpl<T> implements Message {
+public abstract class MessageImpl extends JobImpl implements Message {
 
   private static final long serialVersionUID = 1L;
 
   public MessageImpl() {
   }
-  
+
   public String toString() {
-    return "message["+dbid+"]";
+    return "message[" + dbid + "]";
   }
-  
+
   public MessageImpl(ExecutionImpl execution) {
     this.execution = execution;
     this.processInstance = execution.getProcessInstance();
-    this.dbid = DbidGenerator.getDbidGenerator().getNextId(); 
+    this.dbid = DbidGenerator.getDbidGenerator().getNextId();
   }
+
+  public Boolean execute(Environment environment) throws Exception {
+    executeVoid(environment);
+    // always delete this message
+    return true;
+  }
+
+  protected abstract void executeVoid(Environment environment) throws Exception;
 }

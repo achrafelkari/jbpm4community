@@ -219,7 +219,7 @@ public class BasicTypeWireTest extends WireTestCase {
       "</objects>"
     );
 
-    assertEquals(new Long((long) 12), wireContext.get("lenght of surgery cut"));
+    assertEquals(new Long(12), wireContext.get("lenght of surgery cut"));
   }
 
   public void testLongWithoutValue() {

@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Properties;
 
 import javax.el.ArrayELResolver;
 import javax.el.BeanELResolver;
@@ -59,7 +58,7 @@ class JuelScriptEngine extends AbstractScriptEngine
     implements Compilable
 {
   private ScriptEngineFactory factory;
-  private ExpressionFactory exprFactory;
+  ExpressionFactory exprFactory;
 
   public JuelScriptEngine(ScriptEngineFactory factory)
   {
@@ -162,7 +161,7 @@ class JuelScriptEngine extends AbstractScriptEngine
     return elContext;
   }
 
-  private ELResolver makeResolver()
+  ELResolver makeResolver()
   {
     CompositeELResolver chain = new CompositeELResolver();
 
@@ -231,7 +230,7 @@ class JuelScriptEngine extends AbstractScriptEngine
 
   private static Method getPrintMethod()
   {
-    Class myClass;
+    Class<?> myClass;
     try
     {
       myClass = JuelScriptEngine.class;
@@ -255,7 +254,7 @@ class JuelScriptEngine extends AbstractScriptEngine
 
   private static Method getImportMethod()
   {
-    Class myClass;
+    Class<?> myClass;
     try
     {
       myClass = JuelScriptEngine.class;
@@ -277,11 +276,11 @@ class JuelScriptEngine extends AbstractScriptEngine
 
   public static void importFunctions(ScriptContext ctx, String namespace, Object obj)
   {
-    Class clazz = null;
+    Class<?> clazz = null;
 
-    if (obj instanceof Class)
+    if (obj instanceof Class<?>)
     {
-      clazz = (Class)obj;
+      clazz = (Class<?>)obj;
     } else {
       if (obj instanceof String)
       {

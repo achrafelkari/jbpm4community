@@ -24,21 +24,19 @@ package org.jbpm.pvm.internal.svc;
 import org.jbpm.api.Execution;
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
-import org.jbpm.api.job.Job;
 import org.jbpm.pvm.internal.cmd.CommandService;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.job.MessageImpl;
 
-
 /**
  * @author Tom Baeyens
  */
-public class AsyncCommandMessage extends MessageImpl<Object> {
+public class AsyncCommandMessage extends MessageImpl {
 
   private static final long serialVersionUID = 1L;
 
-  Command<?> command;
-  String userId;
+  private Command<?> command;
+  private String userId;
   
   public AsyncCommandMessage(Command<?> command) {
     this.command = command;
@@ -49,22 +47,23 @@ public class AsyncCommandMessage extends MessageImpl<Object> {
     this.userId = userId;
   }
 
-  public Object execute(Environment environmentInterface) throws Exception {
-    EnvironmentImpl environment = (EnvironmentImpl) environmentInterface;
+  protected void executeVoid(Environment environment) throws Exception {
     execution.setState(Execution.STATE_ACTIVE_ROOT);
 
-    if (userId!=null) {
-      environment.setAuthenticatedUserId(userId);
-    }
-    try {
-      CommandService commandService = environment.get(CommandService.class);
+    CommandService commandService = environment.get(CommandService.class);
+    if (userId == null) {
       commandService.execute(command);
-    } finally {
-      if (userId!=null) {
-        environment.setAuthenticatedUserId(null);
+    }
+    else {
+      EnvironmentImpl environmentImpl = (EnvironmentImpl) environment;
+      environmentImpl.setAuthenticatedUserId(userId);
+      try {
+        commandService.execute(command);
+      }
+      finally {
+        environmentImpl.setAuthenticatedUserId(null);
       }
     }
-    return null;
   }
   
   public String toString() {

@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ====================================================================== -->
-<!--                                                                        -->
-<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--  jBPM: Workflow in Java                                                -->
 <!--                                                                        -->
 <!--  Distributable under LGPL license.                                     -->
 <!--  See terms of license at http://www.gnu.org.                           -->
-<!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6056 2010-01-05 09:13:54Z tom.baeyens@jboss.com $ -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<!-- $Id: pom.xml 6449 2010-07-02 08:05:29Z alex.guizar@jboss.com $ -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <!-- Module Info -->
   <modelVersion>4.0.0</modelVersion>
@@ -29,7 +29,6 @@
 
   <!-- Dependencies -->
   <dependencies>
-
     <dependency>
       <groupId>org.jbpm.jbpm4</groupId>
       <artifactId>jbpm-api</artifactId>
@@ -59,6 +58,7 @@
     <dependency>
       <groupId>org.drools</groupId>
       <artifactId>drools-compiler</artifactId>
+      <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.subethamail</groupId>
@@ -70,7 +70,7 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  
+
   <build>
     <plugins>
       <plugin>
@@ -87,7 +87,7 @@
                 <exclude>jbpm.*</exclude>
                 <exclude>logging.properties</exclude>
                 <exclude>META-INF/*</exclude>
-              </excludes> 
+              </excludes>
             </configuration>
           </execution>
         </executions>
@@ -127,19 +127,19 @@
                       <fileset dir="${user.home}/.jbpm4/jdbc" />
                     </copy>
                     <ant antfile="../distro/src/main/files/install/build.xml" target="create.cfg">
-                      <property name="tx" value="standalone.testsuite.examples" />
+                      <property name="tx" value="standalone.testsuite" />
                       <property name="mail.cfg" value="testsuite" />
                       <property name="database" value="${database}" />
                       <property name="cfg.dest.dir" value="target/test-classes" />
                       <property name="install.src.dir" value="../distro/src/main/files/install/src" />
                       <property name="jdbc.properties.dir" value="target/jdbc.properties" />
                       <property name="logging" value="none" /> <!-- then the original logging.properties in the resources of this project will be used -->
-                    </ant> 
+                    </ant>
                   </tasks>
                 </configuration>
               </execution>
             </executions>
-          </plugin>         
+          </plugin>
         </plugins>
       </build>
     </profile>
@@ -170,7 +170,7 @@
                       <property name="install.src.dir" value="../distro/src/main/files/install/src" />
                       <property name="jdbc.properties.dir" value="../distro/src/main/files/install/jdbc" />
                       <property name="logging" value="none" />
-                    </ant> 
+                    </ant>
                   </tasks>
                 </configuration>
               </execution>
@@ -179,7 +179,5 @@
         </plugins>
       </build>
     </profile>
-
   </profiles>
-
 </project>

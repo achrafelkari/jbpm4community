@@ -26,16 +26,19 @@ import java.util.Collection;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.jboss.identity.idm.api.Attribute;
-import org.jboss.identity.idm.api.AttributesManager;
-import org.jboss.identity.idm.api.IdentitySearchCriteria;
-import org.jboss.identity.idm.api.IdentitySession;
-import org.jboss.identity.idm.api.RoleType;
-import org.jboss.identity.idm.common.exception.FeatureNotSupportedException;
-import org.jboss.identity.idm.common.exception.IdentityException;
-import org.jboss.identity.idm.common.p3p.P3PConstants;
-import org.jboss.identity.idm.impl.api.SimpleAttribute;
-import org.jboss.identity.idm.impl.api.model.GroupId;
+import org.picketlink.idm.api.Attribute;
+import org.picketlink.idm.api.AttributesManager;
+import org.picketlink.idm.api.IdentitySearchCriteria;
+import org.picketlink.idm.api.IdentitySession;
+import org.picketlink.idm.api.RoleManager;
+import org.picketlink.idm.api.RoleType;
+import org.picketlink.idm.common.exception.FeatureNotSupportedException;
+import org.picketlink.idm.common.exception.IdentityException;
+import org.picketlink.idm.common.p3p.P3PConstants;
+import org.picketlink.idm.impl.api.SimpleAttribute;
+import org.picketlink.idm.impl.api.model.GroupKey;
+import org.picketlink.idm.impl.api.model.SimpleGroup;
+
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.identity.Group;
 import org.jbpm.api.identity.User;
@@ -44,354 +47,367 @@ import org.jbpm.api.identity.User;
  * @author Tom Baeyens
  * @author Jeff Yu
  */
-public class JBossIdmIdentitySessionImpl implements org.jbpm.pvm.internal.identity.spi.IdentitySession {
+public class JBossIdmIdentitySessionImpl implements
+  org.jbpm.pvm.internal.identity.spi.IdentitySession {
 
   protected IdentitySession identitySession;
 
-  public String DEFAULT_JBPM_MEMBER_ROLE = "default_jBPM_member_role";
-  
-  public String DEFAUL_JBPM_GROUP_TYPE = "default_jBPM_Group_Type";
-  
+  private static final String DEFAULT_JBPM_MEMBER_ROLE = "default_jBPM_member_role";
+
+  private static final String DEFAULT_JBPM_GROUP_TYPE = "default_jBPM_Group_Type";
+
   public JBossIdmIdentitySessionImpl(IdentitySession identitySession) {
     this.identitySession = identitySession;
   }
 
-  public String createUser(String userName, String givenName, String familyName, String businessEmail) {
+  public String createUser(String userName, String givenName, String familyName,
+    String businessEmail) {
     try {
-    	
-      org.jboss.identity.idm.api.User idUser= identitySession.getPersistenceManager().createUser(userName);
-      
+      org.picketlink.idm.api.User idUser = identitySession.getPersistenceManager()
+        .createUser(userName);
+
       List<Attribute> attrs = new ArrayList<Attribute>();
       if (givenName != null) {
-    	  attrs.add(new SimpleAttribute(P3PConstants.INFO_USER_NAME_GIVEN, givenName));
+        attrs.add(new SimpleAttribute(P3PConstants.INFO_USER_NAME_GIVEN, givenName));
       }
       if (familyName != null) {
-    	  attrs.add(new SimpleAttribute(P3PConstants.INFO_USER_NAME_FAMILY, familyName));
+        attrs.add(new SimpleAttribute(P3PConstants.INFO_USER_NAME_FAMILY, familyName));
       }
       if (businessEmail != null) {
-    	  attrs.add(new SimpleAttribute(P3PConstants.INFO_USER_BUSINESS_INFO_ONLINE_EMAIL, businessEmail));
+        attrs.add(new SimpleAttribute(P3PConstants.INFO_USER_BUSINESS_INFO_ONLINE_EMAIL,
+          businessEmail));
       }
-            
-      identitySession.getAttributesManager().addAttributes(idUser, attrs.toArray(new Attribute[attrs.size()]));
-      return idUser.getId();
-      
-    } catch (IdentityException e) {
-      throw new JbpmException("couldn't create user "+userName, e);
-    }
 
+      identitySession.getAttributesManager()
+        .addAttributes(idUser, attrs.toArray(new Attribute[attrs.size()]));
+      return idUser.getId();
+    }
+    catch (IdentityException e) {
+      throw new JbpmException("could not create user: " + userName, e);
+    }
   }
-  
 
   public List<User> findUsers() {
     try {
-      Collection<org.jboss.identity.idm.api.User> idUsers = 
-    	  identitySession.getPersistenceManager().findUser((IdentitySearchCriteria)null);    
-      
+      Collection<org.picketlink.idm.api.User> idUsers = identitySession.getPersistenceManager()
+        .findUser((IdentitySearchCriteria) null);
+
       List<User> users = new ArrayList<User>();
-      for (org.jboss.identity.idm.api.User idUser : idUsers) {
+      for (org.picketlink.idm.api.User idUser : idUsers) {
         users.add(getUserInfo(idUser));
       }
-      
       return users;
-      
-    } catch (IdentityException e) {
-      throw new JbpmException("couldn't get users from identity component", e);
+    }
+    catch (IdentityException e) {
+      throw new JbpmException("could not find users", e);
     }
   }
 
   public User findUserById(String userId) {
-	  try {
-		org.jboss.identity.idm.api.User idUser = identitySession.getPersistenceManager().findUser(userId);
-		if (idUser != null) {
-	    	return getUserInfo(idUser);
-		}
-		return null;
-	} catch (IdentityException e) {
-		throw new JbpmException("couldn't get user from id of " + userId, e);
-	}
+    try {
+      org.picketlink.idm.api.User idUser = identitySession.getPersistenceManager()
+        .findUser(userId);
+      if (idUser != null) {
+        return getUserInfo(idUser);
+      }
+      return null;
+    }
+    catch (IdentityException e) {
+      throw new JbpmException("could not find user by id: " + userId, e);
+    }
   }
 
-private User getUserInfo(org.jboss.identity.idm.api.User idUser) throws IdentityException {
-	String name = idUser.getId();
-	String givenName = getAttributeString(idUser, P3PConstants.INFO_USER_NAME_GIVEN);
-	String familyName = getAttributeString(idUser, P3PConstants.INFO_USER_NAME_FAMILY);			
-	String businessEmail = getAttributeString(idUser, P3PConstants.INFO_USER_BUSINESS_INFO_ONLINE_EMAIL);
-	
-	UserImpl user = new UserImpl(name, givenName, familyName);
-	user.setBusinessEmail(businessEmail);
-	return user;
-}
+  private User getUserInfo(org.picketlink.idm.api.User idUser) throws IdentityException {
+    String name = idUser.getId();
+    String givenName = getAttributeString(idUser, P3PConstants.INFO_USER_NAME_GIVEN);
+    String familyName = getAttributeString(idUser, P3PConstants.INFO_USER_NAME_FAMILY);
+    String businessEmail = getAttributeString(idUser, P3PConstants.INFO_USER_BUSINESS_INFO_ONLINE_EMAIL);
+
+    UserImpl user = new UserImpl(name, givenName, familyName);
+    user.setBusinessEmail(businessEmail);
+    return user;
+  }
 
   public List<User> findUsersById(String... userIds) {
     List<User> users = new ArrayList<User>();
-	for (String userId : userIds){
-		User user = findUserById(userId);
-		if (user != null) {
-			users.add(user);
-		}
-	}
-	  
+    for (String userId : userIds) {
+      User user = findUserById(userId);
+      if (user != null)
+        users.add(user);
+    }
     return users;
   }
 
-  public List<User> findUsersByGroup(String groupId) {
-	try {
-		List<User> users = new ArrayList<User>();
-		org.jboss.identity.idm.api.Group idGroup = findIdmGroupByIdmGroupId(convertjbpmGroupId2IdmGroupId(groupId));
-		if (idGroup == null){
-			return users;
-		}
-		Collection<org.jboss.identity.idm.api.User> idusers = 
-				identitySession.getRoleManager().findUsersWithRelatedRole(idGroup, null);
-		for (org.jboss.identity.idm.api.User iduser : idusers) {
-			users.add(findUserById(iduser.getId()));
-		}
-		
-		return users;
-	} catch (IdentityException e) {
-		throw new JbpmException("couldn't find users by groupid: " + groupId, e);
-	} catch (FeatureNotSupportedException e) {
-		throw new JbpmException("couldn't find users by groupid: " + groupId, e);
-	}
-	  
+  public List<User> findUsersByGroup(String groupKey) {
+    try {
+      List<User> users = new ArrayList<User>();
+      org.picketlink.idm.api.Group idGroup = findIdmGroupByKey(convertjbpmGroupId2IdmGroupKey(groupKey));
+      if (idGroup == null)
+        return users;
+
+      Collection<org.picketlink.idm.api.User> idusers = identitySession.getRoleManager()
+        .findUsersWithRelatedRole(idGroup, null);
+      for (org.picketlink.idm.api.User iduser : idusers) {
+        users.add(findUserById(iduser.getId()));
+      }
+      return users;
+    }
+    catch (IdentityException e) {
+      throw new JbpmException("could not find users by group: " + groupKey, e);
+    }
+    catch (FeatureNotSupportedException e) {
+      throw new JbpmException("could not find users by group: " + groupKey, e);
+    }
   }
 
   public void deleteUser(String userName) {
-    try {    	
-      identitySession.getPersistenceManager().removeUser(userName, true);    
-    } catch (IdentityException e) {
-      throw new JbpmException("couldn't delete user ["+userName + "]", e);
+    try {
+      identitySession.getPersistenceManager().removeUser(userName, true);
+    }
+    catch (IdentityException e) {
+      throw new JbpmException("could not delete user: " + userName, e);
     }
   }
 
-  public String createGroup(String groupName, String groupType, String parentGroupId) {
-    
+  public String createGroup(String groupName, String groupType, String parentGroupKey) {
     try {
-      String gtype = groupType;
-      if (gtype == null) {
-    	  gtype = DEFAUL_JBPM_GROUP_TYPE;
-      }
-      org.jboss.identity.idm.api.Group group = identitySession.getPersistenceManager().createGroup(groupName, gtype);
-      String groupId = group.getId();
-      
-      if (parentGroupId!=null) {
-        org.jboss.identity.idm.api.Group parentGroup = findIdmGroupByIdmGroupId(convertjbpmGroupId2IdmGroupId(parentGroupId));
-        if (parentGroup==null) {
-          throw new JbpmException("parent group "+parentGroupId+" doesn't exist");
+      if (groupType == null)
+        groupType = DEFAULT_JBPM_GROUP_TYPE;
+
+      SimpleGroup group = (SimpleGroup) identitySession.getPersistenceManager()
+        .createGroup(groupName, groupType);
+      String groupKey = group.getKey();
+
+      if (parentGroupKey != null) {
+        org.picketlink.idm.api.Group parentGroup = findIdmGroupByKey(convertjbpmGroupId2IdmGroupKey(parentGroupKey));
+        if (parentGroup == null) {
+          throw new JbpmException("parent group does not exist: " + parentGroupKey);
         }
         identitySession.getRelationshipManager().associateGroups(parentGroup, group);
       }
-     return convertIdmGroupId2jbpmGroupId(groupId);
-     
-    } catch (IdentityException e) {
-      throw new JbpmException("couldn't create group "+groupName, e);
+      return convertIdmGroupKey2jbpmGroupId(groupKey);
     }
-    
+    catch (IdentityException e) {
+      throw new JbpmException("could not create group: " + groupName, e);
+    }
   }
-  
+
   public Group findGroupById(String groupId) {
-	try {
-		org.jboss.identity.idm.api.Group idGroup = findIdmGroupByIdmGroupId(convertjbpmGroupId2IdmGroupId(groupId));
-		if (idGroup == null) {
-			return null;
-		}
-		GroupImpl group = new GroupImpl();
-		group.setId(convertIdmGroupId2jbpmGroupId(idGroup.getId()));
-		group.setType(idGroup.getGroupType());
-		group.setName(idGroup.getName());
-		
-		Collection<org.jboss.identity.idm.api.Group> idParentGroups = 
-			identitySession.getRelationshipManager().findAssociatedGroups(idGroup, null, false, false);
-		
-		if (idParentGroups.size() > 0) {
-			org.jboss.identity.idm.api.Group idParent = idParentGroups.iterator().next();
-			GroupImpl parentGroup = new GroupImpl();
-			parentGroup.setId(convertIdmGroupId2jbpmGroupId(idParent.getId()));
-			parentGroup.setType(idParent.getGroupType());
-			parentGroup.setName(idParent.getName());
-			
-			group.setParent(parentGroup);
-		}
-		
-		return group;
-		
-	} catch (IdentityException e) {
-		throw new JbpmException("couldn't find group by id [" + groupId + "]", e);
-	}  
+    try {
+      SimpleGroup idGroup = (SimpleGroup) findIdmGroupByKey(convertjbpmGroupId2IdmGroupKey(groupId));
+      if (idGroup == null) {
+        return null;
+      }
+      GroupImpl group = new GroupImpl();
+      group.setId(convertIdmGroupKey2jbpmGroupId(idGroup.getKey()));
+      group.setType(idGroup.getGroupType());
+      group.setName(idGroup.getName());
+
+      Collection<org.picketlink.idm.api.Group> idParentGroups = identitySession.getRelationshipManager()
+        .findAssociatedGroups(idGroup, null, false, false);
+
+      if (idParentGroups.size() > 0) {
+        SimpleGroup idParent = (SimpleGroup) idParentGroups.iterator().next();
+        GroupImpl parentGroup = new GroupImpl();
+        parentGroup.setId(convertIdmGroupKey2jbpmGroupId(idParent.getKey()));
+        parentGroup.setType(idParent.getGroupType());
+        parentGroup.setName(idParent.getName());
+
+        group.setParent(parentGroup);
+      }
+      return group;
+    }
+    catch (IdentityException e) {
+      throw new JbpmException("could not find group by id: " + groupId, e);
+    }
   }
 
   public List<Group> findGroupsByGroupType(String groupType) {
     try {
-     Collection<org.jboss.identity.idm.api.Group> idGroups = identitySession.getPersistenceManager().
-     															findGroup(groupType);	
-    
+      Collection<org.picketlink.idm.api.Group> idGroups = identitySession.getPersistenceManager()
+        .findGroup(groupType);
+
       List<Group> groups = new ArrayList<Group>();
-      for (org.jboss.identity.idm.api.Group idGroup: idGroups) {
-        groups.add(findGroupById(convertIdmGroupId2jbpmGroupId(idGroup.getId())));
+      for (org.picketlink.idm.api.Group idGroup : idGroups) {
+        SimpleGroup simpleGroup = (SimpleGroup) idGroup;
+        groups.add(findGroupById(convertIdmGroupKey2jbpmGroupId(simpleGroup.getKey())));
       }
-      
       return groups;
-      
-    } catch (IdentityException e) {
-      throw new JbpmException("couldn't get groups from identity component, groupType [" + groupType + "]", e);
+    }
+    catch (IdentityException e) {
+      throw new JbpmException("could not find groups by type: " + groupType, e);
     }
   }
-  
+
   public List<Group> findGroupsByUser(String userId) {
-	  
     try {
-		Collection<org.jboss.identity.idm.api.Group> idGroups = identitySession.getRoleManager()
-																	.findGroupsWithRelatedRole(userId, null);
-		
-		List<Group> groups = new ArrayList<Group>();
-		for (org.jboss.identity.idm.api.Group idGroup : idGroups) {
-			groups.add(findGroupById(convertIdmGroupId2jbpmGroupId(idGroup.getId())));
-		}
-		return groups;
-	} catch (Exception e) {
-		throw new JbpmException("Couldn't get Groups by userId [" + userId + "]", e);
-		
-	}
+      Collection<org.picketlink.idm.api.Group> idGroups = identitySession.getRoleManager()
+        .findGroupsWithRelatedRole(userId, null);
+
+      List<Group> groups = new ArrayList<Group>();
+      for (org.picketlink.idm.api.Group idGroup : idGroups) {
+        groups.add(findGroupById(convertIdmGroupKey2jbpmGroupId(idGroup.getKey())));
+      }
+      return groups;
+    }
+    catch (IdentityException e) {
+      throw new JbpmException("could not find groups by user: " + userId, e);
+    }
+    catch (FeatureNotSupportedException e) {
+      throw new JbpmException("could not find groups by user: " + userId, e);
+    }
   }
 
   public List<Group> findGroupsByUserAndGroupType(String userName, String groupType) {
     try {
-      org.jboss.identity.idm.api.User idUser = identitySession.getPersistenceManager().findUser(userName);
-      
-      Collection<org.jboss.identity.idm.api.Group> idGroups = identitySession.getRoleManager()
-      														.findGroupsWithRelatedRole(idUser, groupType, null);
+      org.picketlink.idm.api.User idUser = identitySession.getPersistenceManager()
+        .findUser(userName);
+
+      Collection<org.picketlink.idm.api.Group> idGroups = identitySession.getRoleManager()
+        .findGroupsWithRelatedRole(idUser, groupType, null);
       List<Group> groups = new ArrayList<Group>();
-      
-      for (org.jboss.identity.idm.api.Group idGroup : idGroups) {
-    	  groups.add(findGroupById(convertIdmGroupId2jbpmGroupId(idGroup.getId())));
+
+      for (org.picketlink.idm.api.Group idGroup : idGroups) {
+        SimpleGroup simpleGroup = (SimpleGroup) idGroup;
+        groups.add(findGroupById(convertIdmGroupKey2jbpmGroupId(simpleGroup.getKey())));
       }
       return groups;
-    } catch (Exception e) {
-      throw new JbpmException("couldn't get groups for user "+userName+" and groupType "+groupType, e);
+    }
+    catch (IdentityException e) {
+      throw new JbpmException("could not find groups by user '" + userName + "' and type: "
+        + groupType, e);
+    }
+    catch (FeatureNotSupportedException e) {
+      throw new JbpmException("could not find groups by user '" + userName + "' and type: "
+        + groupType, e);
     }
   }
 
   public void deleteGroup(String groupId) {
     try {
-      org.jboss.identity.idm.api.Group group = findIdmGroupByIdmGroupId(convertjbpmGroupId2IdmGroupId(groupId));
-
-      if (group==null) {
+      org.picketlink.idm.api.Group group = findIdmGroupByKey(convertjbpmGroupId2IdmGroupKey(groupId));
+      if (group == null)
         return;
-      }
 
       identitySession.getPersistenceManager().removeGroup(group, true);
-    
-    } catch (IdentityException e) {
-      throw new JbpmException("couldn't delete group "+groupId, e);
+    }
+    catch (IdentityException e) {
+      throw new JbpmException("could not delete group " + groupId, e);
     }
   }
 
   public void createMembership(String userId, String groupId, String role) {
     try {
-      org.jboss.identity.idm.api.Group group = findIdmGroupByIdmGroupId(convertjbpmGroupId2IdmGroupId(groupId));
-      if (group==null) {
-        throw new JbpmException("group "+groupId+" doesn't exist");
+      org.picketlink.idm.api.Group group = findIdmGroupByKey(convertjbpmGroupId2IdmGroupKey(groupId));
+      if (group == null) {
+        throw new JbpmException("group not found: " + groupId);
       }
-  
-      org.jboss.identity.idm.api.User idUser = identitySession.getPersistenceManager().findUser(userId);
-      if (idUser==null) {
-        throw new JbpmException("user "+userId+" doesn't exist");
+
+      org.picketlink.idm.api.User idUser = identitySession.getPersistenceManager()
+        .findUser(userId);
+      if (idUser == null) {
+        throw new JbpmException("user not found: " + userId);
       }
-      
-      if (role == null) {
-    	  role = DEFAULT_JBPM_MEMBER_ROLE;
+
+      if (role == null)
+        role = DEFAULT_JBPM_MEMBER_ROLE;
+
+      RoleManager roleManager = identitySession.getRoleManager();
+      RoleType roleType = roleManager.getRoleType(role);
+      if (roleType == null) {
+        roleType = roleManager.createRoleType(role);
       }
-	  RoleType roleType = identitySession.getRoleManager().getRoleType(role);
-	  System.out.println("The Role Type is: " + roleType);
-	  if (roleType == null) {
-	    roleType = identitySession.getRoleManager().createRoleType(role);
-	  }
-      identitySession.getRoleManager().createRole(roleType, idUser, group);
-      
-    } catch (Exception e) {
-      throw new JbpmException("couldn't create membership "+userId+", "+groupId+", "+role, e);
+      roleManager.createRole(roleType, idUser, group);
+    }
+    catch (IdentityException e) {
+      throw new JbpmException("could not create membership for user '" + userId + "', group '"
+        + groupId + "' and role: " + role, e);
+    }
+    catch (FeatureNotSupportedException e) {
+      throw new JbpmException("could not create membership for user '" + userId + "', group '"
+        + groupId + "' and role: " + role, e);
     }
   }
-  
+
   public void deleteMembership(String userId, String groupId, String role) {
-	try {
-		RoleType rtype = identitySession.getRoleManager().getRoleType(role);
-		identitySession.getRoleManager().removeRole(rtype.getName(), userId, convertjbpmGroupId2IdmGroupId(groupId));
-	} catch (Exception e) {
-		throw new JbpmException("couldn't delete the membership [" + userId + "," + groupId + "," + role + "]", e);
-	}  
-	
+    try {
+      RoleManager roleManager = identitySession.getRoleManager();
+      RoleType rtype = roleManager.getRoleType(role);
+      roleManager.removeRole(rtype.getName(), userId, convertjbpmGroupId2IdmGroupKey(groupId));
+    }
+    catch (IdentityException e) {
+      throw new JbpmException("could not delete membership for user '" + userId + "', group '"
+        + groupId + "' and role: " + role, e);
+    }
+    catch (FeatureNotSupportedException e) {
+      throw new JbpmException("could not delete membership for user '" + userId + "', group '"
+        + groupId + "' and role: " + role, e);
+    }
   }
 
-  protected org.jboss.identity.idm.api.Group findIdmGroupByIdmGroupId(String groupId) {
-	try {
-		return identitySession.getPersistenceManager().findGroupById(groupId);
-	} catch (IdentityException e) {
-		throw new JbpmException("couldn't find the group by groupId: " + groupId, e);
-	}  
+  protected org.picketlink.idm.api.Group findIdmGroupByKey(String groupKey) {
+    try {
+      return identitySession.getPersistenceManager().findGroupByKey(groupKey);
+    }
+    catch (IdentityException e) {
+      throw new JbpmException("could not find group by key: " + groupKey, e);
+    }
   }
 
-  protected String getAttributeString(org.jboss.identity.idm.api.User idUser, String attributeName) throws IdentityException {
+  protected String getAttributeString(org.picketlink.idm.api.User idUser, String attributeName)
+    throws IdentityException {
     return getAttributeString(idUser, null, attributeName);
   }
 
-  protected String getAttributeString(org.jboss.identity.idm.api.Group idGroup, String attributeName) throws IdentityException {
+  protected String getAttributeString(org.picketlink.idm.api.Group idGroup, String attributeName)
+    throws IdentityException {
     return getAttributeString(null, idGroup, attributeName);
   }
 
-  protected String getAttributeString(org.jboss.identity.idm.api.User idUser, org.jboss.identity.idm.api.Group idGroup, String attributeName) throws IdentityException {
+  protected String getAttributeString(org.picketlink.idm.api.User idUser,
+    org.picketlink.idm.api.Group idGroup, String attributeName) throws IdentityException {
     AttributesManager attributesManager = identitySession.getAttributesManager();
-    Attribute attribute = null;
-    if (idUser !=null) {
+    Attribute attribute;
+    if (idUser != null) {
       attribute = attributesManager.getAttribute(idUser, attributeName);
-    } else {
+    }
+    else {
       attribute = attributesManager.getAttribute(idGroup, attributeName);
     }
-    if (attribute!=null) {
-      return (String) attribute.getValue();
+    return attribute != null ? (String) attribute.getValue() : null;
+  }
+
+  /**
+   * Return jBPM groupId, which is: GroupType.GroupName, from IDM GroupKey
+   */
+  private String convertIdmGroupKey2jbpmGroupId(String groupKey) {
+    GroupKey theGroupKey = new GroupKey(groupKey);
+    String type = theGroupKey.getType();
+    if (type == null || DEFAULT_JBPM_GROUP_TYPE.equals(type)) {
+      return theGroupKey.getName();
     }
-    return null;
+    return type + "." + theGroupKey.getName();
   }
-  
-  
+
   /**
-   * Return jBPM groupId, which is: GroupType.GroupName, from IDM GroupId
-   * 
-   * @param groupId
-   * @return
+   * Convert the jBPM GroupId to IDM GroupKey.
    */
-  private String convertIdmGroupId2jbpmGroupId(String groupId) {
-	GroupId theGroupId = new GroupId(groupId);
-	if (this.DEFAUL_JBPM_GROUP_TYPE.equals(theGroupId.getType()) || theGroupId.getType() == null) {
-		return theGroupId.getName();
-	}
-	return theGroupId.getType() + "." + theGroupId.getName();
+  private String convertjbpmGroupId2IdmGroupKey(String jbpmGroupId) {
+    StringTokenizer st = new StringTokenizer(jbpmGroupId, ".");
+    String type = DEFAULT_JBPM_GROUP_TYPE;
+    if (st.countTokens() > 1) {
+      type = st.nextToken();
+    }
+
+    String name = st.nextToken();
+    return new GroupKey(name, type).getKey();
   }
-  
-  /**
-   * Convert the jBPM GroupId to IDM GroupId.
-   * 
-   * @param jbpmGroupId
-   * @return
-   */
-  private String convertjbpmGroupId2IdmGroupId(String jbpmGroupId) {
-	  StringTokenizer st = new StringTokenizer(jbpmGroupId, ".");
-	  String type = DEFAUL_JBPM_GROUP_TYPE;
-	  if (st.countTokens() > 1) {
-		  type = st.nextToken();
-	  }
-	  String name = st.nextToken();
-	  
-	  return new GroupId(name, type).getId();
-  }
-  
+
   public IdentitySession getIdentitySession() {
     return identitySession;
   }
-  
+
   public void setIdentitySession(IdentitySession identitySession) {
     this.identitySession = identitySession;
   }
-
-
 }

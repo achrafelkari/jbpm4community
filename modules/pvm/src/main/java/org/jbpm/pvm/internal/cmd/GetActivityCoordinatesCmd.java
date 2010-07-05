@@ -47,7 +47,7 @@ public class GetActivityCoordinatesCmd implements Command<ActivityCoordinates> {
 
   public ActivityCoordinates execute(Environment environment) throws Exception {
     RepositorySession repositorySession = environment.get(RepositorySession.class);
-    ProcessDefinitionImpl processDefinition = (ProcessDefinitionImpl) repositorySession.findProcessDefinitionById(processDefinitionId);
+    ProcessDefinitionImpl processDefinition = repositorySession.findProcessDefinitionById(processDefinitionId);
     if (processDefinition==null) {
       throw new JbpmException("process definition "+processDefinitionId+" doesn't exist");
     }

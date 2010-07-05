@@ -21,12 +21,10 @@
  */
 package org.jbpm.pvm.internal.task;
 
-import java.io.Serializable;
-
 /**
  * is a process role (aka participatingUser).
  */
-public class SwimlaneDefinitionImpl extends AssignableDefinitionImpl implements Serializable {
+public class SwimlaneDefinitionImpl extends AssignableDefinitionImpl {
 
   private static final long serialVersionUID = 1L;
 

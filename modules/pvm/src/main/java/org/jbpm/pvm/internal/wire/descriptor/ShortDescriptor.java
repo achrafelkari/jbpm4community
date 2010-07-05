@@ -32,7 +32,7 @@ import org.jbpm.pvm.internal.wire.WireContext;
  *
  * @see Descriptor
  */
-public class ShortDescriptor extends AbstractDescriptor implements Descriptor {
+public class ShortDescriptor extends AbstractDescriptor {
 
   private static final long serialVersionUID = 1L;
 

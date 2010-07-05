@@ -112,7 +112,7 @@ public class BshScriptEngine extends AbstractScriptEngine
 		if ( ns == null )
 		{
 			// Create a global namespace for the interpreter
-			Map engineView = new ScriptContextEngineView( scriptContext );
+			Map<String, Object> engineView = new ScriptContextEngineView( scriptContext );
 			ns = new ExternalNameSpace(
 				null/*parent*/, "javax_script_context", engineView );
 
@@ -263,7 +263,7 @@ public class BshScriptEngine extends AbstractScriptEngine
 	public <T> T getInterface( Class<T> clasz )
 	{
 		try {
-			return (T) getGlobal().getInterface( clasz );
+			return clasz.cast(getGlobal().getInterface( clasz ));
 		} catch ( UtilEvalError utilEvalError ) {
 			utilEvalError.printStackTrace();
 			return null;
@@ -296,7 +296,7 @@ public class BshScriptEngine extends AbstractScriptEngine
 
 		try {
 			bsh.This bshThis = (bsh.This)thiz;
-			return (T) bshThis.getInterface( clasz );
+			return clasz.cast(bshThis.getInterface( clasz ));
 		} catch ( UtilEvalError utilEvalError ) {
 			utilEvalError.printStackTrace( System.err );
 			return null;

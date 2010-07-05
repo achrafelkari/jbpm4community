@@ -41,8 +41,7 @@ public class ActivityStart extends HistoryEvent {
 
     long processInstanceDbid = execution.getProcessInstance().getDbid();
 
-    HistoryProcessInstance historyProcessInstanceImpl = (HistoryProcessInstance) 
-        dbSession.get(HistoryProcessInstanceImpl.class, processInstanceDbid);
+    HistoryProcessInstance historyProcessInstanceImpl = dbSession.get(HistoryProcessInstanceImpl.class, processInstanceDbid);
     
     HistoryActivityInstanceImpl historyActivityInstance = 
         createHistoryActivityInstance(historyProcessInstanceImpl);

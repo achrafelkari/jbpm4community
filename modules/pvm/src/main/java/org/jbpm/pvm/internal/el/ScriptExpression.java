@@ -26,15 +26,18 @@ import org.jbpm.pvm.internal.script.ScriptManager;
 
 
 /**
+ * This is script expression, it will use ScriptManager to evaluate the expr by specified language.
+ *
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public class ScriptExpression extends Expression {
 
   private static final long serialVersionUID = 1L;
-  
+
   protected String expressionText;
   protected String language;
-  
+
   public ScriptExpression(String expressionText, String language) {
     this.expressionText = expressionText;
     this.language = language;
@@ -43,5 +46,13 @@ public class ScriptExpression extends Expression {
   public Object evaluateInScope(ScopeInstanceImpl scopeInstance) {
     ScriptManager scriptManager = ScriptManager.getScriptManager();
     return scriptManager.evaluateExpression(expressionText, language);
+  }
+
+  public String getExpressionString() {
+    return expressionText;
+  }
+
+  public boolean isLiteralText() {
+    return false;
   }
 }

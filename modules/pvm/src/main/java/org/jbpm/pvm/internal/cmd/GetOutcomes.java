@@ -21,6 +21,7 @@
  */
 package org.jbpm.pvm.internal.cmd;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,12 +30,10 @@ import org.jbpm.api.JbpmException;
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.api.model.Transition;
-import org.jbpm.api.task.Task;
 import org.jbpm.pvm.internal.model.ActivityImpl;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
 import org.jbpm.pvm.internal.session.DbSession;
 import org.jbpm.pvm.internal.task.TaskImpl;
-
 
 /**
  * @author Tom Baeyens
@@ -58,19 +57,24 @@ public class GetOutcomes implements Command<Set<String>> {
     if (task==null) {
       throw new JbpmException("task "+taskId+" doesn't exist");
     }
-    
-    Set<String> outcomes = new HashSet<String>();
-    
-    ExecutionImpl execution = (task!=null ? task.getExecution() : null);
-    ActivityImpl activity = (execution!=null ? execution.getActivity() : null);
-    List<Transition> outgoingTransitions = (activity!=null ? activity.getOutgoingTransitions() : null);
 
-    if (outgoingTransitions!=null) {
-      for (Transition transition: outgoingTransitions) {
-        outcomes.add(transition.getName());
+    ExecutionImpl execution = task.getExecution();
+    if (execution != null) {
+      ActivityImpl activity = execution.getActivity();
+
+      if (activity != null) {
+        List<? extends Transition> outgoingTransitions = activity.getOutgoingTransitions();
+
+        if (outgoingTransitions!=null && !outgoingTransitions.isEmpty()) {
+          Set<String> outcomes = new HashSet<String>();
+          for (Transition transition: outgoingTransitions) {
+            outcomes.add(transition.getName());
+          }
+          return outcomes;
+        } 
       }
-    } 
-    
-    return outcomes;
+    }
+
+    return Collections.emptySet();
   }
 }

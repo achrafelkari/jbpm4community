@@ -23,6 +23,7 @@ package org.jbpm.pvm.internal.svc;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
@@ -30,32 +31,38 @@ import org.jbpm.api.JbpmException;
 import org.jbpm.api.cmd.Command;
 import org.jbpm.internal.log.Log;
 
-
 /**
  * @author Tom Baeyens
  */
 public class SerializeInterceptor extends Interceptor {
-  
+
   private static final Log log = Log.getLog(SerializeInterceptor.class.getName());
 
+  @SuppressWarnings("unchecked")
   public <T> T execute(Command<T> command) {
-    log.info("serializing command "+command);
+    log.info("serializing command " + command);
     Command<T> serializedCommand = (Command<T>) serialize(command);
     T returnValue = next.execute(serializedCommand);
-    T serializedReturnValue = (T) serialize(returnValue);
-    return serializedReturnValue;
+    return (T) serialize(returnValue);
   }
 
-  public Object serialize(Object o) {
+  private static Object serialize(Object o) {
     try {
       ByteArrayOutputStream baos = new ByteArrayOutputStream();
       ObjectOutputStream oos = new ObjectOutputStream(baos);
       oos.writeObject(o);
+      oos.close();
+
       ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
       ObjectInputStream ois = new ObjectInputStream(bais);
       return ois.readObject();
-    } catch (Exception e) {
+    }
+    catch (IOException e) {
       throw new JbpmException("serialization exception", e);
+    }
+    catch (ClassNotFoundException e) {
+      // should not happen, class is already loaded
+      throw new AssertionError(e);
     }
   }
 }

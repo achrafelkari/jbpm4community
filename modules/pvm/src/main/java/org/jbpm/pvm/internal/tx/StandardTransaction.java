@@ -35,7 +35,7 @@ import org.jbpm.internal.log.Log;
  * non thread safe (which is ok).
  * @author Tom Baeyens
  */
-public class StandardTransaction extends AbstractTransaction implements Transaction, Serializable {
+public class StandardTransaction extends AbstractTransaction implements Serializable {
 
   private static final long serialVersionUID = 1L; 
   private static Log log = Log.getLog(StandardTransaction.class.getName());
@@ -127,7 +127,7 @@ public class StandardTransaction extends AbstractTransaction implements Transact
     // here is the point of no return :-)
 
     // commit ///////////////////////////////////////////////////////////////
-    Throwable commitException = null;
+    RuntimeException commitException = null;
     if (resources!=null) {
       // The commit loop will try to send the commit to every resource, 
       // No matter what it takes.  If exceptions come out of resource.commit's 
@@ -140,7 +140,7 @@ public class StandardTransaction extends AbstractTransaction implements Transact
           
         // Exceptions in the commit phase will not lead to rollback, since some resources
         // might have committed and can't go back.
-        } catch (Throwable t) {
+        } catch (RuntimeException t) {
           // TODO this should go to a special log for sys admin recovery
           log.error("commit failed for resource "+standardResource, t);
           if (commitException==null) {
@@ -155,12 +155,7 @@ public class StandardTransaction extends AbstractTransaction implements Transact
     if (log.isTraceEnabled()) log.trace("committed "+this);
     
     if (commitException!=null) {
-      if (commitException instanceof RuntimeException) {
-        throw (RuntimeException) commitException;
-      } else if (commitException instanceof Error) {
-        throw (Error) commitException;
-      }
-      throw new TransactionException("resource failed to commit", commitException);
+      throw commitException;
     }
   }
 

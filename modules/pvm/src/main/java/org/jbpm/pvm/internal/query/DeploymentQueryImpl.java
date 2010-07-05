@@ -27,6 +27,7 @@ import org.hibernate.Query;
 import org.jbpm.api.Deployment;
 import org.jbpm.api.DeploymentQuery;
 import org.jbpm.pvm.internal.repository.DeploymentImpl;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 
 /**
@@ -102,7 +103,7 @@ public class DeploymentQueryImpl extends AbstractQuery implements DeploymentQuer
   }
 
   public List<Deployment> list() {
-    return (List<Deployment>) untypedList();
+    return CollectionUtil.checkList(untypedList(), Deployment.class);
   }
 
   public Deployment uniqueResult() {

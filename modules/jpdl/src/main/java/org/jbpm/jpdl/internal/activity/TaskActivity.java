@@ -133,7 +133,7 @@ public class TaskActivity extends JpdlExternalActivity {
     }
     
     Transition transition = null;
-    List<Transition> outgoingTransitions = activity.getOutgoingTransitions();
+    List<? extends Transition> outgoingTransitions = activity.getOutgoingTransitions();
     
     if (outgoingTransitions!=null && !outgoingTransitions.isEmpty()) {
       // Lookup the outgoing transition
@@ -142,7 +142,7 @@ public class TaskActivity extends JpdlExternalActivity {
         // When no specific outcome was specified, the unnamed transition
         // is looked up (name is null). If a null outcome was specifically
         // used, then the else clause will be used (but the result is the same)
-        // Note: the second part of the if clause is to avoid the siutation
+        // Note: the second part of the if clause is to avoid the situation
         // where the user would have chosen the same name as the constant
         transition = activity.findOutgoingTransition(null);
       }
@@ -155,7 +155,7 @@ public class TaskActivity extends JpdlExternalActivity {
       if (transition==null) {
         // no unnamed transition found
         if (signalName == null) {
-          // null was explicitely given as outcome
+          // null was explicitly given as outcome
           throw new JbpmException("No unnamed transitions were found for the task '"
             + getTaskDefinition().getName() + "'");
         }

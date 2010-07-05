@@ -25,14 +25,17 @@ import org.jbpm.pvm.internal.model.ScopeInstanceImpl;
 
 
 /**
+ * This is a static text expression, didn't contains any script expression.
+ *
  * @author Tom Baeyens
+ * @author Huiheng Xu
  */
 public class StaticTextExpression extends Expression {
 
   private static final long serialVersionUID = 1L;
 
   String text;
-  
+
   public StaticTextExpression(String text) {
     this.text = text;
   }
@@ -41,7 +44,11 @@ public class StaticTextExpression extends Expression {
     return text;
   }
 
-  public String getText() {
+  public String getExpressionString() {
     return text;
+  }
+
+  public boolean isLiteralText() {
+    return true;
   }
 }

@@ -18,7 +18,7 @@
   <!-- <property name="windows.browser" value="C:/Program Files/Internet Explorer/IEXPLORE.EXE" /> -->
   <property name="windows.browser" value="C:/Program Files/Mozilla Firefox/firefox.exe" />
   <property name="macos.browser" value="/usr/bin/open" />
-  <property name="linux.browser" value="mozilla" />
+  <property name="linux.browser" value="firefox" />
 
   <property name="distro.installation.dir" value="c:/software" />
   <property name="distro.version" value="4.4-SNAPSHOT" />
@@ -34,13 +34,13 @@
   </target>
 
   <target name="install">
-    <exec executable="${mvn.executable}" os="Windows Vista, Windows XP,Windows 2000,Windows 98">
+    <exec executable="${mvn.executable}" os="Windows Vista, Windows XP,Windows 2000">
       <arg line="-DskipTests install" />
     </exec>
   </target>
   
   <target name="javadoc">
-    <exec executable="${mvn.executable}" dir="modules/api" os="Windows Vista, Windows XP,Windows 2000,Windows 98">
+    <exec executable="${mvn.executable}" dir="modules/api" os="Windows Vista, Windows XP,Windows 2000">
       <arg line="javadoc:javadoc" />
     </exec>
     <antcall target="show.html">
@@ -49,7 +49,7 @@
   </target>
 
   <target name="test.pvm">
-    <exec dir="modules/pvm" executable="${mvn.executable}" os="Windows Vista, Windows XP,Windows 2000,Windows 98">
+    <exec dir="modules/pvm" executable="${mvn.executable}" os="Windows Vista, Windows XP,Windows 2000">
       <arg line="${mvn.executable} surefire-report:report" />
     </exec>
     <antcall target="show.html">
@@ -157,7 +157,7 @@
   <target name="test.configuration" description="create test configuration in target/config">
     <ant antfile="modules/distro/src/main/resources/config-tool/build.xml" 
     	   target="db.drop.create" inheritall="false">
-      <property name="jboss.bind.address" value="localhost" />
+      <property name="bind.address" value="localhost" />
       <property name="config.files.dir" value="${basedir}/target/config.tool/config.files" />
       <property name="tmp.dir" value="${basedir}/target/config.tool/tmp" />
       <property name="libs.dir" value="${basedir}/target/libs" />

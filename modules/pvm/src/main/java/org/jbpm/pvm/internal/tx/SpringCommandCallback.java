@@ -34,9 +34,9 @@ import org.springframework.transaction.support.TransactionCallback;
 public class SpringCommandCallback implements TransactionCallback {
   
   CommandService next;
-  Command<Object> command;
+  Command<?> command;
 
-  public SpringCommandCallback(CommandService next, Command command) {
+  public SpringCommandCallback(CommandService next, Command<?> command) {
     this.next = next;
     this.command = command;
   }

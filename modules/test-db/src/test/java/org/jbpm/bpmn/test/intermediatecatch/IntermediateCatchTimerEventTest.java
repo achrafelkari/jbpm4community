@@ -160,7 +160,7 @@ public class IntermediateCatchTimerEventTest extends JbpmTestCase {
     
     Job timerJob = managementService.createJobQuery().processInstanceId(pi.getId()).uniqueResult();
     long expectedTimerDueDate = processStartTime + (5 * 60 * 60 * 1000); // expected = 5 hours in ms
-    assertEquals(expectedTimerDueDate, timerJob.getDuedate().getTime());
+    assertEquals(expectedTimerDueDate, timerJob.getDueDate().getTime());
     
     managementService.executeJob(timerJob.getId());
     assertProcessInstanceEnded(pi);
@@ -174,7 +174,7 @@ public class IntermediateCatchTimerEventTest extends JbpmTestCase {
     
     Job timerJob = managementService.createJobQuery().processInstanceId(pi.getId()).uniqueResult();
     Date expectedDueDate = DateUtils.getDateAtMidnight(10, Calendar.OCTOBER, 2099);
-    assertEquals(expectedDueDate.getTime(), timerJob.getDuedate().getTime());
+    assertEquals(expectedDueDate.getTime(), timerJob.getDueDate().getTime());
     
     managementService.executeJob(timerJob.getId());
     assertProcessInstanceEnded(pi);
@@ -188,7 +188,7 @@ public class IntermediateCatchTimerEventTest extends JbpmTestCase {
     CollectionAssertions.assertContainsSameElements(pi.findActiveActivityNames(), "intermediateTimer");
     
     Job timerJob = managementService.createJobQuery().processInstanceId(pi.getId()).uniqueResult();
-    assertEquals(DateUtils.getDate(20, Calendar.JANUARY, 2010, 0, 2, 0).getTime(), timerJob.getDuedate().getTime()); 
+    assertEquals(DateUtils.getDate(20, Calendar.JANUARY, 2010, 0, 2, 0).getTime(), timerJob.getDueDate().getTime()); 
     
     managementService.executeJob(timerJob.getId());
     assertProcessInstanceEnded(pi);
@@ -202,13 +202,10 @@ public class IntermediateCatchTimerEventTest extends JbpmTestCase {
     CollectionAssertions.assertContainsSameElements(pi.findActiveActivityNames(), "intermediateTimer");
     
     Job timerJob = managementService.createJobQuery().processInstanceId(pi.getId()).uniqueResult();
-    assertEquals(DateUtils.getDate(22, Calendar.JANUARY, 2010, 23, 0, 0).getTime(), timerJob.getDuedate().getTime());
+    assertEquals(DateUtils.getDate(22, Calendar.JANUARY, 2010, 23, 0, 0).getTime(), timerJob.getDueDate().getTime());
     
     managementService.executeJob(timerJob.getId());
     assertProcessInstanceEnded(pi);
   }
-  
- 
-
 
 }

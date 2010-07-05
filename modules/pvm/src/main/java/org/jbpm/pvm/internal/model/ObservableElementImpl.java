@@ -90,10 +90,7 @@ public class ObservableElementImpl extends ProcessElementImpl implements Observa
   public void setDescription(String description) {
     this.description = description;
   }
-  public Map<String, Event> getEvents() {
-    return (Map) events;
-  }
-  public void setEvents(Map<String, EventImpl> events) {
-    this.events = events;
+  public Map<String, ? extends Event> getEvents() {
+    return events;
   }
 }

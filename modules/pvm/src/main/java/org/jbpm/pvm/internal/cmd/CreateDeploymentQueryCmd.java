@@ -24,9 +24,7 @@ package org.jbpm.pvm.internal.cmd;
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.pvm.internal.query.DeploymentQueryImpl;
-import org.jbpm.pvm.internal.query.JobQueryImpl;
 import org.jbpm.pvm.internal.session.DbSession;
-
 
 /**
  * @author Tom Baeyens

@@ -31,12 +31,11 @@ import javax.transaction.UserTransaction;
 import org.jbpm.api.JbpmException;
 import org.jbpm.internal.log.Log;
 
-
 /**
  * @author Tom Baeyens
  * @author Huisheng Xu
  */
-public class JtaTransaction extends AbstractTransaction implements Transaction {
+public class JtaTransaction extends AbstractTransaction {
 
   private static Log log = Log.getLog(JtaTransaction.class.getName());
 

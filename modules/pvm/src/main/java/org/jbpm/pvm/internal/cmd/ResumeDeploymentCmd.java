@@ -42,7 +42,7 @@ public class ResumeDeploymentCmd implements Command<Object> {
 
   public Object execute(Environment environment) throws Exception {
     RepositorySession repositorySession = environment.get(RepositorySession.class);
-    DeploymentImpl deployment = (DeploymentImpl) repositorySession.getDeployment(deploymentId);
+    DeploymentImpl deployment = repositorySession.getDeployment(deploymentId);
     deployment.resume();
     return null;
   }

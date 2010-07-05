@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import org.jbpm.api.JbpmException;
 import org.jbpm.test.JbpmTestCase;
 
 public class HistoryVariableTest extends JbpmTestCase {
@@ -199,4 +200,68 @@ public class HistoryVariableTest extends JbpmTestCase {
     String historyValue = (String) historyService.getVariable("var.one", "test");
     assertEquals(variableValue.toString(), historyValue);
   }
+  public void testDeclaredVariableWithHistoryWrongProcessInstanceId() {
+    deployJpdlXmlString("<process name='var'>"
+        + "  <variable name='test' type='string' init-expr='history' history='true'/>"
+        + "  <start name='a'>"
+        + "    <transition to='b' />"
+        + "  </start>"
+        + "  <state name='b'/>"
+        + "</process>");
+
+      executionService.startProcessInstanceByKey("var", "one");
+
+      Set<String> variableNames = executionService.getVariableNames("var.one");
+      assertEquals(1, variableNames.size());
+      assertEquals("test", variableNames.iterator().next());
+
+      String executionValue = (String) executionService.getVariable("var.one", "test");
+      assertEquals("history", executionValue);
+
+      Set<String> historyVariables = historyService.getVariableNames("var.one");
+      assertEquals(1, historyVariables.size());
+      assertEquals("test", historyVariables.iterator().next());
+
+      String wrongProcessInstanceId = "var.one.1";
+      try {
+        historyService.getVariable(wrongProcessInstanceId, "test");
+        fail("should fail since it uses wrong process instance id");
+      } catch (JbpmException e) {
+        String message = e.getMessage();
+        assertTrue(message, message.contains(wrongProcessInstanceId));
+      }
+    }
+  
+  public void testDeclaredVariableWithHistoryWrongProcess() {
+    deployJpdlXmlString("<process name='var'>"
+        + "  <variable name='test' type='string' init-expr='history' history='true'/>"
+        + "  <start name='a'>"
+        + "    <transition to='b' />"
+        + "  </start>"
+        + "  <state name='b'/>"
+        + "</process>");
+
+      executionService.startProcessInstanceByKey("var", "one");
+
+      Set<String> variableNames = executionService.getVariableNames("var.one");
+      assertEquals(1, variableNames.size());
+      assertEquals("test", variableNames.iterator().next());
+
+      String executionValue = (String) executionService.getVariable("var.one", "test");
+      assertEquals("history", executionValue);
+      try {
+        
+        historyService.getVariables(null, null);
+        fail("should fail since process instance id is null");
+      } catch (Exception e) {
+        assertEquals("processInstanceId is null", e.getMessage());
+      }
+      try {
+        
+        historyService.getVariables("var.one", null);
+        fail("should fail since variable names set is null");
+      } catch (Exception e) {
+        assertEquals("variableNames is null", e.getMessage());
+      }
+    }
 }

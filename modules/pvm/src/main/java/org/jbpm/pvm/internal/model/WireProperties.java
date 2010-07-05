@@ -49,7 +49,7 @@ public class WireProperties implements Serializable {
 
   public Set<String> keys() {
     if (wireContext==null) {
-      return Collections.EMPTY_SET;
+      return Collections.emptySet();
     }
     return wireContext.keys();
   }

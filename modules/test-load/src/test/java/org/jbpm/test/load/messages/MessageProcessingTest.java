@@ -34,6 +34,7 @@ import org.jbpm.pvm.internal.cmd.SendMessageCmd;
 import org.jbpm.pvm.internal.history.model.HistoryDetailImpl;
 import org.jbpm.pvm.internal.job.CommandMessage;
 import org.jbpm.pvm.internal.jobexecutor.JobExecutor;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 import org.jbpm.pvm.internal.wire.descriptor.ObjectDescriptor;
 import org.jbpm.pvm.internal.wire.descriptor.StringDescriptor;
 import org.jbpm.test.load.LoadTestCase;
@@ -116,11 +117,13 @@ public class MessageProcessingTest extends LoadTestCase {
     log.info("processing "+nbrOfTestMessages+" messages took "+getMeasuredTime());
 
     List<Integer> processedMessageNumbers = commandService.execute(new Command<List<Integer>>() {
+      private static final long serialVersionUID = 1L;
+
       public List<Integer> execute(Environment environment) {
         List<Integer> processedMessageNumbers = new ArrayList<Integer>();
         Session session = environment.get(Session.class);
-        List<HistoryComment> comments = session.createCriteria(HistoryDetailImpl.class).list();
-        for (HistoryComment comment: comments) {
+        List<?> comments = session.createCriteria(HistoryDetailImpl.class).list();
+        for (HistoryComment comment: CollectionUtil.checkList(comments, HistoryComment.class)) {
           int processedMessageNumber = Integer.parseInt(comment.getMessage());
           processedMessageNumbers.add(processedMessageNumber);
           // make sure the db stays clean

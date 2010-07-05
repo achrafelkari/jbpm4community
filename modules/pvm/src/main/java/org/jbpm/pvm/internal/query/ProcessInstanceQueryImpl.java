@@ -27,6 +27,7 @@ import org.hibernate.Query;
 import org.jbpm.api.ProcessInstance;
 import org.jbpm.api.ProcessInstanceQuery;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 /**
  * @author Tom Baeyens
@@ -45,7 +46,7 @@ public class ProcessInstanceQueryImpl extends AbstractQuery implements ProcessIn
   }
 
   public List<ProcessInstance> list() {
-    return (List<ProcessInstance>) untypedList();
+    return CollectionUtil.checkList(untypedList(), ProcessInstance.class);
   }
 
   public String hql() {

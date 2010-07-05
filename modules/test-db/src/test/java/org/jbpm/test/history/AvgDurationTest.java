@@ -37,7 +37,7 @@ import org.jbpm.test.JbpmTestCase;
 public class AvgDurationTest extends JbpmTestCase {
 
   public void testAvgDuration() throws Exception {
-    String deploymentId = deployJpdlXmlString(
+    deployJpdlXmlString(
       "<process name='Insurance claim' key='ICL'>" +
       "  <start>" +
       "    <transition to='one' />" +
@@ -60,18 +60,18 @@ public class AvgDurationTest extends JbpmTestCase {
     executeProcess();
 
     ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().uniqueResult();
-    Map<String, Long> avgDurations = historyService.avgDurationPerActivity(processDefinition.getId());
+    Map<String, Number> avgDurations = historyService.avgDurationPerActivity(processDefinition.getId());
 
 
-    Long avgDurationOne = avgDurations.get("one");
+    Number avgDurationOne = avgDurations.get("one");
     assertNotNull(avgDurationOne);
-    assertTrue("expected avg duration bigger then 40, but was "+avgDurationOne, avgDurationOne>40);
-    Long avgDurationTwo = avgDurations.get("two");
+    assertTrue("expected avg duration bigger then 40, but was "+avgDurationOne, avgDurationOne.intValue()>40);
+    Number avgDurationTwo = avgDurations.get("two");
     assertNotNull(avgDurationTwo);
-    assertTrue("expected avg duration bigger then 10, but was "+avgDurationTwo, avgDurationTwo>10);
-    Long avgDurationThree = avgDurations.get("three");
+    assertTrue("expected avg duration bigger then 10, but was "+avgDurationTwo, avgDurationTwo.intValue()>10);
+    Number avgDurationThree = avgDurations.get("three");
     assertNotNull(avgDurationThree);
-    assertTrue("expected avg duration bigger then 0, but was "+avgDurationThree, avgDurationThree>=0);
+    assertTrue("expected avg duration bigger then 0, but was "+avgDurationThree, avgDurationThree.intValue()>=0);
 
     assertEquals(3, avgDurations.size());
   }

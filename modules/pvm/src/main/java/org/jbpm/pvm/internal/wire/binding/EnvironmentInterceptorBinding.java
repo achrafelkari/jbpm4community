@@ -21,14 +21,13 @@
  */
 package org.jbpm.pvm.internal.wire.binding;
 
+import org.w3c.dom.Element;
+
 import org.jbpm.pvm.internal.cfg.ConfigurationImpl;
-import org.jbpm.pvm.internal.env.EnvironmentFactory;
-import org.jbpm.pvm.internal.processengine.ProcessEngineImpl;
 import org.jbpm.pvm.internal.svc.Policy;
 import org.jbpm.pvm.internal.wire.descriptor.EnvironmentInterceptorDescriptor;
 import org.jbpm.pvm.internal.xml.Parse;
 import org.jbpm.pvm.internal.xml.Parser;
-import org.w3c.dom.Element;
 
 /**
  * @author Tom Baeyens
@@ -42,7 +41,7 @@ public class EnvironmentInterceptorBinding extends WireInterceptorBinding {
   public Object parse(Element element, Parse parse, Parser parser) {
     EnvironmentInterceptorDescriptor environmentInterceptorDescriptor = new EnvironmentInterceptorDescriptor();
 
-    ConfigurationImpl configuration = (ConfigurationImpl) parse.contextStackFind(ConfigurationImpl.class);
+    ConfigurationImpl configuration = parse.contextStackFind(ConfigurationImpl.class);
     environmentInterceptorDescriptor.setConfiguration(configuration);
     
     if ( element.hasAttribute("policy")

@@ -29,6 +29,7 @@ import org.jbpm.api.job.Job;
 import org.jbpm.pvm.internal.job.JobImpl;
 import org.jbpm.pvm.internal.job.MessageImpl;
 import org.jbpm.pvm.internal.job.TimerImpl;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 
 /**
@@ -84,7 +85,7 @@ public class JobQueryImpl extends AbstractQuery implements JobQuery {
   }
 
   public List<Job> list() {
-    return (List<Job>) untypedList();
+    return CollectionUtil.checkList(untypedList(), Job.class);
   }
   
   public Job uniqueResult() {

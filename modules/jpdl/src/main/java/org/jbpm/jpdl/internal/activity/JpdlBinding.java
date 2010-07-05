@@ -24,6 +24,7 @@ package org.jbpm.jpdl.internal.activity;
 import org.w3c.dom.Element;
 
 import org.jbpm.jpdl.internal.xml.JpdlParser;
+import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.model.ActivityImpl;
 import org.jbpm.pvm.internal.util.TagBinding;
 import org.jbpm.pvm.internal.util.XmlUtil;
@@ -32,9 +33,10 @@ import org.jbpm.pvm.internal.xml.Parser;
 
 /**
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public abstract class JpdlBinding extends TagBinding {
-  
+
   public JpdlBinding(String tagName) {
     super(tagName, null, null);
   }
@@ -47,12 +49,19 @@ public abstract class JpdlBinding extends TagBinding {
 
   public void parseName(Element element, ActivityImpl activity, Parse parse) {
     String name = XmlUtil.attribute(element, "name", isNameRequired() ? parse : null);
-    
-    if (name!=null) {
+
+    if (name != null) {
       // basic name validation
       if ("".equals(name)) {
         parse.addProblem(XmlUtil.errorMessageAttribute(element, "name", name, "is empty"), element);
-      } else if (name.indexOf('/')!=-1) {
+      }
+
+      boolean isActivityAllowSlash = false;
+      Boolean candidateCondition = (Boolean) EnvironmentImpl.getFromCurrent("jbpm.activity.allow.slash", false);
+      if (candidateCondition != null) {
+        isActivityAllowSlash = candidateCondition.booleanValue();
+      }
+      if (!isActivityAllowSlash && name.indexOf('/') != -1) {
         parse.addProblem(XmlUtil.errorMessageAttribute(element, "name", name, "contains slash (/)"), element);
       }
       activity.setName(name);
@@ -85,7 +94,7 @@ public abstract class JpdlBinding extends TagBinding {
 //      transition.setName(transitionName);
 //
 //      unresolvedTransitions.add(transition, transitionElement);
-//      
+//
 //      jpdlParser.parseOnEvent(transitionElement, parse, transition, Event.TAKE);
 //    }
 //  }

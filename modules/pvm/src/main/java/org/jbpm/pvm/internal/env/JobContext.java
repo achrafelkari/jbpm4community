@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jbpm.api.job.Job;
 import org.jbpm.pvm.internal.job.JobImpl;
 
 public class JobContext implements Context {
@@ -39,9 +38,9 @@ public class JobContext implements Context {
     return keys;
   }
 
-  JobImpl<?> job;
+  JobImpl job;
 
-  public JobContext(JobImpl<?> job) {
+  public JobContext(JobImpl job) {
     this.job = job;
   }
 
@@ -65,8 +64,8 @@ public class JobContext implements Context {
   }
   
   public <T> T get(Class<T> type) {
-    if (Job.class.isAssignableFrom(type)) {
-      return (T) job;
+    if (type.isAssignableFrom(JobImpl.class)) {
+      return type.cast(job);
     }
     return null;
   }

@@ -93,6 +93,8 @@ public class JobExecutorTestCase extends JbpmTestCase {
 
   public boolean areJobsAvailable() {
     return commandService.execute(new Command<Boolean>() {
+      private static final long serialVersionUID = 1L;
+
       public Boolean execute(Environment environment) {
         Session session = environment.get(Session.class);
 

@@ -81,7 +81,7 @@ public class JmsBinding extends JpdlBinding {
     if (textElement != null) {
       String expressionText = XmlUtil.getContentText(textElement);
       jmsActivity.setType("text");
-      Expression expression = Expression.create(expressionText, Expression.LANGUAGE_UEL);
+      Expression expression = Expression.create(expressionText, Expression.LANGUAGE_UEL_VALUE);
       jmsActivity.setTextExpression(expression);
     }
 
@@ -89,7 +89,7 @@ public class JmsBinding extends JpdlBinding {
     if (objectElement != null) {
       jmsActivity.setType("object");
       String expressionText = XmlUtil.attribute(objectElement, "expr");
-      Expression expression = Expression.create(expressionText, Expression.LANGUAGE_UEL);
+      Expression expression = Expression.create(expressionText, Expression.LANGUAGE_UEL_VALUE);
       jmsActivity.setObjectExpression(expression);
     }
 

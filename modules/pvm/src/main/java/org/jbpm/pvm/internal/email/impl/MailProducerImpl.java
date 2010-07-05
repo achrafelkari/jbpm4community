@@ -49,16 +49,17 @@ import org.jbpm.api.Execution;
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.identity.Group;
 import org.jbpm.api.identity.User;
+import org.jbpm.pvm.internal.el.Expression;
 import org.jbpm.pvm.internal.email.spi.AddressResolver;
 import org.jbpm.pvm.internal.email.spi.MailProducer;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.identity.spi.IdentitySession;
-import org.jbpm.pvm.internal.script.ScriptManager;
 
 /**
  * Default mail producer.
- * 
+ *
  * @author Alejandro Guizar
+ * @author Huisheng Xu
  */
 public class MailProducerImpl implements MailProducer, Serializable {
 
@@ -96,7 +97,7 @@ public class MailProducerImpl implements MailProducer, Serializable {
    * Fills the <code>from</code> attribute of the given email. The sender addresses are an
    * optional element in the mail template. If absent, each mail server supplies the current
    * user's email address.
-   * 
+   *
    * @see {@link InternetAddress#getLocalAddress(Session)}
    */
   protected void fillFrom(Execution execution, Message email) throws MessagingException {
@@ -138,8 +139,7 @@ public class MailProducerImpl implements MailProducer, Serializable {
   }
 
   private <T> T evaluateExpression(String expression, Class<T> type) {
-    ScriptManager scriptManager = ScriptManager.getScriptManager();
-    Object value = scriptManager.evaluateExpression(expression, template.getLanguage());
+    Object value = Expression.create(expression, template.getLanguage()).evaluate();
     return type.cast(value);
   }
 
@@ -265,7 +265,7 @@ public class MailProducerImpl implements MailProducer, Serializable {
       // obtain interface to data
       DataHandler dataHandler = createDataHandler(attachmentTemplate);
       attachmentPart.setDataHandler(dataHandler);
-      
+
       // resolve file name
       String name = attachmentTemplate.getName();
       if (name != null) {

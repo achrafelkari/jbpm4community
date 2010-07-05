@@ -29,6 +29,7 @@ import org.jbpm.api.JbpmException;
 import org.jbpm.api.history.HistoryActivityInstance;
 import org.jbpm.api.history.HistoryActivityInstanceQuery;
 import org.jbpm.pvm.internal.history.model.HistoryActivityInstanceImpl;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 
 /**
@@ -117,7 +118,7 @@ public class HistoryActivityInstanceQueryImpl extends AbstractQuery implements H
   }
 
   public List<HistoryActivityInstance> list() {
-    return (List) untypedList();
+    return CollectionUtil.checkList(untypedList(), HistoryActivityInstance.class);
   }
   
   public HistoryActivityInstance uniqueResult() {

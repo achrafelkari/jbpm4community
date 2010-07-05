@@ -36,41 +36,34 @@ public class Create {
 
   private static final long serialVersionUID = 1L;
 
-  private static Log log = Log.getLog(Upgrade.class.getName());
-  
-  static String database;
+  private static final Log log = Log.getLog(Create.class.getName());
 
   public static void main(String[] args) {
-    if ( (args==null)
-         || (args.length!=1)
-       ) {
+    if (args.length != 1) {
       DbHelper.printSyntax(Upgrade.class);
       return;
     }
-    
-    database = args[0];
-    
-    ProcessEngine processEngine = new ConfigurationImpl()
-        .skipDbCheck()
-        .buildProcessEngine();
-    
+
+    final String database = args[0];
+    ProcessEngine processEngine = new ConfigurationImpl().skipDbCheck().buildProcessEngine();
+
     try {
-      processEngine.execute(new Command<Void>(){
+      processEngine.execute(new Command<Void>() {
         private static final long serialVersionUID = 1L;
+
         public Void execute(Environment environment) throws Exception {
           Session session = environment.get(Session.class);
-          DbHelper.executeSqlResource("create/jbpm."+database+".create.sql", session);
+          DbHelper.executeSqlResource("create/jbpm." + database + ".create.sql", session);
           PropertyImpl.createProperties(session);
           return null;
         }
       });
-
-      log.info("jBPM DB create completed successfully.");
-
-    } catch (Exception e) {
-      log.error("ERROR: jBPM DB create FAILED", e);
-
-    } finally {
+      log.info("database schema created successfully");
+    }
+    catch (Exception e) {
+      log.error("database schema creation failed", e);
+    }
+    finally {
       processEngine.close();
     }
   }

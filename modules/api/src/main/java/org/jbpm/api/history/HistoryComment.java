@@ -40,5 +40,5 @@ public interface HistoryComment extends HistoryDetail {
   String getMessage();
 
   /** threaded replies to this comment */
-  List<HistoryComment> getReplies();
+  List<? extends HistoryComment> getReplies();
 }

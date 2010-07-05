@@ -108,7 +108,7 @@ class ProcessManagementImpl extends JBPMIntegration implements ProcessManagement
 
       if (processInstance.getIsProcessInstance()) { // parent execution
         ((ExecutionImpl) processInstance).setProcessDefinition((ProcessDefinitionImpl) processDefinition);
-        results.add(ModelAdaptor.adoptExecution((ExecutionImpl) processInstance));
+        results.add(ModelAdaptor.adoptExecution(processInstance));
       }
     }
     return results;
@@ -119,7 +119,7 @@ class ProcessManagementImpl extends JBPMIntegration implements ProcessManagement
     ProcessInstance processInstance = execService.createProcessInstanceQuery()
                                                  .processInstanceId(instanceId)
                                                  .uniqueResult();
-    return ModelAdaptor.adoptExecution((ExecutionImpl) processInstance);
+    return ModelAdaptor.adoptExecution(processInstance);
   }
 
   public Map<String, Object> getInstanceData(String instanceId) {
@@ -137,13 +137,13 @@ class ProcessManagementImpl extends JBPMIntegration implements ProcessManagement
   public ProcessInstanceRef newInstance(String definitionId) {
     ExecutionService execService = this.processEngine.getExecutionService();
     Execution exec = execService.startProcessInstanceById(definitionId);
-    return ModelAdaptor.adoptExecution((ExecutionImpl) exec);
+    return ModelAdaptor.adoptExecution(exec);
   }
 
   public ProcessInstanceRef newInstance(String definitionId, Map<String, Object> processVars) {
     ExecutionService execService = this.processEngine.getExecutionService();
     Execution exec = execService.startProcessInstanceById(definitionId, processVars);
-    return ModelAdaptor.adoptExecution((ExecutionImpl) exec);
+    return ModelAdaptor.adoptExecution(exec);
   }
 
   public void endInstance(String instanceId, ProcessInstanceRef.RESULT result) {

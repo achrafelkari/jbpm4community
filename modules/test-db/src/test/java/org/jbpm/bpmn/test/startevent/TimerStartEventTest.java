@@ -164,7 +164,7 @@ public class TimerStartEventTest extends JbpmTestCase {
     // After deployment, there should be one job in the database that starts a new process instance
     Job startProcessTimer = managementService.createJobQuery().uniqueResult();
     assertNotNull(startProcessTimer);
-    assertEquals(DateUtils.getDateAtMidnight(10, Calendar.OCTOBER, 2099).getTime(), startProcessTimer.getDuedate().getTime());
+    assertEquals(DateUtils.getDateAtMidnight(10, Calendar.OCTOBER, 2099).getTime(), startProcessTimer.getDueDate().getTime());
     
     ProcessInstanceQuery procInstQuery = executionService.createProcessInstanceQuery()
                             .processDefinitionId(findProcessDefinitionId("timerStartFixedDueDate"));
@@ -186,7 +186,7 @@ public class TimerStartEventTest extends JbpmTestCase {
     // After deployment, there should be one job in the database that starts a new process instance
     Job startProcessTimer = managementService.createJobQuery().uniqueResult();
     assertNotNull(startProcessTimer);
-    assertEquals(DateUtils.getDate(10, Calendar.OCTOBER, 2099, 10, 0, 0).getTime(), startProcessTimer.getDuedate().getTime());
+    assertEquals(DateUtils.getDate(10, Calendar.OCTOBER, 2099, 10, 0, 0).getTime(), startProcessTimer.getDueDate().getTime());
     
     // Triggering the job should start a new process instance of the deployed process definition
     ProcessInstanceQuery procInstQuery = executionService.createProcessInstanceQuery()
@@ -200,7 +200,7 @@ public class TimerStartEventTest extends JbpmTestCase {
     
     // Since a timeCycle was used, the job should have been recreated with a new duedate
     startProcessTimer = managementService.createJobQuery().uniqueResult();
-    assertEquals(DateUtils.getDate(10, Calendar.OCTOBER, 2099, 20, 0, 0).getTime(), startProcessTimer.getDuedate().getTime());
+    assertEquals(DateUtils.getDate(10, Calendar.OCTOBER, 2099, 20, 0, 0).getTime(), startProcessTimer.getDueDate().getTime());
     
     
     // So we need to manually delete it
@@ -214,7 +214,7 @@ public class TimerStartEventTest extends JbpmTestCase {
     // After deployment, there should be one job in the database that starts a new process instance
     Job startProcessTimer = managementService.createJobQuery().uniqueResult();
     assertNotNull(startProcessTimer);
-    assertEquals(DateUtils.getDate(10, Calendar.OCTOBER, 2099, 22, 0, 0).getTime(), startProcessTimer.getDuedate().getTime());
+    assertEquals(DateUtils.getDate(10, Calendar.OCTOBER, 2099, 22, 0, 0).getTime(), startProcessTimer.getDueDate().getTime());
     
     // Triggering the job should start a new process instance of the deployed process definition
     ProcessInstanceQuery procInstQuery = executionService.createProcessInstanceQuery()
@@ -228,7 +228,7 @@ public class TimerStartEventTest extends JbpmTestCase {
     
     // Since a timeCycle was used, the job should have been recreated with a new duedate
     startProcessTimer = managementService.createJobQuery().uniqueResult();
-    assertEquals(DateUtils.getDate(11, Calendar.OCTOBER, 2099, 22, 0, 0).getTime(), startProcessTimer.getDuedate().getTime());
+    assertEquals(DateUtils.getDate(11, Calendar.OCTOBER, 2099, 22, 0, 0).getTime(), startProcessTimer.getDueDate().getTime());
     
     // So we need to manually delete it
     managementService.deleteJob(Long.valueOf(startProcessTimer.getId()));

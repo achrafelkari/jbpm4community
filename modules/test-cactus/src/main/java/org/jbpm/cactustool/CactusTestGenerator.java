@@ -23,86 +23,87 @@ package org.jbpm.cactustool;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
-
 
 /**
  * @author Tom Baeyens
  */
 public class CactusTestGenerator {
 
-  static String testFilter = System.getProperty("test.filter");
+  private static final String excludedTests = System.getProperty("excluded.tests");
+  private static final String suiteTests = System.getProperty("suite.tests");
 
-  public static void main(String[] args) {
-    try {
-      if (args==null) {
-        log("syntax: java -cp ... org.jbpm.cactustool.CactusTestGenerator testdestroot testsrcroot1 testsrcroot2 ...");
-      }
-      
-      if (testFilter!=null) {
-        log("################################################################################################");
-        log("# test.filter: "+testFilter);
-        log("################################################################################################");
-      }
-      
-      String testPackageSourceDir = args[0]+"/org/jbpm/test";
-      new File(testPackageSourceDir).mkdirs();
-      
-      String testFileName = testPackageSourceDir+"/AllIntegrationTests.java";
-      File testFile = new File(testFileName);
-      FileOutputStream fos = new FileOutputStream(testFile);
-      PrintWriter out = new PrintWriter(fos);
-      log("generating java class "+testFile.getCanonicalPath());
-      
-      out.println("package org.jbpm.test;");
-      out.println();
-      out.println("import junit.framework.Test;");
-      out.println("import junit.framework.TestCase;");
-      out.println("import org.apache.cactus.ServletTestSuite;");
-      out.println();
-      out.println("public class AllIntegrationTests extends TestCase {");
-      out.println();
-      out.println("  public static Test suite() {");
-      out.println("    ServletTestSuite suite = new ServletTestSuite();");
-      
-      for (int i=1; i<args.length; i++) {
-        String testSrcRoot = args[i];
-        scanForTestClasses(testSrcRoot, "", out); 
-      }
-
-      out.println("    return suite;");
-      out.println("  }");
-      out.println("}");
-      
-      out.close();
-      
-    } catch (Exception e) {
-      e.printStackTrace();
+  public static void main(String[] args) throws IOException {
+    if (args == null) {
+      log("syntax: java -cp ... org.jbpm.cactustool.CactusTestGenerator testdestroot testsrcroot1 testsrcroot2 ...");
     }
+
+    if (excludedTests != null) {
+      log("################################################################################################");
+      log("# excluded tests: " + excludedTests);
+      log("################################################################################################");
+    }
+
+    String testPackageSourceDir = args[0] + "/org/jbpm/test";
+    new File(testPackageSourceDir).mkdirs();
+
+    String testFileName = testPackageSourceDir + "/AllIntegrationTests.java";
+    File testFile = new File(testFileName);
+    FileOutputStream fos = new FileOutputStream(testFile);
+    PrintWriter out = new PrintWriter(fos);
+    log("generating java class " + testFile);
+
+    out.println("package org.jbpm.test;");
+    out.println();
+    out.println("import junit.framework.Test;");
+    out.println("import junit.framework.TestCase;");
+    out.println("import org.apache.cactus.ServletTestSuite;");
+    out.println();
+    out.println("public class AllIntegrationTests extends TestCase {");
+    out.println();
+    out.println("  public static Test suite() {");
+    out.println("    ServletTestSuite suite = new ServletTestSuite();");
+
+    for (int i = 1; i < args.length; i++) {
+      String testSrcRoot = args[i];
+      scanForTestClasses(testSrcRoot, "", out);
+    }
+
+    out.println("    return suite;");
+    out.println("  }");
+    out.println("}");
+
+    out.close();
   }
 
-  private static void scanForTestClasses(String dirPath, String packageName, PrintWriter out) throws Exception {
+  private static void scanForTestClasses(String dirPath, String packageName, PrintWriter out)
+    throws IOException {
     File dirFile = new File(dirPath);
-    if (".svn".equals(dirFile.getName())) {
+    if (".svn".equals(dirFile.getName()))
       return;
-    }
-    log("scanning dir "+dirFile.getCanonicalPath());
+
+    log("scanning dir " + dirFile.getAbsolutePath());
     File[] dirContentFiles = dirFile.listFiles();
-    if (dirContentFiles!=null) {
+    if (dirContentFiles != null) {
       for (File file : dirContentFiles) {
         String fileName = file.getName();
-        if ( file.isFile() 
-             && fileName.endsWith("Test.java")
-             && (! fileName.endsWith("SQLStmtTest.java"))
-             && (testFilter==null || (fileName.indexOf(testFilter)!=-1))
-           ) {
-          String className = packageName + "." + fileName.substring(0, fileName.length()-5)+".class";
-          log("  adding "+className);
-          out.println("    suite.addTestSuite(" + className + ");");
 
-        } else if (file.isDirectory()) {
-          String subDirPath = dirPath+"/"+fileName;
-          String subPackageName = ("".equals(packageName) ? fileName : packageName+"."+fileName);
+        if (file.isFile() && fileName.endsWith("Test.java")
+          && (excludedTests == null || !excludedTests.contains(fileName))) {
+          String className = packageName + "." + fileName.substring(0, fileName.length() - 5);
+          log("  adding " + className);
+          if (suiteTests == null || !suiteTests.contains(fileName)) {
+            out.println("    suite.addTestSuite(" + className + ".class);");
+          }
+          else {
+            out.println("    suite.addTest(" + className + ".suite());");
+          }
+        }
+        else if (file.isDirectory()) {
+          String subDirPath = dirPath + "/" + fileName;
+          String subPackageName = "".equals(packageName) ? fileName : packageName + "."
+            + fileName;
           scanForTestClasses(subDirPath, subPackageName, out);
         }
       }

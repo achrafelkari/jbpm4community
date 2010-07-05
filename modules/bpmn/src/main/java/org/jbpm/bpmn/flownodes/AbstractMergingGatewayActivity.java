@@ -22,15 +22,15 @@
 package org.jbpm.bpmn.flownodes;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.hibernate.LockMode;
 import org.hibernate.Session;
+
 import org.jbpm.api.Execution;
-import org.jbpm.api.JbpmException;
 import org.jbpm.api.activity.ActivityExecution;
 import org.jbpm.api.model.Activity;
-import org.jbpm.api.model.Transition;
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
@@ -148,8 +148,8 @@ public abstract class AbstractMergingGatewayActivity extends AbstractGatewayActi
    */
   protected List<ExecutionImpl> getJoinedExecutions(ExecutionImpl concurrentRoot, Activity activity) {
     List<ExecutionImpl> joinedExecutions = new ArrayList<ExecutionImpl>();
-    List<ExecutionImpl> concurrentExecutions = (List<ExecutionImpl>)concurrentRoot.getExecutions();
-    for (ExecutionImpl concurrentExecution: (List<ExecutionImpl>)concurrentExecutions) {
+    Collection<ExecutionImpl> concurrentExecutions = concurrentRoot.getExecutions();
+    for (ExecutionImpl concurrentExecution: concurrentExecutions) {
       if ( (Execution.STATE_INACTIVE_JOIN.equals(concurrentExecution.getState()))
            && (concurrentExecution.getActivity()==activity)
          ) {

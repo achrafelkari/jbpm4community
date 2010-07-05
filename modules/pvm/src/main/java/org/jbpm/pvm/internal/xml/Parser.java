@@ -535,7 +535,7 @@ public class Parser {
         argDescriptor.setTypeName(XmlUtil.attribute(argElement, "type"));
         Element descriptorElement = XmlUtil.element(argElement);
         if (descriptorElement==null) {
-          parse.addProblem("arg must contain exactly one descriptor element out of "+bindings.getTagNames(category)+" as contents:"+XmlUtil.toString((Element) argElement.getParentNode()), argElement);
+          parse.addProblem("arg must contain exactly one descriptor element out of "+bindings.getTagNames(category)+" as contents:"+XmlUtil.toString(argElement.getParentNode()), argElement);
         } else {
           Descriptor descriptor = (Descriptor) parseElement(descriptorElement, parse, category);
           argDescriptor.setDescriptor(descriptor);

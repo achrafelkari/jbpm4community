@@ -66,7 +66,6 @@ import org.jbpm.pvm.internal.job.MessageImpl;
 import org.jbpm.pvm.internal.model.op.AtomicOperation;
 import org.jbpm.pvm.internal.model.op.MoveToChildActivity;
 import org.jbpm.pvm.internal.model.op.Signal;
-import org.jbpm.pvm.internal.script.ScriptManager;
 import org.jbpm.pvm.internal.session.DbSession;
 import org.jbpm.pvm.internal.session.MessageSession;
 import org.jbpm.pvm.internal.session.RepositorySession;
@@ -74,6 +73,7 @@ import org.jbpm.pvm.internal.session.TimerSession;
 import org.jbpm.pvm.internal.task.AssignableDefinitionImpl;
 import org.jbpm.pvm.internal.task.SwimlaneDefinitionImpl;
 import org.jbpm.pvm.internal.task.SwimlaneImpl;
+import org.jbpm.pvm.internal.task.TaskImpl;
 import org.jbpm.pvm.internal.type.Variable;
 import org.jbpm.pvm.internal.util.EqualsUtil;
 import org.jbpm.pvm.internal.util.Priority;
@@ -81,6 +81,7 @@ import org.jbpm.pvm.internal.wire.usercode.UserCodeReference;
 
 /**
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessInstance,
   ActivityExecution, EventListenerExecution {
@@ -88,13 +89,13 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   private static final long serialVersionUID = 1L;
 
   private static final Log log = Log.getLog(ExecutionImpl.class.getName());
-  
-  /** an optional name for this execution.  can be used to 
-   * differentiate concurrent paths of execution like e.g. 
+
+  /** an optional name for this execution.  can be used to
+   * differentiate concurrent paths of execution like e.g.
    * the 'shipping' and 'billing' paths. */
   protected String name;
 
-  /** a key for this execution. typically this is an externally provided reference 
+  /** a key for this execution. typically this is an externally provided reference
    * that is unique within the scope of the process definition.  */
   protected String key;
 
@@ -108,10 +109,10 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
    * concurrency. */
   protected ExecutionImpl parent;
   protected ExecutionImpl processInstance;
-  
-  /** the super process link in case this is a sub process execution */  
+
+  /** the super process link in case this is a sub process execution */
   protected ExecutionImpl superProcessExecution;
-  
+
   /** the sub process link in case of sub process execution */
   protected ExecutionImpl subProcessInstance;
 
@@ -120,7 +121,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
 
   /** reference to the current activity instance history record */
   protected Long historyActivityInstanceDbid;
-  
+
   /** start time of the activity for history purposes (not persisted) */
   protected Date historyActivityStart;
 
@@ -129,10 +130,10 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   protected Map<String, Variable> systemVariables = new HashMap<String, Variable>();
 
   // persistent indicators of the current position ////////////////////////////
-  
+
   /** persistent process definition reference */
   protected String processDefinitionId;
-  
+
   /** persistent activity reference */
   protected String activityName;
 
@@ -140,7 +141,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
 
   /** transient cached process definition.  persistence is managed in {@link #processDefinitionId} */
   protected ProcessDefinitionImpl processDefinition;
-  
+
   /** transient cached current activity pointer.  persistence is managed in {@link #activityName} */
   private ActivityImpl activity;
 
@@ -156,7 +157,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   protected ObservableElementImpl eventSource;
 
   // cached named executions //////////////////////////////////////////////////
-  
+
   /** caches the child executions by execution name.  This member might be
    * null and is only created from the executions in case its needed.  Note
    * that not all executions are forced to have a name and duplicates are allowed.
@@ -174,7 +175,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   protected Propagation propagation;
 
   // construction /////////////////////////////////////////////////////////////
-  
+
   public void initializeProcessInstance(ProcessDefinitionImpl processDefinition, String key) {
     setProcessDefinition(processDefinition);
     setActivity(processDefinition.getInitial());
@@ -183,7 +184,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     this.key = key;
 
     save();
-    
+
     HistoryEvent.fire(new ProcessInstanceCreate(), this);
   }
 
@@ -210,7 +211,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     }
     this.state = STATE_ACTIVE_ROOT;
     ExecutionImpl scopedExecution = initializeScopes();
-    
+
     fire(Event.START, getProcessDefinition());
     if (getActivity()!=null) {
       scopedExecution.performAtomicOperation(AtomicOperation.EXECUTE_ACTIVITY);
@@ -222,7 +223,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
 
     ActivityImpl initial = getProcessDefinition().getInitial();
     ExecutionImpl scopedExecution = null;
-    
+
     if (initial!=null) {
       enteredActivities.add(initial);
       ActivityImpl parentActivity = initial.getParentActivity();
@@ -230,19 +231,19 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
         enteredActivities.addFirst(parentActivity);
         parentActivity = parentActivity.getParentActivity();
       }
-      
+
       scopedExecution = this;
 
       initializeVariables(getProcessDefinition(), this);
       initializeTimers(getProcessDefinition());
-      
+
       for (ActivityImpl enteredActivity: enteredActivities) {
         if (enteredActivity.isLocalScope()) {
           scopedExecution.setActivity(enteredActivity);
           scopedExecution = scopedExecution.createScope(enteredActivity);
         }
       }
-      
+
       scopedExecution.setActivity(initial);
     }
     return scopedExecution;
@@ -250,29 +251,29 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
 
   public ExecutionImpl createScope(ScopeElementImpl scope) {
     ExecutionImpl child = createExecution(scope.getName());
-    
+
     setState(STATE_INACTIVE_SCOPE);
     child.setState(STATE_ACTIVE_ROOT);
-    
+
     // copy the current state from the child execution to the parent execution
     child.setActivity(getActivity());
     child.setTransition(getTransition());
     child.setPropagation(getPropagation());
-    
+
     child.initializeVariables(scope, this);
     child.initializeTimers(scope);
-    
+
     return child;
   }
-  
+
   public ExecutionImpl destroyScope(CompositeElementImpl scope) {
     destroyTimers(scope);
-    
+
     // copy the current state from the child execution to the parent execution
     parent.setActivity(getActivity());
     parent.setTransition(getTransition());
     parent.setPropagation(getPropagation());
-    
+
     ExecutionImpl parentsParent = parent.getParent();
     if (parentsParent!=null
       && STATE_INACTIVE_CONCURRENT_ROOT.equals(parentsParent.getState())) {
@@ -281,16 +282,16 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     else {
       parent.setState(STATE_ACTIVE_ROOT);
     }
-    
-    // capture the parent execution cause the 
+
+    // capture the parent execution cause the
     // subsequent invocation of end() will set the parent to null
     ExecutionImpl parent = this.parent;
-    
+
     end();
 
     return parent;
   }
-  
+
   @Override
   protected void destroyTimers(CompositeElementImpl scope) {
     TimerSession timerSession = EnvironmentImpl.getFromCurrent(TimerSession.class, false);
@@ -318,7 +319,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     }
     return "execution";
   }
-  
+
   // execution method : end ///////////////////////////////////////////////////
 
   public void end() {
@@ -340,7 +341,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
         || state.equals(STATE_ASYNC)) {
       throw new JbpmException("invalid end state: "+state);
     }
-      
+
     if (log.isDebugEnabled()) {
       if (state==STATE_ENDED) {
         log.debug(toString()+" ends");
@@ -349,25 +350,35 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
         log.debug(toString()+" ends with state "+state);
       }
     }
-    
+
     // end all child executions
    // making a copy of the executions to prevent ConcurrentMoidificationException
     List<ExecutionImpl> executionsToEnd = new ArrayList<ExecutionImpl>(executions);
     for (ExecutionImpl child: executionsToEnd) {
       child.end(state);
     }
-    
+
     setState(state);
 
     this.propagation = Propagation.EXPLICIT;
-    
+
     DbSession dbSession = EnvironmentImpl.getFromCurrent(DbSession.class, false);
 
+
+
     if (parent!=null) {
-      parent.removeExecution(this);
+
       if (dbSession!=null) {
+
+        // make sure task attached to this execution are completed or skipped
+        TaskImpl task = dbSession.findTaskByExecution(this);
+        if (task != null && !task.isCompleted()) {
+          task.skip(null);
+        }
+
         dbSession.delete(this);
       }
+      parent.removeExecution(this);
     }
     else {
       // this is a process instance
@@ -386,7 +397,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
       }
     }
   }
-  
+
   public void end(OpenExecution executionToEnd) {
     ((ExecutionImpl)executionToEnd).end();
   }
@@ -404,7 +415,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   public void signal(String signal) {
     signal(signal, (Map<String,?>)null);
   }
-  
+
   public void signal(Map<String, ?> parameters) {
     signal(null, parameters);
   }
@@ -425,7 +436,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
       throw new JbpmException("execution is not in a activity or in a transition");
     }
   }
-  
+
   public void signal(Execution execution) {
     ((ExecutionImpl)execution).signal(null, (Map<String,?>)null);
   }
@@ -443,7 +454,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   }
 
   // execution method : take ////////////////////////////////////////////////
-  
+
   /** @see Execution#takeDefaultTransition() */
   public void takeDefaultTransition() {
     TransitionImpl defaultTransition = getActivity().getDefaultOutgoingTransition();
@@ -472,7 +483,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     setPropagation(Propagation.EXPLICIT);
 
     setTransition((TransitionImpl) transition);
-    
+
     fire(Event.END, getActivity(), AtomicOperation.TRANSITION_END_ACTIVITY);
   }
 
@@ -493,24 +504,24 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     }
     execute(nestedActivity);
   }
-  
+
   /** @see Execution#execute(Activity) */
   public void execute(Activity activity) {
     if (activity==null) {
       throw new JbpmException("activity is null");
     }
     checkActive();
-    
+
     this.propagation = Propagation.EXPLICIT;
     performAtomicOperation(new MoveToChildActivity((ActivityImpl) activity));
   }
-  
+
   // execution method : waitForSignal /////////////////////////////////////////
-  
+
   public void waitForSignal() {
     propagation = Propagation.WAIT;
   }
-  
+
   // execution method : proceed ///////////////////////////////////////////////
 
   public void proceed() {
@@ -522,8 +533,8 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     if (defaultTransition!=null) {
       take(defaultTransition);
     }
-    // in block structured processDefinition languages we assume that 
-    // there is no default transition and that there is a 
+    // in block structured processDefinition languages we assume that
+    // there is no default transition and that there is a
     // parent activity of the current activity
     else {
       ActivityImpl parentActivity = getActivity().getParentActivity();
@@ -534,9 +545,9 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
         performAtomicOperation(AtomicOperation.PROPAGATE_TO_PARENT);
       }
       else {
-        // When we don't know how to proceed, i don't know if it's best to 
+        // When we don't know how to proceed, i don't know if it's best to
         // throw new PvmException("don't know how to proceed");
-        // or to end the execution.  Because of convenience for testing, 
+        // or to end the execution.  Because of convenience for testing,
         // I opted to end the execution.
         end();
       }
@@ -552,7 +563,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   }
 
   // events ///////////////////////////////////////////////////////////////////
-  
+
   public void fire(String eventName, ObservableElement eventSource) {
     fire(eventName, (ObservableElementImpl) eventSource, null);
   }
@@ -571,17 +582,17 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
       performAtomicOperationSync(eventCompletedOperation);
     }
   }
-  
+
   public static EventImpl findEvent(ObservableElementImpl observableElement, String eventName) {
     if (observableElement==null) {
       return null;
     }
-    
+
     EventImpl event = observableElement.getEvent(eventName);
     if (event!=null) {
       return event;
     }
-    
+
     return findEvent(observableElement.getParent(), eventName);
   }
 
@@ -611,7 +622,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     return propagatingExecution;
   }
 
-  // asynchronous continuations ////////////////////////////////////////////////  
+  // asynchronous continuations ////////////////////////////////////////////////
 
   public synchronized void performAtomicOperation(AtomicOperation operation) {
     if (operation.isAsync(this)) {
@@ -621,14 +632,14 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
       performAtomicOperationSync(operation);
     }
   }
-  
+
   public void sendContinuationMessage(AtomicOperation operation) {
     EnvironmentImpl environment = EnvironmentImpl.getCurrent();
     MessageSession messageSession = environment.get(MessageSession.class);
     if (messageSession==null) {
       throw new JbpmException("no message-session configured to send asynchronous continuation message");
     }
-    MessageImpl<?> asyncMessage = operation.createAsyncMessage(this);
+    MessageImpl asyncMessage = operation.createAsyncMessage(this);
     setState(Execution.STATE_ASYNC);
     messageSession.send(asyncMessage);
   }
@@ -638,8 +649,8 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
       // initialise the fifo queue of atomic operations
       atomicOperations = new LinkedList<AtomicOperation>();
       atomicOperations.offer(operation);
-      
-      ExecutionContext originalExecutionContext = null; 
+
+      ExecutionContext originalExecutionContext = null;
       ExecutionContext executionContext = null;
       EnvironmentImpl environment = EnvironmentImpl.getCurrent();
       if (environment!=null) {
@@ -654,7 +665,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
           environment.setContext(executionContext);
         }
       }
-      
+
       try {
         while (! atomicOperations.isEmpty()) {
           AtomicOperation atomicOperation = atomicOperations.poll();
@@ -663,7 +674,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
       }
       finally {
         atomicOperations = null;
-        
+
         if (executionContext!=null) {
           environment.removeContext(executionContext);
         }
@@ -677,13 +688,13 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     }
   }
 
-  /** 
+  /**
    * Important: Only use this if resolving an expression on another execution then the current execution
-   * 
+   *
    * TODO: remove this operation once the environment/executionContext is refactored
    */
   public Object resolveExpression(String expression, String language) {
-    ExecutionContext originalExecutionContext = null; 
+    ExecutionContext originalExecutionContext = null;
     ExecutionContext executionContext = null;
     EnvironmentImpl environment = EnvironmentImpl.getCurrent();
     if (environment!=null) {
@@ -698,10 +709,9 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
         environment.setContext(executionContext);
       }
     }
-    
+
     try {
-      ScriptManager scriptManager = ScriptManager.getScriptManager();
-      return scriptManager.evaluateScript(expression, language);
+      return Expression.create(expression, language).evaluate();
     }
     catch (RuntimeException e) {
       log.error("Error while evaluation script " + expression, e);
@@ -719,7 +729,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
 
   public void handleException(ObservableElementImpl observableElement, EventImpl event,
     EventListenerReference eventListenerReference, Exception exception, String rethrowMessage) {
-    
+
     List<ProcessElementImpl> processElements = new ArrayList<ProcessElementImpl>();
     if (eventListenerReference!=null) {
       processElements.add(eventListenerReference);
@@ -731,7 +741,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
       processElements.add(observableElement);
       observableElement = observableElement.getParent();
     }
-    
+
     for (ProcessElementImpl processElement: processElements) {
       List<ExceptionHandlerImpl> exceptionHandlers = processElement.getExceptionHandlers();
       if (exceptionHandlers!=null) {
@@ -755,7 +765,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     log.trace("rethrowing exception cause no exception handler for "+exception);
     ExceptionHandlerImpl.rethrow(exception, rethrowMessage+": "+exception.getMessage());
   }
-  
+
   // tasks ////////////////////////////////////////////////////////////////////
 
   /** tasks and swimlane assignment.
@@ -767,10 +777,10 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     if (assigneeExpression!=null) {
       String assignee = (String) assigneeExpression.evaluate(this);
       assignable.setAssignee(assignee);
-      
+
       if (log.isTraceEnabled()) log.trace("task "+name+" assigned to "+assignee+" using expression "+assigneeExpression);
     }
-    
+
     Expression candidateUsersExpression = assignableDefinition.getCandidateUsersExpression();
     if (candidateUsersExpression!=null) {
       String candidateUsers = (String) candidateUsersExpression.evaluate(this);
@@ -781,7 +791,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
         assignable.addCandidateUser(candidateUser);
       }
     }
-  
+
     Expression candidateGroupsExpression = assignableDefinition.getCandidateGroupsExpression();
     if (candidateGroupsExpression!=null) {
       String candidateGroups = (String) candidateGroupsExpression.evaluate(this);
@@ -791,11 +801,11 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
         assignable.addCandidateGroup(candidateGroup);
       }
     }
-    
+
     UserCodeReference assignmentHandlerReference = assignableDefinition
       .getAssignmentHandlerReference();
     if (assignmentHandlerReference!=null) {
-      // JBPM-2758 
+      // JBPM-2758
       // TODO Find out why processdefinition is null in at this time....
       if (processDefinition == null) {
         processDefinition = getProcessDefinition();
@@ -814,25 +824,25 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   }
 
   protected String resolveAssignmentExpression(String expression, String expressionLanguage) {
-    ScriptManager scriptManager = EnvironmentImpl.getFromCurrent(ScriptManager.class);
-    Object result = scriptManager.evaluateExpression(expression, expressionLanguage);
+    Object result = Expression.create(expression, expressionLanguage).evaluate();
     if (result == null || result instanceof String) {
       return (String) result;
     }
-    throw new JbpmException("result of assignment expression "+expression+" is "+result+" ("+result.getClass().getName()+") instead of String");
+    throw new JbpmException("result of assignment expression " + expression
+        + " is " + result + " (" + result.getClass().getName() + ") instead of String");
   }
-  
+
   // swimlanes ////////////////////////////////////////////////////////////////
-  
+
   public void addSwimlane(SwimlaneImpl swimlane) {
     swimlanes.put(swimlane.getName(), swimlane);
     swimlane.setExecution(this);
   }
-  
+
   public SwimlaneImpl getSwimlane(String swimlaneName) {
     return swimlanes.get(swimlaneName);
   }
-  
+
   public void removeSwimlane(SwimlaneImpl swimlane) {
     swimlanes.remove(swimlane.getName());
     swimlane.setExecution(null);
@@ -864,7 +874,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     swimlanes.put(swimlaneName, swimlane);
     return swimlane;
   }
-  
+
   // child executions /////////////////////////////////////////////////////////
 
   public ExecutionImpl createExecution() {
@@ -873,22 +883,22 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
 
   public ExecutionImpl createExecution(String name) {
     // when an activity calls createExecution, propagation is explicit.
-    // this means that the default propagation (proceed()) will not be called 
+    // this means that the default propagation (proceed()) will not be called
     propagation = Propagation.EXPLICIT;
 
     // create new execution
     ExecutionImpl childExecution = newChildExecution();
-    // initialize child execution 
+    // initialize child execution
     childExecution.setProcessDefinition(getProcessDefinition());
     childExecution.processInstance = this.processInstance;
     childExecution.name = name;
-    
+
     // composeIds uses the parent so the childExecution has to be added before the ids are composed
-	childExecution.setParent(this);
+    childExecution.setParent(this);
     childExecution.save();
 
     // make sure that child execution are saved before added to a persistent collection
-    // cause of the 'assigned' id strategy, adding the childExecution to the persistent collection 
+    // cause of the 'assigned' id strategy, adding the childExecution to the persistent collection
     // before the dbid is assigned will result in identifier of an instance of ExecutionImpl altered from 0 to x
     addExecution(childExecution);
 
@@ -942,7 +952,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     }
     return executionsMap;
   }
-  
+
   public boolean hasExecution(String name) {
     return getExecutionsMap() != null && executionsMap.containsKey(name);
   }
@@ -960,11 +970,11 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
       && activityName != null) {
       activityNames.add(activityName);
     }
-  
+
     for (ExecutionImpl childExecution: executions) {
       childExecution.addActiveActivityNames(activityNames);
     }
-  
+
     return activityNames;
   }
 
@@ -982,9 +992,9 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
 
     return null;
   }
-  
+
   // system variables /////////////////////////////////////////////////////////
-  
+
   public void createSystemVariable(String key, Object value) {
     createSystemVariable(key, value, null);
   }
@@ -1005,7 +1015,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
       createSystemVariable(key, value, null);
     }
   }
-  
+
   public Object getSystemVariable(String key) {
     Variable variable = systemVariables.get(key);
     if (variable!=null) {
@@ -1013,7 +1023,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     }
     return null;
   }
-  
+
   public boolean removeSystemVariable(String key) {
     if (systemVariables.containsKey(key)) {
       return systemVariables.remove(key) != null;
@@ -1026,7 +1036,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   public ClientProcessInstance createSubProcessInstance(ClientProcessDefinition processDefinition) {
     return createSubProcessInstance(processDefinition, null);
   }
-  
+
   public ClientProcessInstance createSubProcessInstance(ClientProcessDefinition processDefinition, String key) {
     if (subProcessInstance!=null) {
       throw new JbpmException(toString()+" already has a sub process instance: "+subProcessInstance);
@@ -1035,11 +1045,11 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     subProcessInstance.setSuperProcessExecution(this);
     return subProcessInstance;
   }
-  
+
   public ClientProcessInstance startSubProcessInstance(ClientProcessDefinition processDefinition) {
     return startSubProcessInstance(processDefinition, null);
   }
-  
+
   public ClientProcessInstance startSubProcessInstance(ClientProcessDefinition processDefinition, String key) {
     createSubProcessInstance(processDefinition, key);
     subProcessInstance.start();
@@ -1073,11 +1083,11 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     if (!isActive()) {
       throw new JbpmException(toString()+" is not active: "+state);
     } else if (this.subProcessInstance != null && !Execution.STATE_ENDED.equals(this.subProcessInstance.getState())) {
-      throw new JbpmException(toString() + " has running subprocess: " 
+      throw new JbpmException(toString() + " has running subprocess: "
               + this.subProcessInstance.toString() + " in state " + this.subProcessInstance.getState());
     }
   }
-  
+
   public boolean isEnded() {
     if (Execution.STATE_ENDED.equals(state)) {
       return true;
@@ -1109,7 +1119,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   ////////////////////////////////////////////////////////////////////////////////
 
   // overriding the ScopeInstanceImpl methods /////////////////////////////////
-  
+
   public ScopeInstanceImpl getParentVariableScope() {
     return parent;
   }
@@ -1119,10 +1129,10 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   }
 
   // overridable by process languages /////////////////////////////////////////
-  
-  /** by default this will use {@link ActivityImpl#findOutgoingTransition(String)} to 
-   * search for the outgoing transition, which includes a search over the parent chain 
-   * of the current activity.  This method allows process languages to overwrite this default 
+
+  /** by default this will use {@link ActivityImpl#findOutgoingTransition(String)} to
+   * search for the outgoing transition, which includes a search over the parent chain
+   * of the current activity.  This method allows process languages to overwrite this default
    * implementation of the transition lookup by transitionName.*/
   protected TransitionImpl findTransition(String transitionName) {
     return getActivity().findOutgoingTransition(transitionName);
@@ -1131,7 +1141,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   protected TransitionImpl findDefaultTransition() {
     return getActivity().findDefaultTransition();
   }
-  
+
   // history //////////////////////////////////////////////////////////////////
 
   public void historyAutomatic() {
@@ -1141,7 +1151,7 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   public void historyDecision(String transitionName) {
     HistoryEvent.fire(new DecisionEnd(transitionName), this);
   }
-  
+
   public void historyActivityStart() {
     HistoryEvent.fire(new ActivityStart(), this);
   }
@@ -1161,12 +1171,12 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   public boolean equals(Object o) {
     return EqualsUtil.equals(this, o);
   }
-  
+
   // process definition getter and setter /////////////////////////////////////
-  // this getter and setter is special because persistence is based on the   // 
+  // this getter and setter is special because persistence is based on the   //
   // process definition id.                                                  //
   /////////////////////////////////////////////////////////////////////////////
-  
+
   public ProcessDefinitionImpl getProcessDefinition() {
     if (processDefinition == null && processDefinitionId != null) {
       RepositorySession repositorySession = EnvironmentImpl
@@ -1182,19 +1192,19 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
     this.processDefinition = processDefinition;
     this.processDefinitionId = processDefinition.getId();
   }
-  
+
   // activity getter and setter ///////////////////////////////////////////////
-  // this getter and setter is special because persistence is based on the   // 
+  // this getter and setter is special because persistence is based on the   //
   // activity name.                                                          //
   /////////////////////////////////////////////////////////////////////////////
-  
+
   public ActivityImpl getActivity() {
     if (activity == null && activityName != null) {
       activity = getProcessDefinition().findActivity(activityName);
     }
     return activity;
   }
-  
+
   public void setActivity(ActivityImpl activity) {
     this.activity = activity;
     if (activity!=null) {
@@ -1226,14 +1236,14 @@ public class ExecutionImpl extends ScopeInstanceImpl implements ClientProcessIns
   }
 
   // getters and setters for scope instance //////////////////////////////////////
-  
+
   @Override
   public ExecutionImpl getExecution() {
     return this;
   }
 
   // getters and setters /////////////////////////////////////////////////////////
-  
+
   public TransitionImpl getTransition() {
     return transition;
   }

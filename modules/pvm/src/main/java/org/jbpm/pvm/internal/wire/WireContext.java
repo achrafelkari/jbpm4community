@@ -640,9 +640,7 @@ public class WireContext extends DefaultObservable implements Context, Closable,
       if (descriptors!=null) {
         Descriptor descriptor = descriptors.get(objectName);
         if (descriptor!=null) {
-          if (wireEvent==null) {
-            wireEvent = new WireObjectEventInfo(eventName, objectName, object);
-          }
+          wireEvent = new WireObjectEventInfo(eventName, objectName, object);
           descriptor.fire(eventName, wireEvent);
         }
       }

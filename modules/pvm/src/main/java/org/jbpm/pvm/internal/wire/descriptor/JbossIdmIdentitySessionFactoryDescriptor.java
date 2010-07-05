@@ -23,12 +23,11 @@ package org.jbpm.pvm.internal.wire.descriptor;
 
 import javax.naming.InitialContext;
 
-import org.jboss.identity.idm.api.IdentitySessionFactory;
-import org.jboss.identity.idm.impl.configuration.IdentityConfigurationImpl;
+import org.picketlink.idm.api.IdentitySessionFactory;
+import org.picketlink.idm.impl.configuration.IdentityConfigurationImpl;
 import org.jbpm.api.JbpmException;
 import org.jbpm.pvm.internal.wire.WireContext;
 import org.jbpm.pvm.internal.wire.WireDefinition;
-
 
 /**
  * @author Tom Baeyens

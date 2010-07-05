@@ -23,10 +23,8 @@ package org.jbpm.pvm.internal.tx;
 
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.cmd.Command;
-import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.svc.Interceptor;
-
 
 /** calls setRollbackOnly on the transaction in the environment 
  * in case an exception occurs during execution of the command.
@@ -34,8 +32,6 @@ import org.jbpm.pvm.internal.svc.Interceptor;
  * @author Tom Baeyens
  */
 public class StandardTransactionInterceptor extends Interceptor {
-  
-  private static final Log log = Log.getLog(StandardTransactionInterceptor.class.getName());
   
   public <T> T execute(Command<T> command) {
     EnvironmentImpl environment = EnvironmentImpl.getCurrent();

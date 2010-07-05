@@ -2,16 +2,17 @@
 #
 # runs the jboss integration test suite
 
-MAVEN_OPTS="-Xmx512M -Djboss.bind.address=$JBOSS_BINDADDR"
-ANT_OPTS="-Djboss.version=$JBOSS_VERSION -Djbpm.parent.dir=$WORKSPACE \
--Djboss.distro.dir=$SOURCE_REPO/jboss -Djboss.bind.address=$JBOSS_BINDADDR \
--Dhsql.bind.address=$JBOSS_BINDADDR"
+export MAVEN_OPTS="-Dbind.address=$JBOSS_BINDADDR"
 
+export ANT_OPTS="-Djbpm.parent.dir=$WORKSPACE -Dbind.address=$JBOSS_BINDADDR \
+       -Djboss.distro.dir=$SOURCE_REPO/jboss -Djboss.version=$JBOSS_VERSION"
+
+# build distribution
 mvn -U -Pdistro,enterprise clean install
+# set up
 ant -f qa/build.xml testsuite.enterprise.setup
-
-cd modules/test-enterprise/test-enterprise-suite
-mvn -Pruntest test
-cd ../../..
-
+# run test suite
+mvn -f modules/test-enterprise/test-enterprise-suite/pom.xml -Pruntest \
+    -Dmaven.test.failure.ignore=true test
+# tear down
 ant -f qa/build.xml testsuite.enterprise.teardown

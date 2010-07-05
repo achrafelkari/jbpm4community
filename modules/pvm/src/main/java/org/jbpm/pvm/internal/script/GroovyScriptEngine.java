@@ -31,6 +31,7 @@
 package org.jbpm.pvm.internal.script;
 import java.io.*;
 import java.util.*;
+
 import javax.script.*;
 import groovy.lang.*;
 import org.codehaus.groovy.syntax.SyntaxException;
@@ -47,7 +48,7 @@ public class GroovyScriptEngine
     private static boolean DEBUG = false;
 
     // script-string-to-generated Class map
-    private Map<String, Class> classMap;
+    private Map<String, Class<?>> classMap;
     // global closures map - this is used to simulate a single
     // global functions namespace 
     private Map<String, Closure> globalClosures;
@@ -64,8 +65,8 @@ public class GroovyScriptEngine
     }
     
     public GroovyScriptEngine() {    
-        classMap = Collections.synchronizedMap(new HashMap<String, Class>());
-        globalClosures = Collections.synchronizedMap(new HashMap<String, Closure>());
+        classMap = new Hashtable<String, Class<?>>();
+        globalClosures = new Hashtable<String, Closure>();
         loader = new GroovyClassLoader(getParentLoader(),
                                        new CompilerConfiguration());
     }
@@ -148,7 +149,7 @@ public class GroovyScriptEngine
     }
 
     // package-privates
-    Object eval(Class scriptClass, final ScriptContext ctx) throws ScriptException {
+    Object eval(Class<?> scriptClass, final ScriptContext ctx) throws ScriptException {
         //add context to bindings
         ctx.setAttribute("context", ctx, ScriptContext.ENGINE_SCOPE);
         
@@ -246,11 +247,11 @@ public class GroovyScriptEngine
         }
     }
 
-    Class getScriptClass(String script) 
+    Class<?> getScriptClass(String script) 
                          throws SyntaxException, 
                                 CompilationFailedException, 
                                 IOException {
-        Class clazz = classMap.get(script);
+        Class<?> clazz = classMap.get(script);
         if (clazz != null) {
             return clazz;
         }
@@ -261,10 +262,7 @@ public class GroovyScriptEngine
         return clazz;
     }
 
-    //-- Internals only below this point
-
-    // invokes the specified method/function on the given object.
-    private Object invokeImpl(Object thiz, String name, Object... args) 
+    Object invokeImpl(Object thiz, String name, Object... args) 
              throws ScriptException, NoSuchMethodException  {
         if (name == null) {
             throw new NullPointerException("method name is null");
@@ -288,7 +286,7 @@ public class GroovyScriptEngine
         return callGlobal(name, args, context);
     }
 
-    private Object callGlobal(String name, Object[] args, ScriptContext ctx) {
+    Object callGlobal(String name, Object[] args, ScriptContext ctx) {
         Closure closure = globalClosures.get(name);
         if (closure != null) {
             return closure.call(args);
@@ -313,7 +311,7 @@ public class GroovyScriptEngine
         if (clazz == null || !clazz.isInterface()) {
             throw new IllegalArgumentException("interface Class expected");
         }
-        return (T) Proxy.newProxyInstance(
+        return clazz.cast(Proxy.newProxyInstance(
             clazz.getClassLoader(),
             new Class[] { clazz },
             new InvocationHandler() {
@@ -321,7 +319,7 @@ public class GroovyScriptEngine
                                      throws Throwable {
                     return invokeImpl(thiz, m.getName(), args);
                 }
-            });
+            }));
     }
 
     // determine appropriate class loader to serve as parent loader
@@ -330,7 +328,7 @@ public class GroovyScriptEngine
         // check whether thread context loader can "see" Groovy Script class
         ClassLoader ctxtLoader = Thread.currentThread().getContextClassLoader();
         try {
-            Class c = ctxtLoader.loadClass("org.codehaus.groovy.Script");
+            Class<?> c = ctxtLoader.loadClass("org.codehaus.groovy.Script");
             if (c == Script.class) {
                 return ctxtLoader;
             }

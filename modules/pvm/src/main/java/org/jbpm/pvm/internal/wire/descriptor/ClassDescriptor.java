@@ -15,29 +15,24 @@ public class ClassDescriptor extends AbstractDescriptor {
 
   private static final long serialVersionUID = 1L;
 
-  String text;
+  String className;
 
   /** loads the class from the class loader of the specified WireContext.
    * @throws WireException if the class could not be loaded.
    */
   public Object construct(WireContext wireContext) {
     try {
-      return ReflectUtil.classForName(text);
-    } catch (Exception e) {
-      Throwable cause = (e.getCause()!=null ? e.getCause() : e);
-      throw new WireException("couldn't load class '"+text+"': "+cause.getMessage(), cause);
+      return ReflectUtil.classForName(className);
+    } catch (ClassNotFoundException e) {
+      throw new WireException("could not find class: "+className, e);
     }
   }
 
   public void setClassName(String className) {
-    this.text = className;
+    this.className = className;
   }
 
   public void setClass(Class<?> clazz) {
-    if (clazz==null) {
-      text = null;
-    } else {
-      this.text = clazz.getName();
-    }
+    className = clazz != null ? clazz.getName() : null;
   }
 }

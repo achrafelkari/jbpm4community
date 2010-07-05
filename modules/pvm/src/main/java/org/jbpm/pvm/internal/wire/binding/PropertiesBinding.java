@@ -45,6 +45,10 @@ public class PropertiesBinding extends WireDescriptorBinding {
   }
 
   public Object parse(Element element, Parse parse, Parser parser) {
+    return parseDescriptor(element, parse, parser);
+  }
+
+  public static PropertiesDescriptor parseDescriptor(Element element, Parse parse, Parser parser) {
     PropertiesDescriptor descriptor = new PropertiesDescriptor();
     
     if (element.hasAttribute("file")) {

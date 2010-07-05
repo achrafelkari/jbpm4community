@@ -28,12 +28,13 @@ import java.util.List;
 import org.hibernate.Session;
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
+import org.jbpm.api.cmd.VoidCommand;
 import org.jbpm.api.history.HistoryComment;
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.history.model.HistoryDetailImpl;
 import org.jbpm.pvm.internal.job.CommandMessage;
 import org.jbpm.pvm.internal.session.MessageSession;
-
+import org.jbpm.pvm.internal.util.CollectionUtil;
 
 /**
  * @author Tom Baeyens
@@ -66,20 +67,21 @@ public class FailOnceMessageTest extends JobExecutorTestCase {
     
     log.debug("==== all messages processed, now checking if all messages have arrived exactly once ====");
 
-    commandService.execute(new Command<Object>() {
+    commandService.execute(new VoidCommand() {
+      private static final long serialVersionUID = 1L;
 
-      public Object execute(Environment environment) throws Exception {
+      @Override
+      protected void executeVoid(Environment environment) throws Exception {
         Session session = environment.get(Session.class);
-        List<HistoryComment> comments = session.createQuery("from " + HistoryDetailImpl.class.getName()).list();
+        List<?> comments = session.createCriteria(HistoryDetailImpl.class).list();
         
-        for (HistoryComment comment : comments) {
+        for (HistoryComment comment : CollectionUtil.checkList(comments, HistoryComment.class)) {
           log.debug("retrieved message: "+comment.getMessage());
           Integer messageId = new Integer(comment.getMessage());
           assertTrue("message " + messageId + " committed twice", failOnceMessageIds.remove(messageId));
         }
 
         assertTrue("not all messages made a successful commit: " + failOnceMessageIds, failOnceMessageIds.isEmpty());
-        return null;
       }
     });
   }

@@ -207,7 +207,7 @@
     <discriminator column="CLASS_" />
     <version name="dbversion" column="DBVERSION_" />
 
-    <property name="duedate" column="DUEDATE_" type="timestamp" index="IDX_JOBDUEDATE"  />
+    <property name="dueDate" column="DUEDATE_" type="timestamp" index="IDX_JOBDUEDATE"  />
     <property name="state" column="STATE_" />
     <property name="isExclusive" column="ISEXCLUSIVE_" />
     <property name="lockOwner" column="LOCKOWNER_" />
@@ -260,7 +260,7 @@
     <![CDATA[
      select t
      from org.jbpm.pvm.internal.job.TimerImpl as t
-     order by duedate asc
+     order by dueDate asc
     ]]>
   </query>
 
@@ -276,7 +276,7 @@
      select job
      from org.jbpm.pvm.internal.job.JobImpl as job
      where job.retries = 0 
-     order by duedate asc
+     order by dueDate asc
     ]]>
   </query>
 
@@ -285,19 +285,11 @@
     <![CDATA[
      select job
      from org.jbpm.pvm.internal.job.JobImpl as job
-     where ( ( (job.lockExpirationTime is null)
-               or (job.lockExpirationTime <= :now) 
-             )
-             and 
-             ( (job.duedate is null)
-               or (job.duedate <= :now) 
-             ) 
-             and 
-             ( job.retries > 0 ) 
-             and 
-             ( job.state != 'suspended' ) 
-           )
-     order by job.duedate asc
+     where (job.lockExpirationTime is null or job.lockExpirationTime <= :now)
+       and (job.dueDate is null or job.dueDate <= :now) 
+       and job.retries > 0 
+       and job.state != 'suspended' 
+     order by job.dueDate asc
     ]]>
   </query>
 
@@ -310,10 +302,8 @@
        and job.isExclusive = true 
        and job.retries > 0 
        and job.state != 'suspended'
-       and ( (job.duedate is null)
-             or (job.duedate <= :now) 
-           )
-     order by job.duedate asc
+       and (job.dueDate is null or job.dueDate <= :now)
+     order by job.dueDate asc
     ]]>
   </query>
   
@@ -324,7 +314,7 @@
      where job.lockOwner is null
        and job.retries > 0 
        and job.state != 'suspended'
-     order by job.duedate asc
+     order by job.dueDate asc
     ]]>
   </query>
   
@@ -356,4 +346,12 @@
     ]]>
   </query>
 
+  <query name="findProcessInstanceIds">
+    <![CDATA[
+     select processInstance.id
+     from org.jbpm.pvm.internal.model.ExecutionImpl as processInstance
+     where processInstance.processDefinitionId = :processDefinitionId
+       and processInstance.parent is null
+    ]]>
+  </query>
 </hibernate-mapping>

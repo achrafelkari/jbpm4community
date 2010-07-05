@@ -84,7 +84,7 @@ public class ScriptContextEngineView implements Map<String,Object>
 	 */
 	public boolean containsValue( Object value )
 	{
-		Set values = totalValueSet();
+		Set<Object> values = totalValueSet();
 		return values.contains( value );
 	}
 
@@ -208,7 +208,7 @@ public class ScriptContextEngineView implements Map<String,Object>
 	 *
 	 * @return a set view of the keys contained in this map.
 	 */
-	public Set keySet()
+	public Set<String> keySet()
 	{
 		return totalKeySet();
 	}
@@ -220,7 +220,7 @@ public class ScriptContextEngineView implements Map<String,Object>
 	 *
 	 * @return a collection view of the values contained in this map.
 	 */
-	public Collection values()
+	public Collection<Object> values()
 	{
 		return totalValueSet();
 	}
@@ -245,18 +245,18 @@ public class ScriptContextEngineView implements Map<String,Object>
 		throw new Error("unimplemented");
 	}
 
-	private Set totalKeySet()
+	private Set<String> totalKeySet()
 	{
-		Set keys = new HashSet();
+		Set<String> keys = new HashSet<String>();
 		List<Integer> scopes = context.getScopes();
 		for ( int i : scopes ) {
 			keys.addAll( context.getBindings( i ).keySet() );
 		}
 		return Collections.unmodifiableSet(keys);
 	}
-	private Set totalValueSet()
+	private Set<Object> totalValueSet()
 	{
-		Set values = new HashSet();
+		Set<Object> values = new HashSet<Object>();
 		List<Integer> scopes = context.getScopes();
 		for ( int i : scopes ) {
 			values.addAll( context.getBindings( i ).values() );

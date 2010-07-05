@@ -24,12 +24,11 @@ package org.jbpm.pvm.internal.model.op;
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.pvm.internal.job.MessageImpl;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
-import org.jbpm.pvm.internal.session.DbSession;
 
 /**
  * @author Tom Baeyens
  */
-public class TransitionStartActivityMessage extends MessageImpl<Object> {
+public class TransitionStartActivityMessage extends MessageImpl {
 
   private static final long serialVersionUID = 1L;
 
@@ -40,15 +39,10 @@ public class TransitionStartActivityMessage extends MessageImpl<Object> {
     super(execution);
   }
 
-  public Object execute(Environment environment) throws Exception {
+  protected void executeVoid(Environment environment) throws Exception {
     AsyncContinuations.restoreState(execution);
 
     execution.performAtomicOperationSync(AtomicOperation.TRANSITION_START_ACTIVITY);
-    
-    DbSession dbSession = environment.get(DbSession.class);
-    dbSession.delete(this);
-
-    return null;
   }
   
   public String toString() {
