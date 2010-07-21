@@ -75,6 +75,7 @@ public class HistoryVariableImpl implements Serializable {
     if ( (value==null && newValue!=null)
          || (value!=null && (!value.equals(newValue)))
        ) {
+      this.value = newValue;
       addDetail(new HistoryVariableUpdateImpl(value, newValue));
     }
   }

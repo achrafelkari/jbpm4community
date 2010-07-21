@@ -33,7 +33,7 @@ import org.jbpm.test.JbpmTestCase;
 public class AssignTest extends JbpmTestCase {
 
   public void testFromExprToVar() {
-    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/jpdl/4.4'>"
+    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/4.4/jpdl'>"
       + "  <start>"
       + "    <transition to='resolve' />"
       + "  </start>"
@@ -52,7 +52,7 @@ public class AssignTest extends JbpmTestCase {
   }
 
   public void testFromMethodExprToVar() {
-    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/jpdl/4.4'>"
+    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/4.4/jpdl'>"
       + "  <start>"
       + "    <transition to='resolve' />"
       + "  </start>"
@@ -71,7 +71,7 @@ public class AssignTest extends JbpmTestCase {
   }
 
   public void testFromMethodParamExprToVar() {
-    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/jpdl/4.4'>"
+    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/4.4/jpdl'>"
       + "  <start>"
       + "    <transition to='resolve' />"
       + "  </start>"
@@ -90,7 +90,7 @@ public class AssignTest extends JbpmTestCase {
   }
 
   public void testFromDescToExpr() {
-    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/jpdl/4.4'>"
+    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/4.4/jpdl'>"
       + "  <start>"
       + "    <transition to='resolve' />"
       + "  </start>"
@@ -111,7 +111,7 @@ public class AssignTest extends JbpmTestCase {
   }
 
   public void testFromVarToVar() {
-    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/jpdl/4.4'>"
+    deployJpdlXmlString("<process name='AssignTest' xmlns='http://jbpm.org/4.4/jpdl'>"
       + "  <start>"
       + "    <transition to='resolve' />"
       + "  </start>"

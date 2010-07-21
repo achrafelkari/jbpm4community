@@ -24,48 +24,36 @@ import org.jbpm.api.job.Timer;
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.job.TimerImpl;
 import org.jbpm.pvm.internal.session.TimerSession;
-import org.jbpm.pvm.internal.tx.Transaction;
 import org.jbpm.pvm.internal.util.CollectionUtil;
 
 /**
  * Timers created with this service are committed at the end of the transaction,
  * so their execution will be late if the delay is shorter than the transaction.
  * In that case, they will be executed at the end of the transaction.
- * 
+ *
  * @author Tom Baeyens, Pascal Verdage
+ * @author Huisheng Xu
  */
 public class JobExecutorTimerSession implements TimerSession {
 
   private static final Log log = Log.getLog(TimerSession.class.getName());
 
   /* injected */
-  Transaction transaction;
-
-  /* injected */
-  JobExecutor jobExecutor;
-
-  /* injected */
   Session session;
 
-  boolean jobExecutorNotificationScheduled = false;
+  /* injected. */
+  JobAdditionNotifier jobAdditionNotifier;
 
   public void schedule(Timer timer) {
     if (timer == null) throw new JbpmException("null timer scheduled");
     TimerImpl timerImpl = (TimerImpl) timer;
     timerImpl.validate();
-    
+
     log.debug("scheduling " + timer);
     session.save(timer);
-    
-    if ( (!jobExecutorNotificationScheduled)
-         && (jobExecutor!=null)
-       ) {
-      jobExecutorNotificationScheduled = true;
-      
-      //a transaction is not required (can be null)
-      if (transaction != null) {
-        transaction.registerSynchronization(new JobAddedNotification(jobExecutor));    	  
-      }
+
+    if (jobAdditionNotifier != null) {
+      jobAdditionNotifier.registerNotification();
     }
   }
 

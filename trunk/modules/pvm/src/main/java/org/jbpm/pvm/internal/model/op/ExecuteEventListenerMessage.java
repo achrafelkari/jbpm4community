@@ -152,4 +152,9 @@ public class ExecuteEventListenerMessage extends MessageImpl {
 
     execution.performAtomicOperationSync(AtomicOperation.EXECUTE_EVENT_LISTENER);
   }
+
+  @Override
+  public String toString() {
+    return "ExecuteEventListenerMessage[" + dbid + "]";
+  }
 }

@@ -109,7 +109,8 @@ public class MailProducerImpl implements MailProducer, Serializable {
     String addresses = fromTemplate.getAddresses();
     if (addresses != null) {
       addresses = evaluateExpression(addresses);
-      email.addFrom(InternetAddress.parse(addresses));
+      // non-strict parsing applies to a list of mail addresses entered by a human
+      email.addFrom(InternetAddress.parse(addresses, false));
     }
 
     EnvironmentImpl environment = EnvironmentImpl.getCurrent();
@@ -179,7 +180,8 @@ public class MailProducerImpl implements MailProducer, Serializable {
     String addresses = addressTemplate.getAddresses();
     if (addresses != null) {
       addresses = evaluateExpression(addresses);
-      email.addRecipients(recipientType, InternetAddress.parse(addresses));
+      // non-strict parsing applies to a list of mail addresses entered by a human
+      email.addRecipients(recipientType, InternetAddress.parse(addresses, false));
     }
 
     EnvironmentImpl environment = EnvironmentImpl.getCurrent();

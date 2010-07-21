@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ====================================================================== -->
+<!--  jBPM: Workflow in Java                                                -->
+<!--                                                                        -->
+<!--  Distributable under LGPL license.                                     -->
+<!--  See terms of license at http://www.gnu.org.                           -->
+<!-- ====================================================================== -->
+
+<!-- $Id: pom.xml 6518 2010-07-18 09:39:38Z alex.guizar@jboss.com $ -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -12,19 +22,14 @@
   <parent>
     <groupId>org.jbpm.jbpm4</groupId>
     <artifactId>jbpm</artifactId>
-    <version>4.3-hot-patch-v1</version>
+    <version>4.4-hot-patch-v1</version>
   </parent>
-
-  <!-- Properties -->
-  <properties>
-  </properties>
 
   <!-- Dependencies -->
   <dependencies>
     <dependency>
       <groupId>org.jbpm.jbpm4</groupId>
-      <artifactId>jbpm-jpdl</artifactId>      
+      <artifactId>jbpm-jpdl</artifactId>
     </dependency>
   </dependencies>
-
 </project>

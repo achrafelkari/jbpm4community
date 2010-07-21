@@ -33,7 +33,9 @@ import org.jbpm.api.ProcessInstance;
 import org.jbpm.test.JbpmCustomCfgTestCase;
 import org.jbpm.test.JbpmTestCase;
 
-
+/**
+ * @author Huisheng Xu
+ */
 public class SlashInActivityTest extends JbpmCustomCfgTestCase {
 
   private static final String PROCESS_KEY = "test_process";
@@ -47,6 +49,12 @@ public class SlashInActivityTest extends JbpmCustomCfgTestCase {
       "</process>";
 
   public void testSlashInActivity() {
-    deployJpdlXmlString(TEST_PROCESS);
+    try {
+      deployJpdlXmlString(TEST_PROCESS);
+      fail("shouldn't success deploy");
+    } catch(JbpmException ex) {
+      assertEquals("error: attribute <start name=\"1/2\" contains slash (/) [line=1 column=50 ]",
+        ex.getMessage().trim());
+    }
   }
 }

@@ -23,50 +23,50 @@ package org.jbpm.test.load.async;
 
 import java.util.List;
 
-import org.jbpm.api.JbpmException;
+import org.hibernate.Session;
+
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.api.cmd.VoidCommand;
-import org.jbpm.api.job.Job;
+import org.jbpm.pvm.internal.history.model.HistoryCommentImpl;
 import org.jbpm.pvm.internal.job.CommandMessage;
+import org.jbpm.pvm.internal.job.JobImpl;
 import org.jbpm.pvm.internal.session.MessageSession;
+import org.jbpm.test.JbpmTestCase;
 
 /**
  * @author Tom Baeyens
  */
-public class FailingMessageTest extends JobExecutorTestCase {
+public class FailingMessageTest extends JbpmTestCase {
 
-  
   public void testFailedMessageProcessing() {
-    jobExecutor.start();
-    try {
-      commandService.execute(new VoidCommand() {
-        private static final long serialVersionUID = 1L;
+    processEngine.execute(new VoidCommand() {
 
-        @Override
-        protected void executeVoid(Environment environment) throws Exception {
-          MessageSession messageSession = environment.get(MessageSession.class);
-          CommandMessage commandMessage = FailingTestCommand.createMessage();
-          messageSession.send(commandMessage);
-        }
-      });
+      private static final long serialVersionUID = 1L;
 
-      waitTillNoMoreMessages();
+      @Override
+      protected void executeVoid(Environment environment) throws Exception {
+        MessageSession messageSession = environment.get(MessageSession.class);
+        CommandMessage commandMessage = FailingTestCommand.createMessage();
+        messageSession.send(commandMessage);
+      }
+    });
 
-    } finally {
-      jobExecutor.stop(true);
-    }
+    waitTillNoMoreMessages();
 
-    commandService.execute(new VoidCommand() {
+    processEngine.execute(new VoidCommand() {
+
       private static final long serialVersionUID = 1L;
 
       @Override
       public void executeVoid(Environment environment) throws Exception {
-        List<Job> deadJobs = null;
-        throw new JbpmException("todo get the jobs with exception");
+        Session session = environment.get(Session.class);
 
-//        Session session = environment.get(Session.class);
-//        List commands = session.createQuery("from " + HistoryCommentImpl.class.getName()).list();
-//        assertTrue("command insertion should have been rolled back", commands.isEmpty());
+        List<?> deadJobs = session.createCriteria(JobImpl.class).list();
+        assertEquals(1, deadJobs.size());
+        session.delete(deadJobs.get(0));
+
+        List<?> comments = session.createCriteria(HistoryCommentImpl.class).list();
+        assertEquals("command insertion should have been rolled back", 0, comments.size());
       }
     });
   }

@@ -5,7 +5,7 @@
   <start>
     <transition to="evaluate document" />
   </start>
-  
+
   <group name="evaluate document">
     <start>
       <transition to="approve" />
@@ -14,13 +14,13 @@
       <transition to="done" />
     </state>
     <end name="done" />
-    
+
     <transition to="publish document" />
     <transition name="timeout" to="escalate">
       <timer duedate="2 business hours" />
     </transition>
   </group>
-  
+
   <state name="escalate" />
   <state name="publish document" />
 

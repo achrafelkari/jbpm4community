@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<process name="Purchase order" xmlns="http://jbpm.org/4.3/jpdl"
+<process name="Purchase order" xmlns="http://jbpm.org/4.4/jpdl"
                                xmlns:ext="http://jbpm.org/customextensions">
 
   <start>
@@ -11,7 +11,7 @@
     <customconfigelement a="yyy" />
     <transition to="end"/>
   </customactivity>
-  
+
   <end name="end" />
 
 </process>

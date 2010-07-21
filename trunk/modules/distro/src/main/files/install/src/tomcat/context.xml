@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Context>
+  <ResourceLink name="jdbc/JbpmDS" global="jdbc/jbpm" type="javax.sql.DataSource" />
+  <Realm className="org.jbpm.integration.tomcat6.JbpmConsoleRealm" dataSourceName="jdbc/jbpm" />
+</Context>

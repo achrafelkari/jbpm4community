@@ -21,34 +21,33 @@
  */
 package org.jbpm.test.load.async;
 
-import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
+import org.jbpm.api.cmd.VoidCommand;
+import org.jbpm.pvm.internal.history.model.HistoryCommentImpl;
 import org.jbpm.pvm.internal.job.CommandMessage;
 import org.jbpm.pvm.internal.session.DbSession;
-import org.jbpm.pvm.internal.wire.descriptor.ObjectDescriptor;
 
 /**
  * @author Tom Baeyens
  */
-public class FailingTestCommand implements Command<Object> {
+public class FailingTestCommand extends VoidCommand {
 
   private static final long serialVersionUID = 1L;
 
-  public Object execute(Environment environment) throws Exception {
+  @Override
+  protected void executeVoid(Environment environment) throws Exception {
     DbSession dbSession = environment.get(DbSession.class);
-    
+
     // this message execution should be rolled back
-//    HistoryComment comment = new HistoryDetailImpl("failing update");
-//    dbSession.save(comment);
-    
-    throw new RuntimeException("ooops"); 
+    HistoryCommentImpl comment = new HistoryCommentImpl("failing update");
+    dbSession.save(comment);
+
+    throw new RuntimeException("ooops");
   }
 
   public static CommandMessage createMessage() {
-    CommandMessage commandMessage = new CommandMessage();
-    ObjectDescriptor commandDescriptor = new ObjectDescriptor(FailingTestCommand.class);
-    commandMessage.setCommandDescriptor(commandDescriptor);
-    return commandMessage;
+    FailingTestCommand command = new FailingTestCommand();
+    return new CommandMessage(command);
   }
 
 }

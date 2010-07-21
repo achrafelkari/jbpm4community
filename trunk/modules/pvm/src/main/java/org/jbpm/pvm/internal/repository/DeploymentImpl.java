@@ -173,9 +173,11 @@ public class DeploymentImpl extends ProblemList implements NewDeployment {
    * Note: when using a database, this method must be called within an environment block!
    */
   public void initResourceLobDbids() {
-    for (Lob resource : resources.values()) {
-      long resourceDbid = DbidGenerator.getDbidGenerator().getNextId();
-      resource.setDbid(resourceDbid);
+    if (resources != null) {
+      for (Lob resource : resources.values()) {
+        long resourceDbid = DbidGenerator.getDbidGenerator().getNextId();
+        resource.setDbid(resourceDbid);
+      }
     }
   }
 

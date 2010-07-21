@@ -81,12 +81,12 @@ import org.jbpm.pvm.internal.wire.operation.PropertyOperation;
  * @author Guillaume Porcher (documentation)
  *
  */
-public class ObjectDescriptor extends AbstractDescriptor implements Descriptor {
+public class ObjectDescriptor extends AbstractDescriptor {
 
   private static final long serialVersionUID = 1L;
   private static Log log = Log.getLog(ObjectDescriptor.class.getName());
 
-  protected String className = null;
+  protected String className;
 
   /** specifies the object reference on which the method will be invoked.
    * Either className, objectName or a descriptor has to be specified.
@@ -94,23 +94,23 @@ public class ObjectDescriptor extends AbstractDescriptor implements Descriptor {
    * TODO check if this member can be replaced by a RefDescriptor in the factoryDescriptor member.
    *
    * */
-  String factoryObjectName = null;
+  String factoryObjectName;
 
   protected Expression expression;
 
   /** specifies the object on which to invoke the method.
    * Either className, objectName or a descriptor has to be specified. */
-  protected Descriptor factoryDescriptor = null;
+  protected Descriptor factoryDescriptor;
 
-  protected String methodName = null;
+  protected String methodName;
 
   /** map to db as a component */
-  protected List<ArgDescriptor> argDescriptors = null;
+  protected List<ArgDescriptor> argDescriptors;
   /** list of operations to perform during initialization. */
-  protected List<Operation> operations = null;
+  protected List<Operation> operations;
 
   /** True if autowiring is enabled.  */
-  protected boolean isAutoWireEnabled = false;
+  protected boolean isAutoWireEnabled;
 
   public ObjectDescriptor() {
   }

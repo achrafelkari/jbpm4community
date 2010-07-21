@@ -26,59 +26,53 @@ import java.util.Collections;
 import java.util.List;
 
 import org.hibernate.Session;
-import org.jbpm.api.cmd.Command;
+
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.api.cmd.VoidCommand;
 import org.jbpm.api.history.HistoryComment;
 import org.jbpm.internal.log.Log;
-import org.jbpm.pvm.internal.history.model.HistoryDetailImpl;
+import org.jbpm.pvm.internal.history.model.HistoryCommentImpl;
 import org.jbpm.pvm.internal.job.CommandMessage;
 import org.jbpm.pvm.internal.session.MessageSession;
 import org.jbpm.pvm.internal.util.CollectionUtil;
+import org.jbpm.test.JbpmTestCase;
 
 /**
  * @author Tom Baeyens
  */
-public class FailOnceMessageTest extends JobExecutorTestCase {
+public class FailOnceMessageTest extends JbpmTestCase {
 
   private static final Log log = Log.getLog(FailOnceMessageTest.class.getName());
-    
-  static long nbrOfTestMessages = 50;
-  
-  static List<Integer> failOnceMessageIds = Collections.synchronizedList(new ArrayList<Integer>());
-  
+
+  static final long nbrOfTestMessages = 50;
+  static final List<Integer> failOnceMessageIds = Collections.synchronizedList(new ArrayList<Integer>());
+
   public void testFailOnceMessages() {
-    failOnceMessageIds.clear();
-
-    jobExecutor.start();
-    try {
-      insertFailOnceTestMessages();
-      waitTillNoMoreMessages();
-
-    } finally {
-      log.debug("stopping job executor");
-      jobExecutor.stop(true);
-    }
+    insertFailOnceTestMessages();
+    waitTillNoMoreMessages();
 
     for (int i = 0; i < nbrOfTestMessages; i++) {
       assertTrue("message " + i + " is not failed once: " + failOnceMessageIds, failOnceMessageIds.contains(i));
     }
     assertEquals(nbrOfTestMessages, failOnceMessageIds.size());
-    
+
     log.debug("==== all messages processed, now checking if all messages have arrived exactly once ====");
 
-    commandService.execute(new VoidCommand() {
+    processEngine.execute(new VoidCommand() {
+
       private static final long serialVersionUID = 1L;
 
       @Override
       protected void executeVoid(Environment environment) throws Exception {
         Session session = environment.get(Session.class);
-        List<?> comments = session.createCriteria(HistoryDetailImpl.class).list();
-        
+        List<?> comments = session.createCriteria(HistoryCommentImpl.class).list();
+
         for (HistoryComment comment : CollectionUtil.checkList(comments, HistoryComment.class)) {
-          log.debug("retrieved message: "+comment.getMessage());
+          log.debug("retrieved message: " + comment.getMessage());
           Integer messageId = new Integer(comment.getMessage());
           assertTrue("message " + messageId + " committed twice", failOnceMessageIds.remove(messageId));
+          // make sure the db stays clean
+          session.delete(comment);
         }
 
         assertTrue("not all messages made a successful commit: " + failOnceMessageIds, failOnceMessageIds.isEmpty());
@@ -86,24 +80,23 @@ public class FailOnceMessageTest extends JobExecutorTestCase {
     });
   }
 
-  public static class InsertFailOnceTestMsgCmd implements Command<Object> {
+  private static class InsertFailOnceTestMsgCmd extends VoidCommand {
+
+    final int messageId;
     private static final long serialVersionUID = 1L;
-    int i;
-    public InsertFailOnceTestMsgCmd(int i) {
-      this.i = i;
+
+    InsertFailOnceTestMsgCmd(int messageId) {
+      this.messageId = messageId;
     }
-    public Object execute(Environment environment) throws Exception {
-      MessageSession messageSession = environment.get(MessageSession.class);
-      CommandMessage commandMessage = FailOnceTestCommand.createMessage(i);
-      messageSession.send(commandMessage);
-      return null;
+    public void executeVoid(Environment environment) throws Exception {
+      CommandMessage commandMessage = FailOnceTestCommand.createMessage(messageId);
+      environment.get(MessageSession.class).send(commandMessage);
     }
   }
 
   void insertFailOnceTestMessages() {
     for (int i = 0; i < nbrOfTestMessages; i++) {
-      commandService.execute(new InsertFailOnceTestMsgCmd(i));
+      processEngine.execute(new InsertFailOnceTestMsgCmd(i));
     }
   }
-
 }

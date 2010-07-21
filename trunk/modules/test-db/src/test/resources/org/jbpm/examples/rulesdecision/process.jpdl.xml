@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <process name="RulesDecision">
 
-	<start>
-		<transition to="isImportant" />
-	</start>
+  <start>
+    <transition to="isImportant" />
+  </start>
 
-	<rules-decision name="isImportant">
+  <rules-decision name="isImportant">
     <transition name="dunno" to="analyseManually" />
     <transition name="important" to="processWithPriority" />
     <transition name="irrelevant" to="processWhenResourcesAvailable" />
-	</rules-decision>
+  </rules-decision>
 
   <state name="analyseManually" />
-	<state name="processWithPriority" />
+  <state name="processWithPriority" />
   <state name="processWhenResourcesAvailable" />
-
 </process>

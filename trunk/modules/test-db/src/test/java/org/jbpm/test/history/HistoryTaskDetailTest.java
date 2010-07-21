@@ -23,12 +23,12 @@ package org.jbpm.test.history;
 
 import java.util.Date;
 import java.util.List;
-import org.jbpm.api.cmd.Command;
+
+import org.jbpm.api.TaskService;
 import org.jbpm.api.cmd.Environment;
-import org.jbpm.api.history.HistoryActivityInstance;
+import org.jbpm.api.cmd.VoidCommand;
 import org.jbpm.api.task.Task;
 import org.jbpm.test.JbpmTestCase;
-
 
 /**
  * @author Huisheng Xu
@@ -85,51 +85,57 @@ public class HistoryTaskDetailTest extends JbpmTestCase {
     assertEquals(1, historyService.createHistoryDetailQuery().list().size());
   }
 
-  static class TaskReassignCmd implements Command<Void> {
+  private static class TaskReassignCmd extends VoidCommand {
     private String taskId;
     private String newAssignee;
-    public TaskReassignCmd(String taskId, String newAssignee) {
+    private static final long serialVersionUID = 1L;
+
+    TaskReassignCmd(String taskId, String newAssignee) {
       this.taskId = taskId;
       this.newAssignee = newAssignee;
     }
-    public Void execute(Environment env) {
+    @Override
+    protected void executeVoid(Environment environment) throws Exception {
+      TaskService taskService = environment.get(TaskService.class);
       Task task = taskService.getTask(taskId);
       task.setAssignee(newAssignee);
       taskService.saveTask(task);
-
-      return null;
     }
   }
 
-  static class TaskChangePriorityCmd implements Command<Void> {
+  private static class TaskChangePriorityCmd extends VoidCommand {
     private String taskId;
     private int newPriority;
-    public TaskChangePriorityCmd(String taskId, int newPriority) {
+    private static final long serialVersionUID = 1L;
+
+    TaskChangePriorityCmd(String taskId, int newPriority) {
       this.taskId = taskId;
       this.newPriority = newPriority;
     }
-    public Void execute(Environment env) {
+    @Override
+    protected void executeVoid(Environment environment) throws Exception {
+      TaskService taskService = environment.get(TaskService.class);
       Task task = taskService.getTask(taskId);
       task.setPriority(newPriority);
       taskService.saveTask(task);
-
-      return null;
     }
   }
 
-  static class TaskChangeDuedateCmd implements Command<Void> {
+  private static class TaskChangeDuedateCmd extends VoidCommand {
     private String taskId;
     private Date newDuedate;
-    public TaskChangeDuedateCmd(String taskId, Date newDuedate) {
+    private static final long serialVersionUID = 1L;
+
+    TaskChangeDuedateCmd(String taskId, Date newDuedate) {
       this.taskId = taskId;
       this.newDuedate = newDuedate;
     }
-    public Void execute(Environment env) {
+    @Override
+    protected void executeVoid(Environment environment) throws Exception {
+      TaskService taskService = environment.get(TaskService.class);
       Task task = taskService.getTask(taskId);
       task.setDuedate(newDuedate);
       taskService.saveTask(task);
-
-      return null;
     }
   }
 

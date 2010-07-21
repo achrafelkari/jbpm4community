@@ -88,39 +88,4 @@ mail.from=noreply@jbpm.org]]></programlisting>
       url="http://docs.jboss.com/jbpm/v4/devguide/html_single/#mailsupport">Developer
       Guide</ulink> for advanced, yet unsupported, email settings.</para>
   </section>
-
-  <section id="configuration-jpdl">
-    <title>Validate activity name</title>
-
-    <para>When we try to deploy a jpdl process definition,
-      the <literal>JpdlBinding</literal> will validate the name of activities contained by this process definition.
-      By default, the rule of validation as followed:
-      <itemizedlist>
-          <listitem>
-              <para>If the activity has a name, the name shouldnot be empty.
-              The <literal>""</literal> isnot allowed to be used by the name of activity.</para>
-          </listitem>
-          <listitem>
-              <para>The name of activity cannot contain slash(/).  It comes from jBPM 3.x.
-              Because jBPM 3.x supported <literal>hierarchical names</literal>,
-              it allowed an execution could jump from a super-state to the other level of activities.
-              But in jBPM 4.x, there would be no chance to achieve this feature.
-              So if someone want to use slash(/) in the name of activity.
-              He could add this configuration parameter into jbpm.cfg.xml.</para>
-              <programlisting>
-&lt;jbpm-configuration>
-  &lt;import resource="jbpm.default.cfg.xml" />
-  &lt;import resource="jbpm.tx.hibernate.cfg.xml" />
-  &lt;import resource="jbpm.jpdl.cfg.xml" />
-
-  &lt;process-engine-context>
-    <emphasis role="bold">&lt;true name='jbpm.activity.allow.slash'/></emphasis>
-  &lt;/process-engine-context>
-&lt;/jbpm-configuration>
-              </programlisting>
-              <para>By using this, JpdlBinding will skip validation for slash(/) in activity name.</para>
-          </listitem>
-      </itemizedlist>
-    </para>
-  </section>
 </chapter>

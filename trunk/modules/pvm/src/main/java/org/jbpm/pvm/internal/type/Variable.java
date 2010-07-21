@@ -82,6 +82,11 @@ public abstract class Variable implements Serializable {
       if (!converter.supports(value, scopeInstance, this)) {
         throw new JbpmException("the converter '"+converter.getClass().getName()+"' in variable instance '"+this.getClass().getName()+"' does not support values of type '"+value.getClass().getName()+"'.  to change the type of a variable, you have to delete it first");
       }
+      // default set of text value required for BlobVariable to be set before converting
+      // for other types will be reset by setObject method
+      if (value != null) {
+        this.textValue = value.toString();
+      }
       value = converter.convert(value, scopeInstance, this);
     }
     if (value!=null && !isStorable(value)) {

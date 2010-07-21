@@ -5,12 +5,12 @@
   <start>
     <transition to="choose strategy" />
   </start>
-  
+
   <decision name="choose strategy" expr="#{time}">
     <transition name="plenty" to="play" />
     <transition name="running out" to="plan" />
   </decision>
-  
+
   <group name="evaluate project">
     <start name="play">
       <transition to="distribute document" />
@@ -22,5 +22,5 @@
     </start>
     <state name="make planning" />
   </group>
-  
+
 </process>

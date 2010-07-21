@@ -47,7 +47,7 @@ public class Type implements Serializable {
       text.append("-->");
     }
     if (variableClass!=null) {
-      text.append(ReflectUtil.getUnqualifiedClassName(variableClass));
+      text.append(variableClass.getSimpleName());
     } else {
       text.append("undefined");
     }

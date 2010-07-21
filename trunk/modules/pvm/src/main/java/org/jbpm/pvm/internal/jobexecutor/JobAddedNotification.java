@@ -21,6 +21,7 @@
  */
 package org.jbpm.pvm.internal.jobexecutor;
 
+import javax.transaction.Status;
 import javax.transaction.Synchronization;
 
 import org.jbpm.internal.log.Log;
@@ -41,9 +42,11 @@ public class JobAddedNotification implements Synchronization {
     this.jobExecutor = jobExecutor;
   }
 
-  public void afterCompletion(int arg0) {
-    log.trace("notifying job executor of added message");
-    jobExecutor.jobWasAdded();
+  public void afterCompletion(int status) {
+    if (status == Status.STATUS_COMMITTED) {
+      log.trace("notifying job executor of added message");
+      jobExecutor.jobWasAdded();
+    }
   }
 
   public void beforeCompletion() {

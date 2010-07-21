@@ -27,27 +27,22 @@ import org.jbpm.pvm.internal.xml.Parser;
 import org.jbpm.pvm.internal.xml.Bindings;
 import org.jbpm.pvm.internal.xml.Problem;
 
-
 /**
  * @author Huisheng Xu
  */
 public class TypesBindingTest extends BaseJbpmTestCase {
-    public void testParse() {
-        Parser parser = new Parser();
-        Bindings bindings = new Bindings();
-        parser.setBindings(bindings);
-        parser.getBindings().addBinding(new TypesBinding());
 
-        String xml = "<types resource='org/jbpm/pvm/internal/wire/binding/invalid.jbpm.variable.types.xml' />";
+  public void testParse() {
+    Parser parser = new Parser();
+    Bindings bindings = new Bindings();
+    parser.setBindings(bindings);
+    parser.getBindings().addBinding(new TypesBinding());
 
-        List<Problem> problems = parser
-            .createParse()
-            .setString(xml)
-            .execute()
-            .getProblems();
+    String xml = "<types resource='org/jbpm/pvm/internal/wire/binding/invalid.jbpm.variable.types.xml' />";
 
-        assertTextPresent(
-            "couldn't import resource://org/jbpm/pvm/internal/wire/binding/invalid.jbpm.variable.types.xml",
-            problems.get(0).getMsg());
-    }
+    List<Problem> problems = parser.createParse().setString(xml).execute().getProblems();
+
+    assertTextPresent("org/jbpm/pvm/internal/wire/binding/invalid.jbpm.variable.types.xml",
+      problems.get(0).getMsg());
+  }
 }

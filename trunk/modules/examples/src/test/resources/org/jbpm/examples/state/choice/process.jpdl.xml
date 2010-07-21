@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<process name="StateChoice" xmlns="http://jbpm.org/4.3/jpdl">
+<process name="StateChoice" xmlns="http://jbpm.org/4.4/jpdl">
 
   <start g="16,60,48,48">
     <transition to="wait for response"/>

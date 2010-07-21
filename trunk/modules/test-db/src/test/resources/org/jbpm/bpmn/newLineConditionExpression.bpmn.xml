@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<definitions id="newLineConditionExpressionProcesses"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://schema.omg.org/spec/BPMN/2.0 BPMN20.xsd"
+    xmlns="http://schema.omg.org/spec/BPMN/2.0" typeLanguage="http://www.w3.org/2001/XMLSchema"
+    expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://vitras.com/rwar"
+    xmlns:jbpm="http://jbpm.org/bpmn2">
+
+    <process id="newLineConditionExpression" name="newLineConditionExpression">
+
+        <startEvent id="start" />
+
+        <sequenceFlow id="initial" name="toTestTask1" sourceRef="start"
+            targetRef="testTask1" />
+
+        <userTask id="testTask1" name="testTask1" implementation="other" />
+
+        <sequenceFlow id="toTestTask1" sourceRef="testTask1"
+            targetRef="testTask2" />
+
+        <userTask id="testTask2" name="testTask2" implementation="other" />
+
+        <sequenceFlow id="toExclusiveGateway1" sourceRef="testTask2"
+            targetRef="exclusiveGateway1" />
+
+        <exclusiveGateway id="exclusiveGateway1" name="exclusiveGateway1" />
+
+        <sequenceFlow id="toTestTask3" sourceRef="exclusiveGateway1"
+            targetRef="testTask3">
+            <conditionExpression xsi:type="tFormalExpression">${bewertungen&gt;2}
+            </conditionExpression>
+        </sequenceFlow>
+
+        <sequenceFlow id="toTestTask1Again" sourceRef="exclusiveGateway1"
+            targetRef="testTask1" />
+
+        <userTask id="testTask3" name="TestTask3" implementation="other" />
+
+        <sequenceFlow id="toEnd" name="to End" sourceRef="testTask3"
+            targetRef="ende" />
+
+        <endEvent id="ende" name="Ende" />
+
+    </process>
+</definitions>

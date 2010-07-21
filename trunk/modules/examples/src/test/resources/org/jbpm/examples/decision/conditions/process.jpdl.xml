@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<process name="DecisionConditions" xmlns="http://jbpm.org/4.3/jpdl">
+<process name="DecisionConditions" xmlns="http://jbpm.org/4.4/jpdl">
 
   <start g="16,102,48,48">
     <transition to="evaluate document" />
   </start>
-  
+
   <decision name="evaluate document" g="96,102,48,48">
     <transition to="submit document" g="120,60:">
       <condition expr="#{content==&quot;good&quot;}" />
@@ -19,5 +19,5 @@
   <state name="submit document" g="175,35,122,52"/>
   <state name="try again" g="176,100,122,52"/>
   <state name="give up" g="177,164,122,52"/>
-   
+
 </process>

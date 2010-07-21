@@ -2,19 +2,17 @@
   <title>Incubation</title>
 
   <para>This section documents some of the more advanced activities and 
-  features of jPDL that are still in incubation.  Meaning these features 
-  and activities are not supported yet.  But they are available for you
-  to try and use.  We don't give any stability guarantees on these 
-  activities and features.  So use at your own risk.
+  features of jPDL that are still in incubation.  These features 
+  and activities are not supported yet,  but they are available for you
+  to try and use.  There are no stability guarantees on these 
+  activities and features; use them at your own risk.
   </para>
   
   <!-- ### Timer ########################################################## -->
   <section id="timer">
     <title><literal>timer</literal> </title>
-    <para>IMPORTANT NOTE : Timers will be changed before they are moved to the 
-    Userguide.  See also 
-    <ulink url="https://jira.jboss.org/jira/browse/JBPM-2329">https://jira.jboss.org/jira/browse/JBPM-2329</ulink>
-    </para>
+    <important><para>Timers will be changed before they are moved to the user guide. See <ulink
+      url="https://jira.jboss.org/browse/JBPM-2329">JBPM-2329</ulink>.</para></important>
     <para>A timer can be specified in the <literal>transition</literal>
     element in wait state activities such as <literal>state</literal>s, 
     <literal>task</literal>s, <literal>sub-process</literal>es and 
@@ -120,7 +118,6 @@
       </section>
     </section>
 
-
     <section id="businesscalendar">
       <title>Business calendar</title>
       <para>The default configuration will contain a reference to the file
@@ -193,7 +190,7 @@ public class CustomBusinessCalendar implements BusinessCalendar {
         <title>The timer transition example process</title>
         <mediaobject><imageobject><imagedata align="center" fileref="images/process.timer.transition.png"/></imageobject></mediaobject>
       </figure>
-      <programlisting>&lt;process name=&quot;TimerTransition&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+      <programlisting>&lt;process name=&quot;TimerTransition&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;guardedWait&quot; /&gt;
@@ -251,7 +248,7 @@ assertEquals(&quot;escalation&quot;, processInstance.getActivityName());</progra
         <title>The timer event example process</title>
         <mediaobject><imageobject><imagedata align="center" fileref="images/process.timer.event.png"/></imageobject></mediaobject>
       </figure>
-      <programlisting>&lt;process name=&quot;TimerEvent&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+      <programlisting>&lt;process name=&quot;TimerEvent&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;guardedWait&quot; /&gt;
@@ -286,7 +283,7 @@ assertEquals(&quot;escalation&quot;, processInstance.getActivityName());</progra
         <title>The timer businesstime example process</title>
         <mediaobject><imageobject><imagedata align="center" fileref="images/process.timer.transition.png"/></imageobject></mediaobject>
       </figure>
-      <programlisting>&lt;process name=&quot;TimerBusinessTime&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+      <programlisting>&lt;process name=&quot;TimerBusinessTime&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;guardedWait&quot; /&gt;
@@ -323,7 +320,7 @@ assertEquals(&quot;escalation&quot;, processInstance.getActivityName());</progra
         <title>The timer repeat example process</title>
         <mediaobject><imageobject><imagedata align="center" fileref="images/process.timer.event.png"/></imageobject></mediaobject>
       </figure>
-      <programlisting>&lt;process name=&quot;TimerRepeat&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+      <programlisting>&lt;process name=&quot;TimerRepeat&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;guardedWait&quot; /&gt;
@@ -357,9 +354,8 @@ assertEquals(&quot;escalation&quot;, processInstance.getActivityName());</progra
   <section id="group">
     <title><literal>group</literal> activity</title>
     
-    <para>A <literal>group</literal> groups a set of activities in a process.  Contained groups must  
-    be hierarchically nested.  A group corresponds to a BPMN expanded sub process.
-    </para>
+    <para>Groups a set of activities in a process together. Contained groups must be nested
+      hierarchically. A group corresponds to a BPMN expanded sub process.</para>
 
     <table><title><literal>group</literal> elements:</title>
       <tgroup cols="3" rowsep="1" colsep="1">
@@ -396,7 +392,7 @@ assertEquals(&quot;escalation&quot;, processInstance.getActivityName());</progra
         <title>The simple group example process</title>
         <mediaobject><imageobject><imagedata align="center" fileref="images/process.group.simple.png"/></imageobject></mediaobject>
       </figure>
-      <programlisting>&lt;process name=&quot;GroupSimple&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+      <programlisting>&lt;process name=&quot;GroupSimple&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;evaluate document&quot; /&gt;
@@ -457,7 +453,7 @@ assertEquals(&quot;publish document&quot;, processInstance.getActivityName());</
         <title>The group timer example process</title>
         <mediaobject><imageobject><imagedata align="center" fileref="images/process.group.timer.png"/></imageobject></mediaobject>
       </figure>
-      <programlisting>&lt;process name=&quot;GroupTimer&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+      <programlisting>&lt;process name=&quot;GroupTimer&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;evaluate document&quot; /&gt;
@@ -518,7 +514,7 @@ assertNotNull(processInstance.findActiveExecutionIn(&quot;escalate&quot;) );</pr
         <title>The group multiple entries example process</title>
         <mediaobject><imageobject><imagedata align="center" fileref="images/process.group.multipleentries.png"/></imageobject></mediaobject>
       </figure>
-      <programlisting>&lt;process name=&quot;GroupMultipleEntries&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+      <programlisting>&lt;process name=&quot;GroupMultipleEntries&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;choose strategy&quot; /&gt;
@@ -577,7 +573,7 @@ assertNotNull(pi.findActiveExecutionIn(&quot;make planning&quot;));</programlist
       </figure>
       <programlisting>
 
-&lt;process name=&quot;GroupConcurrency&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+&lt;process name=&quot;GroupConcurrency&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;evaluate project&quot; /&gt;
@@ -655,18 +651,89 @@ assertNotNull(pi.findActiveExecutionIn(&quot;public project announcement&quot;))
     </section> 
   </section>
 
+  <!-- ### FOREACH ####################################################### -->
+  <section id="foreach">
+    <title>Multiplicative split with <literal>foreach</literal></title>
 
-  <!-- ### RULES DEPLOYER ####################################################### -->
-  <section id="rulesdeployer">
-    <title>Rules deployer</title>
-    <para>The rules deployer is a convenience integration between jBPM and 
-    <ulink url="http://drools.org">Drools</ulink>.  It creates a KnowledgeBase based 
-    on all .drl files that are included in a business archive deployment.
-    That KnowledgeBase is then stored in the repository cache.  So one 
-    KnowledgeBase is maintained in memory the process-engine-context.  Activities 
-    like the <link linkend="rulesdecision">rules decision</link> leverage 
-    this KnowledgeBase. 
-    </para>
+    <para>Activity <literal>foreach</literal> allows multiple paths of execution
+      to be started over a single branch of the process. Its attributes are
+      described in the table below.</para>
+
+    <table><title><literal>foreach</literal> attributes:</title>
+      <tgroup cols="5" rowsep="1" colsep="1">
+        <thead>
+          <row>
+            <entry>Attribute</entry>
+            <entry>Type</entry>
+            <entry>Default</entry>
+            <entry>Required?</entry>
+            <entry>Description</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><literal>in</literal></entry>
+            <entry>expression or text</entry>
+            <entry></entry>
+            <entry>required</entry>
+            <entry>The collection to be iterated. Each item in the collection spawns a new
+            concurrent execution leaving over the default transition. <literal>in</literal>
+            supports collections of any kind, arrays and comma separated strings.</entry>
+          </row>
+          <row>
+            <entry><literal>var</literal></entry>
+            <entry>text</entry>
+            <entry></entry>
+            <entry>required</entry>
+            <entry>The variable where the current item of the collection is stored.
+            This variable is set in the concurrent execution and is visible only to that
+            execution.</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <para>In the example that follows, there is a need to collect reports from
+      different departments. The same task is to be performed by different groups.
+      This situation is easily modeled with <literal>foreach</literal>.
+      Process variable <literal>departments</literal> provides the group names,
+      whereas <literal>quota</literal> indicates how many tasks must be completed
+      before execution leaves the <literal>join</literal> activity.</para>
+
+    <programlisting><![CDATA[<process name="ForEach" xmlns="http://jbpm.org/4.4/jpdl">
+
+   <start g="28,61,48,48" name="start1">
+      <transition to="foreach1"/>
+   </start>
+
+   <foreach var="department" in="#{departments}" g="111,60,48,48" name="foreach1">
+      <transition to="Collect reports"/>
+   </foreach>
+
+   <task candidate-groups="#{department}" g="201,58,92,52" name="Collect reports">
+      <transition to="join1"/>
+   </task>
+
+   <join g="343,59,48,48" multiplicity="#{quorum}" name="join1">
+      <transition to="end1"/>
+   </join>
+
+   <end g="433,60,48,48" name="end1"/>
+
+</process>]]></programlisting>
+
+    <important><para>When using foreach, the corresponding join must have the
+      multiplicity attribute set. Without it, join continues execution based on its
+      incoming transitions. In the preceding example, join has a single incoming transition.
+      If multiplicity is not specified, the first execution that reaches the join
+      activity will cause the parent execution to leave the join.</para></important>
+
+    <para>Here is how to initialize the iterative process variables.</para>
+
+    <programlisting><![CDATA[Map<String, Object> variables = new HashMap<String, Object>();
+variables.put("departments", new String[] { "sales-dept", "hr-dept", "finance-dept" });
+variables.put("quorum", 3);
+ProcessInstance processInstance = executionService.startProcessInstanceByKey("ForEach", variables);]]></programlisting>
   </section>
 
   <!-- ### JAVA ####################################################### -->
@@ -688,15 +755,13 @@ assertNotNull(pi.findActiveExecutionIn(&quot;public project announcement&quot;))
 import javax.ejb.Stateless;
 
 @Stateless
-public class CalculatorBean implements CalculatorRemote, CalculatorLocal
-{
-   public Integer add(Integer x, Integer y)
-   {
+public class CalculatorBean implements CalculatorRemote, CalculatorLocal {
+
+   public Integer add(Integer x, Integer y) {
       return x + y;
    }
 
-   public Integer subtract(Integer x, Integer y)
-   {
+   public Integer subtract(Integer x, Integer y) {
       return x - y;
    }
 }</programlisting>
@@ -739,9 +804,118 @@ public class CalculatorBean implements CalculatorRemote, CalculatorLocal
       .getId();
   assertEquals(63, executionService.getVariable(executionId, &quot;answer&quot;));
 }</programlisting>
+  </section>
 
+  <!-- ### ASSIGN ######################################################## -->
+  <section id="assign">
+    <title><literal>assign</literal></title>
 
- 
+    <para>The <literal>assign</literal> activity retrieves a value and assigns it
+    to a target location.</para>
+
+    <table><title><literal>assign</literal> attributes:</title>
+      <tgroup cols="5" rowsep="1" colsep="1">
+        <thead>
+          <row>
+            <entry>Attribute</entry>
+            <entry>Type</entry>
+            <entry>Default</entry>
+            <entry>Required?</entry>
+            <entry>Description</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><literal>from-var</literal></entry>
+            <entry>string</entry>
+            <entry></entry>
+            <entry morerows="1">one of <literal>from-var</literal>, <literal>from-expr</literal>, <literal>from</literal> is required</entry>
+            <entry>variable that provides the source value</entry>
+          </row>
+          <row>
+            <entry><literal>from-expr</literal></entry>
+            <entry>expression</entry>
+            <entry></entry>
+            <entry>expression that resolves the source value</entry>
+          </row>
+          <row>
+            <entry><literal>lang</literal></entry>
+            <entry>string</entry>
+            <entry>default <emphasis role="bold">expression</emphasis> language defined in <xref linkend="scripting"/></entry>
+            <entry>optional</entry>
+            <entry>language in which <literal>from-expr</literal> is written</entry>
+          </row>
+          <row>
+            <entry><literal>to-var</literal></entry>
+            <entry>string</entry>
+            <entry></entry>
+            <entry morerows="1">one of <literal>to-var</literal>, <literal>to-expr</literal> is required</entry>
+            <entry>variable that provides the target location</entry>
+          </row>
+          <row>
+            <entry><literal>to-expr</literal></entry>
+            <entry>expression</entry>
+            <entry></entry>
+            <entry>expression that resolves the target location</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <table><title><literal>assign</literal> elements:</title>
+      <tgroup cols="3" rowsep="1" colsep="1">
+        <thead>
+          <row>
+            <entry>Element</entry>
+            <entry>Multiplicity</entry>
+            <entry>Description</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><literal>from</literal></entry>
+            <entry>0..1</entry>
+            <entry>descriptor that constructs the source value</entry>
+          </row>
+        </tbody>
+      </tgroup>
+    </table>
+
+    <para>Every form of <literal>from</literal> can be combined with any form
+    of <literal>to</literal>. The listing below simply assigns a variable to
+    another.</para>
+
+    <programlisting><![CDATA[<assign name='copy' from-var='person' to-var='clone'>
+  <transition to='wait' />
+</assign>]]></programlisting>
+
+    <para>The next example shows an expression value being assigned to a
+    variable.</para>
+
+    <programlisting><![CDATA[<assign name='resolve' from-expr='#{person.name}' to-var='name'>
+  <transition to='wait' />
+</assign>]]></programlisting>
+
+    <para>Our last example presents a value constructed by a descriptor being
+    assigned to the expression location.</para>
+
+    <programlisting><![CDATA[<assign name='resolve' to-expr='#{person.address.street}'>
+  <from><string value='gasthuisstraat' /></from>
+  <transition to='wait' />
+</assign>]]></programlisting>
+  </section>
+
+  <!-- ### RULES DEPLOYER ####################################################### -->
+  <section id="rulesdeployer">
+    <title>Rules deployer</title>
+    <para>The rules deployer is a convenience integration between jBPM and 
+    <ulink url="http://drools.org">Drools</ulink>.  It creates a KnowledgeBase based 
+    on all .drl files that are included in a business archive deployment.
+    That KnowledgeBase is then stored in the repository cache.  So one 
+    KnowledgeBase is maintained in memory the process-engine-context.  Activities 
+    like the <link linkend="rulesdecision">rules decision</link> leverage 
+    this KnowledgeBase. 
+    </para>
   </section>
 
   <!-- ### RULES DECISION ####################################################### -->
@@ -966,7 +1140,6 @@ ProcessInstance processInstance =
   
   <!-- ### JMS ####################################################### -->
   <section id="jms">
-  
     <title><literal>jms</literal> activity</title>
     <para>Disclaimer: this activity is not yet stable.  Two aspects will be revisisted 
     in following releases:</para>
@@ -1703,7 +1876,6 @@ public interface MigrationHandler {
    	  handler is specified, they will be executed one after another.
    	  </para>
    	</section>
-   	
   </section>
 
   <section>
@@ -1713,13 +1885,10 @@ public interface MigrationHandler {
     be used to serve all requests.  So you have to make sure that when your user code is used, 
     that it doesn't change the member fields of the user object.  In that case it will be safe
     for your user object to be used by all threads/requests.  This is also called stateless 
-    user objects.       
-    </para>
+    user objects.</para>
     <para>In case you do have a need for stateful user objects, you can specify 
     parameter <literal>cache="disabled"</literal> on the definition of the user 
-    code.  In that case a new user code object will be instatiated for every 
-    usage.
-    </para>
+    code. In that case a new user object will be instatiated for every usage.</para>
   </section>
   
   <section>
@@ -1755,5 +1924,4 @@ public interface MigrationHandler {
       <programlisting>processEngine.execute(new MyUserCommand());</programlisting>
     </section>    
   </section>
-  
 </chapter>

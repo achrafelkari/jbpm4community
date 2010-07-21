@@ -26,6 +26,7 @@ import java.util.List;
 import org.jbpm.api.listener.EventListener;
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.job.MessageImpl;
+import org.jbpm.pvm.internal.model.Continuation;
 import org.jbpm.pvm.internal.model.EventImpl;
 import org.jbpm.pvm.internal.model.EventListenerReference;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
@@ -126,7 +127,11 @@ public class ExecuteEventListener extends AtomicOperation {
   }
 
   public MessageImpl createAsyncMessage(ExecutionImpl execution) {
-    return new ExecuteEventListenerMessage(execution);
+    ExecuteEventListenerMessage message = new ExecuteEventListenerMessage(execution);
+    if (execution.getEvent().getContinuation() == Continuation.EXCLUSIVE) {
+      message.setExclusive(true);
+    }
+    return message;
   }
 
   public String toString() {

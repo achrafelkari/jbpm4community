@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<process name="Order" xmlns="http://jbpm.org/4.3/jpdl">
+<process name="Order" xmlns="http://jbpm.org/4.4/jpdl">
 
   <start g="16,19,48,48">
     <transition to="receive confirmation" />

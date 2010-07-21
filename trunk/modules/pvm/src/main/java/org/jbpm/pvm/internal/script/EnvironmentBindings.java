@@ -22,6 +22,7 @@
 package org.jbpm.pvm.internal.script;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -60,34 +61,33 @@ public class EnvironmentBindings implements Bindings {
   }
 
   public Object remove(Object key) {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   public void clear() {
-    throw new UnsupportedOperationException();
   }
 
   public boolean containsValue(Object value) {
-    throw new UnsupportedOperationException();
+    return false;
   }
 
   public Set<Entry<String, Object>> entrySet() {
-    throw new UnsupportedOperationException();
+    return Collections.EMPTY_SET;
   }
 
   public boolean isEmpty() {
-    throw new UnsupportedOperationException();
+    return true;
   }
 
   public Set<String> keySet() {
-    throw new UnsupportedOperationException();
+    return Collections.EMPTY_SET;
   }
 
   public int size() {
-    throw new UnsupportedOperationException();
+    return 0;
   }
 
   public Collection<Object> values() {
-    throw new UnsupportedOperationException();
+    return Collections.EMPTY_SET;
   }
 }

@@ -1,21 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ====================================================================== -->
-<!--                                                                        -->
-<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--  jBPM: Workflow in Java                                                -->
 <!--                                                                        -->
 <!--  Distributable under LGPL license.                                     -->
 <!--  See terms of license at http://www.gnu.org.                           -->
-<!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 3010 2008-11-20 08:30:16Z tom.baeyens@jboss.com $ -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<!-- $Id: pom.xml 6518 2010-07-18 09:39:38Z alex.guizar@jboss.com $ -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
   <!-- Module Info -->
-  <modelVersion>4.0.0</modelVersion>
-  <name>jBPM 4 - TEST-UPGRADE</name>
+  <name>jBPM 4 - Test Upgrade</name>
   <groupId>org.jbpm.jbpm4</groupId>
   <artifactId>jbpm-test-upgrade</artifactId>
   <packaging>jar</packaging>
@@ -24,12 +22,12 @@
   <parent>
     <groupId>org.jbpm.jbpm4</groupId>
     <artifactId>jbpm</artifactId>
-    <version>4.3-hot-patch-v1</version>
+    <version>4.4-hot-patch-v1</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
   <dependencies>
-  	<dependency>
+    <dependency>
       <groupId>org.jbpm.jbpm4</groupId>
       <artifactId>jbpm-jpdl</artifactId>
     </dependency>
@@ -38,12 +36,12 @@
       <artifactId>jbpm-bpmn</artifactId>
     </dependency>
     <dependency>
-      <groupId>hsqldb</groupId>
-      <artifactId>hsqldb</artifactId>
-      <version>${hsqldb.version}</version>
+      <groupId>org.jbpm.jbpm4</groupId>
+      <artifactId>jbpm-test-base</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
-  
+
   <profiles>
 
     <!-- -Ddatabase= -->
@@ -76,13 +74,12 @@
                     <copy todir="target/jdbc.properties" overwrite="true" failonerror="false">
                       <fileset dir="${user.home}/.jbpm4/jdbc" />
                     </copy>
-                    
                     <replace dir="target/jdbc.properties">
                       <include name="*.properties" />
                       <replacefilter token="PVM1" value="PVM2" />
                       <replacefilter token="pvm1" value="pvm2" />
                     </replace>
-                    
+
                     <ant antfile="../distro/src/main/files/install/build.xml" target="create.cfg">
                       <property name="tx" value="standalone.testsuite" />
                       <property name="mail.cfg" value="testsuite" />
@@ -91,7 +88,7 @@
                       <property name="install.src.dir" value="../distro/src/main/files/install/src" />
                       <property name="jdbc.properties.dir" value="target/jdbc.properties" />
                       <property name="logging" value="none" /> <!-- then the original logging.properties in the resources of this project will be used -->
-                    </ant> 
+                    </ant>
                   </tasks>
                 </configuration>
               </execution>
@@ -100,8 +97,5 @@
         </plugins>
       </build>
     </profile>
-
   </profiles>
-  
-
 </project>

@@ -22,114 +22,105 @@
 package org.jbpm.test.load.async;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.hibernate.Session;
-import org.jbpm.api.Execution;
 import org.jbpm.api.activity.ActivityExecution;
 import org.jbpm.api.activity.ExternalActivityBehaviour;
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.api.cmd.VoidCommand;
-import org.jbpm.pvm.internal.builder.ProcessDefinitionBuilder;
-import org.jbpm.pvm.internal.cmd.StartProcessInstanceCmd;
-import org.jbpm.pvm.internal.job.CommandMessage;
-import org.jbpm.pvm.internal.jobexecutor.JobExecutor;
-import org.jbpm.pvm.internal.model.ProcessDefinitionImpl;
-import org.jbpm.pvm.internal.session.MessageSession;
+import org.jbpm.test.JbpmTestCase;
 
 /**
  * @author Tom Baeyens
+ * @author Alejandro Guizar
  */
-public class ExclusiveMessagesTest extends JobExecutorTestCase {
+public class ExclusiveMessagesTest extends JbpmTestCase {
 
-  static Map<String, Set<Long>> exclusiveThreadIds;
+  // exclusiveThreads maps process instance keys to a set of thread names.
+  // the idea is that for each execution, all the exclusive jobs will
+  // be executed by one thread sequentially.
+  static final Map<String, Set<String>> exclusiveThreads = new HashMap<String, Set<String>>();
 
-  static int nbrOfTestMessagesPerExecution = 5;
-  static int nbrOfTestExecutions = 20;
+  static final int nbrOfTestExecutions = 20;
 
-  public void setUp() throws Exception {
-    super.setUp();
+  public void testExclusiveMessageProcessing() {
+    insertExclusiveTestMessages();
+    waitTillNoMoreMessages();
 
-    exclusiveThreadIds = new HashMap<String, Set<Long>>();
-  }
+    processEngine.execute(new VoidCommand() {
 
-  public void testDecisionMessageProcessing() {
-    insertDecisionTestMessages();
-
-    JobExecutor jobExecutor = processEngine.get(JobExecutor.class);
-    jobExecutor.start();
-    try {
-
-      waitTillNoMoreMessages();
-
-    } finally {
-      jobExecutor.stop(true);
-    }
-
-    commandService.execute(new VoidCommand() {
       private static final long serialVersionUID = 1L;
 
       protected void executeVoid(Environment environment) {
-        // exclusiveMessageIds maps execution keys to a set of thread ids.
-        // the idea is that for each execution, all the exclusive jobs will
-        // be executed by 1 thread sequentially.
-
         for (int i = 0; i < nbrOfTestExecutions; i++) {
-          String executionKey = "execution-" + i;
-          Set<Long> threadIds = exclusiveThreadIds.get(executionKey);
-          assertNotNull("no thread id set for " + executionKey + " in: " + exclusiveThreadIds, threadIds);
-          assertEquals("exclusive messages for " + executionKey + " have been executed by multiple threads: " + threadIds, 1, threadIds.size());
+          String processInstanceKey = Integer.toString(i);
+          Set<String> threadNames = exclusiveThreads.get(processInstanceKey);
+          assertNotNull("no thread name set for "
+            + processInstanceKey
+            + " in: "
+            + exclusiveThreads, threadNames);
+          assertEquals("exclusive messages for "
+            + processInstanceKey
+            + " have been executed by multiple threads: "
+            + threadNames, 1, threadNames.size());
         }
       }
     });
   }
 
-  public static class WaitState implements ExternalActivityBehaviour {
+  private void insertExclusiveTestMessages() {
+    deployJpdlXmlString("<process name='excl'>"
+      + "  <start>"
+      + "    <transition to='f'/>"
+      + "  </start>"
+      + "  <fork name='f'>"
+      + "    <on event='end' continue='exclusive' />"
+      + "    <transition to='a'/>"
+      + "    <transition to='b'/>"
+      + "    <transition to='c'/>"
+      + "    <transition to='d'/>"
+      + "    <transition to='e'/>"
+      + "  </fork>"
+      + "  <custom name='a' class='"
+      + ExclusiveActivity.class.getName()
+      + "'/>"
+      + "  <custom name='b' class='"
+      + ExclusiveActivity.class.getName()
+      + "'/>"
+      + "  <custom name='c' class='"
+      + ExclusiveActivity.class.getName()
+      + "'/>"
+      + "  <custom name='d' class='"
+      + ExclusiveActivity.class.getName()
+      + "'/>"
+      + "  <custom name='e' class='"
+      + ExclusiveActivity.class.getName()
+      + "'/>"
+      + "</process>");
+
+    for (int i = 0; i < nbrOfTestExecutions; i++) {
+      executionService.startProcessInstanceByKey("excl", Integer.toString(i));
+    }
+  }
+
+  public static class ExclusiveActivity implements ExternalActivityBehaviour {
 
     private static final long serialVersionUID = 1L;
 
     public void execute(ActivityExecution execution) throws Exception {
-      execution.waitForSignal();
+      String processInstanceKey = execution.getProcessInstance().getKey();
+      Set<String> threadNames = ExclusiveMessagesTest.exclusiveThreads.get(processInstanceKey);
+      if (threadNames == null) {
+        threadNames = new HashSet<String>();
+        ExclusiveMessagesTest.exclusiveThreads.put(processInstanceKey, threadNames);
+      }
+      threadNames.add(Thread.currentThread().getName());
     }
-    public void signal(ActivityExecution execution, String signalName, Map<String, ?> parameters) throws Exception {
-      execution.take(signalName);
+
+    public void signal(ActivityExecution execution, String signalName, Map<String, ?> parameters)
+      throws Exception {
     }
   }
-
-  public void insertDecisionTestMessages() {
-    commandService.execute(new VoidCommand() {
-      private static final long serialVersionUID = 1L;
-
-      protected void executeVoid(Environment environment) {
-        ProcessDefinitionImpl processDefinition = ProcessDefinitionBuilder
-        .startProcess("excl")
-          .startActivity("wait", WaitState.class)
-            .initial()
-          .endActivity()
-        .endProcess();
-        processDefinition.setId("excl:1");
-        
-        Session session = environment.get(Session.class);
-        session.save(processDefinition);
-      }
-    });
-
-    commandService.execute(new VoidCommand() {
-      private static final long serialVersionUID = 1L;
-
-      protected void executeVoid(Environment environment) throws Exception {
-        MessageSession messageSession = environment.get(MessageSession.class);
-        for (int i = 0; i < nbrOfTestExecutions; i++) {
-          Execution execution = new StartProcessInstanceCmd("excl:1", null, "execution-" + i).execute(environment);
-
-          for (int j = 0; j < nbrOfTestMessagesPerExecution; j++) {
-            CommandMessage exclusiveTestMessage = ExclusiveTestCommand.createMessage(execution);
-            messageSession.send(exclusiveTestMessage);
-          }
-        }
-      }
-    });
-  }
-
 }

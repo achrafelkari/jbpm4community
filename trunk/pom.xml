@@ -7,38 +7,44 @@
 <!--  See terms of license at http://www.gnu.org.                           -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6447 2010-07-01 08:54:37Z alex.guizar@jboss.com $ -->
+<!-- $Id: pom.xml 6518 2010-07-18 09:39:38Z alex.guizar@jboss.com $ -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <name>jBPM 4</name>
   <groupId>org.jbpm.jbpm4</groupId>
   <artifactId>jbpm</artifactId>
-  <version>4.3-hot-patch-v1</version>
+  <version>4.4-hot-patch-v1</version>
   <packaging>pom</packaging>
 
   <!-- Parent -->
   <parent>
     <artifactId>jbpm-parent</artifactId>
     <groupId>org.jbpm</groupId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
   </parent>
+
+  <!-- Source Control Management -->
+  <scm>
+    <connection>scm:svn:http://anonsvn.jboss.org/repos/jbpm/jbpm4</connection>
+    <developerConnection>scm:svn:https://svn.jboss.org/repos/jbpm/jbpm4</developerConnection>
+    <url>http://fisheye.jboss.org/browse/JbpmSvn/jbpm4</url>
+  </scm>
 
   <!-- Modules -->
   <modules>
-    <module>modules/log</module>
     <module>modules/api</module>
-    <module>modules/test-base</module>
-    <module>modules/pvm</module>
-    <module>modules/jpdl</module>
     <module>modules/bpmn</module>
-    <module>modules/integration</module>
     <module>modules/examples</module>
+    <module>modules/integration</module>
+    <module>modules/jpdl</module>
+    <module>modules/log</module>
+    <module>modules/migration</module>
+    <module>modules/pvm</module>
+    <module>modules/test-base</module>
     <module>modules/test-db</module>
     <module>modules/test-pojo</module>
-    <module>modules/migration</module>
   </modules>
 
   <!-- Properties -->
@@ -52,13 +58,13 @@
     <cdi.version>1.0</cdi.version>
     <commons.httpclient.version>3.1</commons.httpclient.version>
     <drools.version>5.0.1</drools.version>
-    <errai.version>1.1-M1</errai.version>
+    <errai.version>1.1-M2</errai.version>
     <freemarker.version>2.3.15</freemarker.version>
     <groovy.version>1.5.6</groovy.version>
     <gwt.console.version>2.1</gwt.console.version>
     <hibernate.version>3.3.1.GA</hibernate.version>
     <hsqldb.version>1.8.0.7</hsqldb.version>
-    <jbpm.gpd.version>4.3</jbpm.gpd.version>
+    <jbpm.gpd.version>4.4</jbpm.gpd.version>
     <jboss.j2ee.version>4.2.2.GA</jboss.j2ee.version>
     <jboss.client.version>5.0.1.GA</jboss.client.version>
     <juel.version>2.2.1</juel.version>
@@ -412,9 +418,9 @@
         <version>${spring.version}</version>
       </dependency>
       <dependency>
-      	<groupId>org.subethamail</groupId>
-      	<artifactId>subethasmtp-smtp</artifactId>
-      	<version>${wiser.version}</version>
+        <groupId>org.subethamail</groupId>
+        <artifactId>subethasmtp-smtp</artifactId>
+        <version>${wiser.version}</version>
       </dependency>
       <dependency>
         <groupId>org.subethamail</groupId>
@@ -466,6 +472,15 @@
           </excludes>
         </configuration>
       </plugin>
+
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <releaseProfiles>release</releaseProfiles>
+          <goals>deploy</goals>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
@@ -481,6 +496,7 @@
       </releases>
       <snapshots>
         <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
       </snapshots>
     </repository>
   </repositories>
@@ -492,7 +508,6 @@
       <url>http://repository.jboss.org/nexus/content/groups/public/</url>
       <releases>
         <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
       </releases>
       <snapshots>
         <enabled>true</enabled>
@@ -521,9 +536,6 @@
         <module>modules/db</module>
         <module>modules/distro</module>
       </modules>
-      <properties>
-        <skipTests>true</skipTests>
-      </properties>
       <build>
         <plugins>
           <plugin>
@@ -719,6 +731,41 @@
       <modules>
         <module>modules/test-load</module>
       </modules>
+    </profile>
+
+    <!-- PROFILE RELEASE -->
+    <profile>
+      <id>release</id>
+      <modules>
+        <!-- docs -->
+        <module>modules/devguide</module>
+        <module>modules/userguide</module>
+        <!-- distro -->
+        <module>modules/db</module>
+        <module>modules/distro</module>
+        <module>modules/enterprise</module>
+        <module>modules/jboss</module>
+        <!-- integration/enterprise -->
+        <module>modules/test-cactus</module>
+        <module>modules/test-enterprise/test-enterprise-ejb</module>
+        <module>modules/test-enterprise/test-enterprise-suite</module>
+        <!-- load -->
+        <module>modules/test-load</module>
+        <!-- varia -->
+        <module>modules/test-cfg</module>
+        <module>modules/test-concurrent</module>
+        <module>modules/test-upgrade</module>
+      </modules>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skipTests>true</skipTests>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 </project>

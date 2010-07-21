@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ====================================================================== -->
-<!--                                                                        -->
-<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--  jBPM: Workflow in Java                                                -->
 <!--                                                                        -->
 <!--  Distributable under LGPL license.                                     -->
 <!--  See terms of license at http://www.gnu.org.                           -->
-<!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6363 2010-05-21 00:11:58Z alex.guizar@jboss.com $ -->
+<!-- $Id: pom.xml 6518 2010-07-18 09:39:38Z alex.guizar@jboss.com $ -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <!-- Module info -->
@@ -23,7 +22,7 @@
   <parent>
     <groupId>org.jbpm.jbpm4</groupId>
     <artifactId>jbpm</artifactId>
-    <version>4.3-hot-patch-v1</version>
+    <version>4.4-hot-patch-v1</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -35,7 +34,7 @@
       <scope>provided</scope>
     </dependency>
   </dependencies>
-  
+
   <!-- Profiles -->
   <profiles>
     <profile>
@@ -56,31 +55,31 @@
           <plugin>
             <artifactId>maven-javadoc-plugin</artifactId>
           </plugin>
-		      <plugin>
-		        <groupId>org.apache.maven.plugins</groupId>
-		        <artifactId>maven-dependency-plugin</artifactId>
-		        <executions>
-		          <execution>
-		            <id>unpack</id>
-		            <phase>process-resources</phase>
-		            <goals>
-		              <goal>unpack</goal>
-		            </goals>
-		            <configuration>
-		              <artifactItems>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>unpack</id>
+                <phase>process-resources</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <artifactItems>
                     <artifactItem>
-				              <groupId>org.jbpm.jbpm4.dependencies.xsddoctool</groupId>
-				              <artifactId>xsddoctool</artifactId>
-				              <version>1.0</version>
-				              <type>zip</type>
-				              <outputDirectory>target/xsddoctool</outputDirectory>
-				            </artifactItem>
-				          </artifactItems>
-		            </configuration>
-		          </execution>
-		        </executions>
-		      </plugin>
-		      <plugin>
+                      <groupId>org.jbpm.jbpm4.dependencies.xsddoctool</groupId>
+                      <artifactId>xsddoctool</artifactId>
+                      <version>1.0</version>
+                      <type>zip</type>
+                      <outputDirectory>target/xsddoctool</outputDirectory>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
             <artifactId>maven-antrun-plugin</artifactId>
             <executions>
               <execution>
@@ -93,29 +92,28 @@
                   <tasks>
                     <java classname="com.docflex.xml.Generator" maxmemory="512m" fork="true">
                       <classpath>
-							         <pathelement location="target/xsddoctool/xercesImpl.jar" />
-							         <pathelement location="target/xsddoctool/docflex-xml-re.jar" />
-							        </classpath>
-							        <!-- specify the template -->
-							        <arg value="-template"/>
-							        <arg value="target/xsddoctool/XSDDoc/FramedDoc.tpl"/>
-							        <arg value="-format"/>
-							        <arg value="HTML"/>
- 							        <arg value="-d"/>
-							        <arg value="target/schemadocs"/>
-							        <arg value="-nodialog"/>
-							        <arg value="-launchviewer=false"/>
-							        <arg value="-p:docTitle=jPDL 4.0 Schema"/> 
-							        <arg value="src/main/resources/jpdl-4.0.xsd"/>
+                        <pathelement location="target/xsddoctool/xercesImpl.jar" />
+                        <pathelement location="target/xsddoctool/docflex-xml-re.jar" />
+                      </classpath>
+                      <!-- specify the template -->
+                      <arg value="-template" />
+                      <arg value="target/xsddoctool/XSDDoc/FramedDoc.tpl" />
+                      <arg value="-format" />
+                      <arg value="HTML" />
+                      <arg value="-d" />
+                      <arg value="target/schemadocs" />
+                      <arg value="-nodialog" />
+                      <arg value="-launchviewer=false" />
+                      <arg value="-p:docTitle=jPDL 4.0 Schema" />
+                      <arg value="src/main/resources/jpdl-4.0.xsd" />
                     </java>
-							    </tasks>
+                  </tasks>
                 </configuration>
               </execution>
             </executions>
-          </plugin>         
+          </plugin>
         </plugins>
       </build>
     </profile>
   </profiles>
-  
 </project>

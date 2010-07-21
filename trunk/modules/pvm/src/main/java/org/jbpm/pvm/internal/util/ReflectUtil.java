@@ -381,24 +381,6 @@ public class ReflectUtil {
     return signature;
   }
 
-  public static String getUnqualifiedClassName(Class<?> clazz) {
-    if (clazz==null) {
-      return null;
-    }
-    return getUnqualifiedClassName(clazz.getSimpleName());
-  }
-
-  public static String getUnqualifiedClassName(String className) {
-    if (className==null) {
-      return null;
-    }
-    int dotIndex = className.lastIndexOf('.');
-    if (dotIndex!=-1) {
-      className = className.substring(dotIndex+1);
-    }
-    return className;
-  }
-
   public static ClassLoader installDeploymentClassLoader(ProcessDefinitionImpl processDefinition) {
     String deploymentId = processDefinition.getDeploymentId();
     if (deploymentId==null) {

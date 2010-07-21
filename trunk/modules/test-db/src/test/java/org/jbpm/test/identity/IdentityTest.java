@@ -26,18 +26,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jbpm.api.JbpmException;
 import org.jbpm.api.identity.Group;
 import org.jbpm.api.identity.User;
 import org.jbpm.test.JbpmTestCase;
 
 /**
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public class IdentityTest extends JbpmTestCase {
-  
+
   public void testSingleUser() throws Exception {
     identityService.createUser("johndoe", "John", "Doe");
-    
+
     User user = identityService.findUserById("johndoe");
 
     assertEquals("johndoe", user.getId());
@@ -49,7 +51,7 @@ public class IdentityTest extends JbpmTestCase {
 
   public void testCreateGroup() throws Exception {
     String testGroupId = identityService.createGroup("testGroup", "unit", null);
-    
+
     Group group = identityService.findGroupById(testGroupId);
     assertEquals("testGroup", group.getName());
     assertEquals("unit", group.getType());
@@ -64,11 +66,11 @@ public class IdentityTest extends JbpmTestCase {
     identityService.createMembership("jeffyu", redhatGroupId);
 
     List<Group> groups = identityService.findGroupsByUser("jeffyu");
-    Set<String> groupNames = new HashSet<String>(); 
+    Set<String> groupNames = new HashSet<String>();
     for (Group group : groups) {
       groupNames.add(group.getName());
     }
-    
+
     assertEquals(Collections.singleton("redhat"), groupNames);
 
     identityService.deleteUser("jeffyu");
@@ -76,17 +78,17 @@ public class IdentityTest extends JbpmTestCase {
   }
 
   public void testFindGroupByUserAndGroupType() throws Exception {
-    
+
     identityService.createUser("johndoe", "John", "Doe");
     String redhatGroupId = identityService.createGroup("redhat", "unit", null);
     identityService.createMembership("johndoe", redhatGroupId, "developer");
 
     List<Group> groups = identityService.findGroupsByUserAndGroupType("johndoe", "unit");
-    Set<String> groupNames = new HashSet<String>(); 
+    Set<String> groupNames = new HashSet<String>();
     for (Group group : groups) {
       groupNames.add(group.getName());
     }
-    
+
     assertEquals(Collections.singleton("redhat"), groupNames);
 
     identityService.deleteUser("johndoe");
@@ -123,26 +125,48 @@ public class IdentityTest extends JbpmTestCase {
 
   public void testSingleUser2() throws Exception {
     identityService.createUser("johndoe", "John", "Doe");
-    
+
     List<User> users = identityService.findUsers();
     assertNotNull(users);
-    
+
     User johndoe = null;
-    
+
     for (User user : users) {
-    	if ("johndoe".equals(user.getId())) {
-    		johndoe = user;
-    	}
+        if ("johndoe".equals(user.getId())) {
+            johndoe = user;
+        }
     }
-    
+
     assertNotNull(johndoe);
-    
+
     assertEquals("johndoe", johndoe.getId());
     assertEquals("John", johndoe.getGivenName());
     assertEquals("Doe", johndoe.getFamilyName());
     assertEquals("John Doe", johndoe.toString());
-    
+
     identityService.deleteUser("johndoe");
-    
+
+  }
+
+  public void testDuplicatedUser() {
+    identityService.createUser("johndoe", "John", "Doe");
+    try {
+      identityService.createUser("johndoe", "John", "Doe");
+      fail("shouldn't allow duplicated user");
+    } catch(JbpmException ex) {
+      assertEquals("Cannot create user, error while validating", ex.getMessage());
+    }
+    identityService.deleteUser("johndoe");
+  }
+
+  public void testDuplicatedGroup() {
+    identityService.createGroup("group");
+    try {
+    identityService.createGroup("group");
+      fail("shouldn't allow duplicated group");
+    } catch(JbpmException ex) {
+      assertEquals("Cannot create group, error while validating", ex.getMessage());
+    }
+    identityService.deleteGroup("group");
   }
 }

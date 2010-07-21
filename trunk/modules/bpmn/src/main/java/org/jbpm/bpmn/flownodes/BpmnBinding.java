@@ -30,7 +30,7 @@ import org.w3c.dom.Element;
 
 public abstract class BpmnBinding extends TagBinding {
 
-  protected static final WireParser wireParser = BpmnParser.wireParser;
+  protected static final WireParser wireParser = WireParser.getInstance();
 
   protected String default_;
 

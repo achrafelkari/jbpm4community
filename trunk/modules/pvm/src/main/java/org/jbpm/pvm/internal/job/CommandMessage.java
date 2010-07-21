@@ -24,6 +24,7 @@ package org.jbpm.pvm.internal.job;
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
+import org.jbpm.pvm.internal.id.DbidGenerator;
 import org.jbpm.pvm.internal.wire.Descriptor;
 
 /**
@@ -36,11 +37,13 @@ public class CommandMessage extends MessageImpl {
   public CommandMessage() {
   }
 
+  @Deprecated
   public CommandMessage(Descriptor commandDescriptor) {
     throw new JbpmException("obsolete");
   }
 
   public CommandMessage(Command<?> command) {
+    this.dbid = DbidGenerator.getDbidGenerator().getNextId();
     setConfiguration(command);
   }
 

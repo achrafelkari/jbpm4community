@@ -5,7 +5,7 @@
   <start>
     <transition to="evaluate project" />
   </start>
-  
+
   <group name="evaluate project">
     <start>
       <transition to="distribute document" />
@@ -31,7 +31,7 @@
 
     <transition to="public project announcement" />
   </group>
-  
+
   <state name="public project announcement" />
 
 </process>

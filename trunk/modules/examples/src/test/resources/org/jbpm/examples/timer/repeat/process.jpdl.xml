@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<process name="TimerRepeat" xmlns="http://jbpm.org/4.3/jpdl">
+<process name="TimerRepeat" xmlns="http://jbpm.org/4.4/jpdl">
 
   <start g="19,50,48,48">
     <transition to="guardedWait" />
@@ -13,7 +13,7 @@
     </on>
     <transition name="go on" to="next step" g="-16,-17"/>
   </state>
-  
+
   <state name="next step" g="283,46,83,53"/>
 
 </process>

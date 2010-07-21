@@ -27,23 +27,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Element;
+
 import org.jbpm.api.JbpmException;
 import org.jbpm.api.activity.ActivityBehaviour;
-import org.jbpm.api.model.Activity;
-import org.jbpm.api.model.Transition;
 import org.jbpm.bpmn.common.Resource;
 import org.jbpm.bpmn.common.ResourceParameter;
 import org.jbpm.bpmn.flownodes.BpmnActivity;
-import org.jbpm.bpmn.flownodes.BpmnBinding;
-import org.jbpm.bpmn.flownodes.BpmnEvent;
-import org.jbpm.bpmn.flownodes.NoneStartEventActivity;
-import org.jbpm.bpmn.flownodes.SubProcessActivity;
 import org.jbpm.bpmn.model.BpmnProcessDefinition;
 import org.jbpm.bpmn.model.SequenceflowCondition;
 import org.jbpm.internal.log.Log;
@@ -58,45 +52,35 @@ import org.jbpm.pvm.internal.model.TimerDefinitionImpl;
 import org.jbpm.pvm.internal.model.TransitionImpl;
 import org.jbpm.pvm.internal.model.VariableDefinitionImpl;
 import org.jbpm.pvm.internal.task.TaskDefinitionImpl;
+import org.jbpm.pvm.internal.util.CollectionUtil;
 import org.jbpm.pvm.internal.util.TagBinding;
 import org.jbpm.pvm.internal.util.XmlUtil;
-import org.jbpm.pvm.internal.wire.binding.ObjectBinding;
-import org.jbpm.pvm.internal.wire.xml.WireParser;
 import org.jbpm.pvm.internal.xml.Bindings;
 import org.jbpm.pvm.internal.xml.Parse;
 import org.jbpm.pvm.internal.xml.Parser;
-import org.w3c.dom.Element;
 
 /**
  * @author Tom Baeyens
  * @author Bernd Ruecker (bernd.ruecker@camunda.com)
  * @author Joram Barrez
+ * @author Huisheng Xu
  */
 public class BpmnParser extends Parser {
 
   private static final Log log = Log.getLog(BpmnParser.class.getName());
 
-  static ObjectBinding objectBinding = new ObjectBinding();
-  public static final WireParser wireParser = WireParser.getInstance();
-
-  static final String[] DEFAULT_ACTIVITIES_RESOURCES = { "jbpm.bpmn.flownodes.xml" };
-  static final String CATEGORY_ACTIVITY = "activity";
+  private static final String[] DEFAULT_ACTIVITIES_RESOURCES = { "jbpm.bpmn.flownodes.xml" };
+  private static final String CATEGORY_ACTIVITY = "activity";
+  private static final String[] SCHEMA_RESOURCES = { "BPMN20.xsd", "DiagramDefinition.xsd",
+    "DiagramInterchange.xsd", "BpmnDi.xsd" };
 
   static BindingsParser bindingsParser = new BindingsParser();
 
   public BpmnParser() {
-    
-    initialize(); // initialises underlying SAX parser
-    parseBindings(); // initialises bindings
-    
+    // initialises bindings
+    parseBindings();
     // Setting BPMN2 xsd schema
-    List<String> schemaResources = new ArrayList<String>();
-    schemaResources.add("BPMN20.xsd");
-    schemaResources.add("DiagramDefinition.xsd");
-    schemaResources.add("DiagramInterchange.xsd");
-    schemaResources.add("BpmnDi.xsd");
-    setSchemaResources(schemaResources);
-    
+    setSchemaResources(SCHEMA_RESOURCES);
   }
 
   public Object parseDocumentElement(Element documentElement, Parse parse) {
@@ -120,9 +104,9 @@ public class BpmnParser extends Parser {
 
       String id = XmlUtil.attribute(processElement, "id", parse);
       String name = XmlUtil.attribute(processElement, "name");
-      
+
       if (id != null && !"".equals(id)) {
-        processDefinition.setName(id);        
+        processDefinition.setName(id);
       } else {
         parse.addProblem("Process has no or an empty id");
       }
@@ -138,9 +122,9 @@ public class BpmnParser extends Parser {
       }
 
       parseResources((Element)processElement.getParentNode(), parse, processDefinition);
-      
+
       parseInterfaces((Element)processElement.getParentNode(), parse, processDefinition);
-      
+
       parseItemDefinitions((Element)processElement.getParentNode(), parse, processDefinition);
 
       parseMessages((Element)processElement.getParentNode(), parse, processDefinition);
@@ -172,10 +156,13 @@ public class BpmnParser extends Parser {
         while (resourceUrls.hasMoreElements()) {
           URL resourceUrl = resourceUrls.nextElement();
           log.trace("loading bpmn activities from resource: " + resourceUrl);
-          List<BpmnBinding> activityBindings = (List<BpmnBinding>) bindingsParser.createParse().setUrl(resourceUrl).execute().checkErrors(
-                  "bpmn activities from " + resourceUrl.toString()).getDocumentObject();
+          List<?> activityBindings = (List<?>) bindingsParser.createParse()
+            .setUrl(resourceUrl)
+            .execute()
+            .checkErrors("bpmn activities from " + resourceUrl.toString())
+            .getDocumentObject();
 
-          for (TagBinding binding : activityBindings) {
+          for (TagBinding binding: CollectionUtil.checkList(activityBindings, TagBinding.class)) {
             binding.setCategory(CATEGORY_ACTIVITY);
             bindings.addBinding(binding);
           }
@@ -240,11 +227,11 @@ public class BpmnParser extends Parser {
         activity.setType(activityBinding.getTagName());
         activity.setName(id);
         activity.setDescription(name);
-        
+
         if (log.isDebugEnabled()) {
-          log.debug("Parsing Activity: " + name + "(id=" + id + ")");          
+          log.debug("Parsing Activity: " + name + "(id=" + id + ")");
         }
-        
+
         ActivityBehaviour activityBehaviour = (ActivityBehaviour) activityBinding.parse(nestedElement, parse, this);
         activity.setActivityBehaviour(activityBehaviour);
       } finally {
@@ -256,7 +243,7 @@ public class BpmnParser extends Parser {
   public void parseSequenceFlow(Element element, Parse parse, BpmnProcessDefinition processDefinition) {
     List<Element> transitionElements = XmlUtil.elements(element, "sequenceFlow");
     for (Element transitionElement : transitionElements) {
-      
+
       // Parse attributes
       String transitionName = XmlUtil.attribute(transitionElement, "name");
       String transitionId = XmlUtil.attribute(transitionElement, "id", parse);
@@ -264,9 +251,9 @@ public class BpmnParser extends Parser {
       String targetRef = XmlUtil.attribute(transitionElement, "targetRef", parse);
 
       if (log.isDebugEnabled()) {
-        log.debug(transitionId + ": " + sourceRef + " -> " + targetRef);        
+        log.debug(transitionId + ": " + sourceRef + " -> " + targetRef);
       }
-     
+
       // Create new outgoing transition on sourceActivity
       ActivityImpl sourceActivity = processDefinition.findActivity(sourceRef);
       TransitionImpl transition = null;
@@ -277,7 +264,7 @@ public class BpmnParser extends Parser {
       } else {
         parse.addProblem("SourceRef " + sourceRef + " cannot be found");
       }
-      
+
       // Create incoming transition on targetActivity
       ActivityImpl destinationActivity = processDefinition.findActivity(targetRef);
       if (destinationActivity != null) {
@@ -327,19 +314,23 @@ public class BpmnParser extends Parser {
         String expr = conditionElement.getTextContent();
         String lang = XmlUtil.attribute(conditionElement, "language");
         // TODO: add looking up the default language in the document under definitions if lang  is null.
-        
+
+        if (expr != null) {
+          expr = expr.trim();
+        }
+
         SequenceflowCondition condition = new SequenceflowCondition();
         condition.setExpression(expr);
         condition.setLanguage(lang);
         transition.setCondition(condition);
 
       } else {
-        parse.addProblem("Type of the conditionExpression on sequenceFlow with id=" + 
+        parse.addProblem("Type of the conditionExpression on sequenceFlow with id=" +
                 transitionId + " is of onsupported type 'bpmn:tExpression'", transitionElement);
       }
     }
   }
-  
+
   public void parseDefinition(Element documentElement, Parse parse) {
     parseImports(documentElement, parse);
   }
@@ -359,39 +350,39 @@ public class BpmnParser extends Parser {
 
     return taskDefinition;
   }
-  
+
   /**
    * Parses a <timerEventDefinition> element:
    *    * sets dueDate if 'timeDate' is used
    *    * sets duedateDescription if a duration expression is used
    *    * set cronExpression if a cron expression is used
-   * 
+   *
    * @param timerEventDefinitionElement The XML element that defines the timer definition
    * @param activity The activity on which the timer definition must be created
    * @param eventId The id of the event on which the timer is defined
    */
   public TimerDefinitionImpl parseTimerEventDefinition(Element timerEventDefinitionElement, Parse parse, String eventId) {
-    
+
     Element timeDate = XmlUtil.element(timerEventDefinitionElement, "timeDate");
     Element timeCycle = XmlUtil.element(timerEventDefinitionElement, "timeCycle");
-    
+
     if ( (timeDate != null && timeCycle != null)
             || (timeDate == null && timeCycle == null) ) {
       parse.addProblem("timerEventDefinition for event '" + eventId +
               "' requires either a timeDate or a timeCycle definition (but not both)");
       return null;
     }
-    
+
     TimerDefinitionImpl timerDefinition = new TimerDefinitionImpl();
-    
+
     if (timeDate != null) {
       parseTimeDate(eventId, parse, timeDate, timerDefinition);
     }
-    
+
     if (timeCycle != null) {
       parseTimeCycle(eventId, parse, timeCycle, timerDefinition);
-    } 
-    
+    }
+
     return timerDefinition;
   }
 
@@ -406,11 +397,11 @@ public class BpmnParser extends Parser {
       Date duedatetimeDate = dateFormat.parse(dueDateTime);
       timerDefinition.setDueDate(duedatetimeDate);
     } catch (ParseException e) {
-      parse.addProblem("couldn't parse timeDate '"+ dueDateTime 
+      parse.addProblem("couldn't parse timeDate '"+ dueDateTime
               + "' on intermediate catch timer event " + catchEventId, e);
     }
   }
-  
+
   protected void parseTimeCycle(String catchEventId, Parse parse, Element timeCycle, TimerDefinitionImpl timerDefinition) {
     String cycleExpression = timeCycle.getTextContent();
     if (Duration.isValidExpression(cycleExpression)) {
@@ -418,7 +409,7 @@ public class BpmnParser extends Parser {
     } else if (CronExpression.isValidExpression(cycleExpression)) {
       timerDefinition.setCronExpression(cycleExpression);
     } else {
-      parse.addProblem("couldn't parse timeDate duration '"+ cycleExpression 
+      parse.addProblem("couldn't parse timeDate duration '"+ cycleExpression
               + "' on intermediate catch timer event " + catchEventId);
     }
   }
@@ -448,7 +439,7 @@ public class BpmnParser extends Parser {
   }
 
   public void parseInterfaces(Element documentElement, Parse parse, BpmnProcessDefinition processDefinition) {
-    
+
     for (Element interfaceElement : XmlUtil.elements(documentElement, "interface")) {
       for (Element operationElement : XmlUtil.elements(interfaceElement, "operation")) {
         processDefinition.getOperations().put(XmlUtil.attribute(operationElement, "id"), operationElement);
@@ -475,5 +466,5 @@ public class BpmnParser extends Parser {
   public void parseImports(Element documentElement, Parse parse) {
 
   }
-  
+
 }

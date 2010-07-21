@@ -23,41 +23,32 @@ package org.jbpm.pvm.internal.jobexecutor;
 
 import org.jbpm.api.job.Message;
 import org.jbpm.internal.log.Log;
-import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.session.DbSession;
 import org.jbpm.pvm.internal.session.MessageSession;
-import org.jbpm.pvm.internal.tx.Transaction;
-import org.jbpm.pvm.internal.util.ReflectUtil;
 
 /**
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public class JobExecutorMessageSession implements MessageSession {
-  
+
   private static final Log log = Log.getLog(JobExecutorMessageSession.class.getName());
-  
+
   /* injected */
   DbSession dbSession;
 
-  /* injected */
-  Transaction transaction;
-  
-  boolean isNotificationAdded;
+  /* injected. */
+  JobAdditionNotifier jobAdditionNotifier;
 
   public void send(Message message) {
-    log.debug("sending message "+ReflectUtil.getUnqualifiedClassName(message.getClass()));
+    if (log.isDebugEnabled()) {
+      log.debug("sending message " + message.getClass().getSimpleName());
+    }
 
     dbSession.save(message);
 
-    if (!isNotificationAdded) {
-      isNotificationAdded = true;
-      
-      JobExecutor jobExecutor = EnvironmentImpl.getCurrent().get(JobExecutor.class);
-      if (jobExecutor!=null) {
-        // notify the job executor after the transaction is completed
-        log.trace("registering job executor notifier with "+transaction);
-        transaction.registerSynchronization(new JobAddedNotification(jobExecutor));
-      }
+    if (jobAdditionNotifier != null) {
+      jobAdditionNotifier.registerNotification();
     }
   }
 }

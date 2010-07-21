@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ====================================================================== -->
-<!--                                                                        -->
-<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--  jBPM: Workflow in Java                                                -->
 <!--                                                                        -->
 <!--  Distributable under LGPL license.                                     -->
 <!--  See terms of license at http://www.gnu.org.                           -->
-<!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6437 2010-06-26 01:59:29Z alex.guizar@jboss.com $ -->
+<!-- $Id: pom.xml 6518 2010-07-18 09:39:38Z alex.guizar@jboss.com $ -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <name>jBPM 4 - Test POJO</name>
@@ -21,7 +20,7 @@
   <parent>
     <groupId>org.jbpm.jbpm4</groupId>
     <artifactId>jbpm</artifactId>
-    <version>4.3-hot-patch-v1</version>
+    <version>4.4-hot-patch-v1</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -53,10 +52,12 @@
       <version>${project.version}</version>
     </dependency>
   </dependencies>
-  
+
   <profiles>
-    <!-- skip tests if this is an integration test run 
-    (only examples and test-db are part of the integration test runs) -->
+    <!--
+      skip tests if this is an integration test run (only examples and test-db are part of the
+      integration test runs)
+    -->
     <profile>
       <id>skip.tests.during.database.testrun</id>
       <activation>
@@ -69,5 +70,4 @@
       </properties>
     </profile>
   </profiles>
-
 </project>

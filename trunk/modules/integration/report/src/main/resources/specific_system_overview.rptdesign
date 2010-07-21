@@ -104,7 +104,7 @@ else{
             <property name="odaDriverClass">org.hsqldb.jdbcDriver</property>
             <property name="odaURL">jdbc:hsqldb:hsql://localhost:1701</property>
             <property name="odaUser">sa</property>
-            <property name="odaJndiName">java:/JbpmDS</property>
+            <property name="odaJndiName">java:JbpmDS</property>
         </oda-data-source>
     </data-sources>
     <data-sets>
