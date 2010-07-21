@@ -11,7 +11,7 @@ import org.jbpm.pvm.internal.xml.Problem;
 public class MailParsingTest extends JpdlParseTestCase {
 
   public void testMailParse() {
-    String xmlString = "<process name='MyProsess' version='1' xmlns='http://jbpm.org/jpdl/4.4'>"
+    String xmlString = "<process name='MyProcess' xmlns='http://jbpm.org/4.4/jpdl'>"
       + "  <start name='start'>"
       + "    <transition to='mail'/>"
       + "  </start>"
@@ -25,6 +25,6 @@ public class MailParsingTest extends JpdlParseTestCase {
       .setString(xmlString)
       .execute()
       .getProblems();
-    assertEquals(0, problems.size());
+    assertEquals(problems.toString(), 0, problems.size());
   }
 }

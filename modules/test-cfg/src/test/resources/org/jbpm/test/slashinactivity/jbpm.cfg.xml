@@ -7,7 +7,7 @@
   <import resource="jbpm.jpdl.cfg.xml" />
 
   <process-engine-context>
-    <true name='jbpm.activity.allow.slash'/>
+    <false name='jbpm.activity.allow.slash'/>
   </process-engine-context>
 
 </jbpm-configuration>

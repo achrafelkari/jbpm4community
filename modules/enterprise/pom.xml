@@ -7,10 +7,9 @@
 <!--  See terms of license at http://www.gnu.org.                           -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6447 2010-07-01 08:54:37Z alex.guizar@jboss.com $ -->
+<!-- $Id: pom.xml 6518 2010-07-18 09:39:38Z alex.guizar@jboss.com $ -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <name>jBPM 4 - Enterprise</name>
@@ -22,7 +21,7 @@
   <parent>
     <groupId>org.jbpm.jbpm4</groupId>
     <artifactId>jbpm</artifactId>
-    <version>4.3-hot-patch-v1</version>
+    <version>4.4-hot-patch-v1</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -75,94 +74,4 @@
       </plugin>
     </plugins>
   </build>
-  
-<!-- 
-    <testResources>
-      <testResource>
-        <directory>src/test/resources</directory>
-        <filtering>true</filtering>
-      </testResource>
-    </testResources>
-
-    <plugins>
-
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <executions>
-
-          <execution>
-            <id>assembly-test-dependencies</id>
-            <phase>generate-test-resources</phase>
-            <goals>
-              <goal>directory-single</goal>
-            </goals>
-            <configuration>
-              <finalName>test-dependencies</finalName>
-              <ignoreDirFormatExtensions>true</ignoreDirFormatExtensions>
-              <appendAssemblyId>false</appendAssemblyId>
-              <descriptors>
-                <descriptor>scripts/assembly-test-dependencies.xml</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-
-        </executions>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>build-test-jars</id>
-            <phase>process-test-classes</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <tasks>
-                <property name="build.dir" value="${project.build.directory}" />
-                <property name="test.resources.dir" value="${build.dir}/test-classes" />
-                <property name="build.finalName" value="${project.build.finalName}" />
-                <ant antfile="scripts/antrun-test-jars.xml" target="build-jars" />
-              </tasks>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <excludes>
-            <exclude>org/jbpm/enterprise/internal/ejb/TimerTest.java</exclude>
-            <exclude>org/jbpm/enterprise/internal/ejb/EjbTimerSessionTest.java</exclude>
-          </excludes>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
-  <profiles>
-    <profile>
-      <id>no-bind-address</id>
-      <activation>
-        <property>
-          <name>!bind.address</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <skipTests>true</skipTests>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-  </profiles>
-
- -->
 </project>

@@ -25,8 +25,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
@@ -54,7 +54,7 @@ public class AcquireJobsCmd implements Command<Collection<Long>> {
     Collection<Long> acquiredJobDbids = new ArrayList<Long>();
 
     try {
-      Collection<JobImpl> acquiredJobs = new ArrayList<JobImpl>();
+      Collection<JobImpl> acquiredJobs;
       
       DbSession dbSession = environment.get(DbSession.class);
       if (log.isTraceEnabled()) log.trace("start querying first acquirable job...");
@@ -64,10 +64,9 @@ public class AcquireJobsCmd implements Command<Collection<Long>> {
       if (job!=null) {
         if (job.isExclusive()) {
           if (log.isTraceEnabled()) log.trace("exclusive acquirable job found ("+job+"). querying for other exclusive jobs to lock them all in one tx...");
-          List<JobImpl> otherExclusiveJobs = dbSession.findExclusiveJobs(job.getProcessInstance());
-          acquiredJobs.addAll(otherExclusiveJobs);
+          acquiredJobs = dbSession.findExclusiveJobs(job.getProcessInstance());
         } else {
-          acquiredJobs.add(job);
+          acquiredJobs = Collections.singletonList(job);
         }
 
         for (JobImpl acquiredJob: acquiredJobs) {

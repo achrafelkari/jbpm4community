@@ -39,14 +39,14 @@ import org.jbpm.pvm.internal.xml.Parser;
 import org.w3c.dom.Element;
 
 /** parses a descriptor for creating a java object through reflection.
- * 
+ *
  * See schema docs for more details.
- * 
+ *
  * @author Tom Baeyens
  * @author Guillaume Porcher (documentation)
  */
 public class ObjectBinding extends WireDescriptorBinding {
-  
+
   public static final String TAG = "object";
 
   public ObjectBinding() {
@@ -54,13 +54,16 @@ public class ObjectBinding extends WireDescriptorBinding {
   }
 
   public static boolean isObjectDescriptor(Element element) {
-    if (XmlUtil.attribute(element, "class")!=null) {
+    if (XmlUtil.attribute(element, "class") != null) {
       return true;
     }
-    if (XmlUtil.attribute(element, "factory")!=null) {
+    if (XmlUtil.attribute(element, "expr") != null) {
       return true;
     }
-    if (XmlUtil.element(element, "factory")!=null) {
+    if (XmlUtil.attribute(element, "factory") != null) {
+      return true;
+    }
+    if (XmlUtil.element(element, "factory") != null) {
       return true;
     }
     return false;
@@ -78,43 +81,49 @@ public class ObjectBinding extends WireDescriptorBinding {
     String factoryObjectName = XmlUtil.attribute(element, "factory");
     Element factoryElement = XmlUtil.element(element, "factory");
 
-    if (className!=null) {
+    if (className != null) {
       descriptor.setClassName(className);
-      if (factoryObjectName!=null) {
-        parse.addProblem("attribute 'factory' is specified together with attribute 'class' in element 'object': "+XmlUtil.toString(element), element);
+      if (factoryObjectName != null) {
+        parse.addProblem("attribute 'factory' is specified together with attribute 'class' in element 'object': "
+          + XmlUtil.toString(element), element);
       }
-      if (factoryElement!=null) {
-        parse.addProblem("element 'factory' is specified together with attribute 'class' in element 'object': "+XmlUtil.toString(element), element);
+      if (factoryElement != null) {
+        parse.addProblem("element 'factory' is specified together with attribute 'class' in element 'object': "
+          + XmlUtil.toString(element), element);
       }
 
       Element constructorElement = XmlUtil.element(element, "constructor");
-      if (constructorElement!=null) {
+      if (constructorElement != null) {
         List<Element> argElements = XmlUtil.elements(constructorElement, "arg");
         List<ArgDescriptor> argDescriptors = parser.parseArgs(argElements, parse);
         descriptor.setArgDescriptors(argDescriptors);
 
         if (element.hasAttribute("method")) {
-          parse.addProblem("attributes 'class' and 'method' indicate static method and also a 'constructor' element is specified for element 'object': "+XmlUtil.toString(element), element);
+          parse.addProblem("attributes 'class' and 'method' indicate static method and also a 'constructor' element is specified for element 'object': "
+            + XmlUtil.toString(element), element);
         }
       }
 
-    } else if (factoryObjectName!=null) {
+    } else if (factoryObjectName != null) {
       descriptor.setFactoryObjectName(factoryObjectName);
       if (factoryElement!=null) {
-        parse.addProblem("element 'factory' is specified together with attribute 'factory' in element 'object': "+XmlUtil.toString(element), element);
+        parse.addProblem("element 'factory' is specified together with attribute 'factory' in element 'object': "
+          + XmlUtil.toString(element), element);
       }
 
-    } else if (factoryElement!=null) {
+    } else if (factoryElement != null) {
       Element factoryDescriptorElement = XmlUtil.element(factoryElement);
-      Descriptor factoryDescriptor = (Descriptor) parser.parseElement(factoryDescriptorElement, parse, WireParser.CATEGORY_DESCRIPTOR);
+      Descriptor factoryDescriptor = (Descriptor) parser.parseElement(factoryDescriptorElement,
+        parse, WireParser.CATEGORY_DESCRIPTOR);
       descriptor.setFactoryDescriptor(factoryDescriptor);
 
-    } else if (expr!=null) {
+    } else if (expr != null) {
       String exprType = XmlUtil.attribute(element, "expr-type");
       descriptor.setExpression(Expression.create(expr, exprType));
-      
+
     } else {
-      parse.addProblem("element 'object' must have one of {attribute 'class', attribute 'expr', attribute 'factory' or element 'factory'}: "+XmlUtil.toString(element), element);
+      parse.addProblem("element 'object' must have one of {attribute 'class', attribute 'expr', attribute 'factory' or element 'factory'}: "
+        + XmlUtil.toString(element), element);
     }
 
     // method
@@ -124,22 +133,24 @@ public class ObjectBinding extends WireDescriptorBinding {
       List<Element> argElements = XmlUtil.elements(element, "arg");
       List<ArgDescriptor> argDescriptors = parser.parseArgs(argElements, parse);
       descriptor.setArgDescriptors(argDescriptors);
-    } else if ( (factoryObjectName!=null)
-                || (factoryElement!=null)
+    } else if ( (factoryObjectName != null)
+                || (factoryElement != null)
               ) {
-      parse.addProblem("element 'object' with a element 'factory' or a attribute 'factory' must have a attribute 'method': "+XmlUtil.toString(element), element);
+      parse.addProblem("element 'object' with a element 'factory' or a attribute 'factory' must have a attribute 'method': "
+        + XmlUtil.toString(element), element);
     }
 
-    if( (className == null) 
+    if( (className == null)
         && (XmlUtil.element(element, "constructor") != null)
       ) {
-      parse.addProblem("element 'object' with a 'constructor' element must have 'class' attribute: "+XmlUtil.toString(element), element);
+      parse.addProblem("element 'object' with a 'constructor' element must have 'class' attribute: "
+        + XmlUtil.toString(element), element);
     }
 
     // read the operations elements
     List<Operation> operations = null;
     List<Element> elements = XmlUtil.elements(element);
-    
+
     Set<String> operationTagNames = null;
     Bindings bindings = parser.getBindings();
     if (bindings!=null) {
@@ -148,10 +159,10 @@ public class ObjectBinding extends WireDescriptorBinding {
       operationTagNames = Collections.emptySet();
     }
 
-    for (Element childElement: elements) {
+    for (Element childElement : elements) {
       if (operationTagNames.contains(childElement.getTagName())) {
         Operation operation = (Operation) parser.parseElement(childElement, parse, WireParser.CATEGORY_OPERATION);
-        if (operations==null) {
+        if (operations == null) {
           operations = new ArrayList<Operation>();
         }
         operations.add(operation);
@@ -161,7 +172,7 @@ public class ObjectBinding extends WireDescriptorBinding {
 
     // autowiring
     Boolean isAutoWireEnabled = XmlUtil.attributeBoolean(element, "auto-wire", parse);
-    if (isAutoWireEnabled!=null) {
+    if (isAutoWireEnabled != null) {
       descriptor.setAutoWireEnabled(isAutoWireEnabled);
     }
     return descriptor;

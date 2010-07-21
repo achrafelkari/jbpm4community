@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ====================================================================== -->
-<!--                                                                        -->
-<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--  jBPM: Workflow in Java                                                -->
 <!--                                                                        -->
 <!--  Distributable under LGPL license.                                     -->
 <!--  See terms of license at http://www.gnu.org.                           -->
-<!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6237 2010-03-28 00:04:36Z alex.guizar@jboss.com $ -->
+<!-- $Id: pom.xml 6518 2010-07-18 09:39:38Z alex.guizar@jboss.com $ -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <name>jBPM 4 - Test Load</name>
@@ -21,7 +20,7 @@
   <parent>
     <groupId>org.jbpm.jbpm4</groupId>
     <artifactId>jbpm</artifactId>
-    <version>4.3-hot-patch-v1</version>
+    <version>4.4-hot-patch-v1</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -30,88 +29,68 @@
     <dependency>
       <groupId>org.jbpm.jbpm4</groupId>
       <artifactId>jbpm-api</artifactId>
-      <version>${project.version}</version>
     </dependency>
-
     <dependency>
       <groupId>org.jbpm.jbpm4</groupId>
       <artifactId>jbpm-test-base</artifactId>
-      <version>${project.version}</version>
     </dependency>
-    
     <dependency>
       <groupId>org.jbpm.jbpm4</groupId>
       <artifactId>jbpm-jpdl</artifactId>
-      <version>${project.version}</version>
     </dependency>
-    
-    <!-- TODO remove PVM dependency for compilation (keep it for test)-->
-    <dependency>
-      <groupId>org.jbpm.jbpm4</groupId>
-      <artifactId>jbpm-pvm</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    
   </dependencies>
-  
-    <!-- Plugins -->
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <excludes>
-            <exclude>**/*TestCase.java</exclude>
-          </excludes>
-        </configuration>
-      </plugin>
 
-      <plugin>                                                   
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack.jbpm.db</id>
-            <phase>generate-test-resources</phase>
-            <goals>
-              <goal>unpack</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.jbpm.jbpm4</groupId>
-                  <artifactId>jbpm-jpdl</artifactId>
-                  <classifier>config</classifier>
-                  <overWrite>true</overWrite>
-                </artifactItem>
-              </artifactItems>
-              <excludeTransitive>true</excludeTransitive>
-              <outputDirectory>target/jpdl-config</outputDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+  <!-- Profiles -->
+  <profiles>
 
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>install.hibernate.database.properties</id>
-            <phase>generate-test-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <tasks>
-                <copy file="target/jpdl-config/hibernate.cfg.${database}.xml"
-                      tofile="target/test-classes/hibernate.cfg.xml"
-                      overwrite="true" />
-              </tasks>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-  
+    <!-- -Ddatabase= -->
+    <profile>
+      <id>run.database.testsuite</id>
+      <activation>
+        <property>
+          <name>database</name>
+        </property>
+      </activation>
+
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>database-test-cfg-customization</id>
+                <phase>test-compile</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <tasks>
+                    <echo message="database: ${database}" />
+                    <mkdir dir="target/jdbc.properties" />
+                    <copy todir="target/jdbc.properties" overwrite="true">
+                      <fileset dir="../../qa/jdbc" />
+                    </copy>
+                    <copy todir="target/jdbc.properties" overwrite="true" failonerror="false">
+                      <fileset dir="${user.home}/.jbpm4/jdbc" />
+                    </copy>
+                    <ant antfile="../distro/src/main/files/install/build.xml" target="create.cfg">
+                      <!-- use jbpm.cfg.xml from the resources of this project -->
+                      <property name="tx" value="none" />
+                      <property name="mail.cfg" value="testsuite" />
+                      <property name="database" value="${database}" />
+                      <property name="cfg.dest.dir" value="target/test-classes" />
+                      <property name="install.src.dir" value="../distro/src/main/files/install/src" />
+                      <property name="jdbc.properties.dir" value="target/jdbc.properties" />
+                      <!-- use logging.properties from the resources of this project -->
+                      <property name="logging" value="none" />
+                    </ant>
+                  </tasks>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

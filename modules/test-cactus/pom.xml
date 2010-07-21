@@ -7,10 +7,9 @@
 <!--  See terms of license at http://www.gnu.org.                           -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 6449 2010-07-02 08:05:29Z alex.guizar@jboss.com $ -->
+<!-- $Id: pom.xml 6518 2010-07-18 09:39:38Z alex.guizar@jboss.com $ -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <name>jBPM 4 - Test Cactus</name>
@@ -22,7 +21,7 @@
   <parent>
     <groupId>org.jbpm.jbpm4</groupId>
     <artifactId>jbpm</artifactId>
-    <version>4.3-hot-patch-v1</version>
+    <version>4.4-hot-patch-v1</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -259,8 +258,7 @@
                 </goals>
                 <configuration>
                   <tasks>
-                    <java classname="org.jbpm.cactustool.CactusTestGenerator"
-                      classpathref="maven.test.classpath">
+                    <java classname="org.jbpm.cactustool.CactusTestGenerator" classpathref="maven.test.classpath">
                       <arg file="${project.build.testSourceDirectory}" />
                       <arg file="${basedir}/../examples/src/test/java" />
                       <arg file="${basedir}/../test-db/src/test/java" />
@@ -279,8 +277,7 @@
                 <configuration>
                   <tasks>
                     <delete>
-                      <fileset dir="${project.build.testSourceDirectory}"
-                        includes="org/jbpm/test/AllIntegrationTests.java" />
+                      <fileset dir="${project.build.testSourceDirectory}" includes="org/jbpm/test/AllIntegrationTests.java" />
                     </delete>
                   </tasks>
                 </configuration>

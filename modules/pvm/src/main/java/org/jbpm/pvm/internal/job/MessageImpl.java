@@ -36,10 +36,6 @@ public abstract class MessageImpl extends JobImpl implements Message {
   public MessageImpl() {
   }
 
-  public String toString() {
-    return "message[" + dbid + "]";
-  }
-
   public MessageImpl(ExecutionImpl execution) {
     this.execution = execution;
     this.processInstance = execution.getProcessInstance();

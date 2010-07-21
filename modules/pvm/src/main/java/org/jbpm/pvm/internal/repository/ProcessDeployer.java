@@ -70,8 +70,6 @@ public class ProcessDeployer implements Deployer {
         if (processDefinitions!=null) {
           for (ProcessDefinitionImpl processDefinition : processDefinitions) {
             if ((processDefinition != null) && (processDefinition.getName() != null)) {
-              String processDefinitionName = processDefinition.getName();
-
               processDefinition.setSuspended(deployment.isSuspended());
 
               String imageResourceName = resourceName.substring(0, resourceName.lastIndexOf(extension)) + ".png";
@@ -81,6 +79,7 @@ public class ProcessDeployer implements Deployer {
 
               processDefinition.setDeploymentDbid(deployment.getDbid());
 
+              String processDefinitionName = processDefinition.getName();
               if (deployment.hasObjectProperties(processDefinitionName)) {
                 String key = deployment.getProcessDefinitionKey(processDefinitionName);
                 String id = deployment.getProcessDefinitionId(processDefinitionName);

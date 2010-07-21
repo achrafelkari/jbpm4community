@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<process name="Hql" xmlns="http://jbpm.org/4.3/jpdl">
+<process name="Hql" xmlns="http://jbpm.org/4.4/jpdl">
 
   <start g="17,20,48,48">
     <transition to="get task names" />
@@ -19,7 +19,7 @@
     </parameters>
     <transition to="count tasks" />
   </hql>
-  
+
   <hql name="count tasks"
        var="tasks"
        unique="true"

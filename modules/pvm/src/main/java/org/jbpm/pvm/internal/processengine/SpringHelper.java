@@ -24,16 +24,19 @@ package org.jbpm.pvm.internal.processengine;
 import org.jbpm.api.ProcessEngine;
 import org.jbpm.pvm.internal.cfg.ConfigurationImpl;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 /**
  * @author Joram Barrez
+ * @author Huisheng Xu
  */
-public class SpringHelper implements ApplicationContextAware {
-  
+public class SpringHelper implements ApplicationContextAware, DisposableBean {
+
   protected ApplicationContext applicationContext;
   protected String jbpmCfg = "jbpm.cfg.xml";
+  protected ProcessEngine processEngine;
 
   public void setJbpmCfg(String jbpmCfg) {
     this.jbpmCfg = jbpmCfg;
@@ -42,12 +45,24 @@ public class SpringHelper implements ApplicationContextAware {
   public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     this.applicationContext = applicationContext;
   }
-  
+
   public ProcessEngine createProcessEngine() {
-    return new ConfigurationImpl()
+    processEngine = new ConfigurationImpl()
       .springInitiated(applicationContext)
       .setResource(jbpmCfg)
       .buildProcessEngine();
+
+    return processEngine;
   }
-  
+
+  /**
+   * close process engine when spring close/refresh ctx.
+   */
+  public void destroy() throws Exception {
+    if (processEngine != null) {
+      processEngine.close();
+      processEngine = null;
+    }
+  }
+
 }

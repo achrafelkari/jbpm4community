@@ -28,9 +28,6 @@ import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.history.model.HistoryCommentImpl;
 import org.jbpm.pvm.internal.job.CommandMessage;
 import org.jbpm.pvm.internal.session.DbSession;
-import org.jbpm.pvm.internal.wire.descriptor.IntegerDescriptor;
-import org.jbpm.pvm.internal.wire.descriptor.ObjectDescriptor;
-
 
 /**
  * @author Tom Baeyens
@@ -46,11 +43,9 @@ public class FailOnceTestCommand implements Command<Object> {
   }
 
   public static CommandMessage createMessage(int messageId) {
-    CommandMessage commandMessage = new CommandMessage();
-    ObjectDescriptor commandDescriptor = new ObjectDescriptor(FailOnceTestCommand.class);
-    commandDescriptor.addInjection("messageId", new IntegerDescriptor(messageId));
-    commandMessage.setCommandDescriptor(commandDescriptor);
-    return commandMessage;
+    FailOnceTestCommand command = new FailOnceTestCommand();
+    command.messageId = messageId;
+    return new CommandMessage(command);
   }
 
   public Object execute(Environment environment) throws Exception {

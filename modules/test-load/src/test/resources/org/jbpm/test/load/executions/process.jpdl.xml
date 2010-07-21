@@ -2,38 +2,34 @@
 
 <process name="Process">
 
-  <start>
+  <start g="16,16,80,40">
     <transition to="a" />
   </start>
 
-  <java name="a" 
-        class="org.jbpm.test.load.executions.Automatic"
-        method="doNothing">
+  <java class="org.jbpm.test.load.executions.Automatic" method="doNothing" name="a"
+    g="16,88,80,40">
     <transition to="b" />
   </java>
-  
-  <java name="b" 
-        class="org.jbpm.test.load.executions.Automatic"
-        method="doNothing">
+
+  <java class="org.jbpm.test.load.executions.Automatic" method="doNothing" name="b"
+    g="16,160,80,40">
     <transition to="c" />
   </java>
-  
-  <state name="c">
+
+  <state name="c" g="16,232,80,40">
     <transition to="d" />
   </state>
 
-  <java name="d" 
-        class="org.jbpm.test.load.executions.Automatic"
-        method="doNothing">
+  <java class="org.jbpm.test.load.executions.Automatic" method="doNothing" name="d"
+    g="16,304,80,40">
     <transition to="e" />
   </java>
-  
-  <java name="e" 
-        class="org.jbpm.test.load.executions.Automatic"
-        method="doNothing">
+
+  <java class="org.jbpm.test.load.executions.Automatic" method="doNothing" name="e"
+    g="16,376,80,40">
     <transition to="end" />
   </java>
-  
-  <end name="end" />
-  
+
+  <end name="end" g="16,448,80,40" />
+
 </process>

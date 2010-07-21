@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- ====================================================================== -->
-<!--                                                                        -->
-<!--  JBoss, the OpenSource J2EE webOS                                      -->
+<!--  jBPM: Workflow in Java                                                -->
 <!--                                                                        -->
 <!--  Distributable under LGPL license.                                     -->
 <!--  See terms of license at http://www.gnu.org.                           -->
-<!--                                                                        -->
 <!-- ====================================================================== -->
 
-<!-- $Id: pom.xml 3010 2008-11-20 08:30:16Z tom.baeyens@jboss.com $ -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<!-- $Id: pom.xml 6518 2010-07-18 09:39:38Z alex.guizar@jboss.com $ -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
   <!-- Module Info -->
-  <modelVersion>4.0.0</modelVersion>
   <name>jBPM 4 - DB</name>
   <groupId>org.jbpm.jbpm4</groupId>
   <artifactId>jbpm-db</artifactId>
@@ -24,7 +22,7 @@
   <parent>
     <groupId>org.jbpm.jbpm4</groupId>
     <artifactId>jbpm</artifactId>
-    <version>4.3-hot-patch-v1</version>
+    <version>4.4-hot-patch-v1</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -85,7 +83,6 @@
 
       <build>
         <plugins>
-
           <plugin>
             <artifactId>maven-dependency-plugin</artifactId>
             <executions>
@@ -122,14 +119,12 @@
                   <tasks>
                     <!-- keep directory properties, explicit paths are bad practice -->
                     <property name="project.output.dir" value="${project.build.outputDirectory}" />
-                    <property name="old.scripts.dir" value="${old.scripts.directory}"/>
+                    <property name="old.scripts.dir" value="${old.scripts.directory}" />
                     <!-- upgrade scripts could be written to distro directly -->
-                    <property name="upgrade.scripts.dir"
-                      value="${project.build.directory}/upgrade-${old.version}-to-${project.version}" />
+                    <property name="upgrade.scripts.dir" value="${project.build.directory}/upgrade-${old.version}-to-${project.version}" />
                     <!-- for some reason that i don't get, the user.home must be passed explicitly -->
                     <property name="user.home" value="${user.home}" />
-                    <ant antfile="scripts/antrun-schema.xml" target="schema-upgrade"
-                      inheritRefs="yes" />
+                    <ant antfile="scripts/antrun-schema.xml" target="schema-upgrade" inheritRefs="yes" />
                   </tasks>
                 </configuration>
               </execution>
@@ -138,7 +133,6 @@
         </plugins>
       </build>
     </profile>
-    
   </profiles>
 
   <!-- Dependencies -->
@@ -160,6 +154,4 @@
       <artifactId>postgresql</artifactId>
     </dependency>
   </dependencies>
-
-
 </project>

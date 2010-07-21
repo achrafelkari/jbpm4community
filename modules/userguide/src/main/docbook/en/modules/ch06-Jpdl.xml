@@ -1,20 +1,20 @@
 <chapter id="jpdl">
   <title>jPDL</title>
-  
-  <para>This chapter will explain the jPDL file format for describing 
+
+  <para>This chapter will explain the jPDL file format for describing
   process definitions. jPDL is the prominent process language of jBPM. The goal
   of jPDL is to be as concise and developer-friendly as possible, while offering
   every feature you'd expect from a BPM process language.
   </para>
-  <para>The jPDL schema file contains more attributes and elements then this 
+  <para>The jPDL schema file contains more attributes and elements then this
   documentation.  This part of the documentation explains the stable and supported part of jPDL.
-  Experimental/not supported jPDL features can be found in the developers guide. 
+  Experimental/not supported jPDL features can be found in the developers guide.
   </para>
-  <para>An example jPDL process file looks like this: 
+  <para>An example jPDL process file looks like this:
   </para>
   <programlisting>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
 
-&lt;process name=&quot;Purchase order&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+&lt;process name=&quot;Purchase order&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;Verify supplier&quot; /&gt;
@@ -35,7 +35,7 @@
   &lt;end name=&quot;Error&quot; /&gt;
 
 &lt;/process&gt;</programlisting>
-  
+
   <section id="process">
     <title><literal>process</literal></title>
     <para>The top level element representing one process definition.
@@ -57,27 +57,27 @@
             <entry>any text</entry>
             <entry></entry>
             <entry><emphasis role="bold">required</emphasis></entry>
-            <entry>name or label of the process used to display to the process 
+            <entry>name or label of the process used to display to the process
             name in user interactions.
             </entry>
           </row>
           <row>
             <entry><literal>key</literal></entry>
             <entry>alpha numeric characters and underscores</entry>
-            <entry>if omitted, the key will be generated based on the name by replacing 
+            <entry>if omitted, the key will be generated based on the name by replacing
             all non-alpha-numeric characters with underscores</entry>
             <entry>optional</entry>
             <entry>identification to distinct different process definitions.
             Multiple versions of a process with the same key can be deployed.
-            The key:name combination must remain exactly the same for all 
+            The key:name combination must remain exactly the same for all
             deployed versions.
             </entry>
           </row>
           <row>
             <entry><literal>version</literal></entry>
             <entry>integer</entry>
-            <entry>one higher then highest version number starting with 1 if no other process 
-            is deployed with the same name/key. 
+            <entry>one higher then highest version number starting with 1 if no other process
+            is deployed with the same name/key.
             </entry>
             <entry>optional</entry>
             <entry>version number of this process</entry>
@@ -104,7 +104,7 @@
           <row>
             <entry><link linkend="activities">activities</link></entry>
             <entry>1..*</entry>
-            <entry>a list of any activity type can be placed here.  At least 
+            <entry>a list of any activity type can be placed here.  At least
             one <literal>start</literal> activity must be present.
             </entry>
           </row>
@@ -116,19 +116,19 @@
   <!-- ##################################################################### -->
   <!-- ### CONTROL FLOW ACTIVITIES                                       ### -->
   <!-- ##################################################################### -->
-  
+
   <section id="controlflowactivities">
     <title>Control flow activities</title>
 
     <section id="start">
       <title><literal>start</literal></title>
-      <para>Indicates where an execution for this process starts.  Typically there is 
-      exactly one start activity in a process.  A process has to have at least one start 
-      activity.  A start activity must have exactly one outgoing transition and that transition 
+      <para>Indicates where an execution for this process starts.  Typically there is
+      exactly one start activity in a process.  A process has to have at least one start
+      activity.  A start activity must have exactly one outgoing transition and that transition
       is taken when a process execution starts.
       </para>
-      <para>Known limitation: for now, a process can not have more then 
-      one <literal>start</literal>. 
+      <para>Known limitation: for now, a process can not have more then
+      one <literal>start</literal>.
       </para>
       <table><title><literal>start</literal> attributes:</title>
         <tgroup cols="5" rowsep="1" colsep="1">
@@ -147,8 +147,8 @@
               <entry>any text</entry>
               <entry></entry>
               <entry>optional</entry>
-              <entry>name of the activity.  Since a start activity 
-              cannot have incoming transitions, the name is optional. 
+              <entry>name of the activity.  Since a start activity
+              cannot have incoming transitions, the name is optional.
               </entry>
             </row>
           </tbody>
@@ -176,20 +176,20 @@
 
     <section id="state">
       <title><literal>state</literal></title>
-      <para>A wait state.  Process execution will wait until an external trigger is 
+      <para>A wait state.  Process execution will wait until an external trigger is
       provided through the API.  Apart from the <link linkend="commonactivitycontents">
       common activity content</link>, <literal>state</literal> doesn't have any extra
-      attributes or elements. 
+      attributes or elements.
       </para>
       <section id="statesequence">
         <title><literal>state</literal> sequence</title>
-        <para>Let's look at an example which shows states connected with transitions 
+        <para>Let's look at an example which shows states connected with transitions
         as a sequence</para>
         <figure id="process.state.sequence">
           <title>A sequence of states</title>
           <mediaobject><imageobject><imagedata align="center" fileref="images/process.state.sequence.png"/></imageobject></mediaobject>
         </figure>
-        <programlisting>&lt;process name=&quot;StateSequence&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <programlisting>&lt;process name=&quot;StateSequence&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;a&quot; /&gt;
@@ -207,10 +207,10 @@
 
 &lt;/process&gt;</programlisting>
         <para>After you start an execution like this:</para>
-        <programlisting>ProcessInstance processInstance = 
+        <programlisting>ProcessInstance processInstance =
     executionService.startProcessInstanceByKey("StateSequence");</programlisting>
-        <para>the created process instance will be positioned in 
-        state <literal>a</literal>.  Providing an external trigger can 
+        <para>the created process instance will be positioned in
+        state <literal>a</literal>.  Providing an external trigger can
         be done with the <literal>signalExecution</literal> methods.</para>
         <programlisting>Execution executionInA = processInstance.findActiveExecutionIn(&quot;a&quot;);
 assertNotNull(executionInA);
@@ -225,15 +225,15 @@ assertNotNull(executionInC);</programlisting>
       </section>
       <section id="statechoice">
         <title><literal>state</literal> choice</title>
-        <para>In this second example with states, we'll show how you can use a 
-        <literal>state</literal> can be used to feed in an external choice of 
+        <para>In this second example with states, we'll show how you can use a
+        <literal>state</literal> can be used to feed in an external choice of
         the path to take.
         </para>
         <figure id="process.state.choice">
           <title>A choice between state</title>
           <mediaobject><imageobject><imagedata align="center" fileref="images/process.state.choice.png"/></imageobject></mediaobject>
         </figure>
-        <programlisting>&lt;process name=&quot;StateChoice&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <programlisting>&lt;process name=&quot;StateChoice&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;wait for response&quot; /&gt;
@@ -252,10 +252,10 @@ assertNotNull(executionInC);</programlisting>
         <para>Let's start a new process instance for this process definition:</para>
         <programlisting>ProcessInstance processInstance = executionService
     .startProcessInstanceByKey(&quot;StateChoice&quot;);</programlisting>
-        <para>Now, the execution has arrived in the <literal>wait for response</literal>. 
-        The execution will wait there until an external trigger is given.  In case 
-        a <literal>state</literal> has multiple outgoing transitions, the signalName given 
-        in the external trigger will be matched against the name of the outgoing transition 
+        <para>Now, the execution has arrived in the <literal>wait for response</literal>.
+        The execution will wait there until an external trigger is given.  In case
+        a <literal>state</literal> has multiple outgoing transitions, the signalName given
+        in the external trigger will be matched against the name of the outgoing transition
         to take.  So when we provide signalName <literal>accept</literal> like this:
         </para>
         <programlisting>String executionId = processInstance
@@ -265,27 +265,27 @@ assertNotNull(executionInC);</programlisting>
 processInstance = executionService.signalExecutionById(executionId, &quot;accept&quot;);
 
 assertTrue(processInstance.isActive(&quot;submit document&quot;));</programlisting>
-        <para>Then the execution will continue over the outgoing transition named 
-        <literal>accept</literal>.  Analogue, when signalName <literal>reject</literal> 
-        is given in the signalExecutionXxx methods, the execution will continue over 
-        the outgoing transition named reject.  
+        <para>Then the execution will continue over the outgoing transition named
+        <literal>accept</literal>.  Analogue, when signalName <literal>reject</literal>
+        is given in the signalExecutionXxx methods, the execution will continue over
+        the outgoing transition named reject.
         </para>
       </section>
     </section>
-    
+
     <section id="decision">
       <title><literal>decision</literal></title>
-      <para>Takes one path of many alternatives. Also known as a decision. A decision 
-      activity has multiple outgoing transitions and when an execution arrives in a decision 
+      <para>Takes one path of many alternatives. Also known as a decision. A decision
+      activity has multiple outgoing transitions and when an execution arrives in a decision
       activity, an automatic evaluation will decide which outgoing transition is taken.
       </para>
-      <para>A decision activity should be configured in one of the three following ways:  
+      <para>A decision activity should be configured in one of the three following ways:
       </para>
-      
+
       <section id="decisionconditions">
         <title>Decision conditions</title>
-        <para>A decision with conditions on the transitions evaluates the condition in each transition. 
-        The first transition for which the nested condition expression resolves to true or which does 
+        <para>A decision with conditions on the transitions evaluates the condition in each transition.
+        The first transition for which the nested condition expression resolves to true or which does
         not have a condition is taken.
         </para>
         <table><title><literal>decision.transition.condition</literal> attributes:</title>
@@ -305,7 +305,7 @@ assertTrue(processInstance.isActive(&quot;submit document&quot;));</programlisti
                 <entry>expression</entry>
                 <entry></entry>
                 <entry><emphasis role="bold">required</emphasis></entry>
-                <entry>script that will be evaluated in the specified 
+                <entry>script that will be evaluated in the specified
                 expression language.
                 </entry>
               </row>
@@ -314,7 +314,7 @@ assertTrue(processInstance.isActive(&quot;submit document&quot;));</programlisti
                 <entry>expression language</entry>
                 <entry>the <literal>default-expression-language</literal> taken from the <link linkend="scripting"><literal>script-manager</literal> configuration</link></entry>
                 <entry>optional</entry>
-                <entry>the language in which <literal>expr</literal> is 
+                <entry>the language in which <literal>expr</literal> is
                 to be evaluated.
                 </entry>
               </row>
@@ -353,7 +353,7 @@ assertTrue(processInstance.isActive(&quot;submit document&quot;));</programlisti
         <para>After starting a process instance with <literal>good content</literal></para>
         <programlisting>Map&lt;String, Object&gt; variables = new HashMap&lt;String, Object&gt;();
 variables.put(&quot;content&quot;, &quot;good&quot;);
-ProcessInstance processInstance = 
+ProcessInstance processInstance =
     executionService.startProcessInstanceByKey(&quot;DecisionConditions&quot;, variables);</programlisting>
         <para>The activity <literal>submit document</literal> will be active</para>
         <programlisting>assertTrue(processInstance.isActive(&quot;submit document&quot;));</programlisting>
@@ -362,7 +362,7 @@ ProcessInstance processInstance =
 
       <section id="decisionexpression">
         <title>Decision expression</title>
-        <para>A decision expression evaluates to a String representing the name of 
+        <para>A decision expression evaluates to a String representing the name of
         an outgoing transition.
         </para>
         <table><title><literal>decision</literal> attributes:</title>
@@ -382,7 +382,7 @@ ProcessInstance processInstance =
                 <entry>expression</entry>
                 <entry></entry>
                 <entry><emphasis role="bold">required</emphasis></entry>
-                <entry>script that will be evaluated in the specified 
+                <entry>script that will be evaluated in the specified
                 expression language.
                 </entry>
               </row>
@@ -391,7 +391,7 @@ ProcessInstance processInstance =
                 <entry>expression language</entry>
                 <entry>the <literal>default-expression-language</literal> taken from the <link linkend="scripting"><literal>script-manager</literal> configuration</link></entry>
                 <entry>optional</entry>
-                <entry>the language in which <literal>expr</literal> is 
+                <entry>the language in which <literal>expr</literal> is
                 to be evaluated.
                 </entry>
               </row>
@@ -404,7 +404,7 @@ ProcessInstance processInstance =
           <title>The decision expression example process</title>
           <mediaobject><imageobject><imagedata align="center" fileref="images/process.decision.png"/></imageobject></mediaobject>
         </figure>
-        <programlisting>&lt;process name=&quot;DecisionExpression&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <programlisting>&lt;process name=&quot;DecisionExpression&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start &gt;
     &lt;transition to=&quot;evaluate document&quot;/&gt;
@@ -425,7 +425,7 @@ ProcessInstance processInstance =
         </para>
         <programlisting>Map&lt;String, Object&gt; variables = new HashMap&lt;String, Object&gt;();
 variables.put(&quot;content&quot;, &quot;good&quot;);
-ProcessInstance processInstance = 
+ProcessInstance processInstance =
     executionService.startProcessInstanceByKey(&quot;DecisionExpression&quot;, variables);</programlisting>
 
         <para>then the new execution will go to activity <literal>submit document</literal>.</para>
@@ -434,9 +434,9 @@ ProcessInstance processInstance =
 
       <section id="decisionhandler">
         <title>Decision handler</title>
-        <para>A decision handler is a java class that implements the 
-        <literal>DecisionHandler</literal> interface.  The decision handler 
-        will be responsible for selecting the name of the outgoing transition. 
+        <para>A decision handler is a java class that implements the
+        <literal>DecisionHandler</literal> interface.  The decision handler
+        will be responsible for selecting the name of the outgoing transition.
         </para>
         <programlisting>public interface DecisionHandler {
    String decide(OpenExecution execution);
@@ -485,53 +485,18 @@ ProcessInstance processInstance =
   }
 }</programlisting>
         <para>Now, when we start a process instance and supply value
-        <literal>you're great</literal> for variable content, then the 
-        ContentEvaluation will return String <literal>good</literal> and 
-        the process instance will arrive in activity <literal>Submit document</literal>. 
+        <literal>you're great</literal> for variable content, then the
+        ContentEvaluation will return String <literal>good</literal> and
+        the process instance will arrive in activity <literal>Submit document</literal>.
         </para>
       </section>
-      
     </section>
 
     <section id="concurrency">
       <title><literal>concurrency</literal></title>
-      <para>With the <literal>fork</literal>, <literal>foreach</literal> and 
-      <literal>join</literal> activities, concurrent paths of executions can be modeled.
-      The next two tables describe the <literal>foreach</literal>  and <literal>join</literal>
-      attributes; <literal>fork</literal> has no specific attributes.</para>
-      <table><title><literal>foreach</literal> attributes:</title>
-        <tgroup cols="5" rowsep="1" colsep="1">
-          <thead>
-            <row>
-              <entry>Attribute</entry>
-              <entry>Type</entry>
-              <entry>Default</entry>
-              <entry>Required?</entry>
-              <entry>Description</entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><literal>in</literal></entry>
-              <entry>expression or text</entry>
-              <entry></entry>
-              <entry>required</entry>
-              <entry>The collection to be iterated. Each item in the collection spawns a new
-              concurrent execution leaving over the default transition. <literal>in</literal>
-              supports collections of any kind, arrays and comma separated strings.</entry>
-            </row>
-            <row>
-              <entry><literal>var</literal></entry>
-              <entry>text</entry>
-              <entry></entry>
-              <entry>required</entry>
-              <entry>The variable where the current item of the collection is stored.
-              This variable is set in the concurrent execution and is visible only to that
-              execution.</entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
+      <para>Concurrent paths of executions can be modeled with the <literal>fork</literal> and
+        <literal>join</literal> activities. The next table describes the <literal>join</literal>
+        attributes; <literal>fork</literal> has no specific attributes.</para>
       <table><title><literal>join</literal> attributes:</title>
         <tgroup cols="5" rowsep="1" colsep="1">
           <thead>
@@ -549,8 +514,8 @@ ProcessInstance processInstance =
               <entry>integer or expression</entry>
               <entry>nbr of incoming transitions</entry>
               <entry>optional</entry>
-              <entry>The number of executions that should arrive in this join 
-              before the join activates and push an execution out the single 
+              <entry>The number of executions that should arrive in this join
+              before the join activates and push an execution out the single
               outgoing transition of the join.
               </entry>
             </row>
@@ -559,8 +524,8 @@ ProcessInstance processInstance =
               <entry>{none, read, upgrade, upgrade_nowait, write}</entry>
               <entry>upgrade</entry>
               <entry>optional</entry>
-              <entry>the hibernate lock mode applied on the parent execution to 
-              prevent that 2 concurrent transactions see each other as not yet 
+              <entry>the hibernate lock mode applied on the parent execution to
+              prevent that 2 concurrent transactions see each other as not yet
               arrived at the join, causing a process deadlock.
               </entry>
             </row>
@@ -576,109 +541,66 @@ ProcessInstance processInstance =
           <title>Parallel split example process</title>
           <mediaobject><imageobject><imagedata align="center" fileref="images/process.concurrency.png"/></imageobject></mediaobject>
         </figure>
-        <programlisting>&lt;process name=&quot;ConcurrencyGraphBased&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <programlisting>&lt;process name=&quot;ConcurrencyGraphBased&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
    &lt;start&gt;
       &lt;transition to=&quot;fork&quot;/&gt;
    &lt;/start&gt;
-   
+
    <emphasis role="bold">&lt;fork name=&quot;fork&quot;&gt;
       &lt;transition to=&quot;send invoice&quot; /&gt;
       &lt;transition to=&quot;load truck&quot;/&gt;
       &lt;transition to=&quot;print shipping documents&quot; /&gt;
    &lt;/fork&gt;</emphasis>
-   
+
    &lt;state name=&quot;send invoice&quot; &gt;
       &lt;transition to=&quot;final join&quot; /&gt;
    &lt;/state&gt;
-   
+
    &lt;state name=&quot;load truck&quot; &gt;
       &lt;transition to=&quot;shipping join&quot; /&gt;
    &lt;/state&gt;
-   
+
    &lt;state name=&quot;print shipping documents&quot;&gt;
       &lt;transition to=&quot;shipping join&quot; /&gt;
    &lt;/state&gt;
-   
+
    <emphasis role="bold">&lt;join name=&quot;shipping join&quot; &gt;
       &lt;transition to=&quot;drive truck to destination&quot; /&gt;
    &lt;/join&gt;</emphasis>
-   
+
    &lt;state name=&quot;drive truck to destination&quot; &gt;
       &lt;transition to=&quot;final join&quot; /&gt;
    &lt;/state&gt;
-   
+
    <emphasis role="bold">&lt;join name=&quot;final join&quot; &gt;
       &lt;transition to=&quot;end&quot;/&gt;
    &lt;/join&gt;</emphasis>
-   
+
    &lt;end name=&quot;end&quot; /&gt;
 
 &lt;/process&gt;</programlisting>
       </section>
-
-      <section>
-        <title>Iterative split with <literal>foreach</literal></title>
-        <para>At a given point in a process, several paths of execution can be initiated
-        in a single branch of the same process instance. In the example, there is a need
-        to collect time sheet reports (called data) from different departments. With 
-        <literal>foreach</literal> this can be quite easily achieved. The same task
-        is to be performed by different groups. Process variable <literal>departments</literal>
-        provides the group names, whereas the variable <literal>quota</literal> indicates
-        how many tasks must be completed before execution will leave the <literal>join</literal>
-        activity.</para>
-        <programlisting><![CDATA[<process name="ForEach" xmlns="http://jbpm.org/4.4/jpdl">
-
-   <start g="28,61,48,48" name="start1">
-      <transition to="foreach1"/>
-   </start>
-
-   <foreach var="department" in="#{departments}" g="111,60,48,48" name="foreach1">
-      <transition to="Collect data"/>
-   </foreach>
-
-   <task candidate-groups="#{department}" g="201,58,92,52" name="Collect data">
-      <transition to="join1"/>
-   </task>
-
-   <join g="343,59,48,48" multiplicity="#{quorum}" name="join1">
-      <transition to="end1"/>
-   </join>
-
-   <end g="433,60,48,48" name="end1"/>
-
-</process>]]></programlisting>
-        <important><para>When using foreach, the corresponding join must have the
-        multiplicity attribute set. In general, join continues execution based on its
-        incoming transitions. When using foreach, join has a single incoming transition.
-        If multiplicity is not specified, the first execution that reaches the join
-        activity will trigger continuation.</para></important>
-        <para>Here is how to initialize the iterative process variables.</para>
-        <programlisting><![CDATA[Map<String, Object> variables = new HashMap<String, Object>();
-variables.put("departments", new String[] { "sales-dept", "hr-dept", "finance-dept" });
-variables.put("quorum", 3);
-ProcessInstance processInstance = executionService.startProcessInstanceByKey("ForEach", variables);]]></programlisting>
-      </section>
     </section>
 
     <!-- ### END ########################################################### -->
-    
+
     <section id="end">
       <title><literal>end</literal></title>
       <para>Ends the execution.
       </para>
       <section id="endprocessinstance">
         <title><literal>end</literal> process instance</title>
-        <para>By default, an end activity will end the complete 
-        process instance.  In case multiple concurrent executions 
-        are still active within the same process instance, all of 
-        them will be ended. 
+        <para>By default, an end activity will end the complete
+        process instance.  In case multiple concurrent executions
+        are still active within the same process instance, all of
+        them will be ended.
         </para>
         <figure id="process.end.processinstance">
           <title>The end event</title>
           <mediaobject><imageobject><imagedata align="center" fileref="images/process.end.processinstance.png"/></imageobject></mediaobject>
         </figure>
-        <programlisting>&lt;process name=&quot;EndProcessInstance&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <programlisting>&lt;process name=&quot;EndProcessInstance&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;end&quot; /&gt;
@@ -691,9 +613,9 @@ ProcessInstance processInstance = executionService.startProcessInstanceByKey("Fo
       </section>
       <section id="endexecution">
         <title><literal>end</literal> execution</title>
-        <para>Only the execution that arrives in the 
-        end activity will be ended and other concurrent executions  
-        should be left active.  To get this behaviour, set 
+        <para>Only the execution that arrives in the
+        end activity will be ended and other concurrent executions
+        should be left active.  To get this behaviour, set
         attribute <literal>ends=&quot;execution&quot;</literal>
         </para>
         <table><title><literal>end</literal> execution attributes:</title>
@@ -713,8 +635,8 @@ ProcessInstance processInstance = executionService.startProcessInstanceByKey("Fo
                 <entry>{processinstance|execution}</entry>
                 <entry>processinstance</entry>
                 <entry>optional</entry>
-                <entry>specifies if the whole process instance should be ended or 
-                just the path of execution that arrives in the end activity. 
+                <entry>specifies if the whole process instance should be ended or
+                just the path of execution that arrives in the end activity.
                 </entry>
               </row>
             </tbody>
@@ -723,7 +645,7 @@ ProcessInstance processInstance = executionService.startProcessInstanceByKey("Fo
       </section>
       <section id="endmultiple">
         <title><literal>end</literal> multiple</title>
-        <para>A process can have multiple end events.  This can be handy to indicate 
+        <para>A process can have multiple end events.  This can be handy to indicate
         different outcomes of a process instance.  For example
         </para>
         <figure id="process.end.multiple">
@@ -735,20 +657,20 @@ ProcessInstance processInstance = executionService.startProcessInstanceByKey("Fo
   &lt;start&gt;
     &lt;transition to=&quot;get return code&quot; /&gt;
   &lt;/start&gt;
-  
+
   &lt;state name=&quot;get return code&quot;&gt;
     &lt;transition name=&quot;200&quot; to=&quot;ok&quot;/&gt;
     &lt;transition name=&quot;400&quot; to=&quot;bad request&quot;/&gt;
     &lt;transition name=&quot;500&quot; to=&quot;internal server error&quot;/&gt;
   &lt;/state&gt;
-  
+
   &lt;end name=&quot;ok&quot;/&gt;
   &lt;end name=&quot;bad request&quot;/&gt;
   &lt;end name=&quot;internal server error&quot;/&gt;
-  
+
 &lt;/process&gt;
         </programlisting>
-        <para>Now if we would start an execution and signal it to move out of the <literal>get return code</literal> wait state with the 
+        <para>Now if we would start an execution and signal it to move out of the <literal>get return code</literal> wait state with the
         following code, the execution would end with the <literal>bad request</literal> end event.</para>
         <programlisting>ProcessInstance processInstance = executionService.startProcessInstanceByKey(&quot;EndMultiple&quot;);
 String pid = processInstance.getId();
@@ -757,11 +679,11 @@ processInstance = executionService.signalExecutionById(pid, &quot;400&quot;);</p
         to end with the <literal>ok</literal> or with the <literal>internal server error</literal> end events
         respectively.</para>
       </section>
-      
+
       <section id="endstate">
         <title><literal>end</literal> state</title>
-        <para>An execution can also end with different states. It is another way to specify the outcome of a process. 
-        It is indicated by the <literal>state</literal> attribute of the end event or by the <literal>end-cancel</literal> 
+        <para>An execution can also end with different states. It is another way to specify the outcome of a process.
+        It is indicated by the <literal>state</literal> attribute of the end event or by the <literal>end-cancel</literal>
         and <literal>end-error</literal> shortcut notations.
         </para>
 
@@ -782,7 +704,7 @@ processInstance = executionService.signalExecutionById(pid, &quot;400&quot;);</p
                 <entry>String</entry>
                 <entry></entry>
                 <entry>optional</entry>
-                <entry>the state assigned to the execution. 
+                <entry>the state assigned to the execution.
                 </entry>
               </row>
             </tbody>
@@ -795,7 +717,7 @@ processInstance = executionService.signalExecutionById(pid, &quot;400&quot;);</p
           <title>Different end states</title>
           <mediaobject><imageobject><imagedata align="center" fileref="images/process.end.state.png"/></imageobject></mediaobject>
         </figure>
-        <programlisting>&lt;process name=&quot;EndState&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <programlisting>&lt;process name=&quot;EndState&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
      &lt;transition to=&quot;get return code&quot;/&gt;
@@ -813,7 +735,7 @@ processInstance = executionService.signalExecutionById(pid, &quot;400&quot;);</p
 
 &lt;/process&gt;
         </programlisting>
-        <para>This time, if we would start an execution and signal it to move out of the <literal>get return code</literal> wait state with the 
+        <para>This time, if we would start an execution and signal it to move out of the <literal>get return code</literal> wait state with the
         following code, the execution would end with the <literal>cancel</literal> state.</para>
         <para>Similarly, using the value <literal>200</literal> or <literal>500</literal> would cause the execution
         to end with the <literal>completed</literal> or with the <literal>error</literal> states
@@ -827,7 +749,7 @@ processInstance = executionService.signalExecutionById(pid, &quot;400&quot;);</p
       <title><literal>task</literal></title>
 
       <para>Creates a task for a person in the task component.</para>
-      
+
       <!-- ~~~ TASK ASSIGNEE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 
       <section id="taskassignee">
@@ -851,47 +773,47 @@ processInstance = executionService.signalExecutionById(pid, &quot;400&quot;);</p
                 <entry>expression</entry>
                 <entry></entry>
                 <entry>optional</entry>
-                <entry>userId referring to the person that is responsible for 
+                <entry>userId referring to the person that is responsible for
                 completing this task.</entry>
               </row>
             </tbody>
           </tgroup>
         </table>
-	      <figure id="process.task.assignee">
-	        <title>The task assignee example process</title>
-	        <mediaobject><imageobject><imagedata align="center" fileref="images/process.task.png"/></imageobject></mediaobject>
-	      </figure>
-	      <programlisting>&lt;process name=&quot;TaskAssignee&quot;&gt;
+          <figure id="process.task.assignee">
+            <title>The task assignee example process</title>
+            <mediaobject><imageobject><imagedata align="center" fileref="images/process.task.png"/></imageobject></mediaobject>
+          </figure>
+          <programlisting>&lt;process name=&quot;TaskAssignee&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;review&quot; /&gt;
   &lt;/start&gt;
 
-  &lt;task name=&quot;review&quot; 
+  &lt;task name=&quot;review&quot;
         <emphasis role="bold">assignee=&quot;#{order.owner}&quot;</emphasis>&gt;
- 
+
      &lt;transition to=&quot;wait&quot; /&gt;
   &lt;/task&gt;
-  
+
   &lt;state name=&quot;wait&quot; /&gt;
 
 &lt;/process&gt;</programlisting>
         <para>This process shows 2 aspects of task assignment.  First, that the
-        attribute <literal>assignee</literal> is used to indicate the user that is 
-        responsible for completing the task.  The assignee is a String property 
+        attribute <literal>assignee</literal> is used to indicate the user that is
+        responsible for completing the task.  The assignee is a String property
         of a task and refers to a user.
         </para>
         <para>Secondly, this attribute is by default evaluated as an expression.
         In this case the task is assigned to <literal>#{order.owner}</literal>.
-        Which means that first an object is searched for with name order.  One of 
-        the places where this object is looked up is the process variables 
-        associated to the task.  Then the <literal>getOwner()</literal> getter 
-        will be used to get the userId that references the user that is 
-        responsible for completing this task.  
+        Which means that first an object is searched for with name order.  One of
+        the places where this object is looked up is the process variables
+        associated to the task.  Then the <literal>getOwner()</literal> getter
+        will be used to get the userId that references the user that is
+        responsible for completing this task.
         </para>
         <para>Here's the Order class used in our example:</para>
         <programlisting>public class Order implements Serializable {
-  
+
   String owner;
 
   public Order(String owner) {
@@ -906,25 +828,25 @@ processInstance = executionService.signalExecutionById(pid, &quot;400&quot;);</p
     this.owner = owner;
   }
 }</programlisting>
-          <para>Next a new process instance is created with an order as a process 
+          <para>Next a new process instance is created with an order as a process
           variable.</para>
-          <programlisting>Map&lt;String, Object&gt; variables = new HashMap&lt;String, Object&gt;(); 
+          <programlisting>Map&lt;String, Object&gt; variables = new HashMap&lt;String, Object&gt;();
 variables.put(&quot;order&quot;, new Order(&quot;johndoe&quot;));
 ProcessInstance processInstance = executionService
     .startProcessInstanceByKey(&quot;TaskAssignee&quot;, variables);</programlisting>
         <para>Then the task list for <literal>johndoe</literal> can be obtained like this.</para>
         <programlisting>List&lt;Task&gt; taskList = taskService.findPersonalTasks(&quot;johndoe&quot;);</programlisting>
-        <para>Note that it is also possible to put plain text like 
+        <para>Note that it is also possible to put plain text like
         <literal>assignee=&quot;johndoe&quot;</literal>.  In that case
-        the task will be assigned to johndoe.   
+        the task will be assigned to johndoe.
         </para>
-	    </section>
+        </section>
 
       <!-- ~~~ TASK CANDIDATES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
 
       <section id="taskcandidates">
         <title><literal>task</literal> candidates</title>
-        <para>A task that will be offered to a group of users.  One of the users should then 
+        <para>A task that will be offered to a group of users.  One of the users should then
         take the task in order to complete it.
         </para>
         <table><title><literal>task</literal> attributes:</title>
@@ -945,7 +867,7 @@ ProcessInstance processInstance = executionService
                 <entry></entry>
                 <entry>optional</entry>
                 <entry>resolves to a comma separated list of groupIds.
-                All the people in the groups will be candidates for this 
+                All the people in the groups will be candidates for this
                 task.</entry>
               </row>
               <row>
@@ -970,12 +892,12 @@ ProcessInstance processInstance = executionService
     &lt;transition to=&quot;review&quot; /&gt;
   &lt;/start&gt;
 
-  &lt;task name=&quot;review&quot; 
+  &lt;task name=&quot;review&quot;
         <emphasis role="bold">candidate-groups=&quot;sales-dept&quot;</emphasis>&gt;
- 
+
      &lt;transition to=&quot;wait&quot; /&gt;
   &lt;/task&gt;
-  
+
   &lt;state name=&quot;wait&quot;/&gt;
 
 &lt;/process&gt;
@@ -986,7 +908,7 @@ ProcessInstance processInstance = executionService
         <programlisting>taskService.getPersonalTasks(&quot;johndoe&quot;);
 taskService.getPersonalTasks(&quot;joesmoe&quot;);</programlisting>
         <para>But the task will show up in the group task list of all members of the <literal>sales-dept</literal>
-        group.   
+        group.
         </para>
         <para>The in our example, the <literal>sales-dept</literal> has two members: johndoe and joesmoe</para>
         <programlisting>identityService.createGroup(&quot;sales-dept&quot;);
@@ -996,23 +918,23 @@ identityService.createMembership(&quot;johndoe&quot;, &quot;sales-dept&quot;);
 
 identityService.createUser(&quot;joesmoe&quot;, &quot;joesmoe&quot;, &quot;Joe&quot;, &quot;Smoe&quot;);
 identityService.createMembership(&quot;joesmoe&quot;, &quot;sales-dept&quot;); </programlisting>
-        <para>So after the process is created, the task will appear in both the 
+        <para>So after the process is created, the task will appear in both the
         group tasks for users johndoe and joesmoe</para>
         <programlisting>taskService.findGroupTasks("johndoe");
 taskService.findGroupTasks("joesmoe");</programlisting>
-        <para>Candidates must take a task before they can work on it. This will prevent 
-        that two candides start working on the same task.  The user interface must only 
-        offer the action 'Take' for the tasks in the group task list.    
+        <para>Candidates must take a task before they can work on it. This will prevent
+        that two candides start working on the same task.  The user interface must only
+        offer the action 'Take' for the tasks in the group task list.
         </para>
         <programlisting>taskService.takeTask(task.getDbid(), &quot;johndoe&quot;);</programlisting>
-        <para>When a user takes a task, the assignee of that task will be set to the given 
-        user.  The task will disappear from all the candidate's group task list and 
+        <para>When a user takes a task, the assignee of that task will be set to the given
+        user.  The task will disappear from all the candidate's group task list and
         it will appear in the user's assigned tasks.
         </para>
-        <para>Users are only allowed to work on tasks in their personal task list.  This 
+        <para>Users are only allowed to work on tasks in their personal task list.  This
         should be enforced by the user interface.</para>
-        <para>Similarly, the attribute <literal>candidate-users</literal> can be used that 
-        resolves to a comma separated list of userIds.  The <literal>candidate-users</literal>  
+        <para>Similarly, the attribute <literal>candidate-users</literal> can be used that
+        resolves to a comma separated list of userIds.  The <literal>candidate-users</literal>
         attribute can be used in combination with other assignment options.
         </para>
       </section>
@@ -1021,8 +943,8 @@ taskService.findGroupTasks("joesmoe");</programlisting>
 
       <section id="taskassignmenthandler">
         <title><literal>task</literal> assignment handler</title>
-        <para>An <literal>AssignmentHandler</literal> can be used to calculate the 
-        assignee and the candidates for a task programmatically. 
+        <para>An <literal>AssignmentHandler</literal> can be used to calculate the
+        assignee and the candidates for a task programmatically.
         </para>
         <programlisting>public interface <emphasis role="bold">AssignmentHandler</emphasis> extends Serializable {
 
@@ -1030,7 +952,7 @@ taskService.findGroupTasks("joesmoe");</programlisting>
   void assign(Assignable assignable, OpenExecution execution) throws Exception;
 }</programlisting>
         <para><literal>Assignable</literal> is a common interface for Tasks and
-        Swimlanes.  So AssignmentHandlers can be used for tasks as well as swimlanes 
+        Swimlanes.  So AssignmentHandlers can be used for tasks as well as swimlanes
         (see later).
         </para>
         <para><literal>assignment-handler</literal> is a sub element of the task element.
@@ -1042,12 +964,12 @@ taskService.findGroupTasks("joesmoe");</programlisting>
           <title>The task assignment handler example process</title>
           <mediaobject><imageobject><imagedata align="center" fileref="images/process.task.png"/></imageobject></mediaobject>
         </figure>
-        <programlisting>&lt;process name=&quot;TaskAssignmentHandler&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <programlisting>&lt;process name=&quot;TaskAssignmentHandler&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start g=&quot;20,20,48,48&quot;&gt;
     &lt;transition to=&quot;review&quot; /&gt;
   &lt;/start&gt;
-  
+
   &lt;task name=&quot;review&quot; g=&quot;96,16,127,52&quot;&gt;
     <emphasis role="bold">&lt;assignment-handler class=&quot;org.jbpm.examples.task.assignmenthandler.AssignTask&quot;&gt;
       &lt;field name=&quot;assignee&quot;&gt;
@@ -1058,7 +980,7 @@ taskService.findGroupTasks("joesmoe");</programlisting>
   &lt;/task&gt;
 
   &lt;state name=&quot;wait&quot; g=&quot;255,16,88,52&quot; /&gt;
-  
+
 &lt;/process&gt;</programlisting>
         <para>The referenced class <literal>AssignTask</literal> looks like this: </para>
         <programlisting>public class AssignTask implements AssignmentHandler {
@@ -1069,14 +991,14 @@ taskService.findGroupTasks("joesmoe");</programlisting>
     assignable.setAssignee(assignee);
   }
 }</programlisting>
-        <para>Please note that potentially, AssignmentHandler implementations can use 
-        the process variables and any other Java API to access resources like your 
-        application database to calculate the assignee and candidate users and groups. 
+        <para>Please note that potentially, AssignmentHandler implementations can use
+        the process variables and any other Java API to access resources like your
+        application database to calculate the assignee and candidate users and groups.
         </para>
-        <para>Starting a new process instance of the <literal>TaskAssignmentHandler</literal> 
-        process will immediately bring the new execution to the task activity.  A new 
-        <literal>review</literal> task is created and at that point, the <literal>AssignTask</literal> 
-        assignment handler is called.  That will set <literal>johndoe</literal> as 
+        <para>Starting a new process instance of the <literal>TaskAssignmentHandler</literal>
+        process will immediately bring the new execution to the task activity.  A new
+        <literal>review</literal> task is created and at that point, the <literal>AssignTask</literal>
+        assignment handler is called.  That will set <literal>johndoe</literal> as
         the assignee.  So John Doe will find the task in his personal task list.
         </para>
       </section>
@@ -1085,15 +1007,15 @@ taskService.findGroupTasks("joesmoe");</programlisting>
 
       <section id="taskswimlanes">
         <title><literal>task</literal> swimlanes</title>
-        <para>Multiple tasks in a process should be assigned to the same 
-        user or candidates.  Multiple tasks in a process can be associated to a 
-        single swimlane.  The process instance will remember the candidates and user 
-        that performed the first task in the swimlane.  And subsequent tasks in the 
-        same swimlane will be assigned to those user and candidates. 
+        <para>Multiple tasks in a process should be assigned to the same
+        user or candidates.  Multiple tasks in a process can be associated to a
+        single swimlane.  The process instance will remember the candidates and user
+        that performed the first task in the swimlane.  And subsequent tasks in the
+        same swimlane will be assigned to those user and candidates.
         </para>
-        <para>A swimlane can also be considered as a process role.  In some 
-        cases, this might boil down to authorization roles in the 
-        identity component.  But bare in mind that it is not always the 
+        <para>A swimlane can also be considered as a process role.  In some
+        cases, this might boil down to authorization roles in the
+        identity component.  But bare in mind that it is not always the
         same thing.</para>
         <table><title><literal>task</literal> attributes:</title>
           <tgroup cols="5" rowsep="1" colsep="1">
@@ -1135,7 +1057,7 @@ taskService.findGroupTasks("joesmoe");</programlisting>
                 <entry>swimlane (string)</entry>
                 <entry></entry>
                 <entry><emphasis role="bold">required</emphasis></entry>
-                <entry>Name for this swimlane.  This is the 
+                <entry>Name for this swimlane.  This is the
                 name that will be referenced by task swimlane attributes.
                 </entry>
               </row>
@@ -1144,7 +1066,7 @@ taskService.findGroupTasks("joesmoe");</programlisting>
                 <entry>expression</entry>
                 <entry></entry>
                 <entry>optional</entry>
-                <entry>userId referring to the person that is responsible for 
+                <entry>userId referring to the person that is responsible for
                 completing this task.</entry>
               </row>
               <row>
@@ -1153,7 +1075,7 @@ taskService.findGroupTasks("joesmoe");</programlisting>
                 <entry></entry>
                 <entry>optional</entry>
                 <entry>resolves to a comma separated list of groupIds.
-                All the people in the groups will be candidates for this 
+                All the people in the groups will be candidates for this
                 the tasks in this swimlane.</entry>
               </row>
               <row>
@@ -1162,7 +1084,7 @@ taskService.findGroupTasks("joesmoe");</programlisting>
                 <entry></entry>
                 <entry>optional</entry>
                 <entry>resolves to a comma separated list of userIds.
-                All the users will be candidates for the 
+                All the users will be candidates for the
                 tasks in this swimlane.</entry>
               </row>
             </tbody>
@@ -1170,15 +1092,15 @@ taskService.findGroupTasks("joesmoe");</programlisting>
         </table>
         <figure id="process.task.swimlane">
           <title>The task swimlane example process</title>
-          
-          <!-- KOEN: volgende image moet aangepast worden naar  
-                     images/process.task.swimlane.png 
+
+          <!-- KOEN: volgende image moet aangepast worden naar
+                     images/process.task.swimlane.png
                      nadat je die hebt toegevoegd aan de images directory -->
 
           <mediaobject><imageobject><imagedata align="center" fileref="images/process.task.png"/></imageobject></mediaobject>
         </figure>
         <para>The task swimlane example has the following process file :</para>
-        <programlisting>&lt;process name=&quot;TaskSwimlane&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <programlisting>&lt;process name=&quot;TaskSwimlane&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   <emphasis role="bold">&lt;swimlane name=&quot;sales representative&quot;
             candidate-groups=&quot;sales-dept&quot; /&gt;</emphasis>
@@ -1186,42 +1108,42 @@ taskService.findGroupTasks("joesmoe");</programlisting>
   &lt;start&gt;
     &lt;transition to=&quot;enter order data&quot; /&gt;
   &lt;/start&gt;
-  
+
   &lt;task name=&quot;enter order data&quot;
         <emphasis role="bold">swimlane=&quot;sales representative&quot;</emphasis>&gt;
 
     &lt;transition to=&quot;calculate quote&quot;/&gt;
   &lt;/task&gt;
 
-  &lt;task 
-      name=&quot;calculate quote&quot; 
+  &lt;task
+      name=&quot;calculate quote&quot;
       <emphasis role="bold">swimlane=&quot;sales representative&quot;</emphasis>&gt;
   &lt;/task&gt;
 
 &lt;/process&gt;</programlisting>
-        <para>In this example we create the following information in the identity 
+        <para>In this example we create the following information in the identity
         component:</para>
         <programlisting>identityService.createGroup(&quot;sales-dept&quot;);
 
 identityService.createUser(&quot;johndoe&quot;, &quot;johndoe&quot;, &quot;John&quot;, &quot;Doe&quot;);
 identityService.createMembership(&quot;johndoe&quot;, &quot;sales-dept&quot;);</programlisting>
-        <para>After starting a new process instance, user <literal>johndoe</literal> will 
-        be a candidate for task <literal>enter order data</literal>.  Again like in the 
+        <para>After starting a new process instance, user <literal>johndoe</literal> will
+        be a candidate for task <literal>enter order data</literal>.  Again like in the
         previous task candidates example, John Doe can now take this task like this:
         </para>
         <programlisting>taskService.takeTask(taskDbid, &quot;johndoe&quot;);</programlisting>
-        <para>Taking the task will make Lit<literal>johndoe</literal> the assignee for 
-        the task.  And since this task is coupled to the swimlane 
-        <literal>sales representative</literal>, assignee <literal>johndoe</literal> will 
+        <para>Taking the task will make Lit<literal>johndoe</literal> the assignee for
+        the task.  And since this task is coupled to the swimlane
+        <literal>sales representative</literal>, assignee <literal>johndoe</literal> will
         also be propagated as the assignee in the swimlane.</para>
         <para>Next, John Doe can complete the task like this:</para>
         <programlisting>taskService.completeTask(taskDbid);</programlisting>
-        <para>Completing the task will bring the process execution to the 
-        next task, which is <literal>calculate quote</literal>.  Also 
-        this task is linked to the swimlane.  Therefore, the task will be 
-        assigned to <literal>johndoe</literal>.  Also the candidate users 
-        and candidate groups of the initial assignment will be copied from 
-        the swimlane to the task.  This is relevant in case user <literal>johndoe</literal> 
+        <para>Completing the task will bring the process execution to the
+        next task, which is <literal>calculate quote</literal>.  Also
+        this task is linked to the swimlane.  Therefore, the task will be
+        assigned to <literal>johndoe</literal>.  Also the candidate users
+        and candidate groups of the initial assignment will be copied from
+        the swimlane to the task.  This is relevant in case user <literal>johndoe</literal>
         would release the task and offer it back to the other candidates.
         </para>
       </section>
@@ -1230,11 +1152,11 @@ identityService.createMembership(&quot;johndoe&quot;, &quot;sales-dept&quot;);</
 
       <section id="taskvariables">
         <title><literal>task</literal> variables</title>
-        <para>Tasks can read and update process variables.  Later tasks will have 
-        the option to declare task-local process variables.  Task variables 
-        are an important part of the task forms.  Task forms typically show 
-        data that comes from the task and the process instance.  Then 
-        input from the user is translated in setting task variables. 
+        <para>Tasks can read and update process variables.  Later tasks will have
+        the option to declare task-local process variables.  Task variables
+        are an important part of the task forms.  Task forms typically show
+        data that comes from the task and the process instance.  Then
+        input from the user is translated in setting task variables.
         </para>
         <para>Getting task variables can be done like this:</para>
         <programlisting>List&lt;Task&gt; taskList = taskService.findPersonalTasks(&quot;johndoe&quot;);
@@ -1252,31 +1174,31 @@ variables.put(&quot;lires&quot;, 923874893);
 
 taskService.setVariables(taskDbid, variables);</programlisting>
       </section>
-      
+
       <!-- ~~~ MAIL SUPPORT IN TASKS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-      
+
       <section id="mailintasks">
         <title>e-mail support in tasks</title>
         <para>It is possible to provide assignees with notifications when a task
           is added to their list, as well as reminders at specific intervals.
           Every email message is produced from a template. Templates may be specified
-          inline or in the <literal>process-engine-context</literal> section of the 
+          inline or in the <literal>process-engine-context</literal> section of the
           configuration file.</para>
         <table><title><literal>task</literal> elements</title>
-	      <tgroup cols="3" rowsep="1" colsep="1">
-	        <thead>
-	          <row>
-	            <entry>Element</entry>
-	            <entry>Multiplicity</entry>
-	            <entry>Description</entry>
-	          </row>
-	        </thead>
+          <tgroup cols="3" rowsep="1" colsep="1">
+            <thead>
+              <row>
+                <entry>Element</entry>
+                <entry>Multiplicity</entry>
+                <entry>Description</entry>
+              </row>
+            </thead>
             <tbody>
               <row>
                 <entry>notification</entry>
                 <entry>0..1</entry>
                 <entry>Sends a notification message when a task is assigned.
-                  If no template is referenced or supplied inline, mail support 
+                  If no template is referenced or supplied inline, mail support
                   falls back on the template named <emphasis>task-notification</emphasis>.
                   </entry>
               </row>
@@ -1308,7 +1230,7 @@ taskService.setVariables(taskDbid, variables);</programlisting>
                 <entry>{sync | async | exclusive}</entry>
                 <entry>sync</entry>
                 <entry>optional</entry>
-                <entry>Specifies if an asynchronous continuation should be introduced 
+                <entry>Specifies if an asynchronous continuation should be introduced
                 right before sending this notification email.
                 </entry>
               </row>
@@ -1347,7 +1269,7 @@ taskService.setVariables(taskDbid, variables);</programlisting>
                 <entry>{sync | async | exclusive}</entry>
                 <entry>sync</entry>
                 <entry>optional</entry>
-                <entry>Specifies if an asynchronous continuation should be introduced 
+                <entry>Specifies if an asynchronous continuation should be introduced
                 right before sending this notification email.
                 </entry>
               </row>
@@ -1355,7 +1277,7 @@ taskService.setVariables(taskDbid, variables);</programlisting>
           </tgroup>
         </table>
         <para>Here is a basic example that accepts the default templates.</para>
-        <programlisting><![CDATA[<task name="review" 
+        <programlisting><![CDATA[<task name="review"
       assignee="#{order.owner}"
      <notification/>
      <reminder duedate="2 days" repeat="1 day"/>
@@ -1368,9 +1290,9 @@ taskService.setVariables(taskDbid, variables);</programlisting>
     <section id="subprocess">
       <title><literal>sub-process</literal></title>
 
-      <para>Creates a sub process instance and waits till it is completed.  When 
-      the sub process instance completes, then the execution in the sub-process 
-      will continue.    
+      <para>Creates a sub process instance and waits till it is completed.  When
+      the sub process instance completes, then the execution in the sub-process
+      will continue.
       </para>
 
       <table><title><literal>sub-process</literal> attributes:</title>
@@ -1390,8 +1312,8 @@ taskService.setVariables(taskDbid, variables);</programlisting>
               <entry>string or expression</entry>
               <entry></entry>
               <entry>either this or sub-process-key is required</entry>
-              <entry>Identifies the sub process by the id.  This means that a specific 
-              version of a process definition is referenced. Sub process id can be specified as 
+              <entry>Identifies the sub process by the id.  This means that a specific
+              version of a process definition is referenced. Sub process id can be specified as
               simple text or EL expression.</entry>
             </row>
             <row>
@@ -1399,9 +1321,9 @@ taskService.setVariables(taskDbid, variables);</programlisting>
               <entry>string or expression</entry>
               <entry></entry>
               <entry>either this or sub-process-key is required</entry>
-              <entry>Identifies the sub process by the key.  This means that the latest 
-              version of the process definition with the given key is referenced.  The latest version 
-              of the process is looked up each time the activity executes. Sub process key can be specified as 
+              <entry>Identifies the sub process by the key.  This means that the latest
+              version of the process definition with the given key is referenced.  The latest version
+              of the process is looked up each time the activity executes. Sub process key can be specified as
               simple text or EL expression.
               </entry>
             </row>
@@ -1410,52 +1332,52 @@ taskService.setVariables(taskDbid, variables);</programlisting>
               <entry>expression</entry>
               <entry></entry>
               <entry>required when transitions have <literal>outcome-value</literal>'s specified</entry>
-              <entry>Expression that is evaluated when the sub process 
-              instance ends.  The value is then used for outcome transition mapping.  
-              Add <literal>outcome-value</literal> elements to the outgoing transitions 
+              <entry>Expression that is evaluated when the sub process
+              instance ends.  The value is then used for outcome transition mapping.
+              Add <literal>outcome-value</literal> elements to the outgoing transitions
               of this <literal>sub-process</literal> activity.
               </entry>
             </row>
           </tbody>
         </tgroup>
       </table>
-      
+
       <table><title><literal>sub-process</literal> elements:</title>
-	      <tgroup cols="3" rowsep="1" colsep="1">
-	        <thead>
-	          <row>
-	            <entry>Element</entry>
-	            <entry>Multiplicity</entry>
-	            <entry>Description</entry>
-	          </row>
-	        </thead>
-	        <tbody>
-	          <row>
-	            <entry><literal>parameter-in</literal></entry>
-	            <entry>0..*</entry>
-	            <entry>Declares a variable that is passed to the sub process instance
-	            when it is created.
-	            </entry>
-	          </row>
-	          <!-- 
+          <tgroup cols="3" rowsep="1" colsep="1">
+            <thead>
+              <row>
+                <entry>Element</entry>
+                <entry>Multiplicity</entry>
+                <entry>Description</entry>
+              </row>
+            </thead>
+            <tbody>
+              <row>
+                <entry><literal>parameter-in</literal></entry>
+                <entry>0..*</entry>
+                <entry>Declares a variable that is passed to the sub process instance
+                when it is created.
+                </entry>
+              </row>
+              <!--
             <row>
               <entry><literal>swimlane-mapping</literal></entry>
               <entry>0..*</entry>
-              <entry>Declares a swimlane that will be propagated to the sub process 
+              <entry>Declares a swimlane that will be propagated to the sub process
               instance when the sub process is created.
               </entry>
             </row>
              -->
-	          <row>
-	            <entry><literal>parameter-out</literal></entry>
-	            <entry>0..*</entry>
-	            <entry>Declares a variable that will be set in the super process execution
-	            when the sub process ends.
-	            </entry>
-	          </row>
-	        </tbody>
-	      </tgroup>
-	    </table>
+              <row>
+                <entry><literal>parameter-out</literal></entry>
+                <entry>0..*</entry>
+                <entry>Declares a variable that will be set in the super process execution
+                when the sub process ends.
+                </entry>
+              </row>
+            </tbody>
+          </tgroup>
+        </table>
 
       <table><title><literal>parameter-in</literal> attributes:</title>
         <tgroup cols="5" rowsep="1" colsep="1">
@@ -1488,7 +1410,7 @@ taskService.setVariables(taskDbid, variables);</programlisting>
               <entry>string</entry>
               <entry></entry>
               <entry>exactly one of {'var', 'expr'} is required to specify the value</entry>
-              <entry>An expression that will be resolved in the <emphasis role="bold">super</emphasis> process execution 
+              <entry>An expression that will be resolved in the <emphasis role="bold">super</emphasis> process execution
               context.  The resulting value will be set in the sub process variable.
               </entry>
             </row>
@@ -1528,7 +1450,7 @@ taskService.setVariables(taskDbid, variables);</programlisting>
               <entry>string</entry>
               <entry></entry>
               <entry>exactly one of {'subvar', 'expr'} is required to specify the value</entry>
-              <entry>The name of the sub process variable from which the value 
+              <entry>The name of the sub process variable from which the value
               will be taken.</entry>
             </row>
             <row>
@@ -1536,7 +1458,7 @@ taskService.setVariables(taskDbid, variables);</programlisting>
               <entry>string</entry>
               <entry></entry>
               <entry>exactly one of {'subvar', 'expr'} is required to specify the value</entry>
-              <entry>An expression that will be resolved in the <emphasis role="bold">sub</emphasis> process execution 
+              <entry>An expression that will be resolved in the <emphasis role="bold">sub</emphasis> process execution
               context.  The resulting value will be set in the super process variable.
               </entry>
             </row>
@@ -1564,20 +1486,20 @@ taskService.setVariables(taskDbid, variables);</programlisting>
             <row>
               <entry><literal>outcome-value</literal></entry>
               <entry>0..1</entry>
-              <entry>If the <literal>outcome</literal> matches the value, this 
-              transition is taken after the sub-process ended.  The value is specified with one child 
+              <entry>If the <literal>outcome</literal> matches the value, this
+              transition is taken after the sub-process ended.  The value is specified with one child
               element.
               </entry>
             </row>
           </tbody>
         </tgroup>
       </table>
-      
+
       <!-- ~~~ SUB PROCESS VARIABLES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <section id="subprocessvariables">
         <title><literal>sub-process</literal> variables</title>
-        <para>The SubProcessVariables example scenario will show the basic workings of the 
-        sub-process activity, how to feed information in the sub process when it starts 
+        <para>The SubProcessVariables example scenario will show the basic workings of the
+        sub-process activity, how to feed information in the sub process when it starts
         and how to extract information out of the subprocess when it ends.
         </para>
         <para>The parent process involves a document that needs to be reviewed.</para>
@@ -1585,7 +1507,7 @@ taskService.setVariables(taskDbid, variables);</programlisting>
           <title>The subprocess document example process</title>
           <mediaobject><imageobject><imagedata align="center" fileref="images/process.task.png"/></imageobject></mediaobject>
         </figure>
-        <programlisting>&lt;process name=&quot;SubProcessDocument&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <programlisting>&lt;process name=&quot;SubProcessDocument&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;review&quot; /&gt;
@@ -1593,13 +1515,13 @@ taskService.setVariables(taskDbid, variables);</programlisting>
 
   <emphasis role="bold">&lt;sub-process name=&quot;review&quot;
                sub-process-key=&quot;SubProcessReview&quot;&gt;
-               
+
     &lt;parameter-in var=&quot;document&quot; subvar=&quot;document&quot; /&gt;
     &lt;parameter-out var=&quot;reviewResult&quot; subvar=&quot;result&quot; /&gt;
-    
+
     &lt;transition to=&quot;wait&quot; /&gt;
   &lt;/sub-process&gt;</emphasis>
-  
+
   &lt;state name=&quot;wait&quot;/&gt;
 
 &lt;/process&gt;</programlisting>
@@ -1608,7 +1530,7 @@ taskService.setVariables(taskDbid, variables);</programlisting>
           <title>The subprocess review example process</title>
           <mediaobject><imageobject><imagedata align="center" fileref="images/process.subprocess.review.png"/></imageobject></mediaobject>
         </figure>
-        <programlisting>&lt;process name=&quot;SubProcessReview&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <programlisting>&lt;process name=&quot;SubProcessReview&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;get approval&quot;/&gt;
@@ -1616,33 +1538,33 @@ taskService.setVariables(taskDbid, variables);</programlisting>
 
   &lt;task name=&quot;get approval&quot;
         assignee=&quot;johndoe&quot;&gt;
-               
+
     &lt;transition to=&quot;end&quot;/&gt;
   &lt;/task&gt;
-  
+
   &lt;end name=&quot;end&quot; /&gt;
 
 &lt;/process&gt;</programlisting>
         <para>The document process is started with a document variable:</para>
         <programlisting>Map&lt;String, Object&gt; variables = new HashMap&lt;String, Object&gt;();
 variables.put(&quot;document&quot;, &quot;This document describes how we can make more money...&quot;);
-    
+
 ProcessInstance processInstance = executionService
     .startProcessInstanceByKey(&quot;SubProcessDocument&quot;, variables);</programlisting>
-        <para>Then the parent process execution will arrive in the sub process 
+        <para>Then the parent process execution will arrive in the sub process
         activity.  A sub process instance is created and linked with the super
-        process execution.  When the <literal>SubProcessReview</literal> process 
-        instance starts, it arrives in the <literal>task</literal>.  A task will be 
-        created for <literal>johndoe</literal>. 
+        process execution.  When the <literal>SubProcessReview</literal> process
+        instance starts, it arrives in the <literal>task</literal>.  A task will be
+        created for <literal>johndoe</literal>.
         </para>
         <programlisting>List&lt;Task&gt; taskList = taskService.findPersonalTasks(&quot;johndoe&quot;);
 Task task = taskList.get(0);</programlisting>
-        <para>We can see that the document has been passed from the super process 
-        instance to the sub process instance: 
+        <para>We can see that the document has been passed from the super process
+        instance to the sub process instance:
         </para>
         <programlisting>String document = (String) taskService.getVariable(task.getDbid(), &quot;document&quot;);
 assertEquals(&quot;This document describes how we can make more money...&quot;, document);</programlisting>
-        <para>Then we set a variable on the task.  This is typically done through a form.  But 
+        <para>Then we set a variable on the task.  This is typically done through a form.  But
         here we'll show how it is done programmatically.
         </para>
         <programlisting>
@@ -1653,9 +1575,9 @@ taskService.setVariables(task.getDbid(), variables);</programlisting>
         </para>
         <programlisting>taskService.completeTask(task.getDbid());</programlisting>
         <para>When the sub process ends, the super process execution will get signalled(=notified).
-        First the <literal>result</literal> variable from the sub process instance 
-        will be copied into the <literal>reviewResult</literal> variable in the 
-        super process execution.  Then the super process execution will continue 
+        First the <literal>result</literal> variable from the sub process instance
+        will be copied into the <literal>reviewResult</literal> variable in the
+        super process execution.  Then the super process execution will continue
         and leave the <link>review</link> activity.
         </para>
       </section>
@@ -1663,8 +1585,8 @@ taskService.setVariables(task.getDbid(), variables);</programlisting>
       <!-- ~~~ SUB PROCESS OUTCOME VALUE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <section id="subprocessoutcomevalue">
         <title><literal>sub-process</literal> outcome value</title>
-        <para>In the <literal>SubProcessOutcomeValueTest</literal> example, the value 
-        of a sub process variable is used to select the outgoing transition 
+        <para>In the <literal>SubProcessOutcomeValueTest</literal> example, the value
+        of a sub process variable is used to select the outgoing transition
         of the <literal>sub-process</literal> activity.
         </para>
         <figure id="process.subprocess.outcomevalue.document">
@@ -1680,24 +1602,24 @@ taskService.setVariables(task.getDbid(), variables);</programlisting>
   &lt;sub-process name=&quot;review&quot;
                sub-process-key=&quot;SubProcessReview&quot;
                <emphasis role="bold">outcome=&quot;#{result}&quot;</emphasis>&gt;
-               
+
     &lt;transition <emphasis role="bold">name=&quot;ok&quot;</emphasis> to=&quot;next step&quot; /&gt;
     &lt;transition <emphasis role="bold">name=&quot;nok&quot;</emphasis> to=&quot;update&quot; /&gt;
     &lt;transition <emphasis role="bold">name=&quot;reject&quot;</emphasis> to=&quot;close&quot; /&gt;
   &lt;/sub-process&gt;
-  
+
   &lt;state name=&quot;next step&quot; /&gt;
   &lt;state name=&quot;update&quot; /&gt;
   &lt;state name=&quot;close&quot; /&gt;
 
 &lt;/process&gt;</programlisting>
-        <para>The <literal>SubProcessReview</literal> is the same as above in the 
+        <para>The <literal>SubProcessReview</literal> is the same as above in the
         <link linkend="subprocessvariables">subprocess variables example</link>:</para>
         <figure id="process.subprocess.outcomevalue.review">
           <title>The subprocess review example process for outcome value</title>
           <mediaobject><imageobject><imagedata align="center" fileref="images/process.subprocess.review.png"/></imageobject></mediaobject>
         </figure>
-        <programlisting>&lt;process name=&quot;SubProcessReview&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <programlisting>&lt;process name=&quot;SubProcessReview&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;get approval&quot;/&gt;
@@ -1705,10 +1627,10 @@ taskService.setVariables(task.getDbid(), variables);</programlisting>
 
   &lt;task name=&quot;get approval&quot;
         assignee=&quot;johndoe&quot;&gt;
-               
+
     &lt;transition to=&quot;end&quot;/&gt;
   &lt;/task&gt;
-  
+
   &lt;end name=&quot;end&quot; /&gt;
 
 &lt;/process&gt;</programlisting>
@@ -1720,25 +1642,25 @@ taskService.setVariables(task.getDbid(), variables);</programlisting>
         <programlisting>List&lt;Task&gt; taskList = taskService.findPersonalTasks(&quot;johndoe&quot;);
 Task task = taskList.get(0);
         </programlisting>
-        <para>Then the <literal>result</literal> variable is set and 
+        <para>Then the <literal>result</literal> variable is set and
         the task is completed.
         </para>
         <programlisting>Map&lt;String, Object&gt; variables = new HashMap&lt;String, Object&gt;();
 variables.put(&quot;result&quot;, &quot;ok&quot;);
 taskService.setVariables(task.getId(), variables);
 taskService.completeTask(task.getDbid());</programlisting>
-        <para>In this scenario, the <literal>ok</literal> transition is taken in 
-        the parent process out of the sub-process review activity.  The example 
-        test case also shows other scenarios. 
+        <para>In this scenario, the <literal>ok</literal> transition is taken in
+        the parent process out of the sub-process review activity.  The example
+        test case also shows other scenarios.
         </para>
       </section>
 
       <!-- ~~~ SUB PROCESS OUTCOME ACTIVITY ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
       <section id="subprocessoutcomeactivity">
         <title><literal>sub-process</literal> outcome activity</title>
-        <para>A process can have many end activities.  In the <literal>SubProcessOutcomeActivityTest</literal> 
-        example, the resulting end activity is used to select the outgoing transition of the <literal>sub-process</literal> 
-        activity.  
+        <para>A process can have many end activities.  In the <literal>SubProcessOutcomeActivityTest</literal>
+        example, the resulting end activity is used to select the outgoing transition of the <literal>sub-process</literal>
+        activity.
         </para>
         <figure id="process.subprocess.outcomeactivity.document">
           <title>The subprocess document example process for outcome activity</title>
@@ -1752,12 +1674,12 @@ taskService.completeTask(task.getDbid());</programlisting>
 
   &lt;sub-process name=&quot;review&quot;
                sub-process-key=&quot;SubProcessReview&quot;&gt;
-               
+
     &lt;transition <emphasis role="bold">name=&quot;ok&quot;</emphasis> to=&quot;next step&quot; /&gt;
     &lt;transition <emphasis role="bold">name=&quot;nok&quot;</emphasis> to=&quot;update&quot; /&gt;
     &lt;transition <emphasis role="bold">name=&quot;reject&quot;</emphasis> to=&quot;close&quot; /&gt;
   &lt;/sub-process&gt;
-  
+
   &lt;state name=&quot;next step&quot; /&gt;
   &lt;state name=&quot;update&quot; /&gt;
   &lt;state name=&quot;close&quot; /&gt;
@@ -1768,7 +1690,7 @@ taskService.completeTask(task.getDbid());</programlisting>
           <title>The subprocess review example process for outcome activity</title>
           <mediaobject><imageobject><imagedata align="center" fileref="images/process.subprocess.outcomeactivity.review.png"/></imageobject></mediaobject>
         </figure>
-        <programlisting>&lt;process name=&quot;SubProcessReview&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <programlisting>&lt;process name=&quot;SubProcessReview&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;get approval&quot;/&gt;
@@ -1776,16 +1698,16 @@ taskService.completeTask(task.getDbid());</programlisting>
 
   &lt;task name=&quot;get approval&quot;
         assignee=&quot;johndoe&quot;&gt;
-               
+
     &lt;transition name=&quot;ok&quot; to=&quot;ok&quot;/&gt;
     &lt;transition name=&quot;nok&quot; to=&quot;nok&quot;/&gt;
     &lt;transition name=&quot;reject&quot; to=&quot;reject&quot;/&gt;
   &lt;/task&gt;
-  
+
   <emphasis role="bold">&lt;end name=&quot;ok&quot; /&gt;
   &lt;end name=&quot;nok&quot; /&gt;
   &lt;end name=&quot;reject&quot; /&gt;</emphasis>
-  
+
 &lt;/process&gt;</programlisting>
         <para>A new document process instance is started like usual:
         </para>
@@ -1795,7 +1717,7 @@ taskService.completeTask(task.getDbid());</programlisting>
         <programlisting>List&lt;Task&gt; taskList = taskService.findPersonalTasks(&quot;johndoe&quot;);
 Task task = taskList.get(0);
         </programlisting>
-        <para>Then the task is completed with outcome <literal>ok</literal>.  
+        <para>Then the task is completed with outcome <literal>ok</literal>.
         </para>
         <programlisting>taskService.completeTask(task.getDbid(), &quot;ok&quot;);
         </programlisting>
@@ -1803,44 +1725,44 @@ Task task = taskList.get(0);
         The super process execution will then take outgoing transition <literal>ok</literal>
         to <literal>next step</literal>.
         </para>
-        <para>The example test case also shows the other scenarios. 
+        <para>The example test case also shows the other scenarios.
         </para>
       </section>
     </section>
-    
+
     <!-- ### CUSTOM ####################################################### -->
 
     <section id="custom">
       <title><literal>custom</literal></title>
 
-      <para>Invokes user code that implements custom behaviour of an activity.    
-      </para>
-      
-      <para>A custom activity refers to user code.  See <xref linkend="usercode" />
-      for more details on the specific attributes and elements.  Let's look at 
-      the example:  
+      <para>Invokes user code that implements custom behaviour of an activity.
       </para>
 
-      <programlisting>&lt;process name=&quot;Custom&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+      <para>A custom activity refers to user code.  See <xref linkend="usercode" />
+      for more details on the specific attributes and elements.  Let's look at
+      the example:
+      </para>
+
+      <programlisting>&lt;process name=&quot;Custom&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start &gt;
     &lt;transition to=&quot;print dots&quot; /&gt;
   &lt;/start&gt;
 
-  &lt;custom name=&quot;print dots&quot; 
+  &lt;custom name=&quot;print dots&quot;
         class=&quot;org.jbpm.examples.custom.PrintDots&quot;&gt;
-        
+
     &lt;transition to=&quot;end&quot; /&gt;
   &lt;/custom&gt;
-  
+
   &lt;end name=&quot;end&quot; /&gt;
 
 &lt;/process&gt;</programlisting>
-      <para>The custom activity behaviour class <literal>PrintDots</literal> 
-      shows that it's possible to control the flow when implementing 
-      custom activity behaviours.  In this case the <literal>PrintDots</literal> 
-      acitivity implementation will after printing dots wait in the activity until 
-      a signal is given. 
+      <para>The custom activity behaviour class <literal>PrintDots</literal>
+      shows that it's possible to control the flow when implementing
+      custom activity behaviours.  In this case the <literal>PrintDots</literal>
+      acitivity implementation will after printing dots wait in the activity until
+      a signal is given.
       </para>
       <programlisting>public class PrintDots implements ExternalActivityBehaviour {
 
@@ -1848,37 +1770,37 @@ Task task = taskList.get(0);
 
   public void execute(ActivityExecution execution) {
     String executionId = execution.getId();
-    
+
     String dots = ...;
 
     System.out.println(dots);
-    
+
     execution.waitForSignal();
   }
 
-  public void signal(ActivityExecution execution, 
-                     String signalName, 
+  public void signal(ActivityExecution execution,
+                     String signalName,
                      Map&lt;String, ?&gt; parameters) {
     execution.take(signalName);
   }
 }</programlisting>
-     
+
     </section>
   </section>
-  
+
   <!-- ##################################################################### -->
   <!-- ### AUTOMATIC ACTIVITIES                                          ### -->
   <!-- ##################################################################### -->
-  
+
   <section id="automaticactivities">
     <title>Automatic activities</title>
 
     <!-- ### JAVA ########################################################## -->
-      
+
     <section id="java">
       <title><literal>java</literal></title>
       <para>The Java task. A process execution will execute the method of the class that is configured
-      in this activity.</para> 
+      in this activity.</para>
       <table><title><literal>java</literal> attributes:</title>
         <tgroup cols="5" rowsep="1" colsep="1">
           <thead>
@@ -1896,9 +1818,9 @@ Task task = taskList.get(0);
               <entry>classname</entry>
               <entry></entry>
               <entry>either 'class' or 'expr' has to be specified</entry>
-              <entry>The fully qualified classname.  See <xref linkend="usercodeclassloading"/> 
-              for classloading information.  The user code object will be lazy initialized 
-              and cached as part of the process definition. 
+              <entry>The fully qualified classname.  See <xref linkend="usercodeclassloading"/>
+              for classloading information.  The user code object will be lazy initialized
+              and cached as part of the process definition.
               </entry>
             </row>
             <row>
@@ -1906,7 +1828,7 @@ Task task = taskList.get(0);
               <entry>expression</entry>
               <entry></entry>
               <entry>either 'expr' or 'class' has to be specified</entry>
-              <entry>An expression that returns the target object on which 
+              <entry>An expression that returns the target object on which
               the method should be invoked.
               </entry>
             </row>
@@ -1922,7 +1844,7 @@ Task task = taskList.get(0);
               <entry>variablename</entry>
               <entry></entry>
               <entry>optional</entry>
-              <entry>The name of the variable in which the return value 
+              <entry>The name of the variable in which the return value
               should be stored.
               </entry>
             </row>
@@ -1942,7 +1864,7 @@ Task task = taskList.get(0);
             <row>
               <entry><literal>field</literal></entry>
               <entry>0..*</entry>
-              <entry>describes a configuration value to inject in a memberfield before 
+              <entry>describes a configuration value to inject in a memberfield before
               the method is invoked.</entry>
             </row>
             <row>
@@ -1958,33 +1880,33 @@ Task task = taskList.get(0);
         <title>A java task</title>
         <mediaobject><imageobject><imagedata align="center" fileref="images/process.java.png"/></imageobject></mediaobject>
       </figure>
-      <programlisting>&lt;process name=&quot;Java&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+      <programlisting>&lt;process name=&quot;Java&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start &gt;
     &lt;transition to=&quot;greet&quot; /&gt;
   &lt;/start&gt;
 
-  &lt;java name=&quot;greet&quot; 
+  &lt;java name=&quot;greet&quot;
         class=&quot;org.jbpm.examples.java.JohnDoe&quot;
         method=&quot;hello&quot;
         var=&quot;answer&quot;
         &gt;
-        
+
     &lt;field name=&quot;state&quot;&gt;&lt;string value=&quot;fine&quot;/&gt;&lt;/field&gt;
     &lt;arg&gt;&lt;string value=&quot;Hi, how are you?&quot;/&gt;&lt;/arg&gt;
-    
+
     &lt;transition to=&quot;shake hand&quot; /&gt;
   &lt;/java&gt;
-  
-  &lt;java name=&quot;shake hand&quot; 
+
+  &lt;java name=&quot;shake hand&quot;
         expr=&quot;#{hand}&quot;
         method=&quot;shake&quot;
         var=&quot;hand&quot;
         &gt;
-        
+
     &lt;arg&gt;&lt;object expr=&quot;#{joesmoe.handshakes.force}&quot;/&gt;&lt;/arg&gt;
     &lt;arg&gt;&lt;object expr=&quot;#{joesmoe.handshakes.duration}&quot;/&gt;&lt;/arg&gt;
-    
+
     &lt;transition to=&quot;wait&quot; /&gt;
   &lt;/java&gt;
 
@@ -1994,10 +1916,10 @@ Task task = taskList.get(0);
       </programlisting>
       <para>Classes involved:</para>
       <programlisting>public class JohnDoe {
-  
+
   String state;
   Session session;
-  
+
   public String hello(String msg) {
     if ( (msg.indexOf(&quot;how are you?&quot;)!=-1)
          &amp;&amp; (session.isOpen())
@@ -2014,7 +1936,7 @@ Task task = taskList.get(0);
     handshakes.put(&quot;force&quot;, 5);
     handshakes.put(&quot;duration&quot;, 12);
   }
-  
+
   public Map&lt;String, Integer&gt; getHandshakes() {
     return handshakes;
   }
@@ -2027,7 +1949,7 @@ Task task = taskList.get(0);
     if (force&gt;3 &amp;&amp; duration&gt;7) {
       isShaken = true;
     }
-    
+
     return this;
   }
 
@@ -2035,25 +1957,25 @@ Task task = taskList.get(0);
     return isShaken;
   }
 }</programlisting>
-      <para>The first java activity <literal>greet</literal> specifies that during its execution an instance of the 
-      class <literal>org.jbpm.examples.java.JohnDoe</literal> will be instantiated and the method 
+      <para>The first java activity <literal>greet</literal> specifies that during its execution an instance of the
+      class <literal>org.jbpm.examples.java.JohnDoe</literal> will be instantiated and the method
       <literal>hello</literal> of this class will be invoked on the resulting object. The variable named
-      <literal>answer</literal> will contain the result of the invocation. 
+      <literal>answer</literal> will contain the result of the invocation.
       </para>
       <para>The class above reveals that it contains two fields named <literal>state</literal> and <literal>session</literal>
-      and that the method <literal>hello</literal> accepts one argument. During the execution the values specified in the 
+      and that the method <literal>hello</literal> accepts one argument. During the execution the values specified in the
       <literal>field</literal> and <literal>arg</literal> configuration elements will be used. The expected result of creating
       a process instance is that the process variable <literal>answer</literal> contains the string
       <literal>I'm fine, thank you.</literal>.
       </para>
-      <para>The second java activity is named <literal>shake hand</literal>.  It will resolve 
+      <para>The second java activity is named <literal>shake hand</literal>.  It will resolve
       expression <literal>#{hand}</literal>
-      and capture the resulting object as the target object.  On that object, the method 
-      <literal>shake</literal> will be invoked.  The two arguments will be calculated by resolving 
-      the respective expressions <literal>#{joesmoe.handshakes.force}</literal> and 
-      <literal>#{joesmoe.handshakes.duration}</literal>.  The resulting object is a mofied 
-      version of the hand and <literal>var=&quot;hand&quot;</literal> will cause the modified 
-      hand to overwrite the old <literal>hand</literal> variable value. 
+      and capture the resulting object as the target object.  On that object, the method
+      <literal>shake</literal> will be invoked.  The two arguments will be calculated by resolving
+      the respective expressions <literal>#{joesmoe.handshakes.force}</literal> and
+      <literal>#{joesmoe.handshakes.duration}</literal>.  The resulting object is a mofied
+      version of the hand and <literal>var=&quot;hand&quot;</literal> will cause the modified
+      hand to overwrite the old <literal>hand</literal> variable value.
       </para>
     </section>
 
@@ -2061,7 +1983,7 @@ Task task = taskList.get(0);
 
     <section id="script">
       <title><literal>script</literal></title>
-      <para>A script activity evaluates a script.  Scripts can be specified in any language for 
+      <para>A script activity evaluates a script.  Scripts can be specified in any language for
       which there is <ulink url="https://scripting.dev.java.net/">a JSR-223 compliant scripting engine</ulink>.
       Configuration of scripting engines <link linkend="scripting">is explained below</link>.
       </para>
@@ -2070,8 +1992,8 @@ Task task = taskList.get(0);
       <section id="script.expression">
         <title><literal>script</literal> expression</title>
         <para>The script is provided with the <literal>expr</literal> attribute.
-        This is for short expressions that are easier expressed in an attribute 
-        then in a text element.  If no <literal>lang</literal> is specified, 
+        This is for short expressions that are easier expressed in an attribute
+        then in a text element.  If no <literal>lang</literal> is specified,
         the default-expression-language is used.
         </para>
         <table><title><literal>script</literal> expression attributes:</title>
@@ -2105,33 +2027,33 @@ Task task = taskList.get(0);
                 <entry>variablename</entry>
                 <entry></entry>
                 <entry>optional</entry>
-                <entry>name of the variable in which the return value 
+                <entry>name of the variable in which the return value
                 should be stored.
                 </entry>
               </row>
             </tbody>
           </tgroup>
         </table>
-        <para>In the next example, we'll see how a script activity with an expression and 
+        <para>In the next example, we'll see how a script activity with an expression and
         how the result is stored in a variable.
         </para>
         <figure id="process.script.expression">
           <title>The script.expression example process</title>
           <mediaobject><imageobject><imagedata align="center" fileref="images/process.script.png"/></imageobject></mediaobject>
         </figure>
-        <programlisting>&lt;process name=&quot;ScriptExpression&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <programlisting>&lt;process name=&quot;ScriptExpression&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;invoke script&quot; /&gt;
   &lt;/start&gt;
 
-  <emphasis role="bold">&lt;script name=&quot;invoke script&quot; 
+  <emphasis role="bold">&lt;script name=&quot;invoke script&quot;
           expr=&quot;Send packet to #{person.address}&quot;
           var=&quot;text&quot;&gt;</emphasis>
 
     &lt;transition to=&quot;wait&quot; /&gt;
   <emphasis role="bold">&lt;/script&gt;</emphasis>
-  
+
   &lt;state name=&quot;wait&quot;/&gt;
 
 &lt;/process&gt;</programlisting>
@@ -2140,35 +2062,35 @@ Task task = taskList.get(0);
         <programlisting>public class Person implements Serializable {
 
   String address;
-  
+
   public Person(String address) {
     this.address = address;
   }
-  
+
   public String getAddress() {
     return address;
   }
-  
+
   public void setAddress(String address) {
     this.address = address;
   }
 }</programlisting>
-        <para>When starting a process instance for this process, we supply a person 
-        with a given address property as variable <literal>person</literal>. 
+        <para>When starting a process instance for this process, we supply a person
+        with a given address property as variable <literal>person</literal>.
         </para>
         <programlisting>Map&lt;String, Object&gt; variables = new HashMap&lt;String, Object&gt;();
 variables.put("<emphasis role="bold">person</emphasis>", <emphasis role="bold">new Person(&quot;Honolulu&quot;)</emphasis>);
-   
+
 executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</programlisting>
         <para>After the execution of the script activity, variable <literal>text</literal>
-        will contain 'Send packet to Honolulu'. 
+        will contain 'Send packet to Honolulu'.
         </para>
       </section>
-      
+
       <section id="script.text">
         <title><literal>script</literal> text</title>
         <para>The second way of specifying a script is with a <literal>text</literal> element.
-        This is convenient when the script text spans multiple lines. 
+        This is convenient when the script text spans multiple lines.
         </para>
         <table><title><literal>script</literal> text attributes:</title>
           <tgroup cols="5" rowsep="1" colsep="1">
@@ -2194,7 +2116,7 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
                 <entry>variablename</entry>
                 <entry></entry>
                 <entry>optional</entry>
-                <entry>name of the variable in which the return value 
+                <entry>name of the variable in which the return value
                 should be stored.
                 </entry>
               </row>
@@ -2224,20 +2146,20 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
           <title>The script.text example process</title>
           <mediaobject><imageobject><imagedata align="center" fileref="images/process.script.png"/></imageobject></mediaobject>
         </figure>
-        <programlisting>&lt;process name=&quot;ScriptText&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <programlisting>&lt;process name=&quot;ScriptText&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;invoke script&quot; /&gt;
   &lt;/start&gt;
 
-  <emphasis role="bold">&lt;script name=&quot;invoke script&quot; 
+  <emphasis role="bold">&lt;script name=&quot;invoke script&quot;
           var=&quot;text&quot;&gt;
     &lt;text&gt;
       Send packet to #{person.address}
     &lt;/text&gt;</emphasis>
     &lt;transition to=&quot;wait&quot; /&gt;
   <emphasis role="bold">&lt;/script&gt;</emphasis>
-  
+
   &lt;state name=&quot;wait&quot;/&gt;
 
 &lt;/process&gt;</programlisting>
@@ -2246,103 +2168,12 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
       </para>
     </section>
 
-    <!-- ### ASSIGN ######################################################## -->
-
-    <section id="assign">
-      <title><literal>assign</literal></title>
-      <para>The <literal>assign</literal> activity retrieves a value and assigns it
-      to a target location.</para>
-      <table><title><literal>assign</literal> attributes:</title>
-        <tgroup cols="5" rowsep="1" colsep="1">
-          <thead>
-            <row>
-              <entry>Attribute</entry>
-              <entry>Type</entry>
-              <entry>Default</entry>
-              <entry>Required?</entry>
-              <entry>Description</entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><literal>from-var</literal></entry>
-              <entry>string</entry>
-              <entry></entry>
-              <entry morerows="1">one of <literal>from-var</literal>, <literal>from-expr</literal>, <literal>from</literal> is required</entry>
-              <entry>variable that provides the source value</entry>
-            </row>
-            <row>
-              <entry><literal>from-expr</literal></entry>
-              <entry>expression</entry>
-              <entry></entry>
-              <entry>expression that resolves the source value</entry>
-            </row>
-            <row>
-              <entry><literal>lang</literal></entry>
-              <entry>string</entry>
-              <entry>default <emphasis role="bold">expression</emphasis> language defined in <xref linkend="scripting"/></entry>
-              <entry>optional</entry>
-              <entry>language in which <literal>from-expr</literal> is written</entry>
-            </row>
-            <row>
-              <entry><literal>to-var</literal></entry>
-              <entry>string</entry>
-              <entry></entry>
-              <entry morerows="1">one of <literal>to-var</literal>, <literal>to-expr</literal> is required</entry>
-              <entry>variable that provides the target location</entry>
-            </row>
-            <row>
-              <entry><literal>to-expr</literal></entry>
-              <entry>expression</entry>
-              <entry></entry>
-              <entry>expression that resolves the target location</entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <table><title><literal>assign</literal> elements:</title>
-        <tgroup cols="3" rowsep="1" colsep="1">
-          <thead>
-            <row>
-              <entry>Element</entry>
-              <entry>Multiplicity</entry>
-              <entry>Description</entry>
-            </row>
-          </thead>
-          <tbody>
-            <row>
-              <entry><literal>from</literal></entry>
-              <entry>0..1</entry>
-              <entry>descriptor that constructs the source value</entry>
-            </row>
-          </tbody>
-        </tgroup>
-      </table>
-      <para>Every form of <literal>from</literal> can be combined with any form
-      of <literal>to</literal>. The listing below simply assigns a variable to
-      another.</para>
-      <programlisting><![CDATA[<assign name='resolve' from-expr='#{person.name}' to-var='result'>
-  <transition to='wait' />
-</assign>]]></programlisting>
-      <para>The next example shows an expression value being assigned to a
-      variable.</para>
-      <programlisting><![CDATA[<assign name='resolve' from-var='person' to-var='result'>
-  <transition to='wait' />
-</assign>]]></programlisting>
-      <para>Our last example presents a value constructed by a descriptor being
-      assigned to the expression location.</para>
-      <programlisting><![CDATA[<assign name='resolve' to-expr='#{person.address.street}'>
-  <from><string value='gasthuisstraat' /></from>
-  <transition to='wait' />
-</assign>]]></programlisting>
-    </section>
-
     <!-- ### HQL ########################################################### -->
 
     <section id="hql">
       <title><literal>hql</literal></title>
-      <para>With the <literal>hql</literal> activity, a HQL query can be performed 
-      on the database and the result is stored in a process variable. 
+      <para>With the <literal>hql</literal> activity, a HQL query can be performed
+      on the database and the result is stored in a process variable.
       </para>
       <table><title><literal>hql</literal> attributes:</title>
         <tgroup cols="5" rowsep="1" colsep="1">
@@ -2368,10 +2199,10 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
               <entry>{true, false}</entry>
               <entry>false</entry>
               <entry>optional</entry>
-              <entry>a value of true means that the result from the hibernate 
+              <entry>a value of true means that the result from the hibernate
               query should be obtained with method <literal>uniqueResult()</literal>.
               The default is false and in that case the <literal>list()</literal>
-              method will be used to get the result. 
+              method will be used to get the result.
               </entry>
             </row>
           </tbody>
@@ -2405,7 +2236,7 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
         <title>The hql example process</title>
         <mediaobject><imageobject><imagedata align="center" fileref="images/process.hql.png"/></imageobject></mediaobject>
       </figure>
-      <programlisting>&lt;process name=&quot;Hql&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+      <programlisting>&lt;process name=&quot;Hql&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;get process names&quot; /&gt;
@@ -2423,7 +2254,7 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
     &lt;/parameters&gt;</emphasis>
     &lt;transition to=&quot;count activities&quot; /&gt;
   <emphasis role="bold">&lt;/hql&gt;
-  
+
   &lt;hql name=&quot;count activities&quot;
        var=&quot;activities&quot;
        unique=&quot;true&quot;&gt;
@@ -2444,13 +2275,13 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
     <section id="sql">
       <title><literal>sql</literal></title>
       <para>The <literal>sql</literal> activity is exactly the same as the
-      <link linkend="hql">hql</link> activity, with the only difference that 
-      <literal>session.createSQLQuery(...)</literal> is used.   
+      <link linkend="hql">hql</link> activity, with the only difference that
+      <literal>session.createSQLQuery(...)</literal> is used.
       </para>
     </section>
 
     <!-- ### Mail ########################################################## -->
-    
+
     <section id="mail">
       <title><literal>mail</literal></title>
 
@@ -2624,7 +2455,7 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
 
       <para>Example usage:</para>
 
-      <programlisting>&lt;process name=&quot;InlineMail&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+      <programlisting>&lt;process name=&quot;InlineMail&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
   &lt;start&gt;
     &lt;transition to=&quot;send birthday reminder note&quot; /&gt;
   &lt;/start&gt;
@@ -2649,7 +2480,7 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
 
   <section id="commonactivitycontents">
     <title>Common activity contents</title>
-    <para>Unless specified otherwise above, all activities also include this 
+    <para>Unless specified otherwise above, all activities also include this
     content model:
     </para>
     <table><title>Common activity attributes:</title>
@@ -2703,27 +2534,27 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
     <para>Events specify points in a process on which a list of event listeners can be registered.
     When an execution passes that point in the process, the event listeners are notified.
     The events and listeners are not shown in the graphical view of the process, which
-    makes them very interesting for implementing technical details. An event 
-    is fired by an element in the process definition like e.g. the process definition, 
-    an activity or a transition.  
+    makes them very interesting for implementing technical details. An event
+    is fired by an element in the process definition like e.g. the process definition,
+    an activity or a transition.
     </para>
     <para>The EventListener interface looks like this:
     </para>
     <programlisting>public interface <emphasis role="bold">EventListener</emphasis> extends Serializable {
-  
+
   void notify(EventListenerExecution execution) throws Exception;
 
 }</programlisting>
-    <para>All <link linkend="automaticactivities">automatic activities</link> can be used as 
+    <para>All <link linkend="automaticactivities">automatic activities</link> can be used as
     event listeners as well.</para>
-    <para>To associate a list of event listeners with a process or an activity, use 
-    the <literal>on</literal> element to group the event listeners and specifiy the 
+    <para>To associate a list of event listeners with a process or an activity, use
+    the <literal>on</literal> element to group the event listeners and specifiy the
     event.  <literal>on</literal> can be nested as a subelement of <literal>process</literal>
     or any activity.
     </para>
-    <para>To associate a list of event listeners with a transition <literal>take</literal> 
-    event, just include the event listeners directly in the <literal>transition</literal> 
-    element. 
+    <para>To associate a list of event listeners with a transition <literal>take</literal>
+    event, just include the event listeners directly in the <literal>transition</literal>
+    element.
     </para>
     <table><title><literal>on</literal> attributes:</title>
       <tgroup cols="5" rowsep="1" colsep="1">
@@ -2771,11 +2602,11 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
       </tgroup>
     </table>
     <table><title>event listener attributes:</title>
-      <para><literal>event-listener</literal> is user code so it can be configured 
-      like described in <xref linkend="usercode" />.  
+      <para><literal>event-listener</literal> is user code so it can be configured
+      like described in <xref linkend="usercode" />.
       </para>
-      <para>Any automatic activities (including event-listener) that are placed on 
-      events can specify following additional attributes: 
+      <para>Any automatic activities (including event-listener) that are placed on
+      events can specify following additional attributes:
       </para>
       <tgroup cols="5" rowsep="1" colsep="1">
         <thead>
@@ -2793,7 +2624,7 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
             <entry>{enabled | disabled | true | false | on | off}</entry>
             <entry>disabled</entry>
             <entry>optional</entry>
-            <entry>indicates if the event listener should also be invoked for 
+            <entry>indicates if the event listener should also be invoked for
             propagating events.
             </entry>
           </row>
@@ -2803,7 +2634,7 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
             <entry>sync</entry>
             <entry>optional</entry>
             <entry>indicates if the execution should be continued asynchronously
-            right before the event listener is executed.  @see also 
+            right before the event listener is executed.  @see also
             <xref linkend="asynchronouscontinuations"/>
             </entry>
           </row>
@@ -2812,12 +2643,12 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
     </table>
     <section>
       <title>Event listener example</title>
-	    <para>Let's look at an example process with event listeners:</para>
-	    <figure id="process.eventlistener">
-	      <title>The event listener example process</title>
-	      <mediaobject><imageobject><imagedata align="center" fileref="images/process.eventlistener.png"/></imageobject></mediaobject>
-	    </figure>
-	    <programlisting>&lt;process name=&quot;EventListener&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+        <para>Let's look at an example process with event listeners:</para>
+        <figure id="process.eventlistener">
+          <title>The event listener example process</title>
+          <mediaobject><imageobject><imagedata align="center" fileref="images/process.eventlistener.png"/></imageobject></mediaobject>
+        </figure>
+        <programlisting>&lt;process name=&quot;EventListener&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;on event=&quot;start&quot;&gt;
     &lt;event-listener class=&quot;org.jbpm.examples.eventlistener.LogListener&quot;&gt;
@@ -2846,13 +2677,13 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
       &lt;/event-listener&gt;
     &lt;/transition&gt;
   &lt;/state&gt;
-  
+
   &lt;state name=&quot;park&quot;/&gt;
 
 &lt;/process&gt;</programlisting>
-	    <para><literal>LogListener</literal>  will maintain a list of logs as a process variable:</para>
-	    <programlisting>public class <emphasis role="bold">LogListener</emphasis> implements EventListener {
-	
+        <para><literal>LogListener</literal>  will maintain a list of logs as a process variable:</para>
+        <programlisting>public class <emphasis role="bold">LogListener</emphasis> implements EventListener {
+
   // value gets injected from process definition
   String msg;
 
@@ -2862,32 +2693,32 @@ executionService.startProcessInstanceByKey(&quot;ScriptText&quot;, variables);</
       logs = new ArrayList&lt;String&gt;();
       execution.setVariable(&quot;logs&quot;, logs);
     }
-    
+
     logs.add(msg);
 
     execution.setVariable(&quot;logs&quot;, logs);
   }
 }</programlisting>
-	    <para>Next, we start a new process instance.</para>
-	    <programlisting>ProcessInstance processInstance = executionService.startProcessInstanceByKey(&quot;EventListener&quot;);</programlisting>
-	    <para>Then the process instance executes up to the wait activity.  So we provide a signal 
-	    and that will cause it to execute till the end.</para>
-	    <programlisting>Execution execution = processInstance.findActiveExecutionIn(&quot;wait&quot;);
+        <para>Next, we start a new process instance.</para>
+        <programlisting>ProcessInstance processInstance = executionService.startProcessInstanceByKey(&quot;EventListener&quot;);</programlisting>
+        <para>Then the process instance executes up to the wait activity.  So we provide a signal
+        and that will cause it to execute till the end.</para>
+        <programlisting>Execution execution = processInstance.findActiveExecutionIn(&quot;wait&quot;);
 executionService.signalExecutionById(execution.getId());</programlisting>
-	    <para>The list of log messages will now look like this:</para>
-	    <programlisting>[start on process definition,
+        <para>The list of log messages will now look like this:</para>
+        <programlisting>[start on process definition,
  start on activity wait,
  end on activity wait,
  take transition]</programlisting>
     </section>
     <section>
       <title>Event propagation</title>
-      <para>Events are propagated from activities and transitions to outer activities and 
-      eventually to the process definition.  
+      <para>Events are propagated from activities and transitions to outer activities and
+      eventually to the process definition.
       </para>
       <para>By default, event listeners are only invoked
       for events that are fired on the elements on which the event listeners are subscribed.
-      But by specifying <literal>propagation=&quot;enabled&quot;</literal>, the event 
+      But by specifying <literal>propagation=&quot;enabled&quot;</literal>, the event
       listener will also be invoked for all events that are fired on contained elements.
       </para>
     </section>
@@ -2902,28 +2733,28 @@ executionService.signalExecutionById(execution.getId());</programlisting>
     </para>
     <para>This default behaviour has a couple of advantages: user application transactions
     can be easily propagated to jBPM to that jBPM's DB updates are done in the user's
-    transaction context.  Secondly, it's possible for a client to get an exception in 
-    case something goes wrong during execution of the process.  Usually, the automatic 
-    work that has to be done as part of the process inbetween two wait states is 
-    relatively small.  Even if multiple automatic activities 
-    are executed inbetween 2 wait states.   So in most situations, it's good to 
-    do all that work in a single transaction. This explains that the default behaviour 
-    of jPDL is to perform all work of the process synchronously in the thread of client.     
+    transaction context.  Secondly, it's possible for a client to get an exception in
+    case something goes wrong during execution of the process.  Usually, the automatic
+    work that has to be done as part of the process inbetween two wait states is
+    relatively small.  Even if multiple automatic activities
+    are executed inbetween 2 wait states.   So in most situations, it's good to
+    do all that work in a single transaction. This explains that the default behaviour
+    of jPDL is to perform all work of the process synchronously in the thread of client.
     </para>
     <para>For those cases where you don't want the call to jBPM to be blocking until
-    all the automatic work is done, jPDL allows for very fine grained control over 
-    transaction boundaries.  On various places in the process, asynchronous continuations 
-    can be introduced.  Asynchronous continuations cause the transaction to commit and 
-    the jBPM method invocation will return.  jBPM will then start a new transaction in a 
+    all the automatic work is done, jPDL allows for very fine grained control over
+    transaction boundaries.  On various places in the process, asynchronous continuations
+    can be introduced.  Asynchronous continuations cause the transaction to commit and
+    the jBPM method invocation will return.  jBPM will then start a new transaction in a
     new thread and continue the rest of the automatic process work asynchronously.  jBPM
-    uses asynchronous messaging internally to accomplish this.   
+    uses asynchronous messaging internally to accomplish this.
     </para>
-    <para>Upon an asynchronous continuation, an asynchronous message will be sent as 
-    part of the currently ongoing transaction.  And then the originally invoked method 
+    <para>Upon an asynchronous continuation, an asynchronous message will be sent as
+    part of the currently ongoing transaction.  And then the originally invoked method
     like e.g. <literal>startProcessInstanceById(...)</literal>
-    or <literal>signalProcessInstanceById(...)</literal> will return.  When the 
+    or <literal>signalProcessInstanceById(...)</literal> will return.  When the
     asynchronous message is committed and then processed, it will start a new transaction
-    and resume execution where it left off. 
+    and resume execution where it left off.
     </para>
     <table><title>Attribute of any activity, <literal>transition</literal> or <literal>on</literal>:</title>
       <tgroup cols="5" rowsep="1" colsep="1">
@@ -2942,7 +2773,7 @@ executionService.signalExecutionById(execution.getId());</programlisting>
             <entry>{sync | async | exclusive}</entry>
             <entry>sync</entry>
             <entry>optional</entry>
-            <entry><para>indicates if an asynchronous continuation should be performed 
+            <entry><para>indicates if an asynchronous continuation should be performed
               before the element is executed.</para>
             </entry>
           </row>
@@ -2950,24 +2781,24 @@ executionService.signalExecutionById(execution.getId());</programlisting>
       </tgroup>
     </table>
     <itemizedlist>
-      <listitem><emphasis role="bold">sync</emphasis> (default) keep executing 
+      <listitem><emphasis role="bold">sync</emphasis> (default) keep executing
       the element as part of the ongoing transaction.
       </listitem>
       <listitem><emphasis role="bold">async</emphasis> introduces an asynchronous
-      continuation (aka safe point).  
+      continuation (aka safe point).
       The ongoing transaction is committed and the element is executed in a
-      new transaction.  Transactional asynchronous messaging is used by the jBPM 
+      new transaction.  Transactional asynchronous messaging is used by the jBPM
       implementation to achieve this.
       </listitem>
-      <listitem><emphasis role="bold">exclusive</emphasis> introduces a asynchronous  
-      continuation (aka safe point).  
+      <listitem><emphasis role="bold">exclusive</emphasis> introduces a asynchronous
+      continuation (aka safe point).
       The ongoing transaction is committed and the element is executed in a
-      new transaction.  Transactional asynchronous messaging is used by the jBPM 
-      implementation to achieve this.  Exclusive messages will not be processed 
-      concurrently.  jBPM will make sure that exclusive jobs for the same process instance 
-      are not executed concurrently, even if your jBPM configuration has multiple 
-      asynchronous message processors (like the JobExecutor) running on different 
-      systems.    This can be used to prevent optimistic locking failures in case 
+      new transaction.  Transactional asynchronous messaging is used by the jBPM
+      implementation to achieve this.  Exclusive messages will not be processed
+      concurrently.  jBPM will make sure that exclusive jobs for the same process instance
+      are not executed concurrently, even if your jBPM configuration has multiple
+      asynchronous message processors (like the JobExecutor) running on different
+      systems.    This can be used to prevent optimistic locking failures in case
       multiple, potentially conflicting jobs are scheduled in the same transaction.
       </listitem>
     </itemizedlist>
@@ -2979,21 +2810,21 @@ executionService.signalExecutionById(execution.getId());</programlisting>
         <title>The async activity example process</title>
         <mediaobject><imageobject><imagedata align="center" fileref="images/process.async.activity.png"/></imageobject></mediaobject>
       </figure>
-      <programlisting>&lt;process name=&quot;AsyncActivity&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+      <programlisting>&lt;process name=&quot;AsyncActivity&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start&gt;
     &lt;transition to=&quot;generate pdf&quot;/&gt;
   &lt;/start&gt;
 
-  &lt;java name=&quot;generate pdf&quot; 
-        <emphasis role="bold">continue=&quot;async&quot;</emphasis> 
+  &lt;java name=&quot;generate pdf&quot;
+        <emphasis role="bold">continue=&quot;async&quot;</emphasis>
         class=&quot;org.jbpm.examples.async.activity.Application&quot;
         method=&quot;generatePdf&quot; &gt;
     &lt;transition to=&quot;calculate primes&quot;/&gt;
   &lt;/java&gt;
 
-  &lt;java name=&quot;calculate primes&quot; 
-        <emphasis role="bold">continue=&quot;async&quot;</emphasis> 
+  &lt;java name=&quot;calculate primes&quot;
+        <emphasis role="bold">continue=&quot;async&quot;</emphasis>
         class=&quot;org.jbpm.examples.async.activity.Application&quot;
         method=&quot;calculatePrimes&quot;&gt;
     &lt;transition to=&quot;end&quot;/&gt;
@@ -3012,32 +2843,32 @@ executionService.signalExecutionById(execution.getId());</programlisting>
     // assume long automatic calculations here
   }
 }</programlisting>
-      <programlisting>ProcessInstance processInstance = 
+      <programlisting>ProcessInstance processInstance =
      executionService.startProcessInstanceByKey(&quot;AsyncActivity&quot;);
 String processInstanceId = processInstance.getId();</programlisting>
-      <para>Without the asynchronous continuations, this would be an all automatic 
+      <para>Without the asynchronous continuations, this would be an all automatic
       process and the process would execute all the way up to the end
-      in method <literal>startProcessInstanceByKey</literal> 
+      in method <literal>startProcessInstanceByKey</literal>
       </para>
-      <para>But with <literal>continue=&quot;async&quot;</literal> the execution only 
+      <para>But with <literal>continue=&quot;async&quot;</literal> the execution only
       goes untill it is about to execute activity <literal>generate pdf</literal>. Then
-      an asynchronous continuation message is send and the <literal>startProcessInstanceByKey</literal> 
+      an asynchronous continuation message is send and the <literal>startProcessInstanceByKey</literal>
       method returns.
       </para>
-      <para>In a normal configuration, the job executor will automatically pick up 
-      the message and execute it.  But for testing scenarios and for these examples we 
-      want to control when messages are executed so the job executor is not configured.  
+      <para>In a normal configuration, the job executor will automatically pick up
+      the message and execute it.  But for testing scenarios and for these examples we
+      want to control when messages are executed so the job executor is not configured.
       Therefore we have to execute the jobs manually like this:
       </para>
       <programlisting>Job job = managementService.createJobQuery()
   .processInstanceId(processInstanceId)
   .uniqueResult();
 managementService.executeJob(job.getDbid());</programlisting>
-      <para>That will bring the process until it's about to execute activity 
-      <literal>calculate primes</literal> and again an asynchronous message is 
-      send. 
+      <para>That will bring the process until it's about to execute activity
+      <literal>calculate primes</literal> and again an asynchronous message is
+      send.
       </para>
-      <para>Then the message can be looked up again and when that message 
+      <para>Then the message can be looked up again and when that message
       is executed, that transaction will run the execution till the end.
       </para>
     </section>
@@ -3048,7 +2879,7 @@ managementService.executeJob(job.getDbid());</programlisting>
         <title>The async fork example process</title>
         <mediaobject><imageobject><imagedata align="center" fileref="images/process.async.fork.png"/></imageobject></mediaobject>
       </figure>
-      <programlisting>&lt;process name=&quot;AsyncFork&quot; xmlns=&quot;http://jbpm.org/4.3/jpdl&quot;&gt;
+      <programlisting>&lt;process name=&quot;AsyncFork&quot; xmlns=&quot;http://jbpm.org/4.4/jpdl&quot;&gt;
 
   &lt;start &gt;
     &lt;transition to=&quot;fork&quot;/&gt;
@@ -3071,7 +2902,7 @@ managementService.executeJob(job.getDbid());</programlisting>
   &lt;join &gt;
     &lt;transition to=&quot;end&quot;/&gt;
   &lt;/join&gt;
-   
+
   &lt;end /&gt;
 
 &lt;/process&gt;</programlisting>
@@ -3086,16 +2917,16 @@ managementService.executeJob(job.getDbid());</programlisting>
   }
 }</programlisting>
       <para>By placing the asynchronous continuation on the <literal>end</literal>
-      event of the fork (<literal>&lt;on event=&quot;end&quot; continue=&quot;exclusive&quot; /&gt;</literal>), 
-      each forked execution that takes a transition out of the 
-      fork will be continued asynchronously.  
+      event of the fork (<literal>&lt;on event=&quot;end&quot; continue=&quot;exclusive&quot; /&gt;</literal>),
+      each forked execution that takes a transition out of the
+      fork will be continued asynchronously.
       </para>
-      <para>Value <literal>exclusive</literal> was selected to serialize the executions of 
-      the 2 asynchonous continuation jobs resulting from the fork. The respective transactions 
-      that will execute activities <literal>ship goods</literal> 
-      and <literal>send bill</literal> will both arrive at the join.  At the join, both 
-      transactions will synchronize on the same execution (read: update the same execution 
-      row in the DB), resulting in a potential optimistic locking failure.   
+      <para>Value <literal>exclusive</literal> was selected to serialize the executions of
+      the 2 asynchonous continuation jobs resulting from the fork. The respective transactions
+      that will execute activities <literal>ship goods</literal>
+      and <literal>send bill</literal> will both arrive at the join.  At the join, both
+      transactions will synchronize on the same execution (read: update the same execution
+      row in the DB), resulting in a potential optimistic locking failure.
       </para>
       <programlisting>ProcessInstance processInstance = executionService.startProcessInstanceByKey(&quot;AsyncFork&quot;);
 String processInstanceId = processInstance.getId();
@@ -3108,13 +2939,13 @@ assertEquals(2, jobs.size());
 
 Job job = jobs.get(0);
 
-// here we simulate execution of the job, 
+// here we simulate execution of the job,
 // which is normally done by the job executor
 managementService.executeJob(job.getDbid());
 
 job = jobs.get(1);
 
-// here we simulate execution of the job, 
+// here we simulate execution of the job,
 // which is normally done by the job executor
 managementService.executeJob(job.getDbid());
 
@@ -3130,11 +2961,11 @@ assertNotNull(endTime);</programlisting>
 
   <section id="usercode">
     <title>User code</title>
-    <para>Various elements in the jPDL process language refer to a an 
-    object on which an interface method will be invoked.  This section 
-    describes the common attributes and elements for the instantiation and 
-    configuration of such user code objects. 
-    </para>  
+    <para>Various elements in the jPDL process language refer to a an
+    object on which an interface method will be invoked.  This section
+    describes the common attributes and elements for the instantiation and
+    configuration of such user code objects.
+    </para>
     <itemizedlist>
       <listitem><literal>custom</literal></listitem>
       <listitem><literal>event-listener</literal></listitem>
@@ -3161,8 +2992,8 @@ assertNotNull(endTime);</programlisting>
               <entry>classname</entry>
               <entry></entry>
               <entry>one of {class|expr} is required</entry>
-              <entry>The fully qualified classname.  Instantiation is done only once and 
-              the user object is cached as part of the process definition.  
+              <entry>The fully qualified classname.  Instantiation is done only once and
+              the user object is cached as part of the process definition.
               </entry>
             </row>
             <row>
@@ -3171,7 +3002,7 @@ assertNotNull(endTime);</programlisting>
               <entry></entry>
               <entry>one of {class|expr} is required</entry>
               <entry>Expression for which the resulting value will be taken as the target object.
-              Expressions will be evaluated for every usage.  In other words, the resulting 
+              Expressions will be evaluated for every usage.  In other words, the resulting
               value of the evaluation will not be cached.
               </entry>
             </row>
@@ -3191,13 +3022,13 @@ assertNotNull(endTime);</programlisting>
             <row>
               <entry><literal>field</literal></entry>
               <entry>0..*</entry>
-              <entry>describes a configuration value to be injected directly in 
+              <entry>describes a configuration value to be injected directly in
               a memberfield before this user class is used.</entry>
             </row>
             <row>
               <entry><literal>property</literal></entry>
               <entry>0..*</entry>
-              <entry>describes a configuration value to injected through a setter 
+              <entry>describes a configuration value to injected through a setter
               method before this user object is used.</entry>
             </row>
           </tbody>
@@ -3227,7 +3058,7 @@ assertNotNull(endTime);</programlisting>
       </table>
       <table><title>field and property contained element:</title>
         <para><literal>field</literal> and <literal>property</literal> elements
-        have exactly one child element that represents the value that will be 
+        have exactly one child element that represents the value that will be
         injected.
         </para>
         <tgroup cols="3" rowsep="1" colsep="1">
@@ -3308,19 +3139,19 @@ assertNotNull(endTime);</programlisting>
     <section id="usercodeclassloading">
       <title>User code classloading</title>
       <para>Process definitions are cached.  By default, all user code objects are
-      cached as part of those process definitions.  
-        
-      For all objects that are referenced by a class name, will be  
+      cached as part of those process definitions.
+
+      For all objects that are referenced by a class name, will be
       instantiated during parsing time.  Which implies that the objects aren't
       allowed to store non-stateless data (ie which can change).
-      This is typically OK since those objects are in practice almost always immutable. 
-      If you do need to use 'dynamic' data in your user code, you can always 
+      This is typically OK since those objects are in practice almost always immutable.
+      If you do need to use 'dynamic' data in your user code, you can always
       fall back to process variables (or Environment.get(xxx) calls).
       </para>
-      <para>Objects that are referenced by an expression are calculated 
+      <para>Objects that are referenced by an expression are calculated
       dynamically.
       </para>
-      <para>The devguide also explains an unsupported attribute to prevent 
+      <para>The devguide also explains an unsupported attribute to prevent
       that user objects are cached.
       </para>
     </section>

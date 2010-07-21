@@ -2,11 +2,16 @@
 #
 # runs the database test suite
 
+export MAVEN_OPTS="-Ddatabase=$DATABASE"
+
+JBPM_VERSION=`mvn -Dexpression=project.version help:evaluate | grep '^4\.'`
+export ANT_OPTS="-Djbpm.parent.dir=$WORKSPACE -Djbpm.version=$JBPM_VERSION $MAVEN_OPTS"
+
 # build distribution
-mvn -U -Pdistro clean install
+mvn -q -U -Pdistro clean install
 # set up
-ant -f qa/build.xml -Ddatabase=$DATABASE -Djbpm.parent.dir=$WORKSPACE testsuite.db.setup
+ant -f qa/build.xml testsuite.db.setup
 # run test suite
-mvn -Ddatabase=$DATABASE -Dmaven.test.failure.ignore=true test
+mvn -Dmaven.test.failure.ignore=true test
 # tear down
-ant -f qa/build.xml -Ddatabase=$DATABASE -Djbpm.parent.dir=$WORKSPACE testsuite.db.teardown
+ant -f qa/build.xml testsuite.db.teardown

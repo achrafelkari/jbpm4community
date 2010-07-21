@@ -30,7 +30,7 @@
             <property name="odaURL">jdbc:mysql://localhost:3306/jbpmdb</property>
             <property name="odaUser">jbpm</property>
             <encrypted-property name="odaPassword" encryptionID="base64">amJwbQ==</encrypted-property>
-            <property name="odaJndiName">java:/JbpmDS</property>
+            <property name="odaJndiName">java:JbpmDS</property>
         </oda-data-source>
     </data-sources>
     <data-sets>

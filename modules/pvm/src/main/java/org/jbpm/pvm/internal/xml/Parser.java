@@ -21,15 +21,22 @@
  */
 package org.jbpm.pvm.internal.xml;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import org.jbpm.internal.log.Log;
 import org.jbpm.pvm.internal.stream.StreamInput;
@@ -38,11 +45,6 @@ import org.jbpm.pvm.internal.util.XmlUtil;
 import org.jbpm.pvm.internal.wire.Descriptor;
 import org.jbpm.pvm.internal.wire.descriptor.ArgDescriptor;
 import org.jbpm.pvm.internal.wire.xml.WireParser;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
-import org.xml.sax.XMLReader;
 
 /** makes typical usage of JAXP more convenient, adds a binding framework, 
  * entity resolution and error handling.
@@ -247,25 +249,19 @@ import org.xml.sax.XMLReader;
  */
 public class Parser {
 
-  private static Log log = Log.getLog(Parser.class.getName());
+  private static final Log log = Log.getLog(Parser.class.getName());
 
-  protected SAXParserFactory saxParserFactory;
-  protected String[] schemaResources;
-  
-  protected DocumentBuilderFactory documentBuilderFactory = null;
-  
-  protected Bindings bindings = null;
-  protected ClassLoader classLoader = null;
+  protected Bindings bindings;
+  protected final DocumentBuilderFactory documentBuilderFactory =
+    createDocumentBuilderFactory();
 
   /** the default parser */
   public Parser() {
-    initialize();
   }
 
   /** creates a new Parser with bindings that can be maintained statically in
    * specialized subclasses of Parser. */
   public Parser(Bindings bindings) {
-    initialize();
     this.bindings = bindings;
   }
 
@@ -274,61 +270,99 @@ public class Parser {
    * @deprecated entities should be replaced by {@link #setSchemaResources(List)} */
   @Deprecated
   public Parser(Bindings bindings, Map<String, Entity> entities) {
-    initialize();
     this.bindings = bindings;
   }
-  
+
   // initialization ///////////////////////////////////////////////////////////
 
-  public void initialize() {
-    initializeSaxParserFactory();
-    initializeDocumentBuilderFactory();
-  }
-
-  public void initializeDocumentBuilderFactory() {
-    documentBuilderFactory = DocumentBuilderFactory.newInstance();
-    documentBuilderFactory.setNamespaceAware(true);
-  }
-
-  public void initializeSaxParserFactory() {
-    saxParserFactory = SAXParserFactory.newInstance();
-    saxParserFactory.setNamespaceAware(true);
+  protected DocumentBuilderFactory createDocumentBuilderFactory() {
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setNamespaceAware(true);
+    factory.setCoalescing(true);
+    factory.setIgnoringComments(true);
+    return factory;
   }
 
   // document builder methods /////////////////////////////////////////////////
 
   /** customizable creation of a new document builder.  Used by 
-   * {@link #buildDom(Parse)}. */
+   * {@link #buildDocument(Parse)}. */
   protected DocumentBuilder createDocumentBuilder(Parse parse) {
     try {
-      parse.documentBuilder = documentBuilderFactory.newDocumentBuilder();
-    } catch (Exception e) {
-      parse.addProblem("couldn't get new document builder", e);
+      DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+      documentBuilder.setErrorHandler(parse);
+      parse.documentBuilder = documentBuilder;
+      return documentBuilder;
+    }
+    catch (ParserConfigurationException e) {
+      parse.addProblem("could not create document builder", e);
       return null;
     }
-    parse.documentBuilder.setErrorHandler(parse);
-    return parse.documentBuilder;
   }
 
   // schema validation ////////////////////////////////////////////////////////
-  
-  public void setSchemaResources(List<String> resources) {
-    saxParserFactory.setValidating(true);
-    saxParserFactory.setNamespaceAware(true);
 
+  public void setSchemaResources(String... schemaResources) {
+    // load resources from classpath
     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-    List<String> schemaLocations = new ArrayList<String>(resources.size()); 
-    for (String schemaResource: resources) {
-      URL schemaUrl = classLoader.getResource(schemaResource);
-      if (schemaUrl!=null) {
-        String schemaLocation = schemaUrl.toString();
-        log.trace("schema resource found: " + schemaResource);
-        schemaLocations.add(schemaLocation);
-      } else {
-        log.debug("skipping unavailble schema resource: " + schemaResource);
+    String[] schemaSources = new String[schemaResources.length];
+
+    for (int i = 0; i < schemaResources.length; i++) {
+      String schemaResource = schemaResources[i];
+      URL schemaLocation = classLoader.getResource(schemaResource);
+      if (schemaLocation != null) {
+        log.info("loading schema resource: " + schemaResource);
+        schemaSources[i] = schemaLocation.toString();
+      }
+      else {
+        log.warn("skipping unavailable schema resource: " + schemaResource);
       }
     }
-    schemaResources = schemaLocations.toArray(new String[schemaLocations.size()]);
+
+    documentBuilderFactory.setValidating(true);
+    try {
+      // set xml schema as the schema language
+      documentBuilderFactory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaLanguage",
+        XMLConstants.W3C_XML_SCHEMA_NS_URI);
+      // set schema sources
+      documentBuilderFactory.setAttribute("http://java.sun.com/xml/jaxp/properties/schemaSource",
+        schemaSources);
+    }
+    catch (IllegalArgumentException e) {
+      log.warn("JAXP implementation does not support XML Schema, "
+        + "XML documents will not be checked for grammar errors", e);
+    }
+
+    try {
+      // validate the document only if a grammar is specified
+      documentBuilderFactory.setAttribute("http://apache.org/xml/features/validation/dynamic",
+        Boolean.TRUE);
+    }
+    catch (IllegalArgumentException e) {
+      log.warn("JAXP implementation is not Xerces, cannot enable dynamic validation, "
+        + "XML documents without schema location will not parse", e);
+    }
+
+    /*
+    try {
+      // parse schema sources
+      SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+      Schema schema = schemaFactory.newSchema(sources.toArray(new Source[sources.size()]));
+      // register schema
+      documentBuilderFactory.setSchema(schema);
+      try {
+        // validate the document only if a grammar is specified
+        documentBuilderFactory.setAttribute("http://apache.org/xml/features/validation/dynamic",
+          Boolean.TRUE);
+      }
+      catch (IllegalArgumentException e) {
+        log.info("could not enable dynamic validation feature", e);
+      }
+    }
+    catch (SAXException e) {
+      log.info("could not set schema", e);
+    }
+    */
   }
 
   // bindings /////////////////////////////////////////////////////////////////
@@ -350,7 +384,7 @@ public class Parser {
 
   /** the handler for the given element limited to a given category */
   public Binding getBinding(Element element, String category) {
-    return (bindings!=null ? bindings.getBinding(element, category) : null);
+    return (bindings != null ? bindings.getBinding(element, category) : null);
   }
 
   // runtime parsing methods //////////////////////////////////////////////////
@@ -369,97 +403,65 @@ public class Parser {
       // build the dom of the imported document
       Parse importedParse = createParse();
       importedParse.setStreamSource(importedStreamInput);
-      Document importedDocument = buildDom(importedParse);
-      
-      // loop over all the imported document elements 
+      Document importedDocument = buildDocument(importedParse);
+
+      // loop over all the imported document elements
       Element importedDocumentElement = importedDocument.getDocumentElement();
-      for(Element e : XmlUtil.elements(importedDocumentElement)) {
+      for (Element e : XmlUtil.elements(importedDocumentElement)) {
         // import the element into the destination element
         destination.appendChild(destination.getOwnerDocument().importNode(e, true));
       }
       importedParse.checkErrors(destination.getTagName());
-      
-    } catch (Exception e) {
-      importingParse.addProblem("couldn't import "+importedStreamInput, e);
+    }
+    catch (Exception e) {
+      importingParse.addProblem("could not import " + importedStreamInput, e);
     }
   }
 
   /** customizable parse execution */
   protected void execute(Parse parse) {
     try {
-      if (parse.document==null) {
-        parse.document = buildDom(parse);
+      if (parse.document == null) {
+        parse.document = buildDocument(parse);
       }
 
       // walk the dom tree
-      if (parse.document!=null) {
+      if (parse.document != null) {
         try {
           // walk the dom tree
           parseDocument(parse.document, parse);
-
-        } catch (Exception e) {
-          parse.addProblem("parsing exception: "+e.getMessage(), e);
+        }
+        catch (Exception e) {
+          parse.addProblem("parsing exception: " + e.getMessage(), e);
         }
       }
-      
-    } finally {
-      if (parse.inputStream!=null) {
+    }
+    finally {
+      if (parse.inputStream != null) {
         try {
           parse.inputStream.close();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           parse.addProblem("couldn't close input stream", e);
         }
       }
     }
   }
 
-  protected Document buildDom(Parse parse) {
-    Document document = null;
-
+  protected Document buildDocument(Parse parse) {
+    DocumentBuilder documentBuilder = createDocumentBuilder(parse);
+    InputSource inputSource = parse.getInputSource();
     try {
-      SAXParser saxParser = saxParserFactory.newSAXParser();
-      XMLReader xmlReader = saxParser.getXMLReader();
-      
-      try {
-        saxParser.setProperty("http://java.sun.com/xml/jaxp/properties/schemaLanguage", "http://www.w3.org/2001/XMLSchema");
-      } catch (Exception e){
-        log.info("couldn't set schema language property", e);
-      }
-
-      if (schemaResources!=null) {
-        try {
-          saxParser.setProperty("http://java.sun.com/xml/jaxp/properties/schemaSource", schemaResources);
-        } catch (Exception e){
-          log.info("couldn't set schema source property", e);
-        }
-      }
-
-      try {
-        xmlReader.setFeature("http://apache.org/xml/features/validation/dynamic", true);
-      } catch (Exception e){
-        log.info("couldn't set dynamic validation feature", e);
-      }
-
-      DocumentBuilder documentBuilder = createDocumentBuilder(parse);
-      document = documentBuilder.getDOMImplementation().createDocument(null, null, null);
-      parse.setDocument(document);
-
-      DomBuilder domBuilder = new DomBuilder();
-      domBuilder.setDocument(document);
-
-      xmlReader.setContentHandler(domBuilder);
-      xmlReader.setErrorHandler(parse);
-      
-      InputSource inputSource = parse.getInputSource(); 
-      xmlReader.parse(inputSource);
-
-    } catch (Exception e) {
-      parse.addProblem("couldn't parse xml document", e);
+      return documentBuilder.parse(inputSource);
     }
-
-    return document;
+    catch (IOException e) {
+      parse.addProblem("could not read input", e);
+    }
+    catch (SAXException e) {
+      parse.addProblem("failed to parse xml", e);
+    }
+    return null;
   }
-
 
   // Document Object Model walking ////////////////////////////////////////////
 
@@ -505,16 +507,17 @@ public class Parser {
    * 
    * @return the object that is the result from parsing this element. */
   public Object parseElement(Element element, Parse parse, String category) {
-
     Object object = null;
     String tagName = element.getLocalName();
 
     Binding binding = getBinding(element, category);
 
-    if (binding!=null) {
+    if (binding != null) {
       object = binding.parse(element, parse, this);
-    } else if (log.isDebugEnabled()) {
-      log.debug("no element parser for tag "+tagName+(category!=null ? " in category "+category : " in the default category"));
+    }
+    else if (log.isDebugEnabled()) {
+      log.debug("no element parser for tag " + tagName
+        + (category != null ? " in category " + category : " in the default category"));
     }
 
     return object;
@@ -526,17 +529,20 @@ public class Parser {
 
   public List<ArgDescriptor> parseArgs(List<Element> argElements, Parse parse, String category) {
     List<ArgDescriptor> args = null;
-    if (argElements!=null) {
-      if (argElements.size()>0) {
+    if (argElements != null) {
+      if (argElements.size() > 0) {
         args = new ArrayList<ArgDescriptor>(argElements.size());
       }
-      for (Element argElement: argElements) {
+      for (Element argElement : argElements) {
         ArgDescriptor argDescriptor = new ArgDescriptor();
         argDescriptor.setTypeName(XmlUtil.attribute(argElement, "type"));
         Element descriptorElement = XmlUtil.element(argElement);
-        if (descriptorElement==null) {
-          parse.addProblem("arg must contain exactly one descriptor element out of "+bindings.getTagNames(category)+" as contents:"+XmlUtil.toString(argElement.getParentNode()), argElement);
-        } else {
+        if (descriptorElement == null) {
+          parse.addProblem("arg must contain exactly one descriptor element out of "
+            + bindings.getTagNames(category) + " as contents:"
+            + XmlUtil.toString(argElement.getParentNode()), argElement);
+        }
+        else {
           Descriptor descriptor = (Descriptor) parseElement(descriptorElement, parse, category);
           argDescriptor.setDescriptor(descriptor);
         }

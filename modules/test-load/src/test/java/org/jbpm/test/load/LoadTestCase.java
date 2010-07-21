@@ -21,20 +21,9 @@
  */
 package org.jbpm.test.load;
 
-import java.io.File;
 import java.io.PrintWriter;
-import java.util.Date;
 
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.jbpm.api.cmd.Command;
-import org.jbpm.api.cmd.Environment;
-import org.jbpm.pvm.internal.cmd.CommandService;
-import org.jbpm.pvm.internal.job.JobImpl;
-import org.jbpm.pvm.internal.jobexecutor.JobExecutor;
-import org.jbpm.pvm.internal.util.ReflectUtil;
 import org.jbpm.test.JbpmTestCase;
-
 
 /**
  * @author Tom Baeyens
@@ -47,30 +36,18 @@ public class LoadTestCase extends JbpmTestCase {
 
   protected static long checkInterval = 2000;
 
-  protected static String jobsAvailableQueryText =
-      "select count(*) "+
-      "from "+JobImpl.class.getName()+" as job "+
-      "where ( (job.dueDate is null) or (job.dueDate <= :now) ) "+ 
-      "  and ( job.retries > 0 )";
-
   protected static boolean measureMemory = true;
 
-  protected CommandService commandService;
-  protected JobExecutor jobExecutor;
   protected long startTime = -1;
   protected long stopTime = -1;
   protected PrintWriter logFileWriter;
-  
 
-  public void setUp() throws Exception {
+  protected void setUp() throws Exception {
     super.setUp();
-    
+
     if (measureMemory) {
       openMemoryLogFile();
     }
-    
-    commandService = processEngine.get(CommandService.class);
-    jobExecutor = processEngine.get(JobExecutor.class);
   }
   
   protected void tearDown() throws Exception {
@@ -95,8 +72,8 @@ public class LoadTestCase extends JbpmTestCase {
   }
 
   protected void openMemoryLogFile() throws Exception {
-    String testClass = ReflectUtil.getUnqualifiedClassName(getClass());
-    logFileWriter = new PrintWriter(new File("target/"+testClass +".txt"));
+    String testClass = getClass().getSimpleName();
+    logFileWriter = new PrintWriter("target/"+testClass +".txt");
     logColumnTitles();
   }
 
@@ -120,39 +97,6 @@ public class LoadTestCase extends JbpmTestCase {
     return used;
   }
 
-  protected void waitTillNoMoreMessages(JobExecutor jobExecutor) throws Exception {
-    boolean jobsAvailable = true;
-    while (jobsAvailable) {
-      log.debug("going to sleep for " + checkInterval + " millis, waiting for the job executor to process more jobs");
-      Thread.sleep(checkInterval);
-      jobsAvailable = areJobsAvailable();
-      logStatus();
-    }
-  }
-
-  public boolean areJobsAvailable() {
-    return commandService.execute(new Command<Boolean>() {
-      private static final long serialVersionUID = 1L;
-
-      public Boolean execute(Environment environment) {
-        Session session = environment.get(Session.class);
-
-        Query query = session.createQuery(jobsAvailableQueryText);
-        query.setDate("now", new Date());
-        
-        Long jobs = (Long) query.uniqueResult();
-
-        if (jobs.longValue()>0) {
-          log.debug("found "+jobs+" more jobs to process");
-          return true;
-        }
-        log.debug("no more jobs to process");
-        
-        return false;
-      }
-    });
-  }
-  
   public String getMeasuredTime() {
     long stop = stopTime!=-1 ? stopTime : System.currentTimeMillis();
     long diff = stop - startTime;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<process name="StateSequence" xmlns="http://jbpm.org/4.3/jpdl">
+<process name="StateSequence" xmlns="http://jbpm.org/4.4/jpdl">
 
   <start g="16,18,48,48">
     <transition to="a" />

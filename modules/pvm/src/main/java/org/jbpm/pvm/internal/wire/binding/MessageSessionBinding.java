@@ -21,6 +21,8 @@
  */
 package org.jbpm.pvm.internal.wire.binding;
 
+import org.w3c.dom.Element;
+
 import org.jbpm.pvm.internal.jms.JmsMessageSession;
 import org.jbpm.pvm.internal.jobexecutor.JobExecutorMessageSession;
 import org.jbpm.pvm.internal.session.DbSession;
@@ -29,16 +31,15 @@ import org.jbpm.pvm.internal.util.XmlUtil;
 import org.jbpm.pvm.internal.wire.descriptor.ContextTypeRefDescriptor;
 import org.jbpm.pvm.internal.wire.descriptor.JndiDescriptor;
 import org.jbpm.pvm.internal.wire.descriptor.ObjectDescriptor;
-import org.jbpm.pvm.internal.wire.descriptor.TransactionRefDescriptor;
 import org.jbpm.pvm.internal.xml.Parse;
 import org.jbpm.pvm.internal.xml.Parser;
-import org.w3c.dom.Element;
 
 /** parses a descriptor for creating a {@link MessageSession}.
  * 
  * See schema docs for more details.
  * 
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public class MessageSessionBinding extends WireDescriptorBinding {
 
@@ -72,8 +73,9 @@ public class MessageSessionBinding extends WireDescriptorBinding {
 
     } else {
       objectDescriptor.setClassName(JobExecutorMessageSession.class.getName());
-      objectDescriptor.addInjection("transaction", new TransactionRefDescriptor());
       objectDescriptor.addInjection("dbSession", new ContextTypeRefDescriptor(DbSession.class));
+      objectDescriptor.addInjection("jobAdditionNotifier",
+        TimerSessionBinding.getJobAdditionNotifierDescriptor(parse));
     }
 
     return objectDescriptor;

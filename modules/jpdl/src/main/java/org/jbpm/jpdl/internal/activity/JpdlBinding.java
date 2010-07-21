@@ -24,7 +24,6 @@ package org.jbpm.jpdl.internal.activity;
 import org.w3c.dom.Element;
 
 import org.jbpm.jpdl.internal.xml.JpdlParser;
-import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.model.ActivityImpl;
 import org.jbpm.pvm.internal.util.TagBinding;
 import org.jbpm.pvm.internal.util.XmlUtil;
@@ -33,10 +32,9 @@ import org.jbpm.pvm.internal.xml.Parser;
 
 /**
  * @author Tom Baeyens
- * @author Huisheng Xu
  */
 public abstract class JpdlBinding extends TagBinding {
-
+  
   public JpdlBinding(String tagName) {
     super(tagName, null, null);
   }
@@ -49,20 +47,11 @@ public abstract class JpdlBinding extends TagBinding {
 
   public void parseName(Element element, ActivityImpl activity, Parse parse) {
     String name = XmlUtil.attribute(element, "name", isNameRequired() ? parse : null);
-
-    if (name != null) {
+    
+    if (name!=null) {
       // basic name validation
-      if ("".equals(name)) {
+      if (name.length()==0) {
         parse.addProblem(XmlUtil.errorMessageAttribute(element, "name", name, "is empty"), element);
-      }
-
-      boolean isActivityAllowSlash = false;
-      Boolean candidateCondition = (Boolean) EnvironmentImpl.getFromCurrent("jbpm.activity.allow.slash", false);
-      if (candidateCondition != null) {
-        isActivityAllowSlash = candidateCondition.booleanValue();
-      }
-      if (!isActivityAllowSlash && name.indexOf('/') != -1) {
-        parse.addProblem(XmlUtil.errorMessageAttribute(element, "name", name, "contains slash (/)"), element);
       }
       activity.setName(name);
     }
@@ -71,31 +60,4 @@ public abstract class JpdlBinding extends TagBinding {
   public boolean isNameRequired() {
     return true;
   }
-
-//  TODO remove this dead code
-//
-//  public void parseTransitions(Element element, ActivityImpl activity, Parse parse, JpdlParser jpdlParser) {
-//    List<Element> transitionElements = XmlUtil.elements(element, "transition");
-//    UnresolvedTransitions unresolvedTransitions = parse.contextStackFind(UnresolvedTransitions.class);
-//    for (Element transitionElement: transitionElements) {
-//      String transitionName = XmlUtil.attribute(transitionElement, "name", false, parse);
-//
-//      Element timerElement = XmlUtil.element(transitionElement, "timer");
-//      if (timerElement!=null) {
-//        if (transitionName!=null) {
-//          TimerDefinitionImpl timerDefinitionImpl = jpdlParser.parseTimerDefinition(timerElement, parse, activity);
-//          timerDefinitionImpl.setSignalName(transitionName);
-//        } else {
-//          parse.addProblem("a transition name is required when a timer is placed on a transition", element);
-//        }
-//      }
-//
-//      TransitionImpl transition = activity.createOutgoingTransition();
-//      transition.setName(transitionName);
-//
-//      unresolvedTransitions.add(transition, transitionElement);
-//
-//      jpdlParser.parseOnEvent(transitionElement, parse, transition, Event.TAKE);
-//    }
-//  }
 }

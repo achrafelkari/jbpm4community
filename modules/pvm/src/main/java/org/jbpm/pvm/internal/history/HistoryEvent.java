@@ -26,40 +26,45 @@ import java.io.Serializable;
 import org.jbpm.pvm.internal.env.EnvironmentImpl;
 import org.jbpm.pvm.internal.model.ExecutionImpl;
 
-/** base class for process logs.  Process logs are dispatched to the 
+/** base class for process logs.  Process logs are dispatched to the
  * {@link HistorySession} that is configured in the environment.
- * 
- * <p>ProcessLogs that are send to a LogSession is the probe mechanism 
+ *
+ * <p>ProcessLogs that are send to a LogSession is the probe mechanism
  * provided to listen into the process execution progress and details.
  * It is the mechanism to collect process history and process statistics.
  * </p>
- * 
+ *
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public abstract class HistoryEvent implements Serializable {
-  
+
   private static final long serialVersionUID = 1L;
 
   protected ExecutionImpl execution;
-  
+
+  public ExecutionImpl getExecution() {
+    return execution;
+  }
+
   public void setExecution(ExecutionImpl execution) {
     this.execution = execution;
   }
 
   public abstract void process();
-  
+
   public static void fire(HistoryEvent historyEvent) {
     fire(historyEvent, null);
   }
-  
+
   public static void fire(HistoryEvent historyEvent, ExecutionImpl execution) {
     EnvironmentImpl environment = EnvironmentImpl.getCurrent();
     if (environment!=null) {
-      
+
       HistorySession historySession = environment.get(HistorySession.class);
       if (historySession!=null) {
         historyEvent.setExecution(execution);
-        historySession.process(historyEvent);        
+        historySession.process(historyEvent);
       }
     }
   }

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<process name="ScriptText" xmlns="http://jbpm.org/4.3/jpdl">
+<process name="ScriptText" xmlns="http://jbpm.org/4.4/jpdl">
 
   <start g="16,22,80,40">
     <transition to="invoke script" />
   </start>
 
-  <script name="invoke script" 
+  <script name="invoke script"
           var="text"
           g="113,18,104,52">
     <text>
@@ -15,7 +15,7 @@
 
     <transition to="wait" />
   </script>
-  
+
   <state name="wait" g="266,18,80,52"/>
 
 </process>

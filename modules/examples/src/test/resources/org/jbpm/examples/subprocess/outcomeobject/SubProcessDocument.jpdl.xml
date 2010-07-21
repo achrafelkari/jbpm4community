@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<process name="SubProcessDocument" xmlns="http://jbpm.org/4.3/jpdl">
+<process name="SubProcessDocument" xmlns="http://jbpm.org/4.4/jpdl">
 
   <start g="36,109,48,48">
     <transition to="review" />

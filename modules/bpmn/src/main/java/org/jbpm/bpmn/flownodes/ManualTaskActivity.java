@@ -13,5 +13,6 @@ public class ManualTaskActivity extends BpmnActivity {
     private static final long serialVersionUID = 1L;
 
     public void execute(ExecutionImpl executionImpl) {
+      proceed(executionImpl, findOutgoingSequenceFlow(executionImpl, CONDITIONS_CHECKED));
     }
 }

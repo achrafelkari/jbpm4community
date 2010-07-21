@@ -24,21 +24,25 @@ package org.jbpm.test.load.messages;
 import org.hibernate.Session;
 import org.jbpm.api.cmd.Environment;
 import org.jbpm.api.cmd.VoidCommand;
-import org.jbpm.pvm.internal.history.model.HistoryDetailImpl;
+import org.jbpm.pvm.internal.history.model.HistoryCommentImpl;
 
 /**
  * @author Tom Baeyens
  */
-public class AddCommentCmd extends VoidCommand  {
-  
+public class AddCommentCmd extends VoidCommand {
+
   private static final long serialVersionUID = 1L;
-  
+
   protected String message;
 
+  public AddCommentCmd(String message) {
+    this.message = message;
+  }
+
   public void executeVoid(Environment environment) throws Exception {
-//    HistoryDetailImpl comment = new HistoryDetailImpl(message);
-//    Session session = environment.get(Session.class);
-//    session.save(comment);
-//    MessageProcessingTest.commentAdded();
+    HistoryCommentImpl comment = new HistoryCommentImpl(message);
+    Session session = environment.get(Session.class);
+    session.save(comment);
+    MessageProcessingTest.commentAdded();
   }
 }

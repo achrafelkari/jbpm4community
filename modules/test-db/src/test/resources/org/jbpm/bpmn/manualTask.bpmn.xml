@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<definitions id="sid-e471f2be-74cc-4f20-a201-09327449efdf"
+	typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath"
+	targetNamespace="http://www.omg.org/bpmn20" xmlns="http://schema.omg.org/spec/BPMN/2.0"
+	xmlns:jbpm="http://jbpm.org/bpmn2">
+    <process id="manualTaskProcess" name="manualTaskProcess">
+        <laneSet id="laneSet">
+            <lane name="DefaultLane" id="lane">
+                <flowElementRef>start</flowElementRef>
+                <flowElementRef>manualTask</flowElementRef>
+                <flowElementRef>userTask</flowElementRef>
+                <flowElementRef>end</flowElementRef>
+            </lane>
+        </laneSet>
+        <startEvent name="Process start" id="start"/>
+	    <manualTask name="Do it manually" id="manualTask"/>
+		<userTask implementation="other" name="Sales operation" id="userTask">
+			<potentialOwner resourceRef="sales" jbpm:type="group">
+				<resourceAssignmentExpression>
+					<formalExpression>sales</formalExpression>
+				</resourceAssignmentExpression>
+			</potentialOwner>
+		</userTask>        
+        <endEvent name="Process end" id="end"/>
+        <sequenceFlow targetRef="manualTask" sourceRef="start" name="flow2Manual" id="flow1"/>
+        <sequenceFlow targetRef="userTask" sourceRef="manualTask" name="flow2user" id="flow2"/>
+    	<sequenceFlow targetRef="end" sourceRef="userTask" name="flow2End" id="flow3"/>
+    </process>
+</definitions>

@@ -6,11 +6,11 @@
   <property file="${user.home}/.jbpm4/build.properties" />
 
   <fail message="property jbpm.parent.dir must be specified" unless="jbpm.parent.dir" />
+  <fail message="property jbpm.version must be specified" unless="jbpm.version" />
 
   <!-- CONFIGURABLE PROPERTIES -->
   <property name="database" value="hsqldb" />
   <property name="identity.component" value="jbpm-built-in" />
-  <property name="jbpm.version" value="4.4-SNAPSHOT" />
   <!-- jbpm.home should not be configured. change jbpm.parent.dir instead -->
   <property name="jbpm.home" value="${jbpm.parent.dir}/jbpm-${jbpm.version}" />
   <property name="jboss.version" value="5.1.0.GA" />
@@ -47,7 +47,7 @@
   <!-- ####################################### -->
 
   <!-- DB SETUP -->
-  <target name="testsuite.db.setup" depends="reinstall.jbpm">
+  <target name="testsuite.db.setup" depends="reinstall.jbpm, install.hsqldb, start.hsqldb">
     <ant antfile="${jbpm.home}/install/build.xml" target="drop.jbpm.schema" />
     <ant antfile="${jbpm.home}/install/build.xml" target="create.jbpm.schema" />
   </target>
@@ -55,6 +55,7 @@
   <!-- DB TEARDOWN -->
   <target name="testsuite.db.teardown">
     <ant antfile="${jbpm.home}/install/build.xml" target="drop.jbpm.schema" />
+    <antcall target="stop.hsqldb"/>
   </target>
 
   <!-- ################ -->
@@ -65,8 +66,8 @@
   <target name="testsuite.tomcat.setup" depends="reinstall.jbpm">
     <ant antfile="${jbpm.home}/install/build.xml" target="reinstall.tomcat" />
     <ant antfile="${jbpm.home}/install/build.xml" target="create.user.webapp" />
-    <ant antfile="${jbpm.home}/install/build.xml" target="install.hsqldb.server" />
-    <ant antfile="${jbpm.home}/install/build.xml" target="start.hsqldb.server" />
+    <antcall target="install.hsqldb" />
+    <antcall target="start.hsqldb" />
     <ant antfile="${jbpm.home}/install/build.xml" target="create.jbpm.schema" />
 
     <!-- to build the jbpm test webapp we start by copying the user webapp -->
@@ -114,7 +115,7 @@
   <target name="testsuite.tomcat.teardown">
     <ant antfile="${jbpm.home}/install/build.xml" target="stop.tomcat" />
     <ant antfile="${jbpm.home}/install/build.xml" target="drop.jbpm.schema" />
-    <ant antfile="${jbpm.home}/install/build.xml" target="stop.hsqldb.server" />
+    <antcall target="stop.hsqldb" />
   </target>
 
   <!-- ################ -->
@@ -125,7 +126,7 @@
   <target name="testsuite.jboss.setup"
           depends="internal.jboss.test.setup.base"
           description="reinstalls jbpm, reinstalls jboss, installs jbpm into jboss, starts jboss and then creates the jbpm schema">
-    <ant antfile="${jbpm.home}/install/build.xml" target="start.hsqldb.server" />
+    <antcall target="start.hsqldb" />
     <ant antfile="${jbpm.home}/install/build.xml" target="create.jbpm.schema" />
     <ant antfile="${jbpm.home}/install/build.xml" target="start.jboss" />
   </target>
@@ -134,14 +135,14 @@
   <target name="testsuite.jboss.teardown" description="drops the jbpm schema and stops jboss">
     <ant antfile="${jbpm.home}/install/build.xml" target="stop.jboss" />
     <ant antfile="${jbpm.home}/install/build.xml" target="drop.jbpm.schema" />
-    <ant antfile="${jbpm.home}/install/build.xml" target="stop.hsqldb.server" />
+    <antcall target="stop.hsqldb" />
   </target>
 
   <!-- JBOSS SETUP DEBUG -->
   <target name="testsuite.jboss.setup.for.debug"
           depends="internal.jboss.test.setup.base"
           description="reinstalls jbpm, reinstalls jboss, installs jbpm into jboss, starts jboss and then creates the jbpm schema">
-    <ant antfile="${jbpm.home}/install/build.xml" target="start.hsqldb.server" />
+    <antcall target="start.hsqldb" />
     <ant antfile="${jbpm.home}/install/build.xml" target="create.jbpm.schema" />
     <ant antfile="${jbpm.home}/install/build.xml" target="enable.jboss.debug" />
   </target>
@@ -151,7 +152,7 @@
     <ant antfile="${jbpm.home}/install/build.xml" target="reinstall.jboss" />
     <ant antfile="${jbpm.home}/install/build.xml" target="install.jbpm.into.jboss" />
     <ant antfile="${jbpm.home}/install/build.xml" target="create.user.webapp" />
-    <ant antfile="${jbpm.home}/install/build.xml" target="install.hsqldb.server" />
+    <antcall target="install.hsqldb" />
 
     <!-- to build the jbpm test webapp we start by copying the user webapp -->
     <mkdir dir="${jboss.home}/server/default/deploy/jbpm-test-webapp.war" />
@@ -200,7 +201,7 @@
   <target name="testsuite.enterprise.setup"
           depends="internal.enterprise.test.setup.base"
           description="reinstalls jbpm, reinstalls jboss, installs jbpm into jboss, starts jboss and then creates the jbpm schema">
-    <ant antfile="${jbpm.home}/install/build.xml" target="start.hsqldb.server" />
+    <antcall target="start.hsqldb" />
     <ant antfile="${jbpm.home}/install/build.xml" target="create.jbpm.schema" />
     <ant antfile="${jbpm.home}/install/build.xml" target="enable.jboss.debug" />
     <ant antfile="${jbpm.home}/install/build.xml" target="start.jboss" />
@@ -211,20 +212,19 @@
           description="drops the jbpm schema and stops jboss">
     <ant antfile="${jbpm.home}/install/build.xml" target="stop.jboss" />
     <ant antfile="${jbpm.home}/install/build.xml" target="drop.jbpm.schema" />
-    <ant antfile="${jbpm.home}/install/build.xml" target="stop.hsqldb.server" />
+    <antcall target="stop.hsqldb" />
   </target>
 
   <target name="testsuite.enterprise.setup.for.debug"
           depends="internal.enterprise.test.setup.base"
           description="reinstalls jbpm, reinstalls jboss, installs jbpm into jboss, starts jboss and then creates the jbpm schema">
-    <ant antfile="${jbpm.home}/install/build.xml" target="start.hsqldb.server" />
+    <antcall target="start.hsqldb" />
     <ant antfile="${jbpm.home}/install/build.xml" target="create.jbpm.schema" />
     <ant antfile="${jbpm.home}/install/build.xml" target="enable.jboss.debug" />
   </target>
 
   <target name="internal.enterprise.test.setup.base"
-          depends="internal.jboss.test.setup.base"
-          description="reinstalls jbpm, reinstalls jboss, installs jbpm into jboss, starts jboss and then creates the jbpm schema">
+          depends="internal.jboss.test.setup.base">
     <!-- create the test queue -->
     <copy file="enterprise/jbpm-test-destinations-service.xml"
           todir="${jboss.home}/server/default/deploy/jbpm-test" />
@@ -273,7 +273,7 @@
     <unzip dest="upgrade/target/jbpm-test-upgrade" src="upgrade/target/jbpm-test-upgrade.jar" />
     <delete file="upgrade/target/jbpm-test-upgrade/hibernate.properties" />
 
-    <ant antfile="${jbpm.home}/install/build.xml" target="install.hsqldb.server" />
+    <antcall target="install.hsqldb" />
     <antcall target="start.hsqldb" />
     <ant antfile="${jbpm.home}/install/build.xml" target="drop.jbpm.schema" />
 
@@ -316,6 +316,10 @@
   <target name="copy.oracle.driver" if="is.oracle">
     <copy file="upgrade/target/ojdbc14.jar" todir="${old.jbpm.home}/lib" />
     <copy file="upgrade/target/ojdbc14.jar" todir="${jbpm.home}/lib" />
+  </target>
+
+  <target name="install.hsqldb" if="is.hsqldb">
+    <ant antfile="${jbpm.home}/install/build.xml" target="install.hsqldb.server" />
   </target>
 
   <target name="start.hsqldb" if="is.hsqldb">

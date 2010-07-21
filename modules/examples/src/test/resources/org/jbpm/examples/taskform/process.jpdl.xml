@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<process name="VacationRequest" xmlns="http://jbpm.org/4.3/jpdl">
+<process name="VacationRequest" xmlns="http://jbpm.org/4.4/jpdl">
   <start form="org/jbpm/examples/taskform/request_vacation.ftl" g="16,56,48,48" name="start">
     <transition to="verify_request"/>
   </start>

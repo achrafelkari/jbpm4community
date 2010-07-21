@@ -23,24 +23,25 @@ package org.jbpm.jpdl.parsing;
 
 import java.util.List;
 
+import org.jbpm.api.model.Activity;
 import org.jbpm.pvm.internal.client.ClientProcessDefinition;
 import org.jbpm.pvm.internal.model.ActivityImpl;
-import org.jbpm.pvm.internal.model.ProcessDefinitionImpl;
 import org.jbpm.pvm.internal.xml.Problem;
-
 
 /**
  * @author Tom Baeyens
  */
 public class ActivityParsingTest extends JpdlParseTestCase {
 
-  public void testInvalidActivityName() {
-    List<Problem> problems = parseProblems(
+  public void testSlashInActivityName() {
+    ClientProcessDefinition processDefinition = parse(
       "<process name='p'>" +
-      "  <state name='invalid / activityname' />" +
+      "  <start name='slash / activityname' />" +
       "</process>"
     );
-    assertTextPresent("attribute <state name=\"invalid / activityname\" contains slash (/)", problems.get(0).getMsg());
+
+    Activity initial = processDefinition.getInitial();
+    assertEquals("slash / activityname", initial.getName());
   }
 
   public void testEmptyActivityName() {
@@ -63,8 +64,7 @@ public class ActivityParsingTest extends JpdlParseTestCase {
     );
     assertEquals("process definition description", processDefinition.getDescription());
 
-    ProcessDefinitionImpl processDefinitionImpl = (ProcessDefinitionImpl) processDefinition;
-    ActivityImpl activity = processDefinitionImpl.getInitial();
+    ActivityImpl activity = (ActivityImpl) processDefinition.getInitial();
     assertEquals("start description", activity.getDescription());
   }
 }

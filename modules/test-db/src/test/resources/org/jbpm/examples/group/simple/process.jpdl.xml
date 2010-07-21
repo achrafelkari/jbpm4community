@@ -5,7 +5,7 @@
   <start>
     <transition to="evaluate document" />
   </start>
-  
+
   <group name="evaluate document">
     <start>
       <transition to="distribute document" />
@@ -23,7 +23,7 @@
     <end name="done" />
     <transition to="publish document" />
   </group>
-  
+
   <state name="publish document" />
 
 </process>

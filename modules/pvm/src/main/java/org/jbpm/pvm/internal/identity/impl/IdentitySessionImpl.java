@@ -38,6 +38,7 @@ import org.jbpm.pvm.internal.util.CollectionUtil;
 
 /**
  * @author Tom Baeyens
+ * @author Huisheng Xu
  */
 public class IdentitySessionImpl implements IdentitySession {
 
@@ -45,6 +46,14 @@ public class IdentitySessionImpl implements IdentitySession {
 
   public String createUser(String userName, String givenName, String familyName,
     String businessEmail) {
+    try {
+      User user = findUserById(userName);
+      if (user != null) {
+        throw new JbpmException("Cannot create user, userId: [" + userName + "] has been used");
+      }
+    } catch(Exception ex) {
+      throw new JbpmException("Cannot create user, error while validating", ex);
+    }
     UserImpl user = new UserImpl(userName, givenName, familyName);
     user.setBusinessEmail(businessEmail);
 
@@ -96,6 +105,14 @@ public class IdentitySessionImpl implements IdentitySession {
   }
 
   public String createGroup(String groupName, String groupType, String parentGroupId) {
+    try {
+      GroupImpl group = findGroupById(groupName);
+      if (group != null) {
+        throw new JbpmException("Cannot create group, groupId: [" + groupName + "] has been used");
+      }
+    } catch(Exception ex) {
+      throw new JbpmException("Cannot create group, error while validating", ex);
+    }
     GroupImpl group = new GroupImpl();
     String groupId = groupType != null ? groupType + "." + groupName : groupName;
     group.setId(groupId);

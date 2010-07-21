@@ -21,88 +21,58 @@
  */
 package org.jbpm.test.load.async;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import org.hibernate.Session;
-
-import org.jbpm.api.cmd.Environment;
-import org.jbpm.api.cmd.VoidCommand;
-import org.jbpm.pvm.internal.builder.ProcessDefinitionBuilder;
-import org.jbpm.pvm.internal.model.OpenProcessDefinition;
+import org.jbpm.test.JbpmTestCase;
 
 /**
  * @author Tom Baeyens
  */
-public class ContinuationTest extends JobExecutorTestCase {
+public class ContinuationTest extends JbpmTestCase {
 
-  // private static final Log log = Log.getLog(ContinuationTest.class.getName());
-
-  static Recorder recorder = new Recorder();
-
-  int nbrOfExecutions = 100;
+  static final Recorder recorder = new Recorder();
+  static final int nbrOfExecutions = 100;
 
   public void testContinuations() {
-    
-    try {
-      deployProcess();
-      startExecutions();
-      jobExecutor.start();
-      waitTillNoMoreMessages();
+    deployProcess();
+    startExecutions();
+    waitTillNoMoreMessages();
 
-    } finally {
-      jobExecutor.stop(true);
-    }
-
-    List<String> expectedLogs = new ArrayList<String>();
-    expectedLogs.add("execute(start)");
-    expectedLogs.add("execute(a)");
-    expectedLogs.add("execute(b)");
-    expectedLogs.add("execute(c)");
-    expectedLogs.add("execute(end)");
-    
     assertEquals(nbrOfExecutions, recorder.executionEvents.size());
+    List<String> expectedLogs = Arrays.asList("execute(a)", "execute(b)", "execute(c)", "execute(end)");
     for (List<String> executionLogs : recorder.executionEvents.values()) {
       assertEquals(expectedLogs, executionLogs);
     }
   }
 
-  public void deployProcess() {
-    commandService.execute(new VoidCommand() {
-      private static final long serialVersionUID = 1L;
-
-      @Override
-      protected void executeVoid(Environment environment) throws Exception {
-        OpenProcessDefinition processDefinition = ProcessDefinitionBuilder.startProcess("continuations")
-          .key("continuations")
-          .startActivity("start", AutomaticActivity.class)
-            .initial()
-            .asyncExecute()
-            .transition("a")
-          .endActivity()
-          .startActivity("a", AutomaticActivity.class)
-            .asyncExecute()
-            .transition("b")
-          .endActivity()
-          .startActivity("b", AutomaticActivity.class)
-            .asyncExecute()
-            .transition("c")
-          .endActivity()
-          .startActivity("c", AutomaticActivity.class)
-            .asyncExecute()
-            .transition("end")
-          .endActivity()
-          .startActivity("end", WaitState.class)
-          .endActivity()
-        .endProcess();
-        
-        Session session = environment.get(Session.class);
-        session.save(processDefinition);
-      }
-    });
+  void deployProcess() {
+    deployJpdlXmlString("<process name='continuations'>"
+      + "<start>"
+      + "  <transition to='a'/>"
+      + "</start>"
+      + "<custom name='a' class='"
+      + AutomaticActivity.class.getName()
+      + "' continue='async'>"
+      + "  <transition to='b'/>"
+      + "</custom>"
+      + "<custom name='b' class='"
+      + AutomaticActivity.class.getName()
+      + "' continue='async'>"
+      + "  <transition to='c'/>"
+      + "</custom>"
+      + "<custom name='c' class='"
+      + AutomaticActivity.class.getName()
+      + "' continue='async'>"
+      + "  <transition to='end'/>"
+      + "</custom>"
+      + "<custom name='end' class='"
+      + WaitState.class.getName()
+      + "'/>"
+      + "</process>");
   }
 
-  public void startExecutions() {
+  void startExecutions() {
     for (int i = 0; i < nbrOfExecutions; i++) {
       executionService.startProcessInstanceByKey("continuations");
     }

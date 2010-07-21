@@ -44,28 +44,33 @@ import org.jbpm.pvm.internal.task.SwimlaneImpl;
 public class SubProcessActivity extends JpdlExternalActivity {
 
   private static final long serialVersionUID = 1L;
-  
+
   protected String subProcessKey;
   protected String subProcessId;
   protected Map<String, String> swimlaneMappings;
 
   protected List<SubProcessInParameterImpl> inParameters;
   protected List<SubProcessOutParameterImpl> outParameters;
-  
+
   protected Expression outcomeExpression;
   protected Map<Object, String> outcomeVariableMappings;
 
   public void execute(ActivityExecution execution) {
     ExecutionImpl executionImpl = (ExecutionImpl) execution;
-    
+
     RepositorySession repositorySession = EnvironmentImpl.getFromCurrent(RepositorySession.class);
-    
+
     ClientProcessDefinition processDefinition = null;
-    
-    if (subProcessId!=null) {
+
+    if (subProcessId != null) {
       Expression subProcessKeyExpression = Expression.create(subProcessId, Expression.LANGUAGE_UEL_VALUE);
       String subProcessIdEval = (String) subProcessKeyExpression.evaluate(execution);
       processDefinition = repositorySession.findProcessDefinitionById(subProcessIdEval);
+
+      if (processDefinition == null) {
+        throw new JbpmException("cannot find process definition by id: ["
+          + subProcessId + "(" + subProcessIdEval + ")" + "]");
+      }
     } else {
       String subProcessKeyEval = null;
       try {
@@ -83,10 +88,14 @@ public class SubProcessActivity extends JpdlExternalActivity {
         throw new JbpmException("Subprocess '" + subProcessKeyEval + "' could not be found.");
       }
 
+      if (processDefinition == null) {
+        throw new JbpmException("cannot find process definition by key: ["
+          + subProcessKey + "(" + subProcessKeyEval + ")" + "]");
+      }
     }
-    
+
     ExecutionImpl subProcessInstance = (ExecutionImpl) processDefinition.createProcessInstance(null, execution);
-    
+
     for (String swimlaneName: swimlaneMappings.keySet()) {
       String subSwimlaneName = swimlaneMappings.get(swimlaneName);
       SwimlaneImpl subSwimlane = subProcessInstance.createSwimlane(subSwimlaneName);
@@ -95,13 +104,13 @@ public class SubProcessActivity extends JpdlExternalActivity {
         subSwimlane.initialize(swimlane);
       }
     }
-    
+
     for (SubProcessInParameterImpl inParameter: inParameters) {
       inParameter.produce(executionImpl, subProcessInstance);
     }
 
     executionImpl.historyActivityStart();
-    
+
     subProcessInstance.start();
 
     execution.waitForSignal();
@@ -128,15 +137,15 @@ public class SubProcessActivity extends JpdlExternalActivity {
     try {
       subProcessInstance.setSuperProcessExecution(null);
       execution.setSubProcessInstance(null);
-      
+
 
       for (SubProcessOutParameterImpl outParameter: outParameters) {
         outParameter.consume(execution, subProcessInstance);
       }
-      
+
       Activity activity = execution.getActivity();
       String subProcessActivityName = subProcessInstance.getActivityName();
-      
+
       if (outcomeExpression!=null) {
         Object value = outcomeExpression.evaluate(execution);
         // if the value is a String and matches the name of an outgoing transition
@@ -144,7 +153,7 @@ public class SubProcessActivity extends JpdlExternalActivity {
              && (activity.hasOutgoingTransition(((String) value)))
            ) {
           // then take that one
-          transitionName = (String) value; 
+          transitionName = (String) value;
         } else {
           // else see if there is a value mapping
           transitionName = outcomeVariableMappings.get(value);
@@ -162,7 +171,7 @@ public class SubProcessActivity extends JpdlExternalActivity {
         environment.setContext(originalExecutionContext);
       }
     }
-    
+
     execution.historyActivityEnd();
 
     if (transitionName!=null) {

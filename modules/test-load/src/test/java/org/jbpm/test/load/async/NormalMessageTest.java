@@ -21,82 +21,71 @@
  */
 package org.jbpm.test.load.async;
 
-import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 
 import org.hibernate.Session;
+
 import org.jbpm.api.cmd.Command;
 import org.jbpm.api.cmd.Environment;
+import org.jbpm.api.cmd.VoidCommand;
 import org.jbpm.api.history.HistoryComment;
 import org.jbpm.pvm.internal.history.model.HistoryDetailImpl;
 import org.jbpm.pvm.internal.job.CommandMessage;
-import org.jbpm.pvm.internal.jobexecutor.JobExecutor;
 import org.jbpm.pvm.internal.session.MessageSession;
 import org.jbpm.pvm.internal.util.CollectionUtil;
-import org.jbpm.test.Db;
+import org.jbpm.test.JbpmTestCase;
 
 /**
  * @author Tom Baeyens
  */
-public class NormalMessageTest extends JobExecutorTestCase {
+public class NormalMessageTest extends JbpmTestCase {
 
-  static long nbrOfTestMessages = 100;   
-
-  protected void setUp() throws Exception {
-    super.setUp();
-    Db.clean(processEngine);
-  }
+  static long nbrOfTestMessages = 100;
 
   public void testNormalMessageProcessing() {
-    JobExecutor jobExecutor = processEngine.get(JobExecutor.class);
-    jobExecutor.start();
-
-    try {
-      // insert ${nbrOfTestMessages} messages... 
-      for (int i = 0; i < nbrOfTestMessages; i++) {
-        commandService.execute(new InsertNormalMessageCmd(i));
-      }
-
-      // wait till all messages are processed
-      waitTillNoMoreMessages();
-
-    } finally {
-      jobExecutor.stop(true);
+    // insert ${nbrOfTestMessages} messages...
+    for (int i = 0; i < nbrOfTestMessages; i++) {
+      processEngine.execute(new InsertNormalMessageCmd(i));
     }
-    
-    List<Integer> processedMessageNumbers = commandService.execute(new Command<List<Integer>>() {
+    // wait till all messages are processed
+    waitTillNoMoreMessages();
+
+    BitSet processedMessageNumbers = processEngine.execute(new Command<BitSet>() {
+
       private static final long serialVersionUID = 1L;
 
-      public List<Integer> execute(Environment environment) {
-        List<Integer> processedMessageNumbers = new ArrayList<Integer>();
+      public BitSet execute(Environment environment) {
+        BitSet processedMessageNumbers = new BitSet();
         Session session = environment.get(Session.class);
         List<?> comments = session.createCriteria(HistoryDetailImpl.class).list();
-        for (HistoryComment comment: CollectionUtil.checkList(comments, HistoryComment.class)) {
+        for (HistoryComment comment : CollectionUtil.checkList(comments, HistoryComment.class)) {
           int processedMessageNumber = Integer.parseInt(comment.getMessage());
-          processedMessageNumbers.add(processedMessageNumber);
+          processedMessageNumbers.set(processedMessageNumber);
           // make sure the db stays clean
           session.delete(comment);
         }
         return processedMessageNumbers;
       }
     });
-    
+
     for (int i = 0; i < nbrOfTestMessages; i++) {
-      assertTrue("message " + i + " is not processed: " + processedMessageNumbers, processedMessageNumbers.contains(i));
+      assertTrue("message " + i + " is not processed: " + processedMessageNumbers, processedMessageNumbers.get(i));
     }
   }
-  
-  public static class InsertNormalMessageCmd implements Command<Object> {
+
+  public static class InsertNormalMessageCmd extends VoidCommand {
+
+    final int messageId;
     private static final long serialVersionUID = 1L;
-    int i;
-    public InsertNormalMessageCmd(int i) {
-      this.i = i;
+
+    public InsertNormalMessageCmd(int messageId) {
+      this.messageId = messageId;
     }
-    public Object execute(Environment environment) throws Exception {
+    protected void executeVoid(Environment environment) throws Exception {
       MessageSession messageSession = environment.get(MessageSession.class);
-      CommandMessage commandMessage = NormalMessageCommand.createMessage(i);
+      CommandMessage commandMessage = NormalMessageCommand.createMessage(messageId);
       messageSession.send(commandMessage);
-      return null;
     }
   }
 

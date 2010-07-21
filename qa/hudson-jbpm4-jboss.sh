@@ -4,11 +4,12 @@
 
 export MAVEN_OPTS="-Dbind.address=$JBOSS_BINDADDR"
 
-export ANT_OPTS="-Djbpm.parent.dir=$WORKSPACE -Dbind.address=$JBOSS_BINDADDR \
-       -Djboss.distro.dir=$SOURCE_REPO/jboss -Djboss.version=$JBOSS_VERSION"
+JBPM_VERSION=`mvn -Dexpression=project.version help:evaluate | grep '^4\.'`
+export ANT_OPTS="-Djbpm.parent.dir=$WORKSPACE -Djbpm.version=$JBPM_VERSION \
+       -Djboss.distro.dir=$SOURCE_REPO/jboss -Djboss.version=$JBOSS_VERSION $MAVEN_OPTS"
 
 # build distribution
-mvn -U -Pdistro,integration clean install
+mvn -q -U -Pdistro,integration clean install
 # set up
 ant -f qa/build.xml testsuite.jboss.setup
 # run test suite

@@ -50,6 +50,8 @@ import org.jbpm.jpdl.internal.convert.node.VariableAccess;
 import org.jbpm.jpdl.internal.convert.problem.Problem;
 import org.jbpm.jpdl.internal.convert.problem.ProblemListener;
 import org.jbpm.jpdl.internal.xml.JpdlParser;
+import org.jbpm.pvm.internal.util.CollectionUtil;
+
 import org.xml.sax.InputSource;
 
 /**
@@ -313,7 +315,7 @@ public class Jpdl3Converter implements ProblemListener {
         }
         
         //Implement it
-        List starts = jpdl4Element.elements("start-state");
+        List<?> starts = jpdl4Element.elements("start-state");
 
         // check for duplicate start-states
         if ((node instanceof StartState) && !starts.isEmpty()) {
@@ -386,8 +388,8 @@ public class Jpdl3Converter implements ProblemListener {
 				newTransistion.addAttribute("to", to);
 			} else {
 				//The last task node has a transition to the node after the original TaskNode
-				List<Element> transitions = jpdl3Element.elements("transition");
-				for (Element trans : transitions) {
+				List<?> transitions = jpdl3Element.elements("transition");
+				for (Element trans : CollectionUtil.checkList(transitions, Element.class)) {
 					Element transElement = task4.addElement("transition");
 					String transName = trans.attributeValue("name") == null ? trans.attributeValue("to") :trans.attributeValue("name"); 
 					transElement.addAttribute("name", transName);
@@ -463,9 +465,7 @@ public class Jpdl3Converter implements ProblemListener {
       log.info("process xml information: no swimlane or assignment specified for task '" + taskElement.asXML() + "'");
     }
     
-    //event elements  
-    convertEvents(taskElement, task4);
-    
+    //notification attribute
     String notificationsText = taskElement.attributeValue("notify");
     if (notificationsText != null && ("true".equalsIgnoreCase(notificationsText) 
             || "on".equalsIgnoreCase(notificationsText) || "yes".equalsIgnoreCase(notificationsText))) {
@@ -475,6 +475,10 @@ public class Jpdl3Converter implements ProblemListener {
     }
     //Reminder elements
     convertTaskReminders(taskElement, task4);
+
+    //event elements  
+    convertEvents(taskElement, task4);
+
     //timer elements
     convertTaskTimers(taskElement, task4);
 

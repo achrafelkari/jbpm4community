@@ -7,7 +7,7 @@
 <!--  See terms of license at http://www.gnu.org.                           -->
 <!-- ====================================================================== -->
 
-<!-- $Id: build.xml 6449 2010-07-02 08:05:29Z alex.guizar@jboss.com $ -->
+<!-- $Id: build.xml 6500 2010-07-16 12:42:10Z alex.guizar@jboss.com $ -->
 
 <project name="jbpm.examples">
 
@@ -16,10 +16,10 @@
 
   <!-- DEFAULT PROPERTY VALUES -->
   <property name="database" value="hsqldb" />
-  <property name="jbpm.parent.dir" value="../.." />
-  <property name="jbpm.version" value="4.4-SNAPSHOT" />
-  <property name="jboss.version" value="5.0.0.GA" />
-  <property name="jbpm.home" value="${jbpm.parent.dir}/jbpm-${jbpm.version}" />
+  <property name="jboss.version" value="5.1.0.GA" />
+  <condition property="jbpm.home" value="${jbpm.parent.dir}/jbpm-4.x" else="${basedir}/..">
+    <isset property="jbpm.parent.dir" />
+  </condition>
 
   <!-- JDBC PROPERTIES -->
   <property file="${user.home}/.jbpm4/jdbc/${database}.properties" />
@@ -31,7 +31,6 @@
     <echo message="jdbc.driver........ ${jdbc.driver}" />
     <echo message="jdbc.url........... ${jdbc.url}" />
     <echo message="jdbc.username...... ${jdbc.username}" />
-    <echo message="jbpm.version....... ${jbpm.version}" />
     <echo message="jbpm.home.......... ${jbpm.home}" />
   </target>
 

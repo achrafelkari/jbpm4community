@@ -21,46 +21,32 @@
  */
 package org.jbpm.test.load.async;
 
-import java.util.Random;
-
 import org.hibernate.Session;
-import org.jbpm.api.cmd.Command;
+
 import org.jbpm.api.cmd.Environment;
+import org.jbpm.api.cmd.VoidCommand;
 import org.jbpm.pvm.internal.history.model.HistoryCommentImpl;
 import org.jbpm.pvm.internal.history.model.HistoryDetailImpl;
 import org.jbpm.pvm.internal.job.CommandMessage;
-import org.jbpm.pvm.internal.wire.descriptor.IntegerDescriptor;
-import org.jbpm.pvm.internal.wire.descriptor.ObjectDescriptor;
 
 /**
  * @author Tom Baeyens
  */
-public class NormalMessageCommand implements Command<Void>  {
-  
+public class NormalMessageCommand extends VoidCommand {
+
   private static final long serialVersionUID = 1L;
-  static Random random = new Random();
-  
+
   int messageId;
-  
-  public NormalMessageCommand() {
-  }
-  
-  public NormalMessageCommand(int messageId) {
-    this.messageId = messageId;
-  }
 
   public static CommandMessage createMessage(int messageId) {
-    CommandMessage commandMessage = new CommandMessage();
-    ObjectDescriptor commandDescriptor = new ObjectDescriptor(NormalMessageCommand.class);
-    commandDescriptor.addInjection("messageId", new IntegerDescriptor(messageId));
-    commandMessage.setCommandDescriptor(commandDescriptor);
-    return commandMessage;
+    NormalMessageCommand command = new NormalMessageCommand();
+    command.messageId = messageId;
+    return new CommandMessage(command);
   }
 
-  public Void execute(Environment environment) throws Exception {
+  protected void executeVoid(Environment environment) throws Exception {
     HistoryDetailImpl comment = new HistoryCommentImpl(Integer.toString(messageId));
     Session session = environment.get(Session.class);
     session.save(comment);
-    return null;
   }
 }

@@ -187,7 +187,7 @@ public class Parse extends ProblemList implements ErrorHandler {
    * 'warning'. */
   public Parse checkErrors(String description) {
     if (hasErrors()) {
-      throw getJbpmException();
+      throw getJbpmException(description);
     }
     return this;
   }

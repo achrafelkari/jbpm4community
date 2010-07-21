@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<process name="Purchase order" xmlns="http://jbpm.org/4.3/jpdl">
+<process name="Purchase order" xmlns="http://jbpm.org/4.4/jpdl">
 
   <start g="46,33,80,40">
     <transition to="a" />

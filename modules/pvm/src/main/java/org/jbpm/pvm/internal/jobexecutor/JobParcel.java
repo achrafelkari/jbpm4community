@@ -43,12 +43,12 @@ public class JobParcel implements Runnable {
   }
 
   public void run() {
-    try {
-      for (Long jobDbid : jobDbids) {
+    for (Long jobDbid : jobDbids) {
+      try {
         commandService.execute(new ExecuteJobCmd(jobDbid));
+      } catch (RuntimeException e) {
+        log.error("failed to execute job: " + jobDbid, e);
       }
-    } catch (RuntimeException e) {
-      log.error("exception in job block", e);
     }
   }
 

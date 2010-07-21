@@ -26,114 +26,120 @@ package org.jbpm.integration.tomcat6;
 
 import java.security.Principal;
 import java.sql.Connection;
-import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
+import javax.naming.Context;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
+
+import org.apache.catalina.ServerFactory;
+import org.apache.catalina.core.StandardServer;
 import org.apache.catalina.realm.GenericPrincipal;
 import org.apache.catalina.realm.JDBCRealm;
 import org.apache.catalina.realm.RealmBase;
-
+import org.apache.naming.ContextBindings;
 
 /**
- * Basic implementation of a Realm authenticator for the jBPM identity tables
- * using plain JDBC queries.
- * 
- * The default provided JDBCRealm cannot be used, since the tables need
- * to follow a schema which does not map to the jBPM identity tables.
- * See http://tomcat.apache.org/tomcat-6.0-doc/realm-howto.html#JDBCRealm.
- * 
+ * <p>
+ * Basic implementation of a Realm authenticator for the jBPM identity tables using plain JDBC
+ * queries.
+ * </p>
+ * <p>
+ * The default provided JDBCRealm cannot be used, since the tables need to follow a schema which
+ * does not map to the jBPM identity tables.
+ * </p>
+ * <p>
  * This code is based on the {@link JDBCRealm} code.
+ * </p>
  * 
+ * @see <a href="http://tomcat.apache.org/tomcat-6.0-doc/realm-howto.html">Realm How-To</a>
  * @author Joram Barrez
+ * @author Alejandro Guizar
  */
 public class JbpmConsoleRealm extends RealmBase {
-  
+
   private String driverName;
-  
   private String connectionUrl;
-  
   private String connectionName;
-  
   private String connectionPassword;
-  
-  private Driver driver;
-   
+
+  private String dataSourceName;
+  private boolean localDataSource;
+  private DataSource dataSource;
+
   public Principal authenticate(String user, String credentials) {
-    Connection conn = null;
     try {
-      
-      conn = openConnection();
-      Long userId = retrieveUserId(conn, user, credentials);
-      
-      if (userId != null) {
-        List<String> roles = retrieveRoles(conn, userId);
-        return new GenericPrincipal(this, user, credentials, roles);
-      }
-      
-    } catch (Exception e) {
-      containerLog.error(e);
-    } finally {
-      if (conn != null) {
-        try {
-          conn.close();
-        } catch (SQLException e) {
-          containerLog.error(e);
+      Connection conn = openConnection();
+      try {
+        long userId = retrieveUserId(conn, user, credentials);
+        if (userId != -1) {
+          List<String> roles = retrieveRoles(conn, userId);
+          return new GenericPrincipal(this, user, credentials, roles);
         }
       }
+      finally {
+        conn.close();
+      }
+    }
+    catch (SQLException e) {
+      containerLog.error(e);
     }
     return null;
   }
-  
-  private Long retrieveUserId(Connection conn, String username, String password) throws SQLException {
-    Long result = null;
-    PreparedStatement stm = null;
+
+  private long retrieveUserId(Connection conn, String username, String password)
+    throws SQLException {
+    PreparedStatement stm = conn.prepareStatement("SELECT DBID_\n"
+      + "FROM JBPM4_ID_USER\n"
+      + "WHERE ID_=? AND PASSWORD_=?");
     try {
-      stm = conn.prepareStatement("SELECT DBID_ FROM JBPM4_ID_USER WHERE ID_=? AND PASSWORD_=?");
       stm.setString(1, username);
       stm.setString(2, password);
       ResultSet rs = stm.executeQuery();
-      while (rs.next()) {
+      if (rs.next()) {
         return rs.getLong(1);
       }
-    } finally {
+    }
+    finally {
       stm.close();
     }
-    return result;
+    return -1;
   }
-  
+
   private List<String> retrieveRoles(Connection conn, Long userDbId) throws SQLException {
-    List<String> roles = new ArrayList<String>();
-    PreparedStatement stm = null;
+    PreparedStatement stm = conn.prepareStatement("SELECT JBPM4_ID_GROUP.NAME_\n"
+      + "FROM JBPM4_ID_GROUP\n"
+      + "INNER JOIN JBPM4_ID_MEMBERSHIP ON JBPM4_ID_MEMBERSHIP.GROUP_=JBPM4_ID_GROUP.DBID_\n"
+      + "INNER JOIN JBPM4_ID_USER ON JBPM4_ID_MEMBERSHIP.USER_=JBPM4_ID_USER.DBID_\n"
+      + "WHERE JBPM4_ID_USER.DBID_=?");
     try {
-      stm = conn.prepareStatement("SELECT JBPM4_ID_GROUP.NAME_ FROM JBPM4_ID_GROUP " +
-                "INNER JOIN JBPM4_ID_MEMBERSHIP ON JBPM4_ID_MEMBERSHIP.GROUP_=JBPM4_ID_GROUP.DBID_ " +
-                "INNER JOIN JBPM4_ID_USER ON JBPM4_ID_MEMBERSHIP.USER_=JBPM4_ID_USER.DBID_ " +
-                "WHERE JBPM4_ID_USER.DBID_=?");
       stm.setLong(1, userDbId);
       ResultSet rs = stm.executeQuery();
+      List<String> roles = new ArrayList<String>();
       while (rs.next()) {
         roles.add(rs.getString(1));
       }
-    } finally {
+      return roles;
+    }
+    finally {
       stm.close();
     }
-    return roles;
   }
-  
+
   public Principal authenticate(String user, byte[] credentials) {
     return authenticate(user, new String(credentials));
   }
-  
-  public Principal authenticate(String arg0, String arg1, String arg2, String arg3, String arg4, String arg5, String arg6, String arg7) {
+
+  public Principal authenticate(String arg0, String arg1, String arg2, String arg3,
+    String arg4, String arg5, String arg6, String arg7) {
     throw new UnsupportedOperationException();
   }
-  
+
   /**
    * Return the password associated with the principal user name.
    */
@@ -141,7 +147,6 @@ public class JbpmConsoleRealm extends RealmBase {
   protected String getPassword(String username) {
     throw new UnsupportedOperationException();
   }
-  
 
   /**
    * Return the principal associated with the given username.
@@ -150,104 +155,90 @@ public class JbpmConsoleRealm extends RealmBase {
   protected Principal getPrincipal(String userName) {
     throw new UnsupportedOperationException();
   }
-  
 
   protected String getName() {
-    return this.getClass().getName();
+    return getClass().getName();
   }
 
   public String getInfo() {
     return "JbpmConsoleRealm";
   }
-  
-  
+
   private Connection openConnection() throws SQLException {
-    
-    if (driver == null) {
+    if (dataSourceName != null) {
+      if (dataSource == null) {
+        try {
+          Context context;
+          if (localDataSource) {
+            context = (Context) ContextBindings.getClassLoader().lookup("comp/env");
+          }
+          else {
+            StandardServer server = (StandardServer) ServerFactory.getServer();
+            context = server.getGlobalNamingContext();
+          }
+          dataSource = (DataSource) context.lookup(dataSourceName);
+        }
+        catch (NamingException e) {
+          SQLException sqlException = new SQLException("failed to retrieve " + dataSourceName);
+          sqlException.initCause(e);
+          throw sqlException;
+        }
+      }
+      return dataSource.getConnection();
+    }
+    else {
       try {
-        driver = (Driver) Class.forName(driverName).newInstance();
-        DriverManager.setLoginTimeout(10);
-      } catch (Exception e) {
-        throw new RuntimeException("Could not instantiate driver " + driverName);
+        Class.forName(driverName);
+        Connection connection = DriverManager.getConnection(connectionUrl,
+          connectionName,
+          connectionPassword);
+        connection.setReadOnly(true);
+        return connection;
+      }
+      catch (ClassNotFoundException e) {
+        SQLException sqlException = new SQLException("could not find " + driverName);
+        sqlException.initCause(e);
+        throw sqlException;
       }
     }
-    
-    
-    Properties props = new Properties();
-    props.put("user", connectionName);
-    props.put("password", connectionPassword);
-    
-    Connection conn = driver.connect(connectionUrl, props);
-    conn.setReadOnly(true);
-    return conn;
   }
-  
-  /**
-   * @return the driverName
-   */
+
+  public String getDataSourceName() {
+    return dataSourceName;
+  }
+
+  public void setDataSourceName(String dataSourceName) {
+    this.dataSourceName = dataSourceName;
+  }
+
   public String getDriverName() {
     return driverName;
   }
 
-
-  
-  /**
-   * @param driverName the driverName to set
-   */
   public void setDriverName(String driverName) {
     this.driverName = driverName;
   }
 
-
-  
-  /**
-   * @return the connectionUrl
-   */
   public String getConnectionUrl() {
     return connectionUrl;
   }
 
-
-  
-  /**
-   * @param connectionUrl the connectionUrl to set
-   */
   public void setConnectionUrl(String connectionUrl) {
     this.connectionUrl = connectionUrl;
   }
 
-
-  
-  /**
-   * @return the connectionName
-   */
   public String getConnectionName() {
     return connectionName;
   }
 
-
-  
-  /**
-   * @param connectionName the connectionName to set
-   */
   public void setConnectionName(String connectionName) {
     this.connectionName = connectionName;
   }
 
-
-  
-  /**
-   * @return the connectionPassword
-   */
   public String getConnectionPassword() {
     return connectionPassword;
   }
 
-
-  
-  /**
-   * @param connectionPassword the connectionPassword to set
-   */
   public void setConnectionPassword(String connectionPassword) {
     this.connectionPassword = connectionPassword;
   }

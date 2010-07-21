@@ -28,7 +28,6 @@ import org.jbpm.api.ProcessInstance;
 import org.jbpm.internal.log.Log;
 import org.jbpm.test.load.LoadTestCase;
 
-
 /**
  * @author Tom Baeyens
  */
@@ -55,7 +54,7 @@ public class ProcessExecutionTest extends LoadTestCase {
   }
 
   public void testExecuteProcesses() throws Exception {
-    // deployJpdlResource("org/jbpm/test/load/executions/process.jpdl.xml");
+    deployFromClasspath("org/jbpm/test/load/executions/process.jpdl.xml");
     
     startMeasuringTime();
     
@@ -65,7 +64,6 @@ public class ProcessExecutionTest extends LoadTestCase {
       thread.start();
       threadList.add(thread);
     }
-    
     
     for (Thread thread: threadList) {
       while (thread.isAlive()) {

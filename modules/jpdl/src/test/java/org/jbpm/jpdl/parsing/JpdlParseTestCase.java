@@ -33,16 +33,14 @@ import org.jbpm.test.BaseJbpmTestCase;
  */
 public abstract class JpdlParseTestCase extends BaseJbpmTestCase {
 
-  static JpdlParser jpdlParser = new JpdlParser();
+  protected static final JpdlParser jpdlParser = new JpdlParser();
 
   public List<Problem> parseProblems(String xmlString) {
     List<Problem> problems = jpdlParser.createParse()
                .setString(xmlString)
                .execute()
                .getProblems();
-    if ( (problems==null)
-         || (problems.isEmpty())
-       ) {
+    if (problems.isEmpty()) {
       fail("expected problems during parse");
     }
     return problems;

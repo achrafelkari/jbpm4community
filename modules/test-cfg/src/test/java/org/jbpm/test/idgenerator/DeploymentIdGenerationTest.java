@@ -31,12 +31,9 @@ import javax.persistence.Lob;
 import org.jbpm.api.Deployment;
 import org.jbpm.api.NewDeployment;
 import org.jbpm.api.ProcessEngine;
-import org.jbpm.api.ProcessInstance;
 import org.jbpm.pvm.internal.id.DbidGenerator;
 import org.jbpm.pvm.internal.id.MemoryDbidGenerator;
-import org.jbpm.pvm.internal.repository.DeploymentImpl;
 import org.jbpm.test.JbpmCustomCfgTestCase;
-
 
 /**
  * @author Joram Barrez
@@ -97,10 +94,9 @@ public class DeploymentIdGenerationTest extends JbpmCustomCfgTestCase {
   private void resetProcessEngineAndDbidGenerator() {
     // Close the process engine and recreate it
     ProcessEngine oldProcessEngine = processEngine;
-    processEngine.close();
-    processEngine = null;
+    oldProcessEngine.close();
     
-    initialize(); // creates a new ProcessEngine and services
+    processEngine = buildProcessEngine(); // creates a new ProcessEngine and services
     assertNotSame(oldProcessEngine, processEngine);
    
     // Reset the in memory generator and redeploy the process

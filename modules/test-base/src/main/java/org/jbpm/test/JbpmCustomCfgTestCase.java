@@ -22,41 +22,27 @@
 package org.jbpm.test;
 
 import org.jbpm.api.Configuration;
-import org.jbpm.api.RepositoryService;
-
-
+import org.jbpm.api.ProcessEngine;
 
 /**
  * @author Tom Baeyens
  */
 public class JbpmCustomCfgTestCase extends JbpmTestCase {
 
-  
-  protected synchronized void initialize() {
-    String cfgResource = getClass().getPackage().getName().replace(".", "/")+"/jbpm.cfg.xml";
-    
+  protected ProcessEngine buildProcessEngine() {
+    String cfgResource = getClass().getPackage().getName().replace('.', '/') + "/jbpm.cfg.xml";
+
     // We can't call initialize(String, String) here, since it will do a null
     // check on the statically cached process engine. Since the test-cfg
     // is meant to test different configs (and hence different process engines)
     // this caching is unwanted, which means we create the process engine
     // ourselves here.
-    
+
     if (log.isDebugEnabled()) {
       log.debug("building ProcessEngine from resource " + cfgResource);
     }
 
-    Configuration configuration = new Configuration().setResource(cfgResource);
-
-    processEngine = configuration.buildProcessEngine();
-    
-    repositoryService = processEngine.get(RepositoryService.class);
-    executionService = processEngine.getExecutionService();
-    historyService = processEngine.getHistoryService();
-    managementService = processEngine.getManagementService();
-    taskService = processEngine.getTaskService();
-    identityService = processEngine.getIdentityService();
+    return new Configuration().setResource(cfgResource).buildProcessEngine();
   }
-  
-
 
 }
