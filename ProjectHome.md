@@ -1,0 +1,1 @@
+Since Tom left Red hat and jBPM may be replaced by drools flow, in order to go on support current jBPM 4, we have to create a community branch.
